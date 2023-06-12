@@ -17,6 +17,7 @@ fi
 model=$1
 initial_year=$2
 final_year=$3
+variable=$4
 
 # specify the initialization method
 # 1 in this case
@@ -66,7 +67,7 @@ if [ $model == "all" ]; then
         if [ $model == "EC-Earth3" ]; then
 
             # set the number of initializations
-            init=2
+            init=4
 
             # loop over the initializations
             for init in $(seq 1 $init); do
@@ -100,7 +101,7 @@ if [ $model == "all" ]; then
             # HadGEM3-GC31-MM only has one initialization scheme
             if [ $model == "HadGEM3-GC31-MM" ]; then
                 init=1
-            elif [ $model == "EC-Earth3-HR" ]; then
+            elif [ $model == "EC-Earth3" ]; then
                 init=4 # covers i1, i2, and i4
                 # psl and sfcWind are i1 and i2 only
                 # tas and pr are i1 and i4 only
