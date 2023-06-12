@@ -1,16 +1,17 @@
 #!/bin/bash
 #
-# chaining-test.bash
+# multi-model.sel-region-forecast-range-season.bash
 #
-# For example: chaining-test.bash HadGEM3-GC31-MM 1960 1 psl north-atlantic 2-5 DJFM
+# For example: multi-model.sel-region-forecast-range-season.bash HadGEM3-GC31-MM 1960 1 psl north-atlantic 2-5 DJFM
 #
 
-# testing CDO operator chaining
+# check if the correct number of arguments have been passed
+if [ $# -ne 7 ]; then
+    echo "Usage: multi-model.sel-region-forecast-range-season.bash <model> <initialization-year> <run-number> <variable> <region> <forecast-range> <season>"
+    exit 1
+fi
 
-# import the dictionary of variables
-source ./dictionaries.bash
-
-# extract the data from the input
+# extract the data from the command line
 model=$1
 year=$2
 run=$3
@@ -19,18 +20,14 @@ region=$5
 forecast_range=$6
 season=$7
 
-# check if the correct number of arguments have been passed
-if [ $# -ne 7 ]; then
-    echo "Usage: chaining-test.bash <model> <initialization-year> <run-number> <variable> <region> <forecast-range> <season>"
-    exit 1
-fi
-
-# regrid the file (which selects the region)
-# then select the forecast range
-# then select the season
-
 # set up the gridspec file
 grid="/home/users/benhutch/gridspec/gridspec-${region}.txt"
+
+# if the gridspec file does not exist, exit
+if [ ! -f "$grid" ]; then
+    echo "[ERROR] Gridspec file not found"
+    exit 1
+fi
 
 # echo the gridspec file path
 echo "Gridspec file: $grid"
@@ -207,4 +204,3 @@ for INPUT_FILE in $files; do
     
     echo "[INFO] Finished processing: $INPUT_FILE"
 done
-
