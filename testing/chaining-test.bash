@@ -20,7 +20,7 @@ forecast_range=$6
 season=$7
 
 # check if the correct number of arguments have been passed
-if [ $# -ne 4 ]; then
+if [ $# -ne 7 ]; then
     echo "Usage: chaining-test.bash <model> <initialization-year> <run-number> <variable> <region> <forecast-range> <season>"
     exit 1
 fi
