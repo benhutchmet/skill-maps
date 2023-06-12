@@ -171,7 +171,7 @@ for INPUT_FILE in $files; do
     echo "Processing $INPUT_FILE"
     base_fname=$(basename "$INPUT_FILE")
     regridded_fname="regridded-${base_fname}"
-    season_fname="years-2-9-DJFM-${base_fname}"
+    season_fname="years-2-9-DJFM-${region}-${base_fname}"
     TEMP_FILE="$OUTPUT_DIR/temp-${base_fname}"
     REGRIDDED_FILE="$OUTPUT_DIR/${regridded_fname}"
     OUTPUT_FILE="$OUTPUT_DIR/${season_fname}"
