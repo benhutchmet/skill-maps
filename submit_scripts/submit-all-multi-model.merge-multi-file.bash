@@ -24,7 +24,7 @@ final_year=$3
 init=1
 
 # set the extractor script
-EXTRACTOR=$PWD/multi-model.merge-multi-file.bash
+EXTRACTOR=$PWD/process_scripts/multi-model.merge-multi-file.bash
 
 # set up the model list
 models="EC-Earth3 HadGEM3-GC31-MM EC-Earth3-HR"
