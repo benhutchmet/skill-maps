@@ -161,7 +161,12 @@ fi
 module load jaspy
 
 # set up the output directory
-OUTPUT_DIR="/work/scratch-nopw/benhutch/${variable}/${model}/outputs"
+OUTPUT_DIR="/work/scratch-nopw/benhutch/${variable}/${model}/${region}/years_${forecast_range}/${DJFM}/outputs"
+
+
+region=$5
+forecast_range=$6
+season=$7
 mkdir -p $OUTPUT_DIR
 
 # loop through the files and process them
@@ -171,7 +176,7 @@ for INPUT_FILE in $files; do
     echo "Processing $INPUT_FILE"
     base_fname=$(basename "$INPUT_FILE")
     regridded_fname="regridded-${base_fname}"
-    season_fname="years-2-9-DJFM-${region}-${base_fname}"
+    season_fname="years-${forecast_range}-${season}-${region}-${base_fname}"
     TEMP_FILE="$OUTPUT_DIR/temp-${base_fname}"
     REGRIDDED_FILE="$OUTPUT_DIR/${regridded_fname}"
     OUTPUT_FILE="$OUTPUT_DIR/${season_fname}"
