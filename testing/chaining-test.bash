@@ -162,11 +162,6 @@ module load jaspy
 
 # set up the output directory
 OUTPUT_DIR="/work/scratch-nopw/benhutch/${variable}/${model}/${region}/years_${forecast_range}/${DJFM}/outputs"
-
-
-region=$5
-forecast_range=$6
-season=$7
 mkdir -p $OUTPUT_DIR
 
 # loop through the files and process them
@@ -187,8 +182,6 @@ for INPUT_FILE in $files; do
 
     # Extract initialization year from the input file name
     year=$(basename "$REGRIDDED_FILE" | sed 's/.*_s\([0-9]\{4\}\)-.*/\1/')
-
-    forecast_range="2-5"
 
     # Set IFS to '-' and read into array
     IFS='-' read -ra numbers <<< "$forecast_range"
