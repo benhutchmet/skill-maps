@@ -22,7 +22,7 @@ gridspec_path="/home/users/benhutch/gridspec/"
 # badc file path for the gridspec files
 badc_base_path="/badc/cmip6/data/CMIP6/DCPP/"
 
-
+scratch_path="/work/scratch-nopw/benhutch"
 
 # list of models
 # available on JASMIN

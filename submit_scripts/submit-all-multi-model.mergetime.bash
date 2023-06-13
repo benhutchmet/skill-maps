@@ -117,10 +117,27 @@ echo "[INFO] Extracting data for all models: $models"
         # loop over the ensemble members
         for run in $(seq 1 $run); do
 
-        # set up the number of initialisation methods using a case statement
-        # 4 for EC-Earth3
-        # 2 for NorCPM1
-        # 1 for all other models
+            # if init_methods is greater than 1, then loop over the init methods
+            if [ $init_methods -gt 1 ]; then
+
+                # loop over the init methods
+                for init in $(seq 1 $init_methods); do
+
+                    # echo the init method
+                    echo "[INFO] Initialisation method: $init"
+
+                    # set the output file name
+                    OUTPUT_FILE="${OUTPUTS_DIR}/${model}_${run}_${init}_${forecast_range}_${season}.nc"
+
+                    # echo the output file name
+                    echo "[INFO] Output file name: $OUTPUT_FILE"
+
+                    # submit the job to LOTUS
+                    sbatch --partition=short-serial -t 5 -o $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init
+                    
+
+                done
+
 
             
         done
