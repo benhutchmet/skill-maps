@@ -31,7 +31,7 @@ init_scheme=$7
 module load jaspy
 
 # set up the files
-files=/work/scratch-nopw/benhutch/$variable/$model/$region/year_${forecast_range}/$season/outputs/mean-years-${forecast_range}-${season}-${region}-${variable}_Amon_${model}_dcppA-hindcast_s????-r${run}i{init_scheme}*.nc
+files=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/mean-years-${forecast_range}-${season}-${region}-${variable}_Amon_${model}_dcppA-hindcast_s????-r${run}i${init_scheme}*.nc
 
 
 # echo the files to be merged
