@@ -167,6 +167,7 @@ for INPUT_FILE in $files; do
     TEMP_FILE="$OUTPUT_DIR/temp-${base_fname}"
     REGRIDDED_FILE="$OUTPUT_DIR/${regridded_fname}"
     OUTPUT_FILE="$OUTPUT_DIR/${season_fname}"
+    MEAN_FILE="$OUTPUT_DIR/mean-${season_fname}"
 
     # Regrid using bilinear interpolation
     # Selects region (as long as x and y dimensions divide by 2.5)
@@ -198,9 +199,13 @@ for INPUT_FILE in $files; do
     # Extract the 2-9 years using cdo
     cdo select,startdate="$start_date",enddate="$end_date" "$TEMP_FILE" "$OUTPUT_FILE"
 
-    # Remove the temporary and regridded file
+    # Take the time mean of the output file
+    cdo timmean "$OUTPUT_FILE" "$MEAN_FILE"
+
+    # Remove the temporary, regridded, and original output files
     rm "$TEMP_FILE"
     rm "$REGRIDDED_FILE"
-    
+    rm "$OUTPUT_FILE"
+
     echo "[INFO] Finished processing: $INPUT_FILE"
 done
