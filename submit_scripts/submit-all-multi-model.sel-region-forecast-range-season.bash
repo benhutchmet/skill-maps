@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# submit-all-multi-model.merge-multi-file.bash
+# submit-all-multi-model.sel-region-forecast-range-season.bash
 #
-# For example: submit-all-multi-model.merge-multi-file.bash HadGEM3-GC31-MM 1960 1969 psl north-atlantic 2-5 DJFM
+# For example: submit-all-multi-model.sel-region-forecast-range-season.bash CMCC-CM2-SR5 1960 1 psl north-atlantic 2-5 DJFM
 #
 
 
