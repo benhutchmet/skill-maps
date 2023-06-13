@@ -1,5 +1,5 @@
-#!/bin/bash
-#
+#!/bin/bash -x
+# [debugging] -x option prints each command before executing it
 # calculate-anomalies.bash
 #
 # test script for removing the model mean state from 
@@ -80,42 +80,147 @@ mkdir -p $output_dir
 # loop over the files
 # and calculate the anomalies
 if [ "$model" == "NorCPM1" ]; then
-    cdo timmean $all_files_i1 /tmp/model_mean_state_i1.nc
-    for file in $all_files_i1; do
-        filename=$(basename $file)
-        cdo sub $file /tmp/model_mean_state_i1.nc $output_dir/${filename%.nc}_anom.nc
+    
+    # create a file name for the temp model mean state file
+    # for init scheme i1
+    temp_file_i1=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state_i1.nc
+    
+    # calculate the model mean state
+    cdo timmean $all_files_i1 $temp_file_i1
+
+    # ensure that the model mean state file has been created
+    if [ ! -f $temp_file_i1 ]; then
+        echo "ERROR: model mean state file not created"
+        exit 1
+    fi
+
+    # Perform the subtraction to calculate anomalies
+    files_to_process_i1=$(eval echo ${all_files_i1})
+
+    # loop over the files
+    for file in ${files_to_process_i1}; do
+        filename=$(basename ${file})
+        cdo sub ${file} ${temp_file_i1} ${output_dir}/${filename%.nc}_anom.nc
     done
-    cdo timmean $all_files_i2 /tmp/model_mean_state_i2.nc
-    for file in $all_files_i2; do
-        filename=$(basename $file)
-        cdo sub $file /tmp/model_mean_state_i2.nc $output_dir/${filename%.nc}_anom.nc
+    # create a file name for the temp model mean state file
+    # for init scheme i2
+    temp_file_i2=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state_i2.nc
+
+    # calculate the model mean state
+    cdo timmean $all_files_i2 $temp_file_i2
+
+    # ensure that the model mean state file has been created
+    if [ ! -f $temp_file_i2 ]; then
+        echo "ERROR: model mean state file not created"
+        exit 1
+    fi
+
+    # set up the files to process
+    files_to_process_i2=$(eval echo ${all_files_i2})
+
+    # loop over the files
+    for file in ${files_to_process_i2}; do
+        filename=$(basename ${file})
+        cdo sub ${file} ${temp_file_i2} ${output_dir}/${filename%.nc}_anom.nc
     done
+
+    # Perform the subtraction to calculate anomalies
 elif [ "$model" == "EC-Earth3" ]; then
-    cdo timmean $all_files_i1 /tmp/model_mean_state_i1.nc
-    for file in $all_files_i1; do
-        filename=$(basename $file)
-        cdo sub $file /tmp/model_mean_state_i1.nc $output_dir/${filename%.nc}_anom.nc
+        
+    # create a file name for the temp model mean state file
+    # for init scheme i1
+    temp_file_i1=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state_i1.nc
+    
+    # calculate the model mean state
+    cdo timmean $all_files_i1 $temp_file_i1
+
+    # ensure that the model mean state file has been created
+    if [ ! -f $temp_file_i1 ]; then
+        echo "ERROR: model mean state file not created"
+        exit 1
+    fi
+
+    # Perform the subtraction to calculate anomalies
+    files_to_process_i1=$(eval echo ${all_files_i1})
+
+    # loop over the files
+    for file in ${files_to_process_i1}; do
+        filename=$(basename ${file})
+        cdo sub ${file} ${temp_file_i1} ${output_dir}/${filename%.nc}_anom.nc
     done
-    cdo timmean $all_files_i2 /tmp/model_mean_state_i2.nc
-    for file in $all_files_i2; do
-        filename=$(basename $file)
-        cdo sub $file /tmp/model_mean_state_i2.nc $output_dir/${filename%.nc}_anom.nc
+    # create a file name for the temp model mean state file
+    # for init scheme i2
+    temp_file_i2=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state_i2.nc
+
+    # calculate the model mean state
+    cdo timmean $all_files_i2 $temp_file_i2
+
+    # ensure that the model mean state file has been created
+    if [ ! -f $temp_file_i2 ]; then
+        echo "ERROR: model mean state file not created"
+        exit 1
+    fi
+
+    # set up the files to process
+    files_to_process_i2=$(eval echo ${all_files_i2})
+
+    # loop over the files
+    for file in ${files_to_process_i2}; do
+        filename=$(basename ${file})
+        cdo sub ${file} ${temp_file_i2} ${output_dir}/${filename%.nc}_anom.nc
     done
-    cdo timmean $all_files_i4 /tmp/model_mean_state_i4.nc
-    for file in $all_files_i4; do
-        filename=$(basename $file)
-        cdo sub $file /tmp/model_mean_state_i4.nc $output_dir/${filename%.nc}_anom.nc
+
+    # create a file name for the temp model mean state file
+    # for init scheme i4
+    temp_file_i4=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state_i4.nc
+
+    # calculate the model mean state
+    cdo timmean $all_files_i4 $temp_file_i4
+
+    # ensure that the model mean state file has been created
+    if [ ! -f $temp_file_i4 ]; then
+        echo "ERROR: model mean state file not created"
+        exit 1
+    fi
+
+    # set up the files to process
+    files_to_process_i4=$(eval echo ${all_files_i4})
+
+    # loop over the files
+    for file in ${files_to_process_i4}; do
+        filename=$(basename ${file})
+        cdo sub ${file} ${temp_file_i4} ${output_dir}/${filename%.nc}_anom.nc
     done
 else
-    cdo timmean $all_files /tmp/model_mean_state.nc
-    for file in $all_files; do
-        filename=$(basename $file)
-        cdo sub $file /tmp/model_mean_state.nc $output_dir/${filename%.nc}_anom.nc
+
+    # create a file name for the temp model mean state file
+    temp_file=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state.nc
+
+    # calculate the model mean state
+    cdo timmean $all_files $temp_file
+
+    # ensure that the model mean state file has been created
+    if [ ! -f $temp_file ]; then
+        echo "ERROR: model mean state file not created"
+        exit 1
+    fi
+
+    # Perform the subtraction to calculate anomalies
+    files_to_process=$(eval echo ${all_files})
+
+    # loop over the files
+    for file in ${files_to_process}; do
+        filename=$(basename ${file})
+        cdo sub ${file} ${temp_file} ${output_dir}/${filename%.nc}_anom.nc
     done
+
 fi
 
 # Clean up temporary files
-rm /tmp/model_mean_state*.nc
+rm -f $temp_file
+rm -f $temp_file_i1
+rm -f $temp_file_i2
+rm -f $temp_file_i4
 
 echo "Anomalies have been calculated for $model $variable $region $forecast_range $season and saved in $output_dir"
 
