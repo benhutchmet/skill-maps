@@ -88,7 +88,7 @@ else
 fi
 
 # set up the filename for the merged file
-merged_fname="psl_Amon_${model}_dcppA-hindcast_s${init_year}-r${run}i${init}_gn_${init_year}11-${final_year}03.nc"
+merged_fname="${variable}_Amon_${model}_dcppA-hindcast_s${init_year}-r${run}i${init}_gn_${init_year}11-${final_year}03.nc"
 # set up the path for the merged file
 merged_file="$OUTPUT_DIR/$merged_fname"
 
