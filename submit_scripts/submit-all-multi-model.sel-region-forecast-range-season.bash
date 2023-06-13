@@ -12,7 +12,7 @@ source $PWD/dictionaries.bash
 echo "[INFO] models list: $models"
 
 # set the usage message
-USAGE_MESSAGE="Usage: submit-all-multi-model.merge-multi-file.bash <model> <initial-year> <final-year> <variable> <region> <forecast-range> <season>"
+USAGE_MESSAGE="Usage: submit-all-multi-model.sel-region-forecast-range-season.bash <model> <initial-year> <final-year> <variable> <region> <forecast-range> <season>"
 
 # check that the correct number of arguments have been passed
 if [ $# -ne 7 ]; then
@@ -31,6 +31,9 @@ season=$7
 
 # set the extractor script
 EXTRACTOR=$PWD/process_scripts/multi-model.sel-region-forecast-range-season.bash
+
+# make sure that cdo is loaded
+module load jaspy
 
 # if model=all, then run a for loop over all of the models
 if [ "$model" == "all" ]; then
