@@ -85,12 +85,15 @@ if [ "$model" == "NorCPM1" ]; then
     # for init scheme i1
     temp_file_i1=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state_i1.nc
     
+    # exract the files to process
+    files_to_process_i1=$(eval echo ${all_files_i1})
+
     # calculate the model mean state
-    cdo timmean $all_files_i1 $temp_file_i1
+    cdo timmean $files_to_process_i1 $temp_file_i1
 
     # ensure that the model mean state file has been created
     if [ ! -f $temp_file_i1 ]; then
-        echo "ERROR: model mean state file not created"
+        echo "ERROR: model mean state file not created i1"
         exit 1
     fi
 
@@ -111,7 +114,7 @@ if [ "$model" == "NorCPM1" ]; then
 
     # ensure that the model mean state file has been created
     if [ ! -f $temp_file_i2 ]; then
-        echo "ERROR: model mean state file not created"
+        echo "ERROR: model mean state file not created i2"
         exit 1
     fi
 
