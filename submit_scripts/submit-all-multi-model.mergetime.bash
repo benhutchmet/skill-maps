@@ -133,7 +133,7 @@ echo "[INFO] Extracting data for all models: $models"
                     echo "[INFO] Output file name: $OUTPUT_FILE"
 
                     # submit the job to LOTUS
-                    sbatch --partition=short-serial -t 5 -o $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init
+                    sbatch --partition=short-serial -t 5 -o $OUTPUTS_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUTS_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init
                     
 
                 done
@@ -148,7 +148,7 @@ echo "[INFO] Extracting data for all models: $models"
                 echo "[INFO] Output file name: $OUTPUT_FILE"
 
                 # submit the job to LOTUS
-                sbatch --partition=short-serial -t 5 -o $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUT_DIR/merge.${model}.${run}.${init_methods}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init_methods
+                sbatch --partition=short-serial -t 5 -o $OUTPUTS_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUTS_DIR/merge.${model}.${run}.${init_methods}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init_methods
 
             fi
         done
@@ -251,7 +251,7 @@ for run in $(seq 1 $run); do
             echo "[INFO] Output file name: $OUTPUT_FILE"
 
             # submit the job to LOTUS
-            sbatch --partition=short-serial -t 5 -o $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init
+            sbatch --partition=short-serial -t 5 -o $OUTPUTS_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUTS_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init
             
 
         done
@@ -266,7 +266,7 @@ for run in $(seq 1 $run); do
         echo "[INFO] Output file name: $OUTPUT_FILE"
 
         # submit the job to LOTUS
-        sbatch --partition=short-serial -t 5 -o $OUTPUT_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUT_DIR/merge.${model}.${run}.${init_methods}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init_methods
+        sbatch --partition=short-serial -t 5 -o $OUTPUTS_DIR/merge.${model}.${run}.${init}.${forecast_range}.${season}.out -e $OUTPUTS_DIR/merge.${model}.${run}.${init_methods}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season $run $init_methods
 
     fi
 done
