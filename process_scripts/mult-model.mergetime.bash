@@ -38,7 +38,7 @@ files=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_rang
 echo "Files to be merged: $files"
 
 # set the output directory
-OUTPUT_DIR=/work/scratch-nopw/benhutch/$variable/$model/$region/year_${forecast_range}/$season/outputs/mergetime
+OUTPUT_DIR=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/mergetime
 mkdir -p $OUTPUT_DIR
 
 # set the output file
