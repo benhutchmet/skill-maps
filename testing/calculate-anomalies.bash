@@ -5,7 +5,7 @@
 # test script for removing the model mean state from 
 # each ensemble member of a given model
 #
-# For example: calculate-anomalies.bash HadGEM3-GC31-MM psl north-atlantic 2-5 DJF 1 1
+# For example: calculate-anomalies.bash HadGEM3-GC31-MM psl north-atlantic 2-5 DJF
 #
 
 # we want to remove the anomalies for each ensemble member
