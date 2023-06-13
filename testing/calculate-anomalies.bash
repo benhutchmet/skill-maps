@@ -12,10 +12,10 @@
 # and each initialisation method for each ensemble member
 
 # set the usage message
-USAGE_MESSAGE="Usage: calculate-anomalies.bash <model> <variable> <region> <forecast-range> <season> <run> <init_scheme>"
+USAGE_MESSAGE="Usage: calculate-anomalies.bash <model> <variable> <region> <forecast-range> <season>"
 
 # check that the correct number of arguments have been passed
-if [ $# -ne 7 ]; then
+if [ $# -ne 5 ]; then
     echo "$USAGE_MESSAGE"
     exit 1
 fi
@@ -26,10 +26,6 @@ variable=$2
 region=$3
 forecast_range=$4
 season=$5
-
-# extract the run and init_scheme
-run=$6
-init_scheme=$7
 
 # make sure that cdo is loaded
 module load jaspy
@@ -82,3 +78,46 @@ output_dir=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast
 mkdir -p $output_dir
 
 # loop over the files
+# and calculate the anomalies
+if [ "$model" == "NorCPM1" ]; then
+    cdo timmean $all_files_i1 /tmp/model_mean_state_i1.nc
+    for file in $all_files_i1; do
+        filename=$(basename $file)
+        cdo sub $file /tmp/model_mean_state_i1.nc $output_dir/${filename%.nc}_anom.nc
+    done
+    cdo timmean $all_files_i2 /tmp/model_mean_state_i2.nc
+    for file in $all_files_i2; do
+        filename=$(basename $file)
+        cdo sub $file /tmp/model_mean_state_i2.nc $output_dir/${filename%.nc}_anom.nc
+    done
+elif [ "$model" == "EC-Earth3" ]; then
+    cdo timmean $all_files_i1 /tmp/model_mean_state_i1.nc
+    for file in $all_files_i1; do
+        filename=$(basename $file)
+        cdo sub $file /tmp/model_mean_state_i1.nc $output_dir/${filename%.nc}_anom.nc
+    done
+    cdo timmean $all_files_i2 /tmp/model_mean_state_i2.nc
+    for file in $all_files_i2; do
+        filename=$(basename $file)
+        cdo sub $file /tmp/model_mean_state_i2.nc $output_dir/${filename%.nc}_anom.nc
+    done
+    cdo timmean $all_files_i4 /tmp/model_mean_state_i4.nc
+    for file in $all_files_i4; do
+        filename=$(basename $file)
+        cdo sub $file /tmp/model_mean_state_i4.nc $output_dir/${filename%.nc}_anom.nc
+    done
+else
+    cdo timmean $all_files /tmp/model_mean_state.nc
+    for file in $all_files; do
+        filename=$(basename $file)
+        cdo sub $file /tmp/model_mean_state.nc $output_dir/${filename%.nc}_anom.nc
+    done
+fi
+
+# Clean up temporary files
+rm /tmp/model_mean_state*.nc
+
+echo "Anomalies have been calculated for $model $variable $region $forecast_range $season and saved in $output_dir"
+
+# End of script
+exit 0
