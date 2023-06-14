@@ -260,7 +260,7 @@ elif [ "$model" == "EC-Earth3" ]; then
 else
 
     # create a file name for the temp model mean state file
-    temp_file=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state.nc
+    temp_file_mms=/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_range}/$season/outputs/tmp/model_mean_state.nc
 
     # calculate the model mean state
     # loop over all of the files to process the time mean
@@ -276,7 +276,7 @@ else
     done
 
     # now take the ensemble mean of the time mean files
-    cdo ensmean ${output_dir_tmp}/temp-*.nc ${temp_file}
+    cdo ensmean ${output_dir_tmp}/temp-*.nc ${temp_file_mms}
 
     # ensure that the model mean state file has been created
     if [ ! -f $temp_file ]; then
@@ -288,7 +288,7 @@ else
     # and calculate the anomalies
     for file in ${all_files}; do
         filename=$(basename ${file})
-        cdo sub ${file} ${temp_file} ${output_dir}/${filename%}-anoms.nc
+        cdo sub ${file} ${temp_file_mms} ${output_dir}/${filename%.nc}-anoms.nc
     done
 
 fi
