@@ -1,6 +1,11 @@
 #!/bin/bash
+#
 # calculate-anomalies.bash
-# Script for removing the model mean state from each ensemble member of a given model.
+#
+# Script for removing the model mean state //
+# from each ensemble member of a given model.
+#
+# For example: calculate-anomalies.bash HadGEM3-GC31-MM psl north-atlantic 2-5 DJF
 
 # Set the usage message
 USAGE_MESSAGE="Usage: calculate-anomalies.bash <model> <variable> <region> <forecast-range> <season>"
@@ -28,6 +33,10 @@ base_dir="/work/scratch-nopw/benhutch/$variable/$model/$region/years_${forecast_
 process_files() {
     init_scheme=$1
     files_path="$base_dir/mean-years-${forecast_range}-${season}-${region}-${variable}_Amon_${model}_dcppA-hindcast_s????-r*${init_scheme}*.nc"
+
+    # Echo the files to be processed
+    echo "Model mean state calculated and anomalies calculated for: $files_path"
+
     temp_model_mean_state="$base_dir/tmp/model_mean_state_${init_scheme}.nc"
 
     # Calculate the model mean state
