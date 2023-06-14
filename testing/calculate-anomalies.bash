@@ -115,7 +115,7 @@ if [ "$model" == "NorCPM1" ]; then
     # and calculate the anomalies
     for file in ${all_files_i1}; do
         filename=$(basename ${file})
-        cdo sub ${file} ${temp_file_i1} ${output_dir}/${filename%}-anoms.nc
+        cdo sub ${file} ${temp_file_i1} ${output_dir}/${filename%.nc}-anoms.nc
     done
 
     # create a file name for the temp model mean state file
@@ -150,7 +150,7 @@ if [ "$model" == "NorCPM1" ]; then
     # and calculate the anomalies
     for file in ${all_files_i2}; do
         filename=$(basename ${file})
-        cdo sub ${file} ${temp_file_i2} ${output_dir}/${filename%}-anoms.nc
+        cdo sub ${file} ${temp_file_i2} ${output_dir}/${filename%.nc}-anoms.nc
     done
 
     # Perform the subtraction to calculate anomalies
@@ -187,7 +187,7 @@ elif [ "$model" == "EC-Earth3" ]; then
     # and calculate the anomalies
     for file in ${all_files_i1}; do
         filename=$(basename ${file})
-        cdo sub ${file} ${temp_file_i1} ${output_dir}/${filename%}-anoms.nc
+        cdo sub ${file} ${temp_file_i1} ${output_dir}/${filename%.nc}-anoms.nc
     done
 
     # create a file name for the temp model mean state file
@@ -221,7 +221,7 @@ elif [ "$model" == "EC-Earth3" ]; then
     # and calculate the anomalies
     for file in ${all_files_i2}; do
         filename=$(basename ${file})
-        cdo sub ${file} ${temp_file_i2} ${output_dir}/${filename%}-anoms.nc
+        cdo sub ${file} ${temp_file_i2} ${output_dir}/${filename%.nc}-anoms.nc
     done
 
     # create a file name for the temp model mean state file
@@ -255,7 +255,7 @@ elif [ "$model" == "EC-Earth3" ]; then
     # and calculate the anomalies
     for file in ${all_files_i4}; do
         filename=$(basename ${file})
-        cdo sub ${file} ${temp_file_i4} ${output_dir}/${filename%}-anoms.nc
+        cdo sub ${file} ${temp_file_i4} ${output_dir}/${filename%.nc}-anoms.nc
     done
 else
 
