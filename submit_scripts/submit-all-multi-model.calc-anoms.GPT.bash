@@ -16,7 +16,7 @@ submit_job() {
     echo "[INFO] Output directory: $output_dir"
     echo "[INFO] Submitting job for model: $model, variable: $variable, region: $region, forecast range: $forecast_range, season: $season"
 
-    sbatch --partition=short-serial -t 10 -o "${output_dir}/${model}.${variable}.${region}.${forecast_range}.${season}.out" -e "${output_dir}/${model}.${variable}.${region}.${forecast_range}.${season}.err" "$EXTRACTOR" "$model" "$variable" "$region" "$forecast_range" "$season"
+    sbatch --partition=short-serial -t 5 -o ${output_dir}/${model}.${variable}.${region}.${forecast_range}.${season}.out -e ${output_dir}/${model}.${variable}.${region}.${forecast_range}.${season}.err $EXTRACTOR $model $variable $region $forecast_range $season
 }
 
 # Main script
