@@ -189,6 +189,39 @@ for INPUT_FILE in $files; do
     # modify the start_year -1
     start_year=$((forecast_start_year - 1))
 
+
+    # extract the first and last letters
+    # from the season variable
+    first_letter=$(echo $season | head -c 1)
+    second_letter=$(echo $season | tail -c 2 | head -c 1)
+    last_letter=$(echo $season | tail -c 2)
+
+    # echo these
+    echo "First letter of season provided: $first_letter"
+    echo "Last letter of season provided: $last_letter"
+    echo "Second letter of season provided: $second_letter"
+
+    # case statement to set the month numbers
+    # based on the letters provided
+    case $first_letter in
+        "F") start_month=2 ;;
+        "S") start_month=5 ;;
+        "O") start_month=8 ;;
+        "N") start_month=11 ;;
+        "D") start_month=12 ;;
+    # if the letter after the first letter J
+    # is F, then the start month is 1
+    # if the letter after the first letter J
+    # is A, then the start month is 7
+    # if the letter after the first letter J
+    # is J, then the start month is 6
+    case $second_letter in
+        "F") start_month=1 ;;
+        "A") start_month=7 ;;
+        "J") start_month=6 ;;
+
+
+
     # Calculate the start and end dates for the DJFM season
     start_date=$((year + start_year))"-12-01"
     end_date=$((year + forecast_end_year))"-03-31"
