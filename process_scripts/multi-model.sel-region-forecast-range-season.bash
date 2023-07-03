@@ -4,6 +4,8 @@
 #
 # For example: multi-model.sel-region-forecast-range-season.bash HadGEM3-GC31-MM 1960 1 psl north-atlantic 2-5 DJFM
 #
+# NOTE: Seasons should be formatted using: JFMAYULGSOND
+#
 
 # check if the correct number of arguments have been passed
 if [ $# -ne 7 ]; then
@@ -190,41 +192,62 @@ for INPUT_FILE in $files; do
     start_year=$((forecast_start_year - 1))
 
 
-    # extract the first and last letters
-    # from the season variable
-    first_letter=$(echo $season | head -c 1)
-    second_letter=$(echo $season | tail -c 2 | head -c 1)
-    last_letter=$(echo $season | tail -c 2)
+    # Declare the month codes
+    declare -A months=( ["J"]=1 ["F"]=2 ["M"]=3 ["A"]=4 ["Y"]=5 ["U"]=6 ["L"]=7 ["G"]=8 ["S"]=9 ["O"]=10 ["N"]=11 ["D"]=12 )
 
-    # echo these
-    echo "First letter of season provided: $first_letter"
-    echo "Last letter of season provided: $last_letter"
-    echo "Second letter of season provided: $second_letter"
+    # Extract the month code from the season
+    start_month=${months[${season:0:1}]}
+    if [[ ${#season} -eq 2 ]]; then
+    end_month=${months[${season:1:1}]}
+    elif [[ ${#season} -eq 3 ]]; then
+    end_month=${months[${season:2:1}]}
+    else
+    end_month=${months[${season:3:1}]}
+    fi
 
-    # case statement to set the month numbers
-    # based on the letters provided
-    case $first_letter in
-        "F") start_month=2 ;;
-        "S") start_month=5 ;;
-        "O") start_month=8 ;;
-        "N") start_month=11 ;;
-        "D") start_month=12 ;;
-    # if the letter after the first letter J
-    # is F, then the start month is 1
-    # if the letter after the first letter J
-    # is A, then the start month is 7
-    # if the letter after the first letter J
-    # is J, then the start month is 6
-    case $second_letter in
-        "F") start_month=1 ;;
-        "A") start_month=7 ;;
-        "J") start_month=6 ;;
+    # if start_month or end_month is a single digit, add a 0 to the start
+    if [[ ${#start_month} -eq 1 ]]; then
+    start_month="0${start_month}"
+    fi
 
+    # for end month, add a 0 to the start
+    if [[ ${#end_month} -eq 1 ]]; then
+    end_month="0${end_month}"
+    fi
 
+    echo "Start month: $start_month"
+    echo "End month: $end_month"
 
     # Calculate the start and end dates for the DJFM season
-    start_date=$((year + start_year))"-12-01"
-    end_date=$((year + forecast_end_year))"-03-31"
+    start_date=$((year + start_year))"-${start_month}-01"
+    end_date=$((year + forecast_end_year))"-${end_month}-31"
+
+    echo "Start date: $start_date"
+    echo "End date: $end_date"
+
+    # convert from JFMAYULGSOND to JFMAMJJASOND format
+    # if Y is in the season, replace with M
+    if [[ $season == *"Y"* ]]; then
+    season=${season//Y/M}
+    fi
+
+    # if U is in the season, replace with J
+    if [[ $season == *"U"* ]]; then
+    season=${season//U/J}
+    fi
+
+    # if L is in the season, replace with J
+    if [[ $season == *"L"* ]]; then
+    season=${season//L/J}
+    fi
+
+    # if G is in the season, replace with A
+    if [[ $season == *"G"* ]]; then
+    season=${season//G/A}
+    fi
+
+    # echo the season
+    echo "Season: $season"
 
     # Constrain the input file to the DJFM season
     cdo select,season=${season} "$REGRIDDED_FILE" "$TEMP_FILE"

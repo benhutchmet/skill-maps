@@ -7,7 +7,7 @@ base_dir = "/home/users/benhutch/skill-maps-processed-data"
 plots_dir = base_dir + "/plots"
 
 # list of the test model
-test_model = [ "BCC-CSM2-MR" ]
+test_model = [ "CMCC-CM2-SR5" ]
 
 # define the paths for the observations
 obs_psl = "/home/users/benhutch/ERA5_psl/long-ERA5-full.nc"

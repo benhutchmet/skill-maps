@@ -145,11 +145,23 @@ def process_data(datasets_by_model, variable):
         if variable == "psl":
             # Extract the variable.
             variable_data = dataset["psl"]
+
+            # print the variable data
+            print("Variable data: ", variable_data)
+            # print the variable data type
+            print("Variable data type: ", type(variable_data))
+
+            # print the len of the variable data dimensions
+            print("Variable data dimensions: ", len(variable_data.dims))
             
             # Convert from Pa to hPa.
             # Using try and except to catch any errors.
             try:
-                variable_data = variable_data[:,:,0,0] / 100
+                variable_data = variable_data[:, 0, 0] / 100
+
+                # print the values of the variable data
+                print("Variable data values: ", variable_data.values)
+
             except:
                 print("Error converting from Pa to hPa")
                 sys.exit()
@@ -251,9 +263,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     # Of 2.5 x 2.5 degrees.
     # Using try and except to catch any errors.
     try:
-        regrid_example_dataset = xr.Dataset({"latitude": (["latitude"], np.arange(0, 360.1, 2.5)),
-                                             "longitude": (["longitude"], np.a range(-90, 90.1, 2.5))})
-        
+        regrid_example_dataset = xr.Dataset({"latitude": (["latitude"], np.arange(0, 360.1, 2.5)),"longitude": (["longitude"], np.arange(-90, 90.1, 2.5))})
+
         # Regrid the observations to the model grid.
         regridded_obs_dataset = obs_dataset.interp(latitude = regrid_example_dataset.latitude, longitude = regrid_example_dataset.longitude)
 
