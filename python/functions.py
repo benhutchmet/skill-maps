@@ -67,7 +67,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         datasets_by_model[model] = []
         
         # create the path to the files for this model
-        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
+        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*-anoms.nc"
 
         # print the path to the files
         print("Searching for files in ", files_path)
@@ -224,7 +224,7 @@ def process_data(datasets_by_model, variable):
 # variable, region, forecast_range, season
 # and the path to the observations
 # it returns the processed observations
-def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
+def process_observations_long(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
     """
     Process the observations. Regrids observations to the model grid (2.5x2.5). Selects the same region as the model data. Selects the same forecast range as the model data. Selects the same season as the model data.
     --------------------------------------------
@@ -241,7 +241,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         obs_var_name: The observations variable name, extracted from the dictionary.
 
     Returns:
-        A processed dataset.
+        obs_variable_data: The processed observations variable data.
     """
 
     # First check if the observations file exists.
@@ -281,10 +281,231 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         sys.exit()
 
     # Select the season
+    # Using try and except to catch any errors.
+    try:
+        # Select the season.
+        regridded_obs_dataset_region_season = regridded_obs_dataset_region.sel(time = regridded_obs_dataset_region["time.season"] == season)
 
-    
+    except:
+        print("Error selecting season")
+        sys.exit()
+
+    # If regridded_obs_dataset_region_season is empty, print a warning and exit the program.
+    if regridded_obs_dataset_region_season is None:
+        print("Observations not selected for season correctly")
+        sys.exit()
+
+    # Calculate the anomalies for the observations.
+    # Using try and except to catch any errors.
+    try:
+        # Calculate the mean climatology.
+        obs_climatology = regridded_obs_dataset_region_season.mean("time")
+
+        # Calculate the anomalies.
+        obs_anomalies = regridded_obs_dataset_region_season - obs_climatology
+
+    except:
+        print("Error calculating anomalies for observations")
+        sys.exit()
+
+    # If obs_anomalies is empty, print a warning and exit the program.
+    if obs_anomalies is None:
+        print("Observations anomalies not calculated correctly")
+        sys.exit()
+
+    # Calculate the annual mean anomalies for the observations.
+    # Using try and except to catch any errors.
+    # By shifting the dataset back by a number of months
+    # and then taking the yearly mean.
+    try:
+        if season == "DJFM" or season == "NDJFM":
+            obs_anomalies_annual = obs_anomalies.shift(time = -3).resample(time = "Y").mean("time")
+        elif season == "DJF" or season == "NDJF":
+            obs_anomalies_annual = obs_anomalies.shift(time = -2).resample(time = "Y").mean("time")
+        else :
+            obs_anomalies_annual = obs_anomalies.resample(time = "Y").mean("time")
+
+    except:
+        print("Error shifting and calculating annual mean anomalies for observations")
+        sys.exit()
+
+    # If obs_anomalies_annual is empty, print a warning and exit the program.
+    if obs_anomalies_annual is None:
+        print("Observations annual mean anomalies not calculated correctly")
+        sys.exit()
+
+    # Select the forecast range.
+    # Using try and except to catch any errors.
+    try:
+        # extract the first year of the forecast range.
+        forecast_range_start = int(forecast_range.split("-")[0])
+        forecast_range_end = int(forecast_range.split("-")[1])
+
+        # Echo the forecast range to the user.
+        print("Forecast range: " + str(forecast_range_start) + "-" + str(forecast_range_end))
+
+        # Calculate the rolling mean to take for the anomalies.
+        rolling_mean_range = forecast_range_end - forecast_range_start + 1
+
+        # Echo the rolling mean range to the user.
+        print("Rolling mean range: " + str(rolling_mean_range))
+
+        # Select the forecast range.
+        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time = rolling_mean_range, center = True).mean()
+
+    except:
+        print("Error selecting forecast range")
+        sys.exit()
+
+    # If obs_anomalies_annual_forecast_range is empty, print a warning and exit the program.
+    if obs_anomalies_annual_forecast_range is None:
+        print("Observations forecast range not selected correctly")
+        sys.exit()
+
+    # Return the observations.
+    return obs_anomalies_annual_forecast_range
 
 
+# Break this function up into smaller functions.
+# ---------------------------------------------
+# Function to load the observations.
+def check_file_exists(file_path):
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        print(f"File {file_path} does not exist")
+        sys.exit()
+
+def regrid_observations(obs_dataset):
+    try:
+        regrid_example_dataset = xr.Dataset({
+            "latitude": (["latitude"], np.arange(0, 360.1, 2.5)),
+            "longitude": (["longitude"], np.arange(-90, 90.1, 2.5))
+        })
+        regridded_obs_dataset = obs_dataset.interp(
+            latitude=regrid_example_dataset.latitude,
+            longitude=regrid_example_dataset.longitude
+        )
+        return regridded_obs_dataset
+    except:
+        print("Error regridding observations")
+        sys.exit()
+
+def select_region(regridded_obs_dataset, region_grid):
+    try:
+        regridded_obs_dataset_region = regridded_obs_dataset.sel(
+            lat=slice(region_grid[0], region_grid[1]),
+            lon=slice(region_grid[2], region_grid[3])
+        )
+        return regridded_obs_dataset_region
+    except:
+        print("Error selecting region")
+        sys.exit()
+
+def select_season(regridded_obs_dataset_region, season):
+    try:
+        regridded_obs_dataset_region_season = regridded_obs_dataset_region.sel(
+            time=regridded_obs_dataset_region["time.season"] == season
+        )
+        return regridded_obs_dataset_region_season
+    except:
+        print("Error selecting season")
+        sys.exit()
+
+def calculate_anomalies(regridded_obs_dataset_region_season):
+    try:
+        obs_climatology = regridded_obs_dataset_region_season.mean("time")
+        obs_anomalies = regridded_obs_dataset_region_season - obs_climatology
+        return obs_anomalies
+    except:
+        print("Error calculating anomalies for observations")
+        sys.exit()
+
+def calculate_annual_mean_anomalies(obs_anomalies, season):
+    try:
+        if season in ["DJFM", "NDJFM"]:
+            obs_anomalies_annual = obs_anomalies.shift(time=-3).resample(time="Y").mean("time")
+        elif season in ["DJF", "NDJF"]:
+            obs_anomalies_annual = obs_anomalies.shift(time=-2).resample(time="Y").mean("time")
+        else:
+            obs_anomalies_annual = obs_anomalies.resample(time="Y").mean("time")
+        return obs_anomalies_annual
+    except:
+        print("Error shifting and calculating annual mean anomalies for observations")
+        sys.exit()
+
+def select_forecast_range(obs_anomalies_annual, forecast_range):
+    try:
+        forecast_range_start, forecast_range_end = map(int, forecast_range.split("-"))
+        print("Forecast range:", forecast_range_start, "-", forecast_range_end)
+        rolling_mean_range = forecast_range_end - forecast_range_start + 1
+        print("Rolling mean range:", rolling_mean_range)
+        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(
+            time=rolling_mean_range, center=True
+        ).mean()
+        return obs_anomalies_annual_forecast_range
+    except:
+        print("Error selecting forecast range")
+        sys.exit()
+
+def process_observations(
+    variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
+):
+    """
+    Processes the observations dataset by regridding it to the model grid, selecting a region and season,
+    calculating anomalies, calculating annual mean anomalies, selecting the forecast range, and returning
+    the processed observations.
+
+    Args:
+        variable (str): The variable to process.
+        region (str): The region to select.
+        region_grid (str): The grid to regrid the observations to.
+        forecast_range (str): The forecast range to select.
+        season (str): The season to select.
+        observations_path (str): The path to the observations dataset.
+        obs_var_name (str): The name of the variable in the observations dataset.
+
+    Returns:
+        xarray.Dataset: The processed observations dataset.
+    """
+    # function code here
+def process_observations(
+    variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
+):
+    # Check if the observations file exists
+    check_file_exists(observations_path)
+
+    # Load the observations dataset
+    obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})
+    check_file_exists(obs_dataset)
+
+    # Regrid the observations to the model grid
+    regridded_obs_dataset = regrid_observations(obs_dataset)
+
+    # Select the region
+    regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
+
+    # Select the season
+    regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
+
+    # Calculate the anomalies
+    obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
+
+    # Calculate the annual mean anomalies
+    obs_anomalies_annual = calculate_annual_mean_anomalies(obs_anomalies, season)
+
+    # Select the forecast range
+    obs_anomalies_annual_forecast_range = select_forecast_range(obs_anomalies_annual, forecast_range)
+
+    return obs_anomalies_annual_forecast_range
+
+# def Call_scripts_to_process_obs(
+#     variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
+# ):
+#     processed_observations = process_observations(
+#         variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
+#     )
+#     # Perform additional processing or save the processed observations as needed
+#     pass
 
 
 # define a main function
