@@ -569,14 +569,38 @@ def process_observations(
 
     return obs_anomalies_annual_forecast_range
 
-# def Call_scripts_to_process_obs(
-#     variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
-# ):
-#     processed_observations = process_observations(
-#         variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
-#     )
-#     # Perform additional processing or save the processed observations as needed
-#     pass
+def plot_data(obs_data, variable_data, model_time):
+    """
+    Plots the observations and model data as two subplots on the same figure.
+    One on the left and one on the right.
+
+    Parameters:
+    obs_data (xarray.Dataset): The processed observations data.
+    variable_data (xarray.Dataset): The processed model data for a single variable.
+    model_time (str): The time dimension of the model data.
+
+    Returns:
+    None
+    """
+    # Take the time mean of the observations
+    obs_data_mean = obs_data.mean(dim=model_time)
+
+    # Create a figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 6))
+
+    # Plot the observations on the left subplot
+    obs_data_mean.plot(ax=ax1, transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=-2, vmax=2)
+    ax1.set_title('Observations')
+
+    # Plot the model data on the right subplot
+    variable_data.mean(dim=model_time).plot(ax=ax2, transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=-2, vmax=2)
+    ax2.set_title('Model Data')
+
+    # Set the title of the figure
+    # fig.suptitle(f'{obs_data.variable.long_name} ({obs_data.variable.units})\n{obs_data.region} {obs_data.forecast_range} {obs_data.season}')
+
+    # Show the plot
+    plt.show()
 
 
 # define a main function
@@ -664,7 +688,9 @@ def main():
     # Print the processed observations.
     print("obs = ", obs)
     print("dimensions = ", obs.dims)
-    print("shape = ", obs.shape)
+
+    # Print the dimensions of the variable data.
+    print("variable_data dimensions = ", variable_data)
 
 
 # Call the main function.
