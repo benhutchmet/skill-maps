@@ -157,7 +157,7 @@ def process_data(datasets_by_model, variable):
             # Convert from Pa to hPa.
             # Using try and except to catch any errors.
             try:
-                variable_data = variable_data[:, 0, 0] / 100
+                variable_data = variable_data
 
                 # print the values of the variable data
                 print("Variable data values: ", variable_data.values)
@@ -378,12 +378,12 @@ def check_file_exists(file_path):
 def regrid_observations(obs_dataset):
     try:
         regrid_example_dataset = xr.Dataset({
-            "lat": (["lat"], np.arange(-90, 90.1, 2.5)),
-            "lon": (["lon"], np.arange(0.0, 359.9, 2.5))
+            "lon": (["lon"], np.arange(0.0, 359.9, 2.5)),
+            "lat": (["lat"], np.arange(90.0, -90.1, -2.5)),
         })
         regridded_obs_dataset = obs_dataset.interp(
-            lat=regrid_example_dataset.lat,
-            lon=regrid_example_dataset.lon
+            lon=regrid_example_dataset.lon,
+            lat=regrid_example_dataset.lat
         )
         return regridded_obs_dataset
     except Exception as e:
@@ -417,14 +417,14 @@ def select_region(regridded_obs_dataset, region_grid):
             # Select two slices and concatenate them together
             regridded_obs_dataset_region = xr.concat([
                 regridded_obs_dataset.sel(
-                    lon=slice(lon1, 360),
-                    lat=slice(lat2, lat1)
+                    lon=slice(0, lon2),
+                    lat=slice(lat1, lat2)
                 ),
                 regridded_obs_dataset.sel(
-                    lon=slice(0, lon2),
-                    lat=slice(lat2, lat1)
+                    lon=slice(lon1, 360),
+                    lat=slice(lat1, lat2)
                 )
-            ], dim='lon')
+            ], dim='lat')
 
         return regridded_obs_dataset_region
     except Exception as e:
@@ -497,8 +497,7 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
         print("Forecast range:", forecast_range_start, "-", forecast_range_end)
         rolling_mean_range = forecast_range_end - forecast_range_start + 1
         print("Rolling mean range:", rolling_mean_range)
-        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(
-            time=rolling_mean_range).mean()
+        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range).mean()
         return obs_anomalies_annual_forecast_range
     except:
         print("Error selecting forecast range")
@@ -575,7 +574,8 @@ def process_observations(
     # Print the dataset being processed to the user
     print("Processing dataset before season:", regridded_obs_dataset_region)
     print("checking for NaN values in regridded observations dataset region")
-    check_for_nan_values(regridded_obs_dataset_region)
+    # print the values of var151 for the dataset
+    print(regridded_obs_dataset_region['var151'])
 
     # Select the season
     regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
@@ -583,17 +583,17 @@ def process_observations(
     # Print the dataset being processed to the user
     print("Processing dataset:", regridded_obs_dataset_region_season)
     print("checking for NaN values in regridded observations dataset region season")
-    check_for_nan_values(regridded_obs_dataset_region_season)
+    #check_for_nan_values(regridded_obs_dataset_region_season)
 
     # Calculate the anomalies
     obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
     print("checking for NaN values in observations anomalies")
-    check_for_nan_values(obs_anomalies)
+    #check_for_nan_values(obs_anomalies)
 
     # Calculate the annual mean anomalies
     obs_anomalies_annual = calculate_annual_mean_anomalies(obs_anomalies, season)
     print("checking for NaN values in observations annual anomalies")
-    check_for_nan_values(obs_anomalies_annual)
+    #check_for_nan_values(obs_anomalies_annual)
 
     print(obs_anomalies_annual['var151'].values)
 
@@ -667,7 +667,8 @@ def plot_obs_data(obs_data):
     obs_data_first = obs_data.isel(time=-1)
 
     # Select the variable to be plotted
-    obs_var = obs_data_first["var151"]
+    # and convert to hPa
+    obs_var = obs_data_first["var151"]/100
 
     # print the value of the variable
     print("Observations variable:", obs_var.values)
@@ -679,9 +680,13 @@ def plot_obs_data(obs_data):
     fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
 
     # Plot the observations on the subplot
-    c = ax.contourf(obs_data_first.lat, obs_data_first.lon, obs_var, transform=ccrs.PlateCarree(), cmap='coolwarm')
+    c = ax.contourf(obs_data_first.lon, obs_data_first.lat, obs_var, transform=ccrs.PlateCarree(), cmap='coolwarm')
 
-    # Add a colorbar to the subplot
+    # Add coastlines and gridlines to the plot
+    ax.coastlines()
+    ax.gridlines(draw_labels=True)
+
+    # Add a colorbar to the plot
     fig.colorbar(c, ax=ax, shrink=0.6)
 
     # Set the title of the figure
@@ -689,6 +694,69 @@ def plot_obs_data(obs_data):
 
     # Show the plot
     plt.show()
+
+def plot_model_data(model_data, models):
+    """
+    Plots the first timestep of the model data as a single subplot.
+    """
+
+    # initialize an empty list to store the ensemble members
+    ensemble_members = []
+
+    # initialize a dictionary to store the count of ensemble members
+    # for each model
+    ensemble_members_count = {}
+
+    # For each model
+    for model in models:
+        model_data_combined = model_data[model]
+
+        if model not in ensemble_members_count:
+            ensemble_members_count[model] = 0
+
+        for member in model_data_combined:
+            ensemble_members.append(member)
+
+            # Increment the count of ensemble members for the model
+            ensemble_members_count[model] += 1
+
+    # Conver the ensemble members counts dictionary to a list of tuples
+    ensemble_members_count_list = [(model, count) for model, count in ensemble_members_count.items()]
+
+    # Conver the list of all ensemble members to a numpy array
+    ensemble_members = np.array(ensemble_members)
+
+    # take the ensemble mean over the members
+    ensemble_mean = ensemble_members.mean(axis=0)
+
+    # print the dimensions of the model data
+    print("ensemble mean shape", np.shape(ensemble_mean))
+
+    # Take the time mean of the model data
+    ensemble_mean_time_mean = ensemble_mean.mean(axis=-1)
+
+    # Set up the figure
+    fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+
+    # Plot the time mean ensemble mean on the subplot
+    # as a filled contour
+    c = ax.contourf(ensemble_mean_time_mean.lon, ensemble_mean_time_mean.lat, ensemble_mean_time_mean, transform=ccrs.PlateCarree(), cmap='coolwarm')
+
+    # Add coastlines and gridlines to the plot
+    ax.coastlines()
+    ax.gridlines(draw_labels=True)
+
+    # Add a colorbar to the plot
+    fig.colorbar(c, ax=ax, shrink=0.6)
+
+    # Set the title of the figure
+    # fig.suptitle(f'{model_data.variable.long_name} ({model_data.variable.units})\n{model_data.region} {model_data.forecast_range} {model_data.season}')
+
+    # Show the plot
+    plt.show()
+
+
+
 
 
 # define a main function
