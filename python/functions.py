@@ -401,6 +401,11 @@ def select_region(regridded_obs_dataset, region_grid):
         lon1, lon2 = region_grid['lon1'], region_grid['lon2']
         lat1, lat2 = region_grid['lat1'], region_grid['lat2']
 
+        # # Roll longitude to 0-360 if necessary
+        # if (regridded_obs_dataset.coords['lon'] < 0).any():
+        #     regridded_obs_dataset.coords['lon'] = np.mod(regridded_obs_dataset.coords['lon'], 360)
+        #     regridded_obs_dataset = regridded_obs_dataset.sortby(regridded_obs_dataset.longitude)
+
         # dependent on whether this wraps around the prime meridian
         if lon1 < lon2:
             regridded_obs_dataset_region = regridded_obs_dataset.sel(
@@ -410,18 +415,16 @@ def select_region(regridded_obs_dataset, region_grid):
         else:
             # If the region crosses the prime meridian, we need to do this in two steps
             # Select two slices and concatenate them together
-            regridded_obs_dataset_region1 = regridded_obs_dataset.sel(
-                lon=slice(lon1, 360),
-                lat=slice(lat2, lat1)
-            )
-            regridded_obs_dataset_region2 = regridded_obs_dataset.sel(
-                lon=slice(0, lon2),
-                lat=slice(lat2, lat1)
-            )
-            regridded_obs_dataset_region = xr.concat(
-                [regridded_obs_dataset_region1, regridded_obs_dataset_region2],
-                dim="lat"
-            )
+            regridded_obs_dataset_region = xr.concat([
+                regridded_obs_dataset.sel(
+                    lon=slice(lon1, 360),
+                    lat=slice(lat2, lat1)
+                ),
+                regridded_obs_dataset.sel(
+                    lon=slice(0, lon2),
+                    lat=slice(lat2, lat1)
+                )
+            ], dim='lon')
 
         return regridded_obs_dataset_region
     except Exception as e:
@@ -495,12 +498,25 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
         rolling_mean_range = forecast_range_end - forecast_range_start + 1
         print("Rolling mean range:", rolling_mean_range)
         obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(
-            time=rolling_mean_range, center=True
-        ).mean()
+            time=rolling_mean_range).mean()
         return obs_anomalies_annual_forecast_range
     except:
         print("Error selecting forecast range")
         sys.exit()
+
+
+# WRITE A FUNCTION WHICH WILL CHECK FOR NAN VALUES IN THE OBSERVATIONS DATASET
+# IF THERE ARE NAN VALUES, THEN echo an error
+# and exit the program
+def check_for_nan_values(obs):
+    try:
+        if obs['var151'].isnull().values.any():
+            print("Error: NaN values in observations")
+            sys.exit()
+    except:
+        print("Error checking for NaN values in observations")
+        sys.exit()
+
 
 def process_observations(
     variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
@@ -540,32 +556,54 @@ def process_observations(
     # print the observations dataset
     print("Observations dataset:", obs_dataset)
 
+    # Check for NaN values in the observations dataset
+    # print
+    print("Checking for NaN values in observations dataset")
+    check_for_nan_values(obs_dataset)
+
     # Regrid the observations to the model grid
     regridded_obs_dataset = regrid_observations(obs_dataset)
 
     # print the regridded observations dataset
     print("Regridded observations dataset:", regridded_obs_dataset)
+    print("checking for NaN values in regridded observations dataset")
+    check_for_nan_values(regridded_obs_dataset)
 
     # Select the region
     regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
 
     # Print the dataset being processed to the user
     print("Processing dataset before season:", regridded_obs_dataset_region)
+    print("checking for NaN values in regridded observations dataset region")
+    check_for_nan_values(regridded_obs_dataset_region)
 
     # Select the season
     regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
 
     # Print the dataset being processed to the user
     print("Processing dataset:", regridded_obs_dataset_region_season)
+    print("checking for NaN values in regridded observations dataset region season")
+    check_for_nan_values(regridded_obs_dataset_region_season)
 
     # Calculate the anomalies
     obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
+    print("checking for NaN values in observations anomalies")
+    check_for_nan_values(obs_anomalies)
 
     # Calculate the annual mean anomalies
     obs_anomalies_annual = calculate_annual_mean_anomalies(obs_anomalies, season)
+    print("checking for NaN values in observations annual anomalies")
+    check_for_nan_values(obs_anomalies_annual)
+
+    print(obs_anomalies_annual['var151'].values)
 
     # Select the forecast range
     obs_anomalies_annual_forecast_range = select_forecast_range(obs_anomalies_annual, forecast_range)
+    print("checking for NaN values in observations annual anomalies forecast range")
+    # check_for_nan_values(obs_anomalies_annual_forecast_range)
+
+    # print the var151 values
+    print(obs_anomalies_annual_forecast_range['var151'].values)
 
     return obs_anomalies_annual_forecast_range
 
@@ -582,8 +620,12 @@ def plot_data(obs_data, variable_data, model_time):
     Returns:
     None
     """
+
+    # print the dimensions of the observations data
+    print("Observations dimensions:", obs_data.dims)
+
     # Take the time mean of the observations
-    obs_data_mean = obs_data.mean(dim=model_time)
+    obs_data_mean = obs_data.mean(dim='time')
 
     # Create a figure with two subplots
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(12, 6))
@@ -595,6 +637,52 @@ def plot_data(obs_data, variable_data, model_time):
     # Plot the model data on the right subplot
     variable_data.mean(dim=model_time).plot(ax=ax2, transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=-2, vmax=2)
     ax2.set_title('Model Data')
+
+    # Set the title of the figure
+    # fig.suptitle(f'{obs_data.variable.long_name} ({obs_data.variable.units})\n{obs_data.region} {obs_data.forecast_range} {obs_data.season}')
+
+    # Show the plot
+    plt.show()
+
+def plot_obs_data(obs_data):
+    """
+    Plots the first timestep of the observations data as a single subplot.
+
+    Parameters:
+    obs_data (xarray.Dataset): The processed observations data.
+
+    Returns:
+    None
+    """
+
+    # print the dimensions of the observations data
+    print("Observations dimensions:", obs_data.dims)
+    print("Observations variables:", obs_data)
+
+    # Print all of the latitude values
+    print("Observations latitude values:", obs_data.lat.values)
+    print("Observations longitude values:", obs_data.lon.values)
+
+    # Select the first timestep of the observations
+    obs_data_first = obs_data.isel(time=-1)
+
+    # Select the variable to be plotted
+    obs_var = obs_data_first["var151"]
+
+    # print the value of the variable
+    print("Observations variable:", obs_var.values)
+
+    # print the dimensions of the observations data
+    print("Observations dimensions:", obs_data_first)
+
+    # Create a figure with one subplot
+    fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+
+    # Plot the observations on the subplot
+    c = ax.contourf(obs_data_first.lat, obs_data_first.lon, obs_var, transform=ccrs.PlateCarree(), cmap='coolwarm')
+
+    # Add a colorbar to the subplot
+    fig.colorbar(c, ax=ax, shrink=0.6)
 
     # Set the title of the figure
     # fig.suptitle(f'{obs_data.variable.long_name} ({obs_data.variable.units})\n{obs_data.region} {obs_data.forecast_range} {obs_data.season}')
