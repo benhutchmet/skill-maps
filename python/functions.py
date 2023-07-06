@@ -467,16 +467,20 @@ def process_observations(
     Returns:
         xarray.Dataset: The processed observations dataset.
     """
-    # function code here
-def process_observations(
-    variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
-):
+
     # Check if the observations file exists
     check_file_exists(observations_path)
 
-    # Load the observations dataset
-    obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})
-    check_file_exists(obs_dataset)
+    try:
+        # Load the observations dataset
+        # if variable is tas or sfcWind, we need to select the variable from the observations dataset
+        if variable in ["tas", "sfcWind"]:
+            obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[variable]
+        else:
+            obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})
+    except:
+        print("Error loading observations dataset")
+        sys.exit()
 
     # Regrid the observations to the model grid
     regridded_obs_dataset = regrid_observations(obs_dataset)
@@ -552,7 +556,7 @@ def main():
     # # Print the shape
     # print(datasets["BCC-CSM2-MR"])
 
-    # Process the data.
+    # Process the model data.
     variable_data, model_time = process_data(datasets, args.variable)
 
     # Print the processed data.
@@ -560,6 +564,39 @@ def main():
     print(model_time)
     print(variable_data["BCC-CSM2-MR"])
     print(model_time["BCC-CSM2-MR"])
+
+    # Choose the obs path based on the variable
+    if args.variable == "psl":
+        obs_path = dic.obs_psl
+    elif args.variable == "tas":
+        obs_path = dic.obs_tas
+    elif args.variable == "sfcWind":
+        obs_path = dic.obs_sfcWind
+    elif args.variable == "rsds":
+        obs_path = dic.obs_rsds
+    else:
+        print("Error: variable not found")
+        sys.exit()
+
+    # choose the obs var name based on the variable
+    if args.variable == "psl":
+        obs_var_name = dic.psl_label
+    elif args.variable == "tas":
+        obs_var_name = dic.tas_label
+    elif args.variable == "sfcWind":
+        obs_var_name = dic.sfc_wind_label
+    elif args.variable == "rsds":
+        obs_var_name = dic.rsds_label
+    else:
+        print("Error: variable not found")
+        sys.exit()
+
+    # Process the observations.
+    obs = process_observations(args.variable, args.region, dic.north_atlantic_grid, args.forecast_range, args.season, obs_path, obs_var_name)
+
+    # Print the processed observations.
+    print(obs)
+    print(obs.dims)
 
 # Call the main function.
 if __name__ == "__main__":
