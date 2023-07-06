@@ -378,34 +378,79 @@ def check_file_exists(file_path):
 def regrid_observations(obs_dataset):
     try:
         regrid_example_dataset = xr.Dataset({
-            "latitude": (["latitude"], np.arange(0, 360.1, 2.5)),
-            "longitude": (["longitude"], np.arange(-90, 90.1, 2.5))
+            "lat": (["lat"], np.arange(-90, 90.1, 2.5)),
+            "lon": (["lon"], np.arange(0.0, 359.9, 2.5))
         })
         regridded_obs_dataset = obs_dataset.interp(
-            latitude=regrid_example_dataset.latitude,
-            longitude=regrid_example_dataset.longitude
+            lat=regrid_example_dataset.lat,
+            lon=regrid_example_dataset.lon
         )
         return regridded_obs_dataset
-    except:
-        print("Error regridding observations")
+    except Exception as e:
+        print(f"Error regridding observations: {e}")
         sys.exit()
+
 
 def select_region(regridded_obs_dataset, region_grid):
     try:
-        regridded_obs_dataset_region = regridded_obs_dataset.sel(
-            lat=slice(region_grid[0], region_grid[1]),
-            lon=slice(region_grid[2], region_grid[3])
-        )
+
+        # Echo the dimensions of the region grid
+        print(f"Region grid dimensions: {region_grid}")
+
+        # Define lon1, lon2, lat1, lat2
+        lon1, lon2 = region_grid['lon1'], region_grid['lon2']
+        lat1, lat2 = region_grid['lat1'], region_grid['lat2']
+
+        # dependent on whether this wraps around the prime meridian
+        if lon1 < lon2:
+            regridded_obs_dataset_region = regridded_obs_dataset.sel(
+                lon=slice(lon1, lon2),
+                lat=slice(lat1, lat2)
+            )
+        else:
+            # If the region crosses the prime meridian, we need to do this in two steps
+            # Select two slices and concatenate them together
+            regridded_obs_dataset_region1 = regridded_obs_dataset.sel(
+                lon=slice(lon1, 360),
+                lat=slice(lat2, lat1)
+            )
+            regridded_obs_dataset_region2 = regridded_obs_dataset.sel(
+                lon=slice(0, lon2),
+                lat=slice(lat2, lat1)
+            )
+            regridded_obs_dataset_region = xr.concat(
+                [regridded_obs_dataset_region1, regridded_obs_dataset_region2],
+                dim="lat"
+            )
+
         return regridded_obs_dataset_region
-    except:
-        print("Error selecting region")
+    except Exception as e:
+        print(f"Error selecting region: {e}")
         sys.exit()
 
 def select_season(regridded_obs_dataset_region, season):
     try:
+        # Extract the months from the season string
+        if season == "DJF":
+            months = [12, 1, 2]
+        elif season == "MAM":
+            months = [3, 4, 5]
+        elif season == "JJA":
+            months = [6, 7, 8]
+        elif season == "SON":
+            months = [9, 10, 11]
+        elif season == "NDJF":
+            months = [11, 12, 1, 2]
+        elif season == "DJFM":
+            months = [12, 1, 2, 3]
+        else:
+            raise ValueError("Invalid season")
+
+        # Select the months from the dataset
         regridded_obs_dataset_region_season = regridded_obs_dataset_region.sel(
-            time=regridded_obs_dataset_region["time.season"] == season
+            time=regridded_obs_dataset_region["time.month"].isin(months)
         )
+
         return regridded_obs_dataset_region_season
     except:
         print("Error selecting season")
@@ -422,12 +467,22 @@ def calculate_anomalies(regridded_obs_dataset_region_season):
 
 def calculate_annual_mean_anomalies(obs_anomalies, season):
     try:
+
+        # echo the season to the user
+        print("Season:", season)
+        # Echo the dataset being processed to the user
+        print("Calculating annual mean anomalies for observations")
+        print(obs_anomalies)
+
         if season in ["DJFM", "NDJFM"]:
-            obs_anomalies_annual = obs_anomalies.shift(time=-3).resample(time="Y").mean("time")
+            obs_anomalies_shifted = obs_anomalies.shift(time=-3)
         elif season in ["DJF", "NDJF"]:
-            obs_anomalies_annual = obs_anomalies.shift(time=-2).resample(time="Y").mean("time")
+            obs_anomalies_shifted = obs_anomalies.shift(time=-2)
         else:
-            obs_anomalies_annual = obs_anomalies.resample(time="Y").mean("time")
+            obs_anomalies_shifted = obs_anomalies
+
+        obs_anomalies_annual = obs_anomalies_shifted.resample(time="Y").mean("time")
+
         return obs_anomalies_annual
     except:
         print("Error shifting and calculating annual mean anomalies for observations")
@@ -482,14 +537,26 @@ def process_observations(
         print("Error loading observations dataset")
         sys.exit()
 
+    # print the observations dataset
+    print("Observations dataset:", obs_dataset)
+
     # Regrid the observations to the model grid
     regridded_obs_dataset = regrid_observations(obs_dataset)
+
+    # print the regridded observations dataset
+    print("Regridded observations dataset:", regridded_obs_dataset)
 
     # Select the region
     regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
 
+    # Print the dataset being processed to the user
+    print("Processing dataset before season:", regridded_obs_dataset_region)
+
     # Select the season
     regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
+
+    # Print the dataset being processed to the user
+    print("Processing dataset:", regridded_obs_dataset_region_season)
 
     # Calculate the anomalies
     obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
@@ -562,8 +629,8 @@ def main():
     # Print the processed data.
     print(variable_data)
     print(model_time)
-    print(variable_data["BCC-CSM2-MR"])
-    print(model_time["BCC-CSM2-MR"])
+    # print(variable_data["BCC-CSM2-MR"])
+    # print(model_time["BCC-CSM2-MR"])
 
     # Choose the obs path based on the variable
     if args.variable == "psl":
@@ -595,8 +662,10 @@ def main():
     obs = process_observations(args.variable, args.region, dic.north_atlantic_grid, args.forecast_range, args.season, obs_path, obs_var_name)
 
     # Print the processed observations.
-    print(obs)
-    print(obs.dims)
+    print("obs = ", obs)
+    print("dimensions = ", obs.dims)
+    print("shape = ", obs.shape)
+
 
 # Call the main function.
 if __name__ == "__main__":
