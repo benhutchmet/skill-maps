@@ -22,6 +22,17 @@ import xarray as xr
 import cartopy.crs as ccrs
 from datetime import datetime
 import scipy.stats as stats
+import matplotlib.animation as animation
+from matplotlib import rcParams
+from PIL import Image
+
+
+# Install imageio
+# ! pip install imageio
+import imageio.v3 as iio
+
+# Set the path to imagemagick
+rcParams['animation.convert_path'] = r'/usr/bin/convert'
 
 # Local imports
 sys.path.append('/home/users/benhutch/skill-maps')
@@ -424,7 +435,7 @@ def select_region(regridded_obs_dataset, region_grid):
                     lon=slice(lon1, 360),
                     lat=slice(lat1, lat2)
                 )
-            ], dim='lat')
+            ], dim='lon')
 
         return regridded_obs_dataset_region
     except Exception as e:
@@ -695,10 +706,35 @@ def plot_obs_data(obs_data):
     # Show the plot
     plt.show()
 
-def plot_model_data(model_data, models):
+# Define a function to make gifs
+def make_gif(frame_folder):
+    """
+    Makes a gif from a folder of images.
+
+    Parameters:
+    frame_folder (str): The path to the folder containing the images.
+    """
+
+    # Set up the frames to be used
+    frames = [Image.open(os.path.join(frame_folder, f)) for f in os.listdir(frame_folder) if f.endswith("_anomalies.png")]
+    frame_one = frames[0]
+    # Save the frames as a gif
+    frame_one.save(os.path.join(frame_folder, "animation.gif"), format='GIF', append_images=frames, save_all=True, duration=300, loop=0)
+
+def plot_model_data(model_data, models, gif_plots_path):
     """
     Plots the first timestep of the model data as a single subplot.
+
+    Parameters:
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
+    gif_plots_path (str): The path to the directory where the plots will be saved.
     """
+
+    # if the gif_plots_path directory does not exist
+    if not os.path.exists(gif_plots_path):
+        # Create the directory
+        os.makedirs(gif_plots_path)
 
     # initialize an empty list to store the ensemble members
     ensemble_members = []
@@ -706,6 +742,10 @@ def plot_model_data(model_data, models):
     # initialize a dictionary to store the count of ensemble members
     # for each model
     ensemble_members_count = {}
+
+    # Initialize a dictionary to store the filepaths
+    # of the plots for each model
+    filepaths = []
 
     # For each model
     for model in models:
@@ -716,6 +756,12 @@ def plot_model_data(model_data, models):
 
         for member in model_data_combined:
             ensemble_members.append(member)
+
+            # Extract the lat and lon values
+            lat = member.lat.values
+            lon = member.lon.values
+
+            years = member.time.dt.year.values
 
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
@@ -729,32 +775,211 @@ def plot_model_data(model_data, models):
     # take the ensemble mean over the members
     ensemble_mean = ensemble_members.mean(axis=0)
 
+    # # print the values of lat and lon
+    # print("lat values", ensemble_mean[0, :, 0])
+    # print("lon values", ensemble_mean[0, 0, :])
+
+    # lat_test = ensemble_mean[0, :, 0]
+    # lon_test = ensemble_mean[0, 0, :]
+
     # print the dimensions of the model data
     print("ensemble mean shape", np.shape(ensemble_mean))
 
-    # Take the time mean of the model data
-    ensemble_mean_time_mean = ensemble_mean.mean(axis=-1)
+    # Extract the years from the model data
+    # print the values of the years
+    print("years values", years)
+    print("years shape", np.shape(years))
+    print("years type", type(years))
 
-    # Set up the figure
-    fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
 
-    # Plot the time mean ensemble mean on the subplot
-    # as a filled contour
-    c = ax.contourf(ensemble_mean_time_mean.lon, ensemble_mean_time_mean.lat, ensemble_mean_time_mean, transform=ccrs.PlateCarree(), cmap='coolwarm')
+    # set the vmin and vmax values
+    vmin = -500
+    vmax = 500
 
-    # Add coastlines and gridlines to the plot
-    ax.coastlines()
-    ax.gridlines(draw_labels=True)
+    # Loop over the years array
+    for year in years:
+        # print the year
+        print("year", year)
 
-    # Add a colorbar to the plot
-    fig.colorbar(c, ax=ax, shrink=0.6)
+        # Set up the figure
+        fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
 
-    # Set the title of the figure
-    # fig.suptitle(f'{model_data.variable.long_name} ({model_data.variable.units})\n{model_data.region} {model_data.forecast_range} {model_data.season}')
+        # Plot the ensemble mean on the subplot
+        # for the specified year
+        # Check that the year index is within the range of the years array
+        if year < years[0] or year > years[-1]:
+            continue
+
+        # Find the index of the year in the years array
+        year_index = np.where(years == year)[0][0]
+
+        # Plot the ensemble mean on the subplot
+        # for the specified year
+        c = ax.contourf(lon, lat, ensemble_mean[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+
+        # Add coastlines and gridlines to the plot
+        ax.coastlines()
+        ax.gridlines(draw_labels=True)
+
+        # Annotate the plot with the year
+        ax.annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+
+        # Set up the filepath for saving
+        filepath = os.path.join(gif_plots_path, f"{year}.png")
+        # Save the figure
+        fig.savefig(filepath)
+
+        # Add the filepath to the list of filepaths
+        filepaths.append(filepath)
+
+        # Add coastlines and gridlines to the plot
+        ax.coastlines()
+        ax.gridlines(draw_labels=True)
+
+        # Annotate the plot with the year
+        ax.annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+
+        # Set up the filepath for saving
+        filepath = os.path.join(gif_plots_path, f"{year}_anomalies.png")
+        # Save the figure
+        fig.savefig(filepath)
+
+        # Add the filepath to the list of filepaths
+        filepaths.append(filepath)
+
+    # Create the gif
+    # Using the function defined above
+    make_gif(gif_plots_path)
 
     # Show the plot
-    plt.show()
+    # plt.show()
 
+
+# We want to define a function
+# Which takes as input the observed and model data
+# Ensures that these are the same shape, format and dimensions
+# And then calculates the spatial correlations between the two datasets
+def calculate_spatial_correlations(observed_data, model_data, models, region, forecast_range, season, variable):
+    """
+    Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
+    
+    Parameters:
+    observed_data (xarray.core.dataset.Dataset): The processed observed data.
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
+    region (str): The region to be plotted.
+    forecast_range (str): The forecast range to be plotted.
+    season (str): The season to be plotted.
+    variable (str): The variable to be plotted.
+
+    Returns:
+    spatial_correlations (dict): A dictionary containing the spatial correlations between the observed and model data.
+    
+    """
+
+    # First process the model data
+    # Taking the equally weighted ensemble mean
+    # For the ensemble members in all of the models specified
+    # Initialize a list for the ensemble members
+    ensemble_members = []
+
+    # Initialize a dictionary to store the number of ensemble members
+    ensemble_members_count = {}
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Set the ensemble members count to zero
+        # if the model is not in the ensemble members count dictionary
+        if model not in ensemble_members_count:
+            ensemble_members_count[model] = 0
+        
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members.append(member)
+
+            # Extract the lat and lon values
+            lat = member.lat.values
+            lon = member.lon.values
+
+            years = member.time.dt.year.values
+
+            # Increment the count of ensemble members for the model
+            ensemble_members_count[model] += 1
+
+    # Convert the list of all ensemble members to a numpy array
+    ensemble_members = np.array(ensemble_members)
+
+    # Convert the ensemble members counts dictionary to a list of tuples
+    ensemble_members_count_list = [(model, count) for model, count in ensemble_members_count.items()]
+
+    # Take the equally weighted ensemble mean
+    ensemble_mean = ensemble_members.mean(axis=0)
+
+    # Print the shape of the ensemble mean dataset
+    print("ensemble mean shape", np.shape(ensemble_mean))
+    print("ensemble mean type", type(ensemble_mean))
+
+    # Print the shape and type of the observed data
+    print("observed data shape", (observed_data.dims))
+    print("observed data type", type(observed_data))
+
+    # Print the shape and type of the model data lats and lons
+    print("model lat shape", np.shape(lat))
+    print("model lat type", type(lat))
+    print("model lat values", lat)
+
+    print("model lon shape", np.shape(lon))
+    print("model lon type", type(lon))
+    print("model lon values", lon)
+
+    # Print the shape and type of the model data years
+    print("model years shape", np.shape(years))
+    print("model years type", type(years))
+    print("model years values", years)
+
+    # Do the same for the observed data
+    # Extract the lat and lon values
+    obs_lat = observed_data.lat.values
+    obs_lon = observed_data.lon.values
+
+    # Extract the years
+    obs_years = observed_data.time.dt.year.values
+
+    # Print the shape and type of the observed data lats and lons
+    print("observed lat shape", np.shape(obs_lat))
+    print("observed lat type", type(obs_lat))
+    print("observed lat values", obs_lat)
+
+    print("observed lon shape", np.shape(obs_lon))
+    print("observed lon type", type(obs_lon))
+    print("observed lon values", obs_lon)
+
+    # Print the shape and type of the observed data years
+    print("observed years shape", np.shape(obs_years))
+    print("observed years type", type(obs_years))
+    print("observed years values", obs_years)
+
+    # Now they have the same shape, we want to make sure that they are on the same grid system
+    # obs uses 0 to 360
+    # model uses -180 to 180
+    # we want to convert the obs from 0 to 360 to -180 to 180
+    # so that they are on the same grid system
+    # Convert the observed data lons from 0 to 360 to -180 to 180
+    obs_lon = np.where(obs_lon > 180, obs_lon - 360, obs_lon)
+
+    # print the shape and type of the transformed observed data lons
+    print("observed lon shape", np.shape(obs_lon))
+    print("observed lon type", type(obs_lon))
+    print("observed lon values", obs_lon)
+    
+    # now print the model data lons
+    print("model lon shape", np.shape(lon))
+    print("model lon type", type(lon))
+    print("model lon values", lon)
 
 
 

@@ -6,6 +6,8 @@ base_dir = "/home/users/benhutch/skill-maps-processed-data"
 # define the directory where the plots will be saved
 plots_dir = base_dir + "/plots"
 
+gif_plots_dir = base_dir + "/plots/gif"
+
 # list of the test model
 test_model = [ "CMCC-CM2-SR5" ]
 
@@ -37,7 +39,7 @@ rsds_units="W m\u207b\u00b2"
 # for processing the observations
 north_atlantic_grid = {
     'lon1': 280,
-    'lon2': 40,
-    'lat1': 60,
+    'lon2': 37.5,
+    'lat1': 77.5,
     'lat2': 20
 }
