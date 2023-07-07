@@ -508,7 +508,7 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
         print("Forecast range:", forecast_range_start, "-", forecast_range_end)
         rolling_mean_range = forecast_range_end - forecast_range_start + 1
         print("Rolling mean range:", rolling_mean_range)
-        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range).mean()
+        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range, center = True).mean()
         return obs_anomalies_annual_forecast_range
     except:
         print("Error selecting forecast range")
@@ -569,7 +569,7 @@ def process_observations(
     # Check for NaN values in the observations dataset
     # print
     print("Checking for NaN values in observations dataset")
-    check_for_nan_values(obs_dataset)
+    #check_for_nan_values(obs_dataset)
 
     # Regrid the observations to the model grid
     regridded_obs_dataset = regrid_observations(obs_dataset)
@@ -577,7 +577,7 @@ def process_observations(
     # print the regridded observations dataset
     print("Regridded observations dataset:", regridded_obs_dataset)
     print("checking for NaN values in regridded observations dataset")
-    check_for_nan_values(regridded_obs_dataset)
+    #check_for_nan_values(regridded_obs_dataset)
 
     # Select the region
     regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
@@ -919,6 +919,10 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
 
+    # Convert ensemble_mean to an xarray DataArray
+    ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
+
+
     # Print the shape of the ensemble mean dataset
     print("ensemble mean shape", np.shape(ensemble_mean))
     print("ensemble mean type", type(ensemble_mean))
@@ -926,6 +930,31 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
     # Print the shape and type of the observed data
     print("observed data shape", (observed_data.dims))
     print("observed data type", type(observed_data))
+    print("observed data values", observed_data['var151'].values)
+
+    # For the observed data
+    # Identify the years where there are Nan values
+    # and print these years
+    # Loop over the years
+    print("Checking for Nan values in the observed data")
+    for year in observed_data.time.dt.year.values:
+        # Extract the data for the year
+        data = observed_data.sel(time=f"{year}")
+
+        # If there are any Nan values in the data
+        if np.isnan(data['var151'].values).any():
+            # Print the year
+            print(year)
+        # if there are no Nan values in the data for a year
+        # then print the year
+        # and "no nan for this year"
+        # and continue the script
+        else:
+            print(year, "no nan for this year")
+
+    #         # exit the script
+    #         # sys.exit()
+
 
     # Print the shape and type of the model data lats and lons
     print("model lat shape", np.shape(lat))
@@ -980,6 +1009,72 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
     print("model lon shape", np.shape(lon))
     print("model lon type", type(lon))
     print("model lon values", lon)
+
+    # Now we want to make sure that the years in the time dimension are the same for the observed and model data
+    # Select only where the years are the same
+    # First find the years that are in both the observed and model data
+    years_in_both = np.intersect1d(obs_years, years)
+
+    # Print the years in both
+    print("years in both", years_in_both)
+
+    # Now select only the years that are in both the observed and model data
+    # For the observed data
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
+
+    # For the model data
+    ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
+
+
+    print("Checking for Nan values in the observed data after selecting only the years that are in both the observed and model data")
+    for year in observed_data.time.dt.year.values:
+        # Extract the data for the year
+        data = observed_data.sel(time=f"{year}")
+
+        # If there are any Nan values in the data
+        if np.isnan(data['var151'].values).any():
+            # Print the year
+            print(year)
+
+    # extract the years from the observed data
+    observed_data_years = observed_data.time.dt.year.values
+    # print these years
+    print("observed data years", observed_data_years)
+
+    # extract the years from the model data
+    ensemble_mean_years = ensemble_mean.time.dt.year.values
+    # print these years
+    print("model data years", ensemble_mean_years)
+
+    # Print the shape and type of the observed data
+    print("observed data shape", (observed_data.dims))
+    print("observed data type", type(observed_data))
+
+    # Print the shape and type of the model data
+    print("ensemble mean shape", np.shape(ensemble_mean))
+    print("ensemble mean type", type(ensemble_mean))
+
+    # Convert both the observed and model data to numpy arrays
+    observed_data_array = observed_data['var151'].values
+    ensemble_mean_array = ensemble_mean.values
+
+
+    # Print the dimensions of these arrays
+    print("observed data", observed_data_array)
+    print("observed data shape", np.shape(observed_data_array))
+    print("ensemble mean shape", np.shape(ensemble_mean_array))
+
+
+
+    # Now calculate the correlations between the observed and model data
+    # Given that for the model data
+    # the first dimension is the time
+    # the second dimension is the lat
+    # the third dimension is the lon
+    # and for the observed data
+    # the first dimension is the time
+    # the second dimension is the lon
+    # the third dimension is the lat
 
 
 
@@ -1072,6 +1167,10 @@ def main():
 
     # Print the dimensions of the variable data.
     print("variable_data dimensions = ", variable_data)
+
+    # Call the function to calculate the ACC
+    spatial_correlations = calculate_spatial_correlations(obs, variable_data, dic.test_model, args.region, args.forecast_range, args.season, args.variable)
+
 
 
 # Call the main function.
