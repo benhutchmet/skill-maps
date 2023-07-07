@@ -43,3 +43,19 @@ north_atlantic_grid = {
     'lat1': 77.5,
     'lat2': 20
 }
+
+# Define the dimensions for the gridbox for the azores
+azores_grid = {
+    'lon1': 152,
+    'lon2': 160,
+    'lat1': 36,
+    'lat2': 40
+}
+
+# Define the dimensions for the gridbox for iceland
+iceland_grid = {
+    'lon1': 155,
+    'lon2': 164,
+    'lat1': 63,
+    'lat2': 70
+}

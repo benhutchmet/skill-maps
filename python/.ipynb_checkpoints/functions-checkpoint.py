@@ -1153,14 +1153,11 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
     print('r range:', rfield.min(), rfield.max())
     print('p range:', pfield.min(), pfield.max())
 
-    print("rfield", rfield)
-    print("pfield", pfield)
-
     # Return the correlation coefficients and p-values
     return rfield, pfield, obs_lons_converted, lons_converted
 
 # plot the correlations and p-values
-def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid):
+def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
@@ -1188,24 +1185,8 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
         Array of longitudes for the observed data.
     lons_converted : array
         Array of longitudes for the model data.
-    azores_grid : array
-        Array of longitudes and latitudes for the Azores region.
-    iceland_grid : array
-        Array of longitudes and latitudes for the Iceland region.
 
     """
-
-    # Extract the lats and lons for the azores grid
-    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
-    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
-
-    # Extract the lats and lons for the iceland grid
-    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
-    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
-
-    # subtract 180 from all of the azores and iceland lons
-    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
-    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
 
     # set up the converted lons
     lons = lons_converted - 180
@@ -1222,17 +1203,6 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     # Add coastlines
     ax.coastlines()
 
-    # Add gridlines with labels for the latitude and longitude
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
-    gl.xlabels_top = False
-    gl.ylabels_right = False
-    gl.xlabel_style = {'size': 12}
-    gl.ylabel_style = {'size': 12}
-
-    # Add green lines outlining the Azores and Iceland grids
-    ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
-    ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
-
     # Add filled contours
     # Contour levels
     clevs = np.arange(-1, 1.1, 0.1)
@@ -1241,14 +1211,8 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     # Plot the filled contours
     cf = plt.contourf(lons, obs.lat, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
-    # replace values in pfield that are greater than 0.01 with nan
-    pfield[pfield > 0.01] = np.nan
-
-    # print the pfield
-    print("pfield mod", pfield)
-
     # Add stippling where rfield is significantly different from zero
-    plt.contourf(lons, obs.lat, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
+    plt.contourf(lons, obs.lat, pfield < 0.01, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
 
     # Add colorbar
     cbar = plt.colorbar(cf, orientation='horizontal', pad=0.05, aspect=50)
@@ -1262,6 +1226,7 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
 
     # Show the figure
     plt.show()
+
 
 
 
