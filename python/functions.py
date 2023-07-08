@@ -2,9 +2,9 @@
 # these should be tested one by one
 # before being used in the main program
 #
-# Usage: python functions.py <variable> <region> <forecast_range> <season>
+# Usage: python functions.py <variable> <model> <region> <forecast_range> <season>
 #
-# Example: python functions.py "psl" "north-atlantic" "2-5" "DJF"
+# Example: python functions.py "psl" "BCC-CSM2-MR" "north-atlantic" "2-5" "DJF"
 #
 
 # Imports
@@ -134,8 +134,10 @@ def process_data(datasets_by_model, variable):
         variable: The variable to load, extracted from the command line.
         
     Returns:
-        A dictionary of processed datasets grouped by models.
+        variable_data_by_model: the data extracted for the variable for each model.
+        model_time_by_model: the model time extracted from each model for each model.
     """
+    
     print(f"Dataset type: {type(datasets_by_model)}")
 
     def process_model_dataset(dataset, variable):
@@ -148,7 +150,8 @@ def process_data(datasets_by_model, variable):
             variable: The variable to load, extracted from the command line.
             
         Returns:
-            A processed dataset.
+            variable_data: the extracted variable data for a single model.
+            model_time: the extracted time data for a single model.
         """
         
         if variable == "psl":
@@ -1069,7 +1072,42 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     # Show the figure
     plt.show()
 
+# Functions for choosing the observed data path
+# and full variable name
+def choose_obs_path(args):
+    """
+    Choose the obs path based on the variable
+    """
+    if args.variable == "psl":
+        obs_path = dic.obs_psl
+    elif args.variable == "tas":
+        obs_path = dic.obs_tas
+    elif args.variable == "sfcWind":
+        obs_path = dic.obs_sfcWind
+    elif args.variable == "rsds":
+        obs_path = dic.obs_rsds
+    else:
+        print("Error: variable not found")
+        sys.exit()
+    return obs_path
 
+# Choose the observed variable name
+def choose_obs_var_name(args):
+    """
+    Choose the obs var name based on the variable
+    """
+    if args.variable == "psl":
+        obs_var_name = dic.psl_label
+    elif args.variable == "tas":
+        obs_var_name = dic.tas_label
+    elif args.variable == "sfcWind":
+        obs_var_name = dic.sfc_wind_label
+    elif args.variable == "rsds":
+        obs_var_name = dic.rsds_label
+    else:
+        print("Error: variable not found")
+        sys.exit()
+    return obs_var_name
 
 # define a main function
 def main():
@@ -1080,7 +1118,7 @@ def main():
     """
 
     # Create a usage statement for the script.
-    USAGE_STATEMENT = """python functions.py <variable> <region> <forecast_range> <season>"""
+    USAGE_STATEMENT = """python functions.py <variable> <model> <region> <forecast range> <season>"""
 
     # Check if the number of arguments is correct.
     if len(sys.argv) != 5:
@@ -1094,6 +1132,7 @@ def main():
     # Parse the arguments from the command line.
     parser = argparse.ArgumentParser()
     parser.add_argument("variable", help="variable", type=str)
+    parser.add_argument("model", help="model", type=str)
     parser.add_argument("region", help="region", type=str)
     parser.add_argument("forecast_range", help="forecast range", type=str)
     parser.add_argument("season", help="season", type=str)
@@ -1101,76 +1140,35 @@ def main():
 
     # Print the arguments to the screen.
     print("variable = ", args.variable)
+    print("model = ", args.model)
     print("region = ", args.region)
     print("forecast range = ", args.forecast_range)
     print("season = ", args.season)
 
-    # Load the data.
-    datasets = load_data(dic.base_dir, dic.test_model, args.variable, args.region, args.forecast_range, args.season)
+    # If the model specified == "all", then run the script for all models.
+    if args.model == "all":
+        args.model = dic.models
 
-    # # Print the datasets.
-    # print(datasets)
-    # # Dimensions of the datasets
-    # print(datasets["BCC-CSM2-MR"])
-    # # Print the shape
-    # print(datasets["BCC-CSM2-MR"])
+    # Load the data.
+    datasets = load_data(dic.base_dir, args.model, args.variable, args.region, args.forecast_range, args.season)
 
     # Process the model data.
     variable_data, model_time = process_data(datasets, args.variable)
 
-    # Print the processed data.
-    print(variable_data)
-    print(model_time)
-    # print(variable_data["BCC-CSM2-MR"])
-    # print(model_time["BCC-CSM2-MR"])
-
     # Choose the obs path based on the variable
-    if args.variable == "psl":
-        obs_path = dic.obs_psl
-    elif args.variable == "tas":
-        obs_path = dic.obs_tas
-    elif args.variable == "sfcWind":
-        obs_path = dic.obs_sfcWind
-    elif args.variable == "rsds":
-        obs_path = dic.obs_rsds
-    else:
-        print("Error: variable not found")
-        sys.exit()
+    obs_path = choose_obs_path(args)
 
     # choose the obs var name based on the variable
-    if args.variable == "psl":
-        obs_var_name = dic.psl_label
-    elif args.variable == "tas":
-        obs_var_name = dic.tas_label
-    elif args.variable == "sfcWind":
-        obs_var_name = dic.sfc_wind_label
-    elif args.variable == "rsds":
-        obs_var_name = dic.rsds_label
-    else:
-        print("Error: variable not found")
-        sys.exit()
+    obs_var_name = choose_obs_var_name(args)
 
     # Process the observations.
     obs = process_observations(args.variable, args.region, dic.north_atlantic_grid, args.forecast_range, args.season, obs_path, obs_var_name)
 
-    # Print the processed observations.
-    print("obs = ", obs)
-    print("dimensions = ", obs.dims)
-
-    # Print the dimensions of the variable data.
-    print("variable_data dimensions = ", variable_data)
-
-    # print the type of all the variables
-    print("type of variable_data = ", type(variable_data))
-    print("type of obs = ", type(obs))
-    print("type of test_model = ", type(dic.test_model))
-
     # Call the function to calculate the ACC
-    rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, dic.test_model)
+    rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, args.model)
 
     # Call the function to plot the ACC
     plot_correlations(rfield, pfield, obs, args.variable, args.region, args.season, args.forecast_range, dic.plots_dir, obs_lons_converted, lons_converted, dic.azores_grid, dic.iceland_grid)
-
 
 # Call the main function.
 if __name__ == "__main__":
