@@ -1118,7 +1118,7 @@ def main():
     """
 
     # Create a usage statement for the script.
-    USAGE_STATEMENT = """python functions.py <variable> <model> <region> <forecast range> <season>"""
+    USAGE_STATEMENT = """python functions.py <variable> <model> <region> <forecast_range> <season>"""
 
     # Check if the number of arguments is correct.
     if len(sys.argv) != 5:
