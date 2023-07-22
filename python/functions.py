@@ -353,6 +353,8 @@ def select_season(regridded_obs_dataset_region, season):
             months = [3, 4, 5]
         elif season == "JJA":
             months = [6, 7, 8]
+        elif season == "JJAS":
+            months = [6, 7, 8, 9]
         elif season == "SON":
             months = [9, 10, 11]
         elif season == "SOND":
