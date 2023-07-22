@@ -1063,6 +1063,19 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     cbar = plt.colorbar(cf, orientation='horizontal', pad=0.05, aspect=50)
     cbar.set_label('Correlation Coefficient')
 
+    # extract the model name from the list
+    # given as ['model']
+    # we only want the model name
+    # if the length of the list is 1
+    # then the model name is the first element
+    if len(model) == 1:
+        model = model[0]
+    elif len(model) > 1:
+        model = all_models
+    else :
+        print("Error: model name not found")
+        sys.exit()
+
     # Add title
     plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
 
