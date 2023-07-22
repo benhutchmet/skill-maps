@@ -58,7 +58,7 @@ echo "[INFO] Extracting data for all models: $models"
     echo "[INFO] Submitting job for model: $model, variable: $variable, region: $region, forecast range: $forecast_range, season: $season"
 
     # Submit the job
-    sbatch --partition=short-serial -t 10 -o $OUTPUT_DIR/$model.$variable.$region.$forecast_range.$season.out -e $OUTPUT_DIR/$model.$variable.$region.$forecast_range.$season.err $EXTRACTOR $model $variable $region $forecast_range $season
+    sbatch --partition=short-serial -t 5 -o $OUTPUT_DIR/$model.$variable.$region.$forecast_range.$season.out -e $OUTPUT_DIR/$model.$variable.$region.$forecast_range.$season.err $EXTRACTOR $model $variable $region $forecast_range $season
 
     done
     
