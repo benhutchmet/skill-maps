@@ -967,7 +967,7 @@ def remove_years_with_nans(observed_data, ensemble_mean):
     return observed_data, ensemble_mean
 
 # plot the correlations and p-values
-def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid):
+def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
@@ -975,6 +975,8 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     
     Parameters
     ----------
+    model : str
+        Name of the model.
     rfield : array
         Array of correlation coefficients.
     pfield : array
@@ -1062,10 +1064,10 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     cbar.set_label('Correlation Coefficient')
 
     # Add title
-    plt.title(f"{variable} {region} {season} {forecast_range} Correlation Coefficients")
+    plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
 
     # set up the path for saving the figure
-    fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
