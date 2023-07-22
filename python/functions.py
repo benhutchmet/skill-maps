@@ -78,7 +78,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         datasets_by_model[model] = []
         
         # create the path to the files for this model
-        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*-anoms.nc"
+        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
 
         # print the path to the files
         print("Searching for files in ", files_path)
@@ -1138,7 +1138,8 @@ def main():
     USAGE_STATEMENT = """python functions.py <variable> <model> <region> <forecast_range> <season>"""
 
     # Check if the number of arguments is correct.
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
+        print(f"Expected 6 arguments, but got {len(sys.argv)}")
         print(USAGE_STATEMENT)
         sys.exit()
 
@@ -1165,6 +1166,10 @@ def main():
     # If the model specified == "all", then run the script for all models.
     if args.model == "all":
         args.model = dic.models
+
+    # If the type of the model argument is a string, then convert it to a list.
+    if type(args.model) == str:
+        args.model = [args.model]
 
     # Load the data.
     datasets = load_data(dic.base_dir, args.model, args.variable, args.region, args.forecast_range, args.season)
