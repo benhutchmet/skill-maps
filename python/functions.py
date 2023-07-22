@@ -1071,7 +1071,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     if len(model) == 1:
         model = model[0]
     elif len(model) > 1:
-        model = all_models
+        model = "all_models"
     else :
         print("Error: model name not found")
         sys.exit()
