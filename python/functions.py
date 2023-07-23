@@ -1181,6 +1181,102 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # Show the figure
     plt.show()
 
+# Function for plotting the results for all of the models as 12 subplots
+def plot_spatial_correlations(dictionaries, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, azores_grid, iceland_grid):
+    """Plot the spatial correlation coefficients and p-values for all models.
+
+    This function plots the spatial correlation coefficients and p-values
+    for all models in the dictionaries.models list for a given variable,
+    region, season and forecast range.
+
+    Parameters
+    ----------
+    dictionaries : dict
+        Dictionary containing the processed model data.
+    obs : str
+        Observed dataset.
+    variable : str
+        Variable.
+    region : str
+        Region.
+    season : str
+        Season.
+    forecast_range : str
+        Forecast range.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    obs_lons_converted : array
+        Array of longitudes for the observed data.
+    azores_grid : array
+        Array of longitudes and latitudes for the Azores region.
+    iceland_grid : array
+        Array of longitudes and latitudes for the Iceland region.
+
+    """
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set the figure size
+    fig = plt.figure(figsize=(15, 20))
+
+    # Set the projection
+    proj = ccrs.PlateCarree()
+
+    # Loop over the models
+    for i, model in enumerate(dictionaries['models']):
+        # Calculate the spatial correlations for the model
+        rfield, pfield, lons_converted = calculate_spatial_correlations(dictionaries, model, obs, variable, region, season, forecast_range)
+
+        # Set the subplot position
+        ax = fig.add_subplot(6, 2, i+1, projection=proj)
+
+        # Add coastlines
+        ax.coastlines()
+
+        # Add gridlines with labels for the latitude and longitude
+        gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+        gl.top_labels = False
+        gl.right_labels = False
+        gl.xlabel_style = {'size': 12}
+        gl.ylabel_style = {'size': 12}
+
+        # Add green lines outlining the Azores and Iceland grids
+        ax.plot([azores_grid['lon1'], azores_grid['lon2'], azores_grid['lon2'], azores_grid['lon1'], azores_grid['lon1']], [azores_grid['lat1'], azores_grid['lat1'], azores_grid['lat2'], azores_grid['lat2'], azores_grid['lat1']], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_grid['lon1'], iceland_grid['lon2'], iceland_grid['lon2'], iceland_grid['lon1'], iceland_grid['lon1']], [iceland_grid['lat1'], iceland_grid['lat1'], iceland_grid['lat2'], iceland_grid['lat2'], iceland_grid['lat1']], color='green', linewidth=2, transform=proj)
+
+        # Add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons_converted, obs.lat, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+        # replace values in pfield that are greater than 0.01 with nan
+        pfield[pfield > 0.01] = np.nan
+
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons_converted, obs.lat, pfield, hatches=['....'], alpha=0, transform=proj)
+
+        # Add colorbar
+        cbar = plt.colorbar(cf, orientation='horizontal', pad=0.05, aspect=50, ax=ax)
+        cbar.set_label('Correlation Coefficient')
+
+        # Add title
+        ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+
+    # set up the path for saving the figure
+    fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
+
+
 # Functions for choosing the observed data path
 # and full variable name
 def choose_obs_path(args):
