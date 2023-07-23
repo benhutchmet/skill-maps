@@ -2,9 +2,9 @@
 # these should be tested one by one
 # before being used in the main program
 #
-# Usage: python functions.py <variable> <region> <forecast_range> <season>
+# Usage: python functions.py <variable> <model> <region> <forecast_range> <season>
 #
-# Example: python functions.py "psl" "north-atlantic" "2-5" "DJF"
+# Example: python functions.py "psl" "BCC-CSM2-MR" "north-atlantic" "2-5" "DJF"
 #
 
 # Imports
@@ -78,7 +78,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         datasets_by_model[model] = []
         
         # create the path to the files for this model
-        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*-anoms.nc"
+        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
 
         # print the path to the files
         print("Searching for files in ", files_path)
@@ -99,7 +99,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         for file in files:
 
             # Print the file to the screen.
-            print(file)
+            # print(file)
             
             # check that the file exists
             # if it doesn't exist, print a warning and
@@ -107,12 +107,10 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
             if not os.path.exists(file):
                 print("File " + file + " does not exist")
                 sys.exit()
-            else:
-                print("Loading " + file)
 
             # Load the dataset.
-            dataset = xr.open_dataset(file, chunks = {"time": 50})
-            
+            dataset = xr.open_dataset(file, chunks = {"time":50})
+
             # Append the dataset to the list of datasets for this model.
             datasets_by_model[model].append(dataset)
             
@@ -136,8 +134,10 @@ def process_data(datasets_by_model, variable):
         variable: The variable to load, extracted from the command line.
         
     Returns:
-        A dictionary of processed datasets grouped by models.
+        variable_data_by_model: the data extracted for the variable for each model.
+        model_time_by_model: the model time extracted from each model for each model.
     """
+    
     print(f"Dataset type: {type(datasets_by_model)}")
 
     def process_model_dataset(dataset, variable):
@@ -150,25 +150,26 @@ def process_data(datasets_by_model, variable):
             variable: The variable to load, extracted from the command line.
             
         Returns:
-            A processed dataset.
+            variable_data: the extracted variable data for a single model.
+            model_time: the extracted time data for a single model.
         """
         
         if variable == "psl":
-            # Extract the variable.
-            variable_data = dataset["psl"]
+           
 
             # print the variable data
-            print("Variable data: ", variable_data)
-            # print the variable data type
-            print("Variable data type: ", type(variable_data))
+            # print("Variable data: ", variable_data)
+            # # print the variable data type
+            # print("Variable data type: ", type(variable_data))
 
-            # print the len of the variable data dimensions
-            print("Variable data dimensions: ", len(variable_data.dims))
+            # # print the len of the variable data dimensions
+            # print("Variable data dimensions: ", len(variable_data.dims))
             
             # Convert from Pa to hPa.
             # Using try and except to catch any errors.
             try:
-                variable_data = variable_data
+                # Extract the variable.
+                variable_data = dataset["psl"]
 
                 # print the values of the variable data
                 print("Variable data values: ", variable_data.values)
@@ -230,164 +231,42 @@ def process_data(datasets_by_model, variable):
     # Return the processed data.
     return variable_data_by_model, model_time_by_model
 
-# Write a function to process the observations
-# this takes the arguments
-# variable, region, forecast_range, season
-# and the path to the observations
-# it returns the processed observations
-def process_observations_long(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
+# Functions to process the observations.
+# Broken up into smaller functions.
+# ---------------------------------------------
+def check_file_exists(file_path):
     """
-    Process the observations. Regrids observations to the model grid (2.5x2.5). Selects the same region as the model data. Selects the same forecast range as the model data. Selects the same season as the model data.
-    --------------------------------------------
-    ERA5 observations are only available for DJFM!
-    --------------------------------------------
+    Check if a file exists in the given file path.
 
-    Args:
-        variable: The variable to load, extracted from the command line.
-        region: The region to load, extracted from the command line.
-        region_grid: The region grid to load, extracted from the dictionary.
-        forecast_range: The forecast range to load, extracted from the command line.
-        season: The season to load, extracted from the command line.
-        observations_path: The path to the observations, extracted from the command line.
-        obs_var_name: The observations variable name, extracted from the dictionary.
+    Parameters:
+    file_path (str): The path of the file to be checked.
 
     Returns:
-        obs_variable_data: The processed observations variable data.
+    None
+
+    Raises:
+    SystemExit: If the file does not exist in the given file path.
     """
-
-    # First check if the observations file exists.
-    # If it doesn't exist, print a warning and exit the program.
-    if not os.path.exists(observations_path):
-        print("Observations file " + observations_path + " does not exist")
-        sys.exit()
-
-    # Load the observations dataset.
-    obs_dataset = xr.open_dataset(observations_path, chunks = {"time": 50})
-
-    #  Check if the obs_dataset has been loaded correctly.
-    # If it hasn't been loaded correctly, print a warning and exit the program.
-    if obs_dataset is None:
-        print("Observations dataset not loaded correctly")
-        sys.exit()
-
-    # Regrid the observations to the model grid.
-    # Of 2.5 x 2.5 degrees.
-    # Using try and except to catch any errors.
-    try:
-        regrid_example_dataset = xr.Dataset({"latitude": (["latitude"], np.arange(0, 360.1, 2.5)),"longitude": (["longitude"], np.arange(-90, 90.1, 2.5))})
-
-        # Regrid the observations to the model grid.
-        regridded_obs_dataset = obs_dataset.interp(latitude = regrid_example_dataset.latitude, longitude = regrid_example_dataset.longitude)
-
-        # Now select the region.
-        regridded_obs_dataset_region = regridded_obs_dataset.sel(lat=slice(region_grid[0], region_grid[1]), lon=slice(region_grid[2], region_grid[3]))
-
-    except:
-        print("Error regridding observations")
-        sys.exit()
-
-    # If regridded_obs_dataset is empty, print a warning and exit the program.
-    if regridded_obs_dataset_region is None:
-        print("Observations not regridded correctly")
-        sys.exit()
-
-    # Select the season
-    # Using try and except to catch any errors.
-    try:
-        # Select the season.
-        regridded_obs_dataset_region_season = regridded_obs_dataset_region.sel(time = regridded_obs_dataset_region["time.season"] == season)
-
-    except:
-        print("Error selecting season")
-        sys.exit()
-
-    # If regridded_obs_dataset_region_season is empty, print a warning and exit the program.
-    if regridded_obs_dataset_region_season is None:
-        print("Observations not selected for season correctly")
-        sys.exit()
-
-    # Calculate the anomalies for the observations.
-    # Using try and except to catch any errors.
-    try:
-        # Calculate the mean climatology.
-        obs_climatology = regridded_obs_dataset_region_season.mean("time")
-
-        # Calculate the anomalies.
-        obs_anomalies = regridded_obs_dataset_region_season - obs_climatology
-
-    except:
-        print("Error calculating anomalies for observations")
-        sys.exit()
-
-    # If obs_anomalies is empty, print a warning and exit the program.
-    if obs_anomalies is None:
-        print("Observations anomalies not calculated correctly")
-        sys.exit()
-
-    # Calculate the annual mean anomalies for the observations.
-    # Using try and except to catch any errors.
-    # By shifting the dataset back by a number of months
-    # and then taking the yearly mean.
-    try:
-        if season == "DJFM" or season == "NDJFM":
-            obs_anomalies_annual = obs_anomalies.shift(time = -3).resample(time = "Y").mean("time")
-        elif season == "DJF" or season == "NDJF":
-            obs_anomalies_annual = obs_anomalies.shift(time = -2).resample(time = "Y").mean("time")
-        else :
-            obs_anomalies_annual = obs_anomalies.resample(time = "Y").mean("time")
-
-    except:
-        print("Error shifting and calculating annual mean anomalies for observations")
-        sys.exit()
-
-    # If obs_anomalies_annual is empty, print a warning and exit the program.
-    if obs_anomalies_annual is None:
-        print("Observations annual mean anomalies not calculated correctly")
-        sys.exit()
-
-    # Select the forecast range.
-    # Using try and except to catch any errors.
-    try:
-        # extract the first year of the forecast range.
-        forecast_range_start = int(forecast_range.split("-")[0])
-        forecast_range_end = int(forecast_range.split("-")[1])
-
-        # Echo the forecast range to the user.
-        print("Forecast range: " + str(forecast_range_start) + "-" + str(forecast_range_end))
-
-        # Calculate the rolling mean to take for the anomalies.
-        rolling_mean_range = forecast_range_end - forecast_range_start + 1
-
-        # Echo the rolling mean range to the user.
-        print("Rolling mean range: " + str(rolling_mean_range))
-
-        # Select the forecast range.
-        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time = rolling_mean_range, center = True).mean()
-
-    except:
-        print("Error selecting forecast range")
-        sys.exit()
-
-    # If obs_anomalies_annual_forecast_range is empty, print a warning and exit the program.
-    if obs_anomalies_annual_forecast_range is None:
-        print("Observations forecast range not selected correctly")
-        sys.exit()
-
-    # Return the observations.
-    return obs_anomalies_annual_forecast_range
-
-
-# Break this function up into smaller functions.
-# ---------------------------------------------
-# Function to load the observations.
-def check_file_exists(file_path):
     # Check if the file exists
     if not os.path.exists(file_path):
         print(f"File {file_path} does not exist")
         sys.exit()
 
 def regrid_observations(obs_dataset):
+    """
+    Regrids an input dataset of observations to a standard grid.
+
+    Parameters:
+    obs_dataset (xarray.Dataset): The input dataset of observations.
+
+    Returns:
+    xarray.Dataset: The regridded dataset of observations.
+
+    Raises:
+    SystemExit: If an error occurs during the regridding process.
+    """
     try:
+
         regrid_example_dataset = xr.Dataset({
             "lon": (["lon"], np.arange(0.0, 359.9, 2.5)),
             "lat": (["lat"], np.arange(90.0, -90.1, -2.5)),
@@ -397,12 +276,26 @@ def regrid_observations(obs_dataset):
             lat=regrid_example_dataset.lat
         )
         return regridded_obs_dataset
+    
     except Exception as e:
         print(f"Error regridding observations: {e}")
         sys.exit()
 
 
 def select_region(regridded_obs_dataset, region_grid):
+    """
+    Selects a region from a regridded observation dataset based on the given region grid.
+
+    Parameters:
+    regridded_obs_dataset (xarray.Dataset): The regridded observation dataset.
+    region_grid (dict): A dictionary containing the region grid with keys 'lon1', 'lon2', 'lat1', and 'lat2'.
+
+    Returns:
+    xarray.Dataset: The regridded observation dataset for the selected region.
+
+    Raises:
+    SystemExit: If an error occurs during the region selection process.
+    """
     try:
 
         # Echo the dimensions of the region grid
@@ -411,11 +304,6 @@ def select_region(regridded_obs_dataset, region_grid):
         # Define lon1, lon2, lat1, lat2
         lon1, lon2 = region_grid['lon1'], region_grid['lon2']
         lat1, lat2 = region_grid['lat1'], region_grid['lat2']
-
-        # # Roll longitude to 0-360 if necessary
-        # if (regridded_obs_dataset.coords['lon'] < 0).any():
-        #     regridded_obs_dataset.coords['lon'] = np.mod(regridded_obs_dataset.coords['lon'], 360)
-        #     regridded_obs_dataset = regridded_obs_dataset.sortby(regridded_obs_dataset.longitude)
 
         # dependent on whether this wraps around the prime meridian
         if lon1 < lon2:
@@ -443,6 +331,20 @@ def select_region(regridded_obs_dataset, region_grid):
         sys.exit()
 
 def select_season(regridded_obs_dataset_region, season):
+    """
+    Selects a season from a regridded observation dataset based on the given season string.
+
+    Parameters:
+    regridded_obs_dataset_region (xarray.Dataset): The regridded observation dataset for the selected region.
+    season (str): A string representing the season to select. Valid values are "DJF", "MAM", "JJA", "SON", "SOND", "NDJF", and "DJFM".
+
+    Returns:
+    xarray.Dataset: The regridded observation dataset for the selected season.
+
+    Raises:
+    ValueError: If an invalid season string is provided.
+    """
+def select_season(regridded_obs_dataset_region, season):
     try:
         # Extract the months from the season string
         if season == "DJF":
@@ -451,8 +353,12 @@ def select_season(regridded_obs_dataset_region, season):
             months = [3, 4, 5]
         elif season == "JJA":
             months = [6, 7, 8]
+        elif season == "JJAS":
+            months = [6, 7, 8, 9]
         elif season == "SON":
             months = [9, 10, 11]
+        elif season == "SOND":
+            months = [9, 10, 11, 12]
         elif season == "NDJF":
             months = [11, 12, 1, 2]
         elif season == "DJFM":
@@ -471,6 +377,18 @@ def select_season(regridded_obs_dataset_region, season):
         sys.exit()
 
 def calculate_anomalies(regridded_obs_dataset_region_season):
+    """
+    Calculates the anomalies for a given regridded observation dataset for a specific season.
+
+    Parameters:
+    regridded_obs_dataset_region_season (xarray.Dataset): The regridded observation dataset for the selected region and season.
+
+    Returns:
+    xarray.Dataset: The anomalies for the given regridded observation dataset.
+
+    Raises:
+    ValueError: If the input dataset is invalid.
+    """
     try:
         obs_climatology = regridded_obs_dataset_region_season.mean("time")
         obs_anomalies = regridded_obs_dataset_region_season - obs_climatology
@@ -480,14 +398,21 @@ def calculate_anomalies(regridded_obs_dataset_region_season):
         sys.exit()
 
 def calculate_annual_mean_anomalies(obs_anomalies, season):
+    """
+    Calculates the annual mean anomalies for a given observation dataset and season.
+
+    Parameters:
+    obs_anomalies (xarray.Dataset): The observation dataset containing anomalies.
+    season (str): The season for which to calculate the annual mean anomalies.
+
+    Returns:
+    xarray.Dataset: The annual mean anomalies for the given observation dataset and season.
+
+    Raises:
+    ValueError: If the input dataset is invalid.
+    """
     try:
-
-        # echo the season to the user
-        print("Season:", season)
-        # Echo the dataset being processed to the user
-        print("Calculating annual mean anomalies for observations")
-        print(obs_anomalies)
-
+        # Shift the dataset if necessary
         if season in ["DJFM", "NDJFM"]:
             obs_anomalies_shifted = obs_anomalies.shift(time=-3)
         elif season in ["DJF", "NDJF"]:
@@ -495,6 +420,7 @@ def calculate_annual_mean_anomalies(obs_anomalies, season):
         else:
             obs_anomalies_shifted = obs_anomalies
 
+        # Calculate the annual mean anomalies
         obs_anomalies_annual = obs_anomalies_shifted.resample(time="Y").mean("time")
 
         return obs_anomalies_annual
@@ -503,6 +429,19 @@ def calculate_annual_mean_anomalies(obs_anomalies, season):
         sys.exit()
 
 def select_forecast_range(obs_anomalies_annual, forecast_range):
+    """
+    Selects the forecast range for a given observation dataset.
+
+    Parameters:
+    obs_anomalies_annual (xarray.Dataset): The observation dataset containing annual mean anomalies.
+    forecast_range (str): The forecast range to select.
+
+    Returns:
+    xarray.Dataset: The observation dataset containing annual mean anomalies for the selected forecast range.
+
+    Raises:
+    ValueError: If the input dataset is invalid.
+    """
     try:
         forecast_range_start, forecast_range_end = map(int, forecast_range.split("-"))
         print("Forecast range:", forecast_range_start, "-", forecast_range_end)
@@ -510,27 +449,31 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
         print("Rolling mean range:", rolling_mean_range)
         obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range, center = True).mean()
         return obs_anomalies_annual_forecast_range
-    except:
-        print("Error selecting forecast range")
+    except Exception as e:
+        print("Error selecting forecast range:", e)
         sys.exit()
 
 
-# WRITE A FUNCTION WHICH WILL CHECK FOR NAN VALUES IN THE OBSERVATIONS DATASET
-# IF THERE ARE NAN VALUES, THEN echo an error
-# and exit the program
 def check_for_nan_values(obs):
+    """
+    Checks for NaN values in the observations dataset.
+
+    Parameters:
+    obs (xarray.Dataset): The observations dataset.
+
+    Raises:
+    SystemExit: If there are NaN values in the observations dataset.
+    """
     try:
         if obs['var151'].isnull().values.any():
             print("Error: NaN values in observations")
             sys.exit()
-    except:
-        print("Error checking for NaN values in observations")
+    except Exception as e:
+        print("Error checking for NaN values in observations:", e)
         sys.exit()
 
-
-def process_observations(
-    variable, region, region_grid, forecast_range, season, observations_path, obs_var_name
-):
+# Call the functions to process the observations
+def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
     """
     Processes the observations dataset by regridding it to the model grid, selecting a region and season,
     calculating anomalies, calculating annual mean anomalies, selecting the forecast range, and returning
@@ -554,69 +497,34 @@ def process_observations(
 
     try:
         # Load the observations dataset
-        # if variable is tas or sfcWind, we need to select the variable from the observations dataset
-        if variable in ["tas", "sfcWind"]:
-            obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[variable]
-        else:
-            obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})
-    except:
-        print("Error loading observations dataset")
+        obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[variable] if variable in ["tas", "sfcWind"] else xr.open_dataset(observations_path, chunks={"time": 50})
+
+        # Regrid the observations to the model grid
+        regridded_obs_dataset = regrid_observations(obs_dataset)
+
+        # Select the region
+        regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
+
+        # Select the season
+        regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
+
+        # Calculate anomalies
+        obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
+
+        # Calculate annual mean anomalies
+        obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
+
+        # Select the forecast range
+        obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
+
+        # Print the dimensions of the processed dataset to the user
+        print("Processed observations dataset:", obs_anomalies_annual_forecast_range.dims)
+
+        return obs_anomalies_annual_forecast_range
+
+    except Exception as e:
+        print(f"Error processing observations dataset: {e}")
         sys.exit()
-
-    # print the observations dataset
-    print("Observations dataset:", obs_dataset)
-
-    # Check for NaN values in the observations dataset
-    # print
-    print("Checking for NaN values in observations dataset")
-    #check_for_nan_values(obs_dataset)
-
-    # Regrid the observations to the model grid
-    regridded_obs_dataset = regrid_observations(obs_dataset)
-
-    # print the regridded observations dataset
-    print("Regridded observations dataset:", regridded_obs_dataset)
-    print("checking for NaN values in regridded observations dataset")
-    #check_for_nan_values(regridded_obs_dataset)
-
-    # Select the region
-    regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
-
-    # Print the dataset being processed to the user
-    print("Processing dataset before season:", regridded_obs_dataset_region)
-    print("checking for NaN values in regridded observations dataset region")
-    # print the values of var151 for the dataset
-    print(regridded_obs_dataset_region['var151'])
-
-    # Select the season
-    regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
-
-    # Print the dataset being processed to the user
-    print("Processing dataset:", regridded_obs_dataset_region_season)
-    print("checking for NaN values in regridded observations dataset region season")
-    #check_for_nan_values(regridded_obs_dataset_region_season)
-
-    # Calculate the anomalies
-    obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
-    print("checking for NaN values in observations anomalies")
-    #check_for_nan_values(obs_anomalies)
-
-    # Calculate the annual mean anomalies
-    obs_anomalies_annual = calculate_annual_mean_anomalies(obs_anomalies, season)
-    print("checking for NaN values in observations annual anomalies")
-    #check_for_nan_values(obs_anomalies_annual)
-
-    print(obs_anomalies_annual['var151'].values)
-
-    # Select the forecast range
-    obs_anomalies_annual_forecast_range = select_forecast_range(obs_anomalies_annual, forecast_range)
-    print("checking for NaN values in observations annual anomalies forecast range")
-    # check_for_nan_values(obs_anomalies_annual_forecast_range)
-
-    # print the var151 values
-    print(obs_anomalies_annual_forecast_range['var151'].values)
-
-    return obs_anomalies_annual_forecast_range
 
 def plot_data(obs_data, variable_data, model_time):
     """
@@ -855,32 +763,18 @@ def plot_model_data(model_data, models, gif_plots_path):
     # plt.show()
 
 
-# We want to define a function
-# Which takes as input the observed and model data
-# Ensures that these are the same shape, format and dimensions
-# And then calculates the spatial correlations between the two datasets
-def calculate_spatial_correlations(observed_data, model_data, models, region, forecast_range, season, variable):
+# Define a function which processes the model data for spatial correlations
+def process_model_data_for_plot(model_data, models):
     """
-    Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
-    
+    Processes the model data and calculates the ensemble mean.
+
     Parameters:
-    observed_data (xarray.core.dataset.Dataset): The processed observed data.
     model_data (dict): The processed model data.
     models (list): The list of models to be plotted.
-    region (str): The region to be plotted.
-    forecast_range (str): The forecast range to be plotted.
-    season (str): The season to be plotted.
-    variable (str): The variable to be plotted.
 
     Returns:
-    rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
-    pfield (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data.
-    
+    ensemble_mean (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
     """
-
-    # First process the model data
-    # Taking the equally weighted ensemble mean
-    # For the ensemble members in all of the models specified
     # Initialize a list for the ensemble members
     ensemble_members = []
 
@@ -906,6 +800,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
             lat = member.lat.values
             lon = member.lon.values
 
+            # Extract the years
             years = member.time.dt.year.values
 
             # Increment the count of ensemble members for the model
@@ -914,142 +809,149 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
-    # Convert the ensemble members counts dictionary to a list of tuples
-    ensemble_members_count_list = [(model, count) for model, count in ensemble_members_count.items()]
-
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
 
+    print(np.shape(ensemble_mean))
+    print(type(ensemble_mean))
+    print(ensemble_mean)
+        
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
 
-    # Print the shape of the ensemble mean dataset
-    print("ensemble mean shape", np.shape(ensemble_mean))
-    print("ensemble mean type", type(ensemble_mean))
+    return ensemble_mean, lat, lon, years
 
-    # Print the shape and type of the observed data
-    print("observed data shape", (observed_data.dims))
-    print("observed data type", type(observed_data))
-    print("observed data values", observed_data['var151'].values)
+def calculate_spatial_correlations(observed_data, model_data, models):
+    """
+    Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
+    
+    Parameters:
+    observed_data (xarray.core.dataset.Dataset): The processed observed data.
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
 
-    # For the observed data
-    # Identify the years where there are Nan values
-    # and print these years
-    # Loop over the years
-    # print("Checking for Nan values in the observed data")
-    # for year in observed_data.time.dt.year.values:
-    #     # Extract the data for the year
-    #     data = observed_data.sel(time=f"{year}")
+    Returns:
+    rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
+    pfield (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data.
+    """
+    # try:
+    # Process the model data and calculate the ensemble mean
+    ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
 
-    #     # If there are any Nan values in the data
-    #     if np.isnan(data['var151'].values).any():
-    #         # Print the year
-    #         print(year)
-    #     # if there are no Nan values in the data for a year
-    #     # then print the year
-    #     # and "no nan for this year"
-    #     # and continue the script
-    #     else:
-    #         print(year, "no nan for this year")
-
-    # #         # exit the script
-    # #         # sys.exit()
-
-
-    # Print the shape and type of the model data lats and lons
-    print("model lat shape", np.shape(lat))
-    print("model lat type", type(lat))
-    print("model lat values", lat)
-
-    print("model lon shape", np.shape(lon))
-    print("model lon type", type(lon))
-    print("model lon values", lon)
-
-    # Print the shape and type of the model data years
-    print("model years shape", np.shape(years))
-    print("model years type", type(years))
-    print("model years values", years)
-
-    # Do the same for the observed data
+    print(np.shape(years))
+    print(years)
+    
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
     obs_lon = observed_data.lon.values
-
-    # Extract the years
+    # And the years
     obs_years = observed_data.time.dt.year.values
 
-    # Print the shape and type of the observed data lats and lons
-    print("observed lat shape", np.shape(obs_lat))
-    print("observed lat type", type(obs_lat))
-    print("observed lat values", obs_lat)
+    # Initialize lists for the converted lons
+    obs_lons_converted, lons_converted = [], []
 
-    print("observed lon shape", np.shape(obs_lon))
-    print("observed lon type", type(obs_lon))
-    print("observed lon values", obs_lon)
-
-    # Print the shape and type of the observed data years
-    print("observed years shape", np.shape(obs_years))
-    print("observed years type", type(obs_years))
-    print("observed years values", obs_years)
-
-    # Now they have the same shape, we want to make sure that they are on the same grid system
-    # obs uses 0 to 360
-    # model uses -180 to 180
-    # we want to convert the obs from 0 to 360 to -180 to 180
-    # so that they are on the same grid system
-    # # Convert the observed data lons from 0 to 360 to -180 to 180
-    # # Initialize a list for the converted lons
-    obs_lons_converted = []
-    lons_converted = []
-
-    # Loop over the observed data lons
-    # for obs, we want to replace the central 360 with 180
-    # values originally less than 360 but greater than 180 will be changed
-    # to have the same distance from 180 as they did from 360
-    # values greater than 0 but less than 180 will be changed
-    # to have the same distance from 180 as they did from 0
+    # Transform the obs lons
     obs_lons_converted = np.where(obs_lon > 180, obs_lon - 360, obs_lon)
     # add 180 to the obs_lons_converted
     obs_lons_converted = obs_lons_converted + 180
 
+    # For the model lons
     lons_converted = np.where(lon > 180, lon - 360, lon)
     # # add 180 to the lons_converted
     lons_converted = lons_converted + 180
 
-
-    # print the shape and type of the transformed observed data lons
-    print("observed lon shape", np.shape(obs_lons_converted))
-    print("observed lon type", type(obs_lons_converted))
-    print("observed lon values", obs_lons_converted)
+    # Print the observed and model years
+    print('observed years', obs_years)
+    print('model years', years)
     
-    # now print the model data lons
-    print("model lon shape", np.shape(lons_converted))
-    print("model lon type", type(lons_converted))
-    print("model lon values", lons_converted)
-
-    # Now we want to make sure that the years in the time dimension are the same for the observed and model data
-    # Select only where the years are the same
-    # First find the years that are in both the observed and model data
+    # Find the years that are in both the observed and model data
     years_in_both = np.intersect1d(obs_years, years)
 
-    # Print the years in both
-    print("years in both", years_in_both)
+    print('years in both', years_in_both)
 
-    # Now select only the years that are in both the observed and model data
-    # For the observed data
+    # Select only the years that are in both the observed and model data
     observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
-
-    # For the model data
     ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
 
-    # Identify the years within the observed data where there are Nan values
-    # and print these years
-    # and select these years from the observed data
-    # and the model data
-    # Loop over the years
-    # starting from the last year in the observed data
-    # and working backwards
-    print("Checking for Nan values in the observed data")
+    # Remove years with NaNs
+    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean)
+
+    # Convert both the observed and model data to numpy arrays
+    # ----------------------------------------
+    # Hardcoded for psl for now
+    # ----------------------------------------
+    observed_data_array = observed_data['var151'].values / 100
+    ensemble_mean_array = ensemble_mean.values
+
+    # Check that the observed data and ensemble mean have the same shape
+    if observed_data_array.shape != ensemble_mean_array.shape:
+        raise ValueError("Observed data and ensemble mean must have the same shape.")
+
+    # Calculate the correlations between the observed and model data
+    rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
+
+    return rfield, pfield, obs_lons_converted, lons_converted
+
+    # except Exception as e:
+    #     print(f"An error occurred when calculating spatial correlations: {e}")
+
+def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
+    """
+    Calculates the spatial correlations between the observed and model data.
+
+    Parameters:
+    observed_data (numpy.ndarray): The processed observed data.
+    model_data (numpy.ndarray): The processed model data.
+    obs_lat (numpy.ndarray): The latitude values of the observed data.
+    obs_lon (numpy.ndarray): The longitude values of the observed data.
+
+    Returns:
+    rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
+    pfield (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data.
+    """
+    try:
+        # Initialize empty arrays for the spatial correlations and p-values
+        rfield = np.empty([len(obs_lat), len(obs_lon)])
+        pfield = np.empty([len(obs_lat), len(obs_lon)])
+
+        # Loop over the latitudes and longitudes
+        for y in range(len(obs_lat)):
+            for x in range(len(obs_lon)):
+                # set up the obs and model data
+                obs = observed_data[:, y, x]
+                mod = model_data[:, y, x]
+
+                # Calculate the correlation coefficient and p-value
+                r, p = stats.pearsonr(obs, mod)
+
+                # Append the correlation coefficient and p-value to the arrays
+                rfield[y, x], pfield[y, x] = r, p
+
+        # Print the range of the correlation coefficients and p-values
+        # to 3 decimal places
+        print(f"Correlation coefficients range from {rfield.min():.3f} to {rfield.max():.3f}")
+        print(f"P-values range from {pfield.min():.3f} to {pfield.max():.3f}")
+
+        # Return the correlation coefficients and p-values
+        return rfield, pfield
+
+    except Exception as e:
+        print(f"Error calculating correlations: {e}")
+        sys.exit()
+
+# checking for Nans in observed data
+def remove_years_with_nans(observed_data, ensemble_mean):
+    """
+    Removes years from the observed data that contain NaN values.
+
+    Args:
+        observed_data (xarray.Dataset): The observed data.
+        ensemble_mean (xarray.Dataset): The ensemble mean (model data).
+
+    Returns:
+        xarray.Dataset: The observed data with years containing NaN values removed.
+    """
+
     for year in observed_data.time.dt.year.values[::-1]:
         # Extract the data for the year
         data = observed_data.sel(time=f"{year}")
@@ -1062,7 +964,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
             # Select the year from the observed data
             observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
 
-            # Select the year from the model data
+            # for the model data
             ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
 
         # if there are no Nan values in the data for a year
@@ -1075,89 +977,10 @@ def calculate_spatial_correlations(observed_data, model_data, models, region, fo
             # exit the loop
             break
 
-    # print("Checking for Nan values in the observed data after selecting only the years that are in both the observed and model data")
-    # for year in observed_data.time.dt.year.values:
-    #     # Extract the data for the year
-    #     data = observed_data.sel(time=f"{year}")
-
-    #     # If there are any Nan values in the data
-    #     if np.isnan(data['var151'].values).any():
-    #         # Print the year
-    #         print(year)
-
-    #     # if there are no Nan values in the data for a year
-    #     # then print the year
-    #     # and "no nan for this year"
-    #     # and continue the script
-    #     else:
-    #         print(year, "no nan for this year")
-
-    # #         # exit the script
-    # #         # sys.exit()
-
-    # extract the years from the observed data
-    observed_data_years = observed_data.time.dt.year.values
-    # print these years
-    print("observed data years", observed_data_years)
-
-    # extract the years from the model data
-    ensemble_mean_years = ensemble_mean.time.dt.year.values
-    # print these years
-    print("model data years", ensemble_mean_years)
-
-    # Print the shape and type of the observed data
-    print("observed data shape", (observed_data.dims))
-    print("observed data type", type(observed_data))
-
-    # Print the shape and type of the model data
-    print("ensemble mean shape", np.shape(ensemble_mean))
-    print("ensemble mean type", type(ensemble_mean))
-
-    # Convert both the observed and model data to numpy arrays
-    # And convert observed data to hPa
-    observed_data_array = observed_data['var151'].values / 100
-    ensemble_mean_array = ensemble_mean.values
-
-
-    # Print the dimensions of these arrays
-    print("observed data", observed_data_array)
-    print("ensemble mean model data", ensemble_mean_array)
-    print("observed data shape", np.shape(observed_data_array))
-    print("ensemble mean shape", np.shape(ensemble_mean_array))
-
-    # Now calculate the correlations between the observed and model data
-    # Calculate the correlation coefficients between the observed and model data
-    # Initialize empty arrays to store the correlation coefficients and p-values
-    rfield = np.empty([len(obs_lat), len(obs_lon)])
-    pfield = np.empty([len(obs_lat), len(obs_lon)])
-
-    # Loop over the latitudes and longitudes
-    # y --> lat
-    # x --> lon
-    for y in range(len(obs_lat)):
-        for x in range(len(obs_lon)):
-            # Extract the observed data for this latitude and longitude
-            obs = observed_data_array[:, y, x]
-
-            # Extract the model data for this latitude and longitude
-            mod = ensemble_mean_array[:, y, x]
-
-            # Calculate the correlation coefficient and p-value
-            r, p = stats.pearsonr(obs, mod)
-
-            # Store the correlation coefficient and p-value in the arrays
-            rfield[y, x] = r
-            pfield[y, x] = p
-
-    # Print the range of the correlation coefficients and p-values
-    print('r range:', rfield.min(), rfield.max())
-    print('p range:', pfield.min(), pfield.max())
-
-    # Return the correlation coefficients and p-values
-    return rfield, pfield, obs_lons_converted, lons_converted
+    return observed_data, ensemble_mean
 
 # plot the correlations and p-values
-def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted):
+def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
@@ -1165,6 +988,8 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     
     Parameters
     ----------
+    model : str
+        Name of the model.
     rfield : array
         Array of correlation coefficients.
     pfield : array
@@ -1185,8 +1010,24 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
         Array of longitudes for the observed data.
     lons_converted : array
         Array of longitudes for the model data.
+    azores_grid : array
+        Array of longitudes and latitudes for the Azores region.
+    iceland_grid : array
+        Array of longitudes and latitudes for the Iceland region.
 
     """
+
+    # Extract the lats and lons for the azores grid
+    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+    # Extract the lats and lons for the iceland grid
+    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+    # subtract 180 from all of the azores and iceland lons
+    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
 
     # set up the converted lons
     lons = lons_converted - 180
@@ -1203,6 +1044,17 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     # Add coastlines
     ax.coastlines()
 
+    # Add gridlines with labels for the latitude and longitude
+    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+    gl.top_labels = False
+    gl.right_labels = False
+    gl.xlabel_style = {'size': 12}
+    gl.ylabel_style = {'size': 12}
+
+    # Add green lines outlining the Azores and Iceland grids
+    ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+    ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+
     # Add filled contours
     # Contour levels
     clevs = np.arange(-1, 1.1, 0.1)
@@ -1211,79 +1063,51 @@ def plot_correlations(rfield, pfield, obs, variable, region, season, forecast_ra
     # Plot the filled contours
     cf = plt.contourf(lons, obs.lat, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
+    # replace values in pfield that are greater than 0.01 with nan
+    pfield[pfield > 0.01] = np.nan
+
+    # print the pfield
+    print("pfield mod", pfield)
+
     # Add stippling where rfield is significantly different from zero
-    plt.contourf(lons, obs.lat, pfield < 0.01, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
+    plt.contourf(lons, obs.lat, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
 
     # Add colorbar
     cbar = plt.colorbar(cf, orientation='horizontal', pad=0.05, aspect=50)
     cbar.set_label('Correlation Coefficient')
 
+    # extract the model name from the list
+    # given as ['model']
+    # we only want the model name
+    # if the length of the list is 1
+    # then the model name is the first element
+    if len(model) == 1:
+        model = model[0]
+    elif len(model) > 1:
+        model = "all_models"
+    else :
+        print("Error: model name not found")
+        sys.exit()
+
     # Add title
-    plt.title(f"{variable} {region} {season} {forecast_range} Correlation Coefficients")
+    plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+
+    # set up the path for saving the figure
+    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
-    plt.savefig(f"{plots_dir}/{variable}_{region}_{season}_{forecast_range}_correlation_coefficients.png", dpi=200, bbox_inches='tight')
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
 
     # Show the figure
     plt.show()
 
-
-
-
-# define a main function
-def main():
-    """Main function for the program.
-    
-    This function parses the arguments from the command line
-    and then calls the functions to load and process the data.
+# Functions for choosing the observed data path
+# and full variable name
+def choose_obs_path(args):
     """
-
-    # Create a usage statement for the script.
-    USAGE_STATEMENT = """python functions.py <variable> <region> <forecast_range> <season>"""
-
-    # Check if the number of arguments is correct.
-    if len(sys.argv) != 5:
-        print(USAGE_STATEMENT)
-        sys.exit()
-
-    # Make the plots directory if it doesn't exist.
-    if not os.path.exists(dic.plots_dir):
-        os.makedirs(dic.plots_dir)
-
-    # Parse the arguments from the command line.
-    parser = argparse.ArgumentParser()
-    parser.add_argument("variable", help="variable", type=str)
-    parser.add_argument("region", help="region", type=str)
-    parser.add_argument("forecast_range", help="forecast range", type=str)
-    parser.add_argument("season", help="season", type=str)
-    args = parser.parse_args()
-
-    # Print the arguments to the screen.
-    print("variable = ", args.variable)
-    print("region = ", args.region)
-    print("forecast range = ", args.forecast_range)
-    print("season = ", args.season)
-
-    # Load the data.
-    datasets = load_data(dic.base_dir, dic.test_model, args.variable, args.region, args.forecast_range, args.season)
-
-    # # Print the datasets.
-    # print(datasets)
-    # # Dimensions of the datasets
-    # print(datasets["BCC-CSM2-MR"])
-    # # Print the shape
-    # print(datasets["BCC-CSM2-MR"])
-
-    # Process the model data.
-    variable_data, model_time = process_data(datasets, args.variable)
-
-    # Print the processed data.
-    print(variable_data)
-    print(model_time)
-    # print(variable_data["BCC-CSM2-MR"])
-    # print(model_time["BCC-CSM2-MR"])
-
-    # Choose the obs path based on the variable
+    Choose the obs path based on the variable
+    """
     if args.variable == "psl":
         obs_path = dic.obs_psl
     elif args.variable == "tas":
@@ -1295,8 +1119,13 @@ def main():
     else:
         print("Error: variable not found")
         sys.exit()
+    return obs_path
 
-    # choose the obs var name based on the variable
+# Choose the observed variable name
+def choose_obs_var_name(args):
+    """
+    Choose the obs var name based on the variable
+    """
     if args.variable == "psl":
         obs_var_name = dic.psl_label
     elif args.variable == "tas":
@@ -1308,21 +1137,73 @@ def main():
     else:
         print("Error: variable not found")
         sys.exit()
+    return obs_var_name
+
+# define a main function
+def main():
+    """Main function for the program.
+    
+    This function parses the arguments from the command line
+    and then calls the functions to load and process the data.
+    """
+
+    # Create a usage statement for the script.
+    USAGE_STATEMENT = """python functions.py <variable> <model> <region> <forecast_range> <season>"""
+
+    # Check if the number of arguments is correct.
+    if len(sys.argv) != 6:
+        print(f"Expected 6 arguments, but got {len(sys.argv)}")
+        print(USAGE_STATEMENT)
+        sys.exit()
+
+    # Make the plots directory if it doesn't exist.
+    if not os.path.exists(dic.plots_dir):
+        os.makedirs(dic.plots_dir)
+
+    # Parse the arguments from the command line.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("variable", help="variable", type=str)
+    parser.add_argument("model", help="model", type=str)
+    parser.add_argument("region", help="region", type=str)
+    parser.add_argument("forecast_range", help="forecast range", type=str)
+    parser.add_argument("season", help="season", type=str)
+    args = parser.parse_args()
+
+    # Print the arguments to the screen.
+    print("variable = ", args.variable)
+    print("model = ", args.model)
+    print("region = ", args.region)
+    print("forecast range = ", args.forecast_range)
+    print("season = ", args.season)
+
+    # If the model specified == "all", then run the script for all models.
+    if args.model == "all":
+        args.model = dic.models
+
+    # If the type of the model argument is a string, then convert it to a list.
+    if type(args.model) == str:
+        args.model = [args.model]
+
+    # Load the data.
+    datasets = load_data(dic.base_dir, args.model, args.variable, args.region, args.forecast_range, args.season)
+
+    # Process the model data.
+    variable_data, model_time = process_data(datasets, args.variable)
+
+    # Choose the obs path based on the variable
+    obs_path = choose_obs_path(args)
+
+    # choose the obs var name based on the variable
+    obs_var_name = choose_obs_var_name(args)
 
     # Process the observations.
     obs = process_observations(args.variable, args.region, dic.north_atlantic_grid, args.forecast_range, args.season, obs_path, obs_var_name)
 
-    # Print the processed observations.
-    print("obs = ", obs)
-    print("dimensions = ", obs.dims)
-
-    # Print the dimensions of the variable data.
-    print("variable_data dimensions = ", variable_data)
-
     # Call the function to calculate the ACC
-    rfield, pfield = calculate_spatial_correlations(obs, variable_data, dic.test_model, args.region, args.forecast_range, args.season, args.variable)
+    rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, args.model)
 
-
+    # Call the function to plot the ACC
+    plot_correlations(args.model, rfield, pfield, obs, args.variable, args.region, args.season, args.forecast_range, dic.plots_dir, obs_lons_converted, lons_converted, dic.azores_grid, dic.iceland_grid)
 
 # Call the main function.
 if __name__ == "__main__":
