@@ -1182,7 +1182,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     plt.show()
 
 # Function for plotting the results for all of the models as 12 subplots
-def plot_spatial_correlations(models, obs, variable_data, region, season, forecast_range, plots_dir, obs_lons_converted, azores_grid, iceland_grid):
+def plot_spatial_correlations(models, obs, variable_data, region, season, forecast_range, plots_dir, azores_grid, iceland_grid):
     """Plot the spatial correlation coefficients and p-values for all models.
 
     This function plots the spatial correlation coefficients and p-values
@@ -1205,8 +1205,6 @@ def plot_spatial_correlations(models, obs, variable_data, region, season, foreca
         Forecast range.
     plots_dir : str
         Path to the directory where the plots will be saved.
-    obs_lons_converted : array
-        Array of longitudes for the observed data.
     azores_grid : array
         Array of longitudes and latitudes for the Azores region.
     iceland_grid : array
