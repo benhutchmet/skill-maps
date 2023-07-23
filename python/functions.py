@@ -762,8 +762,7 @@ def plot_model_data(model_data, models, gif_plots_path):
     # Show the plot
     # plt.show()
 
-# Define a function to constrain the years data
-# to the years that are in all of the members within the models
+# Define a function to constrain the years to the years that are in all of the model members
 def constrain_years(model_data, models):
     """
     Constrains the years to the years that are in all of the models.
@@ -783,14 +782,19 @@ def constrain_years(model_data, models):
         # Extract the model data
         model_data_combined = model_data[model]
 
-        # Extract the years for the model
-        years = model_data_combined.time.dt.year.values
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+            # Extract the years
+            years = member.time.dt.year.values
 
-        # Append the years to the list of years
-        years_list.append(years)
+            # Append the years to the list of years
+            years_list.append(years)
 
     # Find the years that are in all of the models
     common_years = set(years_list[0]).intersection(*years_list)
+
+    # Print the common years for debugging
+    print("Common years:", common_years)
 
     # Initialize a dictionary to store the constrained data
     constrained_data = {}
@@ -800,11 +804,24 @@ def constrain_years(model_data, models):
         # Extract the model data
         model_data_combined = model_data[model]
 
-        # Select only the years that are in all of the models
-        model_data_constrained = model_data_combined.sel(time=model_data_combined.time.dt.year.isin(common_years))
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+            # Extract the years
+            years = member.time.dt.year.values
 
-        # Add the constrained data to the dictionary
-        constrained_data[model] = model_data_constrained
+            # Find the years that are in both the model data and the common years
+            years_in_both = np.intersect1d(years, common_years)
+
+            # Select only those years from the model data
+            member = member.sel(time=years_in_both)
+
+            # Add the member to the constrained data dictionary
+            if model not in constrained_data:
+                constrained_data[model] = []
+            constrained_data[model].append(member)
+
+    # Print the constrained data for debugging
+    print("Constrained data:", constrained_data)
 
     return constrained_data
 
