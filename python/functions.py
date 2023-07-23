@@ -1182,7 +1182,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     plt.show()
 
 # Function for plotting the results for all of the models as 12 subplots
-def plot_spatial_correlations(dictionaries, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, azores_grid, iceland_grid):
+def plot_spatial_correlations(models, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, azores_grid, iceland_grid):
     """Plot the spatial correlation coefficients and p-values for all models.
 
     This function plots the spatial correlation coefficients and p-values
@@ -1191,7 +1191,7 @@ def plot_spatial_correlations(dictionaries, obs, variable, region, season, forec
 
     Parameters
     ----------
-    dictionaries : dict
+    models : dict
         Dictionary containing the processed model data.
     obs : str
         Observed dataset.
@@ -1224,9 +1224,9 @@ def plot_spatial_correlations(dictionaries, obs, variable, region, season, forec
     proj = ccrs.PlateCarree()
 
     # Loop over the models
-    for i, model in enumerate(dictionaries['models']):
+    for i, model in enumerate(models):
         # Calculate the spatial correlations for the model
-        rfield, pfield, lons_converted = calculate_spatial_correlations(dictionaries, model, obs, variable, region, season, forecast_range)
+        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, models[model], model)
 
         # Set the subplot position
         ax = fig.add_subplot(6, 2, i+1, projection=proj)
