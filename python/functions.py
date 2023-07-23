@@ -1191,12 +1191,12 @@ def plot_spatial_correlations(models, obs, variable_data, region, season, foreca
 
     Parameters
     ----------
-    models : dict
-        Dictionary containing the processed model data.
+    models : List
+        List of models.
     obs : str
         Observed dataset.
-    variable : str
-        Variable.
+    variable_data : dict
+        Variable data for each model.
     region : str
         Region.
     season : str
