@@ -1270,6 +1270,15 @@ def plot_spatial_correlations(models, obs, variable_data, region, season, foreca
         # Add title
         ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
 
+        # extract the model name from the list
+        if len(model) == 1:
+            model = model[0]
+        elif len(model) > 1:
+            model = "all_models"
+        else :
+            print("Error: model name not found")
+            sys.exit()
+
         # Add textbox with model name
         ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=14, fontweight='bold', va='top')
 
