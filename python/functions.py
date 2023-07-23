@@ -812,14 +812,14 @@ def constrain_years(model_data, models):
             years = member.time.dt.year.values
 
             # Print the years extracted from the model
-            print('model years', years)
-            print('model years shape', np.shape(years))
+            # print('model years', years)
+            # print('model years shape', np.shape(years))
             
             # Find the years that are in both the model data and the common years
             years_in_both = np.intersect1d(years, common_years)
 
-            print("years in both shape", np.shape(years_in_both))
-            print("years in both", years_in_both)
+            # print("years in both shape", np.shape(years_in_both))
+            # print("years in both", years_in_both)
             
             # Select only those years from the model data
             member = member.sel(time=member.time.dt.year.isin(years_in_both))
@@ -885,15 +885,6 @@ def process_model_data_for_plot(model_data, models):
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
 
-    print('ensemble members', ensemble_members)
-
-    # We want to constrain the years to the years that are in all of the models
-    # As some of them have 59 years, while some have 58
-    # So we find the years that are in all of the models
-    # And then select only those years from each model
-    # And then calculate the ensemble mean
-
-
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
@@ -902,7 +893,7 @@ def process_model_data_for_plot(model_data, models):
 
     print(np.shape(ensemble_mean))
     print(type(ensemble_mean))
-    print(ensemble_mean)
+    # print(ensemble_mean)
         
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
@@ -927,7 +918,7 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
 
     print(np.shape(years))
-    print(years)
+    # print(years)
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
