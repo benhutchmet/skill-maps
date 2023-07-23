@@ -803,6 +803,10 @@ def process_model_data_for_plot(model_data, models):
             # Extract the years
             years = member.time.dt.year.values
 
+            # Print statements for debugging
+            print('shape of years', np.shape(years))
+            # print('years', years)
+
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
 
