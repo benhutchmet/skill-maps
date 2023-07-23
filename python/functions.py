@@ -762,6 +762,52 @@ def plot_model_data(model_data, models, gif_plots_path):
     # Show the plot
     # plt.show()
 
+# Define a function to constrain the years data
+# to the years that are in all of the members within the models
+def constrain_years(model_data, models):
+    """
+    Constrains the years to the years that are in all of the models.
+
+    Parameters:
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
+
+    Returns:
+    constrained_data (dict): The model data with years constrained to the years that are in all of the models.
+    """
+    # Initialize a list to store the years for each model
+    years_list = []
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Extract the years for the model
+        years = model_data_combined.time.dt.year.values
+
+        # Append the years to the list of years
+        years_list.append(years)
+
+    # Find the years that are in all of the models
+    common_years = set(years_list[0]).intersection(*years_list)
+
+    # Initialize a dictionary to store the constrained data
+    constrained_data = {}
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Select only the years that are in all of the models
+        model_data_constrained = model_data_combined.sel(time=model_data_combined.time.dt.year.isin(common_years))
+
+        # Add the constrained data to the dictionary
+        constrained_data[model] = model_data_constrained
+
+    return constrained_data
+
 
 # Define a function which processes the model data for spatial correlations
 def process_model_data_for_plot(model_data, models):
@@ -780,6 +826,9 @@ def process_model_data_for_plot(model_data, models):
 
     # Initialize a dictionary to store the number of ensemble members
     ensemble_members_count = {}
+
+    # First constrain the years to the years that are in all of the models
+    model_data = constrain_years(model_data, models)
 
     # Loop over the models
     for model in models:
@@ -809,6 +858,15 @@ def process_model_data_for_plot(model_data, models):
 
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
+
+    print('ensemble members', ensemble_members)
+
+    # We want to constrain the years to the years that are in all of the models
+    # As some of them have 59 years, while some have 58
+    # So we find the years that are in all of the models
+    # And then select only those years from each model
+    # And then calculate the ensemble mean
+
 
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
