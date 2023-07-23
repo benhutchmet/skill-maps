@@ -791,10 +791,12 @@ def constrain_years(model_data, models):
             years_list.append(years)
 
     # Find the years that are in all of the models
-    common_years = set(years_list[0]).intersection(*years_list)
+    common_years = list(set(years_list[0]).intersection(*years_list))
 
     # Print the common years for debugging
     print("Common years:", common_years)
+    print("Common years type:", type(common_years))
+    print("Common years shape:", np.shape(common_years))
 
     # Initialize a dictionary to store the constrained data
     constrained_data = {}
@@ -811,10 +813,14 @@ def constrain_years(model_data, models):
 
             # Print the years extracted from the model
             print('model years', years)
+            print('model years shape', np.shape(years))
             
             # Find the years that are in both the model data and the common years
             years_in_both = np.intersect1d(years, common_years)
 
+            print("years in both shape", np.shape(years_in_both))
+            print("years in both", years_in_both)
+            
             # Select only those years from the model data
             member = member.sel(time=years_in_both)
 
