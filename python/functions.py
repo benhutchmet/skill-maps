@@ -1261,11 +1261,11 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         ax.coastlines()
     
         # Add gridlines with labels for the latitude and longitude
-        gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+        gl = ax.gridlines(crs=proj, draw_labels=False, linewidth=2, color='gray', alpha=0.5, linestyle='--')
         gl.top_labels = False
         gl.right_labels = False
-        gl.xlabel_style = {'size': 12}
-        gl.ylabel_style = {'size': 12}
+        # gl.xlabel_style = {'size': 12}
+        # gl.ylabel_style = {'size': 12}
     
         # Add green lines outlining the Azores and Iceland grids
         ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
@@ -1298,7 +1298,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
             sys.exit()
     
         # Add textbox with model name
-        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top')
+        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
     
         # Add the contourf object to the list
         cf_list.append(cf)
