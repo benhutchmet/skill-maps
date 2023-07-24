@@ -1127,11 +1127,11 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     ax.coastlines()
 
     # Add gridlines with labels for the latitude and longitude
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
-    gl.top_labels = False
-    gl.right_labels = False
-    gl.xlabel_style = {'size': 12}
-    gl.ylabel_style = {'size': 12}
+    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+    # gl.top_labels = False
+    # gl.right_labels = False
+    # gl.xlabel_style = {'size': 12}
+    # gl.ylabel_style = {'size': 12}
 
     # Add green lines outlining the Azores and Iceland grids
     ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
@@ -1149,7 +1149,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     pfield[pfield > 0.01] = np.nan
 
     # print the pfield
-    print("pfield mod", pfield)
+    # print("pfield mod", pfield)
 
     # Add stippling where rfield is significantly different from zero
     plt.contourf(lons, obs.lat, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
@@ -1166,7 +1166,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     if len(model) == 1:
         model = model[0]
     elif len(model) > 1:
-        model = "all_models"
+        model = "multi-model mean"
     else :
         print("Error: model name not found")
         sys.exit()

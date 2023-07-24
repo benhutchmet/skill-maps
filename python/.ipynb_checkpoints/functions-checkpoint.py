@@ -1127,11 +1127,11 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     ax.coastlines()
 
     # Add gridlines with labels for the latitude and longitude
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
-    gl.top_labels = False
-    gl.right_labels = False
-    gl.xlabel_style = {'size': 12}
-    gl.ylabel_style = {'size': 12}
+    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+    # gl.top_labels = False
+    # gl.right_labels = False
+    # gl.xlabel_style = {'size': 12}
+    # gl.ylabel_style = {'size': 12}
 
     # Add green lines outlining the Azores and Iceland grids
     ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
@@ -1149,7 +1149,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     pfield[pfield > 0.01] = np.nan
 
     # print the pfield
-    print("pfield mod", pfield)
+    # print("pfield mod", pfield)
 
     # Add stippling where rfield is significantly different from zero
     plt.contourf(lons, obs.lat, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
@@ -1166,7 +1166,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     if len(model) == 1:
         model = model[0]
     elif len(model) > 1:
-        model = "all_models"
+        model = "multi-model mean"
     else :
         print("Error: model name not found")
         sys.exit()
@@ -1217,12 +1217,15 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
 
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
-    
-    # Set the figure size
-    fig = plt.figure(figsize=(15, 20))
-    
+
     # Set the projection
     proj = ccrs.PlateCarree()
+    
+    # Set the figure size and subplot parameters
+    fig, axs = plt.subplots(nrows=6, ncols=2, figsize=(10, 20), subplot_kw={'projection': proj})
+
+    # Flatten the axs array
+    axs = axs.flatten()
     
     # Create a list to store the contourf objects
     cf_list = []
@@ -1239,9 +1242,6 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model)
     
-        # Set up the subplot position
-        ax = fig.add_subplot(6, 2, i+1, projection=proj)
-    
         # Set up the lats and lons for the azores grid
         azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
         azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
@@ -1256,6 +1256,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
+
+        # Set up the axes
+        ax = axs[i]
 
         # Add coastlines
         ax.coastlines()
