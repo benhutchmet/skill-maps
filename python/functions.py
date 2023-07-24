@@ -1305,7 +1305,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
             sys.exit()
 
         # Add textbox with model name
-        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=14, fontweight='bold', va='top')
+        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top')
 
     # set up the path for saving the figure
     fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
