@@ -832,8 +832,8 @@ def constrain_years(model_data, models):
                 constrained_data[model] = []
             constrained_data[model].append(member)
 
-    # Print the constrained data for debugging
-    print("Constrained data:", constrained_data)
+    # # Print the constrained data for debugging
+    # print("Constrained data:", constrained_data)
 
     return constrained_data
 
@@ -882,8 +882,8 @@ def process_model_data_for_plot(model_data, models):
             years = member.time.dt.year.values
 
             # Print statements for debugging
-            print('shape of years', np.shape(years))
-            # print('years', years)
+            # print('shape of years', np.shape(years))
+            # # print('years', years)
 
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
@@ -1215,92 +1215,92 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
 
     """
 
-# Set the font size for the plots
-plt.rcParams.update({'font.size': 12})
-
-# Set the figure size
-fig = plt.figure(figsize=(15, 20))
-
-# Set the projection
-proj = ccrs.PlateCarree()
-
-# Create a list to store the contourf objects
-cf_list = []
-
-# Loop over the models
-for i, model in enumerate(models):
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
     
-    # Print the model name
-    print("Processing model:", model)
-
-    # Convert the model to a single index list
-    model = [model]
-
-    # Calculate the spatial correlations for the model
-    rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model)
-
-    # Set up the subplot position
-    ax = fig.add_subplot(6, 2, i+1, projection=proj)
-
-    # Add coastlines
-    ax.coastlines()
-
-    # Add gridlines with labels for the latitude and longitude
-    gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
-    gl.top_labels = False
-    gl.right_labels = False
-    gl.xlabel_style = {'size': 12}
-    gl.ylabel_style = {'size': 12}
-
-    # Add green lines outlining the Azores and Iceland grids
-    ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
-    ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
-
-    # Add filled contours
-    # Contour levels
-    clevs = np.arange(-1, 1.1, 0.1)
-    # Contour levels for p-values
-    clevs_p = np.arange(0, 1.1, 0.1)
-    # Plot the filled contours
-    cf = ax.contourf(lons_converted, obs.lat, rfield, clevs, cmap='RdBu_r', transform=proj)
-
-    # replace values in pfield that are greater than 0.01 with nan
-    pfield[pfield > 0.01] = np.nan
-
-    # Add stippling where rfield is significantly different from zero
-    ax.contourf(lons_converted, obs.lat, pfield, hatches=['....'], alpha=0, transform=proj)
-
-    # Add title
-    # ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
-
-    # extract the model name from the list
-    if len(model) == 1:
-        model = model[0]
-    elif len(model) > 1:
-        model = "all_models"
-    else :
-        print("Error: model name not found")
-        sys.exit()
-
-    # Add textbox with model name
-    ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top')
-
-    # Add the contourf object to the list
-    cf_list.append(cf)
-
-# Create a single colorbar for all of the subplots
-cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
-cbar.set_label('Correlation Coefficient')
-
-# set up the path for saving the figure
-fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-fig_path = os.path.join(plots_dir, fig_name)
-
-# Save the figure
-plt.savefig(fig_path, dpi=300, bbox_inches='tight')
-
-# Show the figure
-plt.show()
+    # Set the figure size
+    fig = plt.figure(figsize=(15, 20))
+    
+    # Set the projection
+    proj = ccrs.PlateCarree()
+    
+    # Create a list to store the contourf objects
+    cf_list = []
+    
+    # Loop over the models
+    for i, model in enumerate(models):
+        
+        # Print the model name
+        print("Processing model:", model)
+    
+        # Convert the model to a single index list
+        model = [model]
+    
+        # Calculate the spatial correlations for the model
+        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model)
+    
+        # Set up the subplot position
+        ax = fig.add_subplot(6, 2, i+1, projection=proj)
+    
+        # Add coastlines
+        ax.coastlines()
+    
+        # Add gridlines with labels for the latitude and longitude
+        gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+        gl.top_labels = False
+        gl.right_labels = False
+        gl.xlabel_style = {'size': 12}
+        gl.ylabel_style = {'size': 12}
+    
+        # Add green lines outlining the Azores and Iceland grids
+        ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+    
+        # Add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons_converted, obs.lat, rfield, clevs, cmap='RdBu_r', transform=proj)
+    
+        # replace values in pfield that are greater than 0.01 with nan
+        pfield[pfield > 0.01] = np.nan
+    
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons_converted, obs.lat, pfield, hatches=['....'], alpha=0, transform=proj)
+    
+        # Add title
+        # ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+    
+        # extract the model name from the list
+        if len(model) == 1:
+            model = model[0]
+        elif len(model) > 1:
+            model = "all_models"
+        else :
+            print("Error: model name not found")
+            sys.exit()
+    
+        # Add textbox with model name
+        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top')
+    
+        # Add the contourf object to the list
+        cf_list.append(cf)
+    
+    # Create a single colorbar for all of the subplots
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('Correlation Coefficient')
+    
+    # set up the path for saving the figure
+    fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
+    
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+    
+    # Show the figure
+    plt.show()
 
 
 # Functions for choosing the observed data path
