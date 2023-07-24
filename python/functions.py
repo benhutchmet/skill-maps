@@ -1229,10 +1229,10 @@ def plot_correlations_subplots(models, obs, variable_data, region, season, forec
         print("Processing model type:", type(model))
         print("Data to be processed:", variable_data[model])
         print("Data to be processed type:", type(variable_data[model]))
-        
+
 
         # Calculate the spatial correlations for the model
-        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data[ model ], model)
+        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model)
 
         # Set the subplot position
         ax = fig.add_subplot(6, 2, i+1, projection=proj)
