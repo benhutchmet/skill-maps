@@ -1220,6 +1220,12 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     
     # Set the figure size
     fig = plt.figure(figsize=(15, 20))
+
+    # Set the vertical spacing between subplots
+    fig.subplots_adjust(hspace=0.3)
+
+    # Set the horizontal spacing between subplots
+    fig.subplots_adjust(wspace=0.3)
     
     # Set the projection
     proj = ccrs.PlateCarree()
