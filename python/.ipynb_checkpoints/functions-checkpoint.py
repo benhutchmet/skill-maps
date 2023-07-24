@@ -812,17 +812,17 @@ def constrain_years(model_data, models):
             years = member.time.dt.year.values
 
             # Print the years extracted from the model
-            print('model years', years)
-            print('model years shape', np.shape(years))
+            # print('model years', years)
+            # print('model years shape', np.shape(years))
             
             # Find the years that are in both the model data and the common years
             years_in_both = np.intersect1d(years, common_years)
 
-            print("years in both shape", np.shape(years_in_both))
-            print("years in both", years_in_both)
+            # print("years in both shape", np.shape(years_in_both))
+            # print("years in both", years_in_both)
             
             # Select only those years from the model data
-            member = member.sel(time=years_in_both)
+            member = member.sel(time=member.time.dt.year.isin(years_in_both))
 
             # Add the member to the constrained data dictionary
             if model not in constrained_data:
@@ -885,15 +885,6 @@ def process_model_data_for_plot(model_data, models):
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
 
-    print('ensemble members', ensemble_members)
-
-    # We want to constrain the years to the years that are in all of the models
-    # As some of them have 59 years, while some have 58
-    # So we find the years that are in all of the models
-    # And then select only those years from each model
-    # And then calculate the ensemble mean
-
-
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
@@ -902,7 +893,7 @@ def process_model_data_for_plot(model_data, models):
 
     print(np.shape(ensemble_mean))
     print(type(ensemble_mean))
-    print(ensemble_mean)
+    # print(ensemble_mean)
         
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
@@ -927,7 +918,7 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
 
     print(np.shape(years))
-    print(years)
+    # print(years)
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
@@ -1189,6 +1180,116 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
 
     # Show the figure
     plt.show()
+
+# Function for plotting the results for all of the models as 12 subplots
+def plot_correlations_subplots(models, obs, variable_data, region, season, forecast_range, plots_dir, azores_grid, iceland_grid):
+    """Plot the spatial correlation coefficients and p-values for all models.
+
+    This function plots the spatial correlation coefficients and p-values
+    for all models in the dictionaries.models list for a given variable,
+    region, season and forecast range.
+
+    Parameters
+    ----------
+    models : List
+        List of models.
+    obs : str
+        Observed dataset.
+    variable_data : dict
+        Variable data for each model.
+    region : str
+        Region.
+    season : str
+        Season.
+    forecast_range : str
+        Forecast range.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    azores_grid : array
+        Array of longitudes and latitudes for the Azores region.
+    iceland_grid : array
+        Array of longitudes and latitudes for the Iceland region.
+
+    """
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set the figure size
+    fig = plt.figure(figsize=(15, 20))
+
+    # Set the projection
+    proj = ccrs.PlateCarree()
+
+    # Loop over the models
+    for i, model in enumerate(models):
+        
+        # Print the model name
+        print("Processing model:", model)
+
+        # Calculate the spatial correlations for the model
+        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data[model], model)
+
+        # Set the subplot position
+        ax = fig.add_subplot(6, 2, i+1, projection=proj)
+
+        # Add coastlines
+        ax.coastlines()
+
+        # Add gridlines with labels for the latitude and longitude
+        gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+        gl.top_labels = False
+        gl.right_labels = False
+        gl.xlabel_style = {'size': 12}
+        gl.ylabel_style = {'size': 12}
+
+        # Add green lines outlining the Azores and Iceland grids
+        ax.plot([azores_grid['lon1'], azores_grid['lon2'], azores_grid['lon2'], azores_grid['lon1'], azores_grid['lon1']], [azores_grid['lat1'], azores_grid['lat1'], azores_grid['lat2'], azores_grid['lat2'], azores_grid['lat1']], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_grid['lon1'], iceland_grid['lon2'], iceland_grid['lon2'], iceland_grid['lon1'], iceland_grid['lon1']], [iceland_grid['lat1'], iceland_grid['lat1'], iceland_grid['lat2'], iceland_grid['lat2'], iceland_grid['lat1']], color='green', linewidth=2, transform=proj)
+
+        # Add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons_converted, obs.lat, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+        # replace values in pfield that are greater than 0.01 with nan
+        pfield[pfield > 0.01] = np.nan
+
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons_converted, obs.lat, pfield, hatches=['....'], alpha=0, transform=proj)
+
+        # Add colorbar
+        cbar = plt.colorbar(cf, orientation='horizontal', pad=0.05, aspect=50, ax=ax)
+        cbar.set_label('Correlation Coefficient')
+
+        # Add title
+        ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+
+        # extract the model name from the list
+        if len(model) == 1:
+            model = model[0]
+        elif len(model) > 1:
+            model = "all_models"
+        else :
+            print("Error: model name not found")
+            sys.exit()
+
+        # Add textbox with model name
+        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=14, fontweight='bold', va='top')
+
+    # set up the path for saving the figure
+    fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
+
 
 # Functions for choosing the observed data path
 # and full variable name
