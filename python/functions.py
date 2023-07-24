@@ -957,12 +957,17 @@ def process_model_data_for_plot(model_data, models):
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
+    # Print the dimensions of the ensemble members
+    print("ensemble members shape", np.shape(ensemble_members))
+
+
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
 
-    # print(np.shape(ensemble_mean))
-    # print(type(ensemble_mean))
-    # print(ensemble_mean)
+    # Print the dimensions of the ensemble mean
+    print(np.shape(ensemble_mean))
+    print(type(ensemble_mean))
+    print(ensemble_mean)
         
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
@@ -1030,6 +1035,12 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     # ----------------------------------------
     observed_data_array = observed_data['var151'].values / 100
     ensemble_mean_array = ensemble_mean.values
+
+    # Print the values and shapes of the observed and model data
+    print("observed data shape", np.shape(observed_data_array))
+    print("model data shape", np.shape(ensemble_mean_array))
+    print("observed data", observed_data_array)
+    print("model data", ensemble_mean_array)
 
     # Check that the observed data and ensemble mean have the same shape
     if observed_data_array.shape != ensemble_mean_array.shape:
