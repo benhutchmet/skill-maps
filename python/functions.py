@@ -695,9 +695,9 @@ def plot_model_data(model_data, models, gif_plots_path):
 
     # Extract the years from the model data
     # print the values of the years
-    print("years values", years)
-    print("years shape", np.shape(years))
-    print("years type", type(years))
+    # print("years values", years)
+    # print("years shape", np.shape(years))
+    # print("years type", type(years))
 
 
     # set the vmin and vmax values
@@ -778,7 +778,7 @@ def constrain_years(model_data, models):
     years_list = []
 
     # Print the models being proces
-    print("models:", models)
+    # print("models:", models)
     
     # Loop over the models
     for model in models:
@@ -797,9 +797,9 @@ def constrain_years(model_data, models):
     common_years = list(set(years_list[0]).intersection(*years_list))
 
     # Print the common years for debugging
-    print("Common years:", common_years)
-    print("Common years type:", type(common_years))
-    print("Common years shape:", np.shape(common_years))
+    # print("Common years:", common_years)
+    # print("Common years type:", type(common_years))
+    # print("Common years shape:", np.shape(common_years))
 
     # Initialize a dictionary to store the constrained data
     constrained_data = {}
@@ -894,8 +894,8 @@ def process_model_data_for_plot(model_data, models):
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
 
-    print(np.shape(ensemble_mean))
-    print(type(ensemble_mean))
+    # print(np.shape(ensemble_mean))
+    # print(type(ensemble_mean))
     # print(ensemble_mean)
         
     # Convert ensemble_mean to an xarray DataArray
@@ -920,7 +920,7 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     # Process the model data and calculate the ensemble mean
     ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
 
-    print(np.shape(years))
+    # print(np.shape(years))
     # print(years)
     
     # Extract the lat and lon values
@@ -943,13 +943,13 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     lons_converted = lons_converted + 180
 
     # Print the observed and model years
-    print('observed years', obs_years)
-    print('model years', years)
+    # print('observed years', obs_years)
+    # print('model years', years)
     
     # Find the years that are in both the observed and model data
     years_in_both = np.intersect1d(obs_years, years)
 
-    print('years in both', years_in_both)
+    # print('years in both', years_in_both)
 
     # Select only the years that are in both the observed and model data
     observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
@@ -1229,9 +1229,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         
         # Print the model name
         print("Processing model:", model)
-        print("Processing model type:", type(model))
-        print("Data to be processed:", variable_data[model])
-        print("Data to be processed type:", type(variable_data[model]))
+        # print("Processing model type:", type(model))
+        # print("Data to be processed:", variable_data[model])
+        # print("Data to be processed type:", type(variable_data[model]))
 
         # Convert the model to a single index list
         model = [model]
