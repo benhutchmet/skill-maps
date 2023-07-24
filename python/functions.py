@@ -1242,6 +1242,21 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # Set up the subplot position
         ax = fig.add_subplot(6, 2, i+1, projection=proj)
     
+        # Set up the lats and lons for the azores grid
+        azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+        azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+        # Set up the lats and lons for the iceland grid
+        iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+        iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+        # subtract 180 from all of the azores and iceland lons
+        azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+        iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+        # Set up the converted lons
+        lons_converted = lons_converted - 180
+
         # Add coastlines
         ax.coastlines()
     
