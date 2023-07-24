@@ -777,6 +777,9 @@ def constrain_years(model_data, models):
     # Initialize a list to store the years for each model
     years_list = []
 
+    # Print the models being proces
+    print("models:", models)
+    
     # Loop over the models
     for model in models:
         # Extract the model data
@@ -1182,7 +1185,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     plt.show()
 
 # Function for plotting the results for all of the models as 12 subplots
-def plot_correlations_subplots(models, obs, variable_data, region, season, forecast_range, plots_dir, azores_grid, iceland_grid):
+def plot_correlations_subplots(models, obs, variable_data, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid):
     """Plot the spatial correlation coefficients and p-values for all models.
 
     This function plots the spatial correlation coefficients and p-values
@@ -1230,6 +1233,11 @@ def plot_correlations_subplots(models, obs, variable_data, region, season, forec
         print("Data to be processed:", variable_data[model])
         print("Data to be processed type:", type(variable_data[model]))
 
+        # Convert the model to a single index list
+        model = [model]
+
+        # Now print the type of the model
+        print("updated type of model:", type(model))
 
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model)
@@ -1270,7 +1278,7 @@ def plot_correlations_subplots(models, obs, variable_data, region, season, forec
         cbar.set_label('Correlation Coefficient')
 
         # Add title
-        ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+        # ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
 
         # extract the model name from the list
         if len(model) == 1:
