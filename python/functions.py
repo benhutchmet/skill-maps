@@ -581,7 +581,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         print("after selecting forecast range:", obs_anomalies_annual_forecast_range)
         print("after selecting forecast range:", obs_anomalies_annual_forecast_range['var151'].values)
         # check for year NaN values in the processed observations dataset
-        check_for_nan_years(obs_anomalies_annual_forecast_range)
+        # check_for_nan_timesteps(obs_anomalies_annual_forecast_range)
 
         # Print the dimensions of the processed dataset to the user
         print("Processed observations dataset:", obs_anomalies_annual_forecast_range.dims)

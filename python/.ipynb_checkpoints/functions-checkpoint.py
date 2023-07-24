@@ -474,9 +474,9 @@ def check_for_nan_values(obs):
 
 # Function for checking the model data for NaN values
 # For individual years
-def check_for_nan_years(ds):
+def check_for_nan_timesteps(ds):
     """
-    Checks for NaN values in the given dataset and prints the years that contain NaN values.
+    Checks for NaN values in the given dataset and prints the timesteps that contain NaN values.
 
     Parameters:
     ds (xarray.Dataset): The dataset to check for NaN values.
@@ -485,21 +485,14 @@ def check_for_nan_years(ds):
     None
     """
     try:
-        # Get the years in the dataset
+        # Get the time steps in the dataset
+        time_steps = ds.time.values
 
-        ds
-        
-        years = ds.time.dt.year()
-
-        # print the year
-        print(years)
-        # time.dt.year.values
-        
-        # Loop over the years
-        for year in years:
-            # Check for NaN values in the dataset for the current year
-            if ds.sel(time=f"{year}").isnull().values.any():
-                print(f"Year {year} contains NaN values")
+        # Loop over the time steps
+        for time_step in time_steps:
+            # Check for NaN values in the dataset for the current time step
+            if ds.sel(time=time_step).isnull().values.any():
+                print(f"Time step {time_step} contains NaN values")
     except Exception as e:
         print("Error checking for NaN values:", e)
 
@@ -588,7 +581,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         print("after selecting forecast range:", obs_anomalies_annual_forecast_range)
         print("after selecting forecast range:", obs_anomalies_annual_forecast_range['var151'].values)
         # check for year NaN values in the processed observations dataset
-        check_for_nan_years(obs_anomalies_annual_forecast_range)
+        # check_for_nan_timesteps(obs_anomalies_annual_forecast_range)
 
         # Print the dimensions of the processed dataset to the user
         print("Processed observations dataset:", obs_anomalies_annual_forecast_range.dims)
