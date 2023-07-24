@@ -472,6 +472,30 @@ def check_for_nan_values(obs):
         print("Error checking for NaN values in observations:", e)
         sys.exit()
 
+# Function for checking the model data for NaN values
+# For individual years
+def check_for_nan_years(ds):
+    """
+    Checks for NaN values in the given dataset and prints the years that contain NaN values.
+
+    Parameters:
+    ds (xarray.Dataset): The dataset to check for NaN values.
+
+    Returns:
+    None
+    """
+    try:
+        # Get the years in the dataset
+        years = ds.time.dt.year.unique()
+
+        # Loop over the years
+        for year in years:
+            # Check for NaN values in the dataset for the current year
+            if ds.sel(time=f"{year}").isnull().values.any():
+                print(f"Year {year} contains NaN values")
+    except Exception as e:
+        print("Error checking for NaN values:", e)
+
 # Call the functions to process the observations
 def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
     """
