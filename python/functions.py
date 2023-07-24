@@ -1217,18 +1217,15 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
 
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
-    
-    # Set the figure size
-    fig = plt.figure(figsize=(15, 20))
 
-    # Set the vertical spacing between subplots
-    fig.subplots_adjust(hspace=0.3)
-
-    # Set the horizontal spacing between subplots
-    fig.subplots_adjust(wspace=0.3)
-    
     # Set the projection
     proj = ccrs.PlateCarree()
+    
+    # Set the figure size and subplot parameters
+    fig, axs = plt.subplots(nrows=6, ncols=2, figsize=(10, 20), subplot_kw={'projection': proj})
+
+    # Flatten the axs array
+    axs = axs.flatten()
     
     # Create a list to store the contourf objects
     cf_list = []
@@ -1245,9 +1242,6 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model)
     
-        # Set up the subplot position
-        ax = fig.add_subplot(6, 2, i+1, projection=proj)
-    
         # Set up the lats and lons for the azores grid
         azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
         azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
@@ -1262,6 +1256,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
+
+        # Set up the axes
+        ax = axs[i]
 
         # Add coastlines
         ax.coastlines()
