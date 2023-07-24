@@ -1062,6 +1062,10 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         rfield = np.empty([len(obs_lat), len(obs_lon)])
         pfield = np.empty([len(obs_lat), len(obs_lon)])
 
+        # Print the dimensions of the observed and model data
+        print("observed data shape", np.shape(observed_data))
+        print("model data shape", np.shape(model_data))
+
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
             for x in range(len(obs_lon)):
@@ -1069,8 +1073,16 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 obs = observed_data[:, y, x]
                 mod = model_data[:, y, x]
 
+                # print the obs and model data
+                print("observed data", obs)
+                print("model data", mod)
+
                 # Calculate the correlation coefficient and p-value
                 r, p = stats.pearsonr(obs, mod)
+
+                # print the correlation coefficient and p-value
+                print("correlation coefficient", r)
+                print("p-value", p)
 
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
