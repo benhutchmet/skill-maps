@@ -486,8 +486,15 @@ def check_for_nan_years(ds):
     """
     try:
         # Get the years in the dataset
-        years = ds.time.dt.year.unique()
 
+        ds
+        
+        years = ds.time.dt.year()
+
+        # print the year
+        print(years)
+        # time.dt.year.values
+        
         # Loop over the years
         for year in years:
             # Check for NaN values in the dataset for the current year
