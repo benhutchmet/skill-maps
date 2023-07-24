@@ -1261,9 +1261,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         ax.coastlines()
     
         # Add gridlines with labels for the latitude and longitude
-        gl = ax.gridlines(crs=proj, draw_labels=False, linewidth=2, color='gray', alpha=0.5, linestyle='--')
-        gl.top_labels = False
-        gl.right_labels = False
+        # gl = ax.gridlines(crs=proj, draw_labels=False, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+        # gl.top_labels = False
+        # gl.right_labels = False
         # gl.xlabel_style = {'size': 12}
         # gl.ylabel_style = {'size': 12}
     
@@ -1298,7 +1298,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
             sys.exit()
     
         # Add textbox with model name
-        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
     
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -1308,7 +1308,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     cbar.set_label('Correlation Coefficient')
     
     # Specify a tight layout
-    plt.tight_layout()
+    # plt.tight_layout()
 
     # set up the path for saving the figure
     fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"

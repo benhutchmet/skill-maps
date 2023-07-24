@@ -1242,15 +1242,30 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # Set up the subplot position
         ax = fig.add_subplot(6, 2, i+1, projection=proj)
     
+        # Set up the lats and lons for the azores grid
+        azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+        azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+        # Set up the lats and lons for the iceland grid
+        iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+        iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+        # subtract 180 from all of the azores and iceland lons
+        azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+        iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+        # Set up the converted lons
+        lons_converted = lons_converted - 180
+
         # Add coastlines
         ax.coastlines()
     
         # Add gridlines with labels for the latitude and longitude
-        gl = ax.gridlines(crs=proj, draw_labels=True, linewidth=2, color='gray', alpha=0.5, linestyle='--')
-        gl.top_labels = False
-        gl.right_labels = False
-        gl.xlabel_style = {'size': 12}
-        gl.ylabel_style = {'size': 12}
+        # gl = ax.gridlines(crs=proj, draw_labels=False, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+        # gl.top_labels = False
+        # gl.right_labels = False
+        # gl.xlabel_style = {'size': 12}
+        # gl.ylabel_style = {'size': 12}
     
         # Add green lines outlining the Azores and Iceland grids
         ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
@@ -1283,7 +1298,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
             sys.exit()
     
         # Add textbox with model name
-        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top')
+        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
     
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -1292,6 +1307,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('Correlation Coefficient')
     
+    # Specify a tight layout
+    # plt.tight_layout()
+
     # set up the path for saving the figure
     fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
