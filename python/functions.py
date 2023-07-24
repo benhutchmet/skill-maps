@@ -524,7 +524,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
 
         # Print the dimensions of the regridded observations dataset
-        print("Regridded observations dataset:", regridded_obs_dataset_region_season.dims)
+        print("Regridded observations dataset:", regridded_obs_dataset_region_season)
         print("Regridded observations variables:", regridded_obs_dataset_region_season)
         # Check for NaN values in the regridded observations dataset
         check_for_nan_values(regridded_obs_dataset_region_season)
@@ -533,22 +533,29 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
 
         # Print the dimensions of the processed dataset to the user
-        print("Processed observations dataset:", obs_anomalies.dims)
+        print("Processed observations dataset obs anomalies:", obs_anomalies['var151'].values)
         # check for NaN values in the processed observations dataset
         check_for_nan_values(obs_anomalies)
 
         # Calculate annual mean anomalies
         obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
 
+        # Print
+        print("checking whether nans emerge here")
         # Print the dimensions of the processed dataset to the user
+        print("Processed observations dataset obs annual mean anoms:", obs_annual_mean_anomalies['var151'].values)
+        print("Processed observations dataset obs annual mean anoms:", obs_annual_mean_anomalies)
         print("Processed observations dataset:", obs_annual_mean_anomalies.dims)
         # check for NaN values in the processed observations dataset
-        check_for_nan_values(obs_annual_mean_anomalies)
+        # --- NaN values appear to emerge here, is this plausible? ---
+        # check_for_nan_values(obs_annual_mean_anomalies)
 
         # Select the forecast range
         obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
 
         # Check for NaN values in the processed observations dataset
+        print("after selecting forecast range:", obs_anomalies_annual_forecast_range)
+        print("after selecting forecast range:", obs_anomalies_annual_forecast_range['var151'].values)
         check_for_nan_values(obs_anomalies_annual_forecast_range)
 
         # Print the dimensions of the processed dataset to the user
