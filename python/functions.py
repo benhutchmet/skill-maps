@@ -1307,6 +1307,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('Correlation Coefficient')
     
+    # Specify a tight layout
+    plt.tight_layout()
+
     # set up the path for saving the figure
     fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
