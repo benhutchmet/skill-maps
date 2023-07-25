@@ -802,6 +802,11 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
         # Find the index of the year in the years array
         year_index = np.where(years == year)[0][0]
 
+        
+        # Print the values of the model and obs arrays
+        print("model values", model[year_index, :, :])
+        print("obs values", obs[year_index, :, :])
+
         # Plot the ensemble mean on the subplot
         # for the specified year
         c1 = axs[0].contourf(lon, lat, model[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
