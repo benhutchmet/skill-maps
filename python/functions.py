@@ -711,45 +711,6 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
         # Create the directory
         os.makedirs(gif_plots_path)
 
-    # initialize an empty list to store the ensemble members
-    ensemble_members = []
-
-    # initialize a dictionary to store the count of ensemble members
-    # for each model
-    ensemble_members_count = {}
-
-    # Initialize a dictionary to store the filepaths
-    # of the plots for each model
-    filepaths = []
-
-    # For each model
-    for model in models:
-        model_data_combined = model_data[model]
-
-        if model not in ensemble_members_count:
-            ensemble_members_count[model] = 0
-
-        for member in model_data_combined:
-            ensemble_members.append(member)
-
-            # Extract the lat and lon values
-            lat = member.lat.values
-            lon = member.lon.values
-
-            years = member.time.dt.year.values
-
-            # Increment the count of ensemble members for the model
-            ensemble_members_count[model] += 1
-
-    # Conver the ensemble members counts dictionary to a list of tuples
-    ensemble_members_count_list = [(model, count) for model, count in ensemble_members_count.items()]
-
-    # Conver the list of all ensemble members to a numpy array
-    ensemble_members = np.array(ensemble_members)
-
-    # take the ensemble mean over the members
-    ensemble_mean = ensemble_members.mean(axis=0)
-
     # # print the values of lat and lon
     # print("lat values", ensemble_mean[0, :, 0])
     # print("lon values", ensemble_mean[0, 0, :])
@@ -757,8 +718,7 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     # lat_test = ensemble_mean[0, :, 0]
     # lon_test = ensemble_mean[0, 0, :]
 
-    # print the dimensions of the model data
-    print("ensemble mean shape", np.shape(ensemble_mean))
+
 
     # Extract the years from the model data
     # print the values of the years
@@ -766,6 +726,11 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     # print("years shape", np.shape(years))
     # print("years type", type(years))
 
+    # Process the model data and calculate the ensemble mean
+    ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
+
+    # print the dimensions of the model data
+    print("ensemble mean shape", np.shape(ensemble_mean))
 
     # set the vmin and vmax values
     vmin = -500
