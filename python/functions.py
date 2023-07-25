@@ -695,12 +695,13 @@ def make_gif(frame_folder):
     # Save the frames as a gif
     frame_one.save(os.path.join(frame_folder, "animation.gif"), format='GIF', append_images=frames, save_all=True, duration=300, loop=0)
 
-def plot_model_data(model_data, models, gif_plots_path):
+def plot_model_data(model_data, observed_data, models, gif_plots_path):
     """
     Plots the first timestep of the model data as a single subplot.
 
     Parameters:
     model_data (dict): The processed model data.
+    observed_data (xarray.Dataset): The processed observations data.
     models (list): The list of models to be plotted.
     gif_plots_path (str): The path to the directory where the plots will be saved.
     """
@@ -770,6 +771,54 @@ def plot_model_data(model_data, models, gif_plots_path):
     vmin = -500
     vmax = 500
 
+    # process the observed data
+    # extract the lat and lon values
+    obs_lat = observed_data.lat.values
+    obs_lon = observed_data.lon.values
+    obs_years = observed_data.time.dt.year.values
+
+    # Do we need to convert the lons in any way here?
+    # print the values of lat and lon
+    print("obs lat values", obs_lat)
+    print("obs lon values", obs_lon) 
+    print("obs lat shape", np.shape(obs_lat))
+    print("obs lon shape", np.shape(obs_lon))
+    print("model lat shape", np.shape(lat))
+    print("model lon shape", np.shape(lon))
+    print("model lat values", lat)
+    print("model lon values", lon)
+    print("years values", years)
+    print("obs years values", obs_years)
+    print("obs years shape", np.shape(obs_years))
+    print("obs years type", type(obs_years))
+    print("model year shape", np.shape(years))
+
+    # Make sure that the obs and model data are for the same time period
+    # Find the years which are in both the obs and model data
+    years_in_both = np.intersect1d(obs_years, years)
+
+    # Select the years which are in both the obs and model data
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
+    ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
+
+    # remove the years with NaN values from the model data
+    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean)
+
+    # convert to numpy arrays
+    # and convert from pa to hpa
+    obs_array = observed_data['var151'].values / 100
+    model_array = ensemble_mean.values / 100
+
+    # Check that these have the same shape
+    if np.shape(obs_array) != np.shape(model_array):
+        raise ValueError("The shapes of the obs and model arrays do not match")
+    else:
+        print("The shapes of the obs and model arrays match")
+
+    # assign the obs and model arrays to the same variable
+    obs = obs_array
+    model = model_array
+
     # Loop over the years array
     for year in years:
         # print the year
@@ -790,7 +839,7 @@ def plot_model_data(model_data, models, gif_plots_path):
 
         # Plot the ensemble mean on the subplot
         # for the specified year
-        c1 = axs[0].contourf(lon, lat, ensemble_mean[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+        c1 = axs[0].contourf(lon, lat, model[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
 
         # Add coastlines and gridlines to the plot
         axs[0].coastlines()
@@ -810,7 +859,7 @@ def plot_model_data(model_data, models, gif_plots_path):
         axs[1].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
 
         # Plot the anomalies on the subplot
-        c3 = axs[2].contourf(lon, lat, ensemble_mean[year_index, :, :] - obs[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+        c3 = axs[2].contourf(lon, lat, model[year_index, :, :] - obs[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
 
         # Add coastlines and gridlines to the plot
         axs[2].coastlines()
