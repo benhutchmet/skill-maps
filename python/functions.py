@@ -1047,6 +1047,7 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     # ----------------------------------------
     # Hardcoded for psl for now
     # ----------------------------------------
+    # and also convert from hPa to Pa
     observed_data_array = observed_data['var151'].values / 100
     ensemble_mean_array = ensemble_mean.values / 100
 
@@ -1103,7 +1104,7 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 print("model data", mod)
 
                 # Calculate the correlation coefficient and p-value
-                r, p = stats.pearsonr(obs, mod)
+                r, p = stats.pearsonr(mod, obs)
 
                 # print the correlation coefficient and p-value
                 print("correlation coefficient", r)
