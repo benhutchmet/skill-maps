@@ -930,6 +930,9 @@ def process_model_data_for_plot(model_data, models):
         # Extract the model data
         model_data_combined = model_data[model]
 
+        # Print
+        print("extracting data for model:", model)
+
         # Set the ensemble members count to zero
         # if the model is not in the ensemble members count dictionary
         if model not in ensemble_members_count:
@@ -939,6 +942,12 @@ def process_model_data_for_plot(model_data, models):
         for member in model_data_combined:
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
+
+            # Try to print values for each member
+            print("trying to print values for each member for debugging")
+            print("values for model:", model)
+            print("values for members:", member)
+            print("member values:", member.values)
 
             # Extract the lat and lon values
             lat = member.lat.values
@@ -991,8 +1000,9 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     # Process the model data and calculate the ensemble mean
     ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
 
-    # print(np.shape(years))
-    # print(years)
+    # Debug the model data
+    print("ensemble mean within spatial correlation function:", ensemble_mean)
+    print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
@@ -1029,12 +1039,16 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     # Remove years with NaNs
     observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean)
 
+    # Print the ensemble mean values
+    print("ensemble mean value after removing nans:", ensemble_mean.values)
+
+    
     # Convert both the observed and model data to numpy arrays
     # ----------------------------------------
     # Hardcoded for psl for now
     # ----------------------------------------
     observed_data_array = observed_data['var151'].values / 100
-    ensemble_mean_array = ensemble_mean.values
+    ensemble_mean_array = ensemble_mean.values / 100
 
     # Print the values and shapes of the observed and model data
     print("observed data shape", np.shape(observed_data_array))
