@@ -820,22 +820,7 @@ def plot_model_data(model_data, models, gif_plots_path):
         axs[2].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
 
         # Set up the filepath for saving
-        filepath = os.path.join(gif_plots_path, f"{year}.png")
-        # Save the figure
-        fig.savefig(filepath)
-
-        # Add the filepath to the list of filepaths
-        filepaths.append(filepath)
-
-        # Add coastlines and gridlines to the plot
-        ax.coastlines()
-        ax.gridlines(draw_labels=True)
-
-        # Annotate the plot with the year
-        ax.annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
-
-        # Set up the filepath for saving
-        filepath = os.path.join(gif_plots_path, f"{year}_anomalies.png")
+        filepath = os.path.join(gif_plots_path, f"{year}_obs_model_anoms.png")
         # Save the figure
         fig.savefig(filepath)
 
