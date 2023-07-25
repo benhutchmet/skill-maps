@@ -530,7 +530,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         regridded_obs_dataset = regrid_observations(obs_dataset)
 
         # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset.dims)
+        print("Regridded observations dataset:", regridded_obs_dataset.dims)
         # print("Regridded observations variables:", regridded_obs_dataset)
         # # Check for NaN values in the regridded observations dataset
         # check_for_nan_values(regridded_obs_dataset)
@@ -539,7 +539,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
 
         # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
+        print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
         # print("Regridded observations variables:", regridded_obs_dataset_region)
         # # Check for NaN values in the regridded observations dataset
         # check_for_nan_values(regridded_obs_dataset_region)
@@ -548,7 +548,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
 
         # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset_region_season)
+        print("Regridded observations dataset:", regridded_obs_dataset_region_season)
         # print("Regridded observations variables:", regridded_obs_dataset_region_season)
         # # Check for NaN values in the regridded observations dataset
         # check_for_nan_values(regridded_obs_dataset_region_season)
@@ -557,7 +557,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
 
         # Print the dimensions of the processed dataset to the user
-        # print("Processed observations dataset obs anomalies:", obs_anomalies['var151'].values)
+        print("Processed observations dataset obs anomalies:", obs_anomalies['var151'].values)
         # # check for NaN values in the processed observations dataset
         # check_for_nan_values(obs_anomalies)
 
@@ -567,7 +567,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # Print
         # print("checking whether nans emerge here")
         # # Print the dimensions of the processed dataset to the user
-        # print("Processed observations dataset obs annual mean anoms:", obs_annual_mean_anomalies['var151'].values)
+        print("Processed observations dataset obs annual mean anoms:", obs_annual_mean_anomalies['var151'].values)
         # print("Processed observations dataset obs annual mean anoms:", obs_annual_mean_anomalies)
         # print("Processed observations dataset:", obs_annual_mean_anomalies.dims)
         # check for NaN values in the processed observations dataset
@@ -578,7 +578,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
 
         # Check for NaN values in the processed observations dataset
-        # print("after selecting forecast range:", obs_anomalies_annual_forecast_range)
+        print("after selecting forecast range:", obs_anomalies_annual_forecast_range)
         # print("after selecting forecast range:", obs_anomalies_annual_forecast_range['var151'].values)
         # # check for year NaN values in the processed observations dataset
         # # check_for_nan_timesteps(obs_anomalies_annual_forecast_range)
@@ -1283,7 +1283,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     cf = plt.contourf(lons, obs.lat, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
     # replace values in pfield that are greater than 0.01 with nan
-    pfield[pfield > 0.01] = np.nan
+    pfield[pfield > 0.05] = np.nan
 
     # print the pfield
     # print("pfield mod", pfield)

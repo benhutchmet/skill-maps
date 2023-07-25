@@ -55,8 +55,8 @@ north_atlantic_grid = {
 north_atlantic_grid_obs = {
     'lon1': 100,
     'lon2': 217.5,
-    'lat1': 20,
-    'lat2': 77.5
+    'lat1': 77.5,
+    'lat2': 20
 }
 
 # Define the dimensions for the gridbox for the azores
