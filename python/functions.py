@@ -776,7 +776,8 @@ def plot_model_data(model_data, models, gif_plots_path):
         print("year", year)
 
         # Set up the figure
-        fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+        # modify for three subplots
+        fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
 
         # Plot the ensemble mean on the subplot
         # for the specified year
@@ -789,14 +790,34 @@ def plot_model_data(model_data, models, gif_plots_path):
 
         # Plot the ensemble mean on the subplot
         # for the specified year
-        c = ax.contourf(lon, lat, ensemble_mean[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+        c1 = axs[0].contourf(lon, lat, ensemble_mean[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
 
         # Add coastlines and gridlines to the plot
-        ax.coastlines()
-        ax.gridlines(draw_labels=True)
+        axs[0].coastlines()
+        axs[0].gridlines(draw_labels=True)
 
         # Annotate the plot with the year
-        ax.annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+        axs[0].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+
+        # Plot the observations on the subplot
+        c2 = axs[1].contourf(lon, lat, obs[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+
+        # Add coastlines and gridlines to the plot
+        axs[1].coastlines()
+        axs[1].gridlines(draw_labels=True)
+
+        # Annotate the plot with the year
+        axs[1].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+
+        # Plot the anomalies on the subplot
+        c3 = axs[2].contourf(lon, lat, ensemble_mean[year_index, :, :] - obs[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+
+        # Add coastlines and gridlines to the plot
+        axs[2].coastlines()
+        axs[2].gridlines(draw_labels=True)
+
+        # Annotate the plot with the year
+        axs[2].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
 
         # Set up the filepath for saving
         filepath = os.path.join(gif_plots_path, f"{year}.png")
@@ -1104,7 +1125,7 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 print("model data", mod)
 
                 # Calculate the correlation coefficient and p-value
-                r, p = stats.pearsonr(mod, obs)
+                r, p = stats.pearsonr(obs, mod)
 
                 # print the correlation coefficient and p-value
                 print("correlation coefficient", r)

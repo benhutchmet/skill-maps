@@ -12,6 +12,8 @@ gif_plots_dir = base_dir + "/plots/gif"
 test_model = [ "CMCC-CM2-SR5" ]
 test_model2 = [ "EC-Earth3" ]
 test_model_norcpm = [ "NorCPM1" ]
+test_model_hadgem = [ "HadGEM3-GC31-MM" ]
+test_model_cesm = [ "CESM1-1-CAM5-CMIP5" ]
 
 # List of the full models
 models = [ "BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1" ]
