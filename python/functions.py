@@ -718,7 +718,8 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     # lat_test = ensemble_mean[0, :, 0]
     # lon_test = ensemble_mean[0, 0, :]
 
-
+    # Initialize filepaths
+    filepaths = []
 
     # Extract the years from the model data
     # print the values of the years
@@ -733,8 +734,8 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     print("ensemble mean shape", np.shape(ensemble_mean))
 
     # set the vmin and vmax values
-    vmin = -500
-    vmax = 500
+    vmin = -5
+    vmax = 5
 
     # process the observed data
     # extract the lat and lon values
