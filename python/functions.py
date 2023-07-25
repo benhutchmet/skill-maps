@@ -792,7 +792,7 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
 
         # Set up the figure
         # modify for three subplots
-        fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+        fig, axs = plt.subplots(ncols=3, nrows=1, figsize=(18, 6), subplot_kw={'projection': ccrs.PlateCarree()})
 
         # Plot the ensemble mean on the subplot
         # for the specified year
@@ -814,30 +814,37 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
 
         # Add coastlines and gridlines to the plot
         axs[0].coastlines()
-        axs[0].gridlines(draw_labels=True)
+        # axs[0].gridlines(draw_labels=True)
 
         # Annotate the plot with the year
         axs[0].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+        # annotate the plot with model
+        # in the top right corner
+        axs[0].annotate(f"{models[0]}", xy=(0.8, 0.92), xycoords='axes fraction', fontsize=16)
 
         # Plot the observations on the subplot
         c2 = axs[1].contourf(lon, lat, obs[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
 
         # Add coastlines and gridlines to the plot
         axs[1].coastlines()
-        axs[1].gridlines(draw_labels=True)
+        # axs[1].gridlines(draw_labels=True)
 
         # Annotate the plot with the year
         axs[1].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+        # annotate the plot with obs
+        # in the top right corner
+        axs[1].annotate(f"obs", xy=(0.8, 0.92), xycoords='axes fraction', fontsize=16)
 
         # Plot the anomalies on the subplot
         c3 = axs[2].contourf(lon, lat, model[year_index, :, :] - obs[year_index, :, :], transform=ccrs.PlateCarree(), cmap='coolwarm', vmin=vmin, vmax=vmax, norm=plt.Normalize(vmin=vmin, vmax=vmax))
 
         # Add coastlines and gridlines to the plot
         axs[2].coastlines()
-        axs[2].gridlines(draw_labels=True)
+        # axs[2].gridlines(draw_labels=True)
 
         # Annotate the plot with the year
         axs[2].annotate(f"{year}", xy=(0.01, 0.92), xycoords='axes fraction', fontsize=16)
+        axs[2].annotate(f"anoms", xy=(0.8, 0.92), xycoords='axes fraction', fontsize=16)
 
         # Set up the filepath for saving
         filepath = os.path.join(gif_plots_path, f"{year}_obs_model_anoms.png")
