@@ -1372,7 +1372,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     
     # Set the figure size and subplot parameters
     fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 18), subplot_kw={'projection': proj})
-    
+
     # Flatten the axs array
     axs = axs.flatten()
     
@@ -1466,6 +1466,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
     
+    # Specify a tight layout
+    plt.tight_layout()
+
     # Save the figure
     plt.savefig(fig_path, dpi=300, bbox_inches='tight')
     
