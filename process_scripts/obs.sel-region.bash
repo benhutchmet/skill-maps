@@ -10,7 +10,7 @@
 #
 
 # Check the number of arguments
-if [ $# -ne 1 ]; then
+if [ $# -ne 2 ]; then
     echo "Usage: obs.sel-region.bash <region>"
     exit 1
 fi
@@ -28,7 +28,7 @@ if [ ! -f $input_file ]; then
 fi
 
 # Set the region file
-grid="~/gridspec/gridspec-${region}.txt"
+grid="/home/users/benhutch/gridspec/gridspec-${region}.txt"
 
 # If the gridspec file does not exist, then exit
 if [ ! -f $grid ]; then
