@@ -530,10 +530,11 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # check_for_nan_values(obs_dataset)
 
         # Regrid the observations to the model grid
-        regridded_obs_dataset = regrid_observations(obs_dataset)
+        # ---- DO WE NEED TO DO THIS FOR PROCESSED DATA? ----
+        # regridded_obs_dataset = regrid_observations(obs_dataset)
 
-        # print the dimensions of the regridded observations dataset
-        print("Regridded observations dataset:", regridded_obs_dataset.dims)
+        # # print the dimensions of the regridded observations dataset
+        # print("Regridded observations dataset:", regridded_obs_dataset.dims)
 
         # Print the dimensions of the regridded observations dataset
         # print("Regridded observations dataset:", regridded_obs_dataset.dims)
@@ -542,10 +543,11 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # check_for_nan_values(regridded_obs_dataset)
 
         # Select the region
-        regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
+        # --- DON'T NEED TO DO THIS FOR PROCESSED DATA? ---
+        # regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
 
-        # print the dimensions of the regridded observations dataset region
-        print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
+        # # print the dimensions of the regridded observations dataset region
+        # print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
 
         # Print the dimensions of the regridded observations dataset
         # print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
@@ -554,7 +556,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # check_for_nan_values(regridded_obs_dataset_region)
 
         # Select the season
-        regridded_obs_dataset_region_season = select_season(regridded_obs_dataset_region, season)
+        # --- Although will already be in DJFM format, so don't need to do this ---
+        regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
         # Print the dimensions of the regridded observations dataset
         # print("Regridded observations dataset:", regridded_obs_dataset_region_season)
