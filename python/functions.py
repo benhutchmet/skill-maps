@@ -172,7 +172,7 @@ def process_data(datasets_by_model, variable):
                 variable_data = dataset["psl"]
 
                 # print the values of the variable data
-                print("Variable data values: ", variable_data.values)
+                # print("Variable data values: ", variable_data.values)
 
             except:
                 print("Error converting from Pa to hPa")
@@ -331,6 +331,8 @@ def select_region(regridded_obs_dataset, region_grid):
         sys.exit()
 
 def select_season(regridded_obs_dataset_region, season):
+
+def select_season(regridded_obs_dataset_region, season):
     """
     Selects a season from a regridded observation dataset based on the given season string.
 
@@ -344,7 +346,7 @@ def select_season(regridded_obs_dataset_region, season):
     Raises:
     ValueError: If an invalid season string is provided.
     """
-def select_season(regridded_obs_dataset_region, season):
+
     try:
         # Extract the months from the season string
         if season == "DJF":
@@ -524,7 +526,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[variable] if variable in ["tas", "sfcWind"] else xr.open_dataset(observations_path, chunks={"time": 50})
 
         # Print the dimensions of the observations dataset
-        print("Observations dataset:", obs_dataset.dims)
+        # print("Observations dataset:", obs_dataset.dims)
 
         # Check for NaN values in the observations dataset
         # check_for_nan_values(obs_dataset)
@@ -619,7 +621,7 @@ def plot_data(obs_data, variable_data, model_time):
     """
 
     # print the dimensions of the observations data
-    print("Observations dimensions:", obs_data.dims)
+    # print("Observations dimensions:", obs_data.dims)
 
     # Take the time mean of the observations
     obs_data_mean = obs_data.mean(dim='time')
@@ -653,12 +655,12 @@ def plot_obs_data(obs_data):
     """
 
     # print the dimensions of the observations data
-    print("Observations dimensions:", obs_data.dims)
-    print("Observations variables:", obs_data)
+    # print("Observations dimensions:", obs_data.dims)
+    # print("Observations variables:", obs_data)
 
     # Print all of the latitude values
-    print("Observations latitude values:", obs_data.lat.values)
-    print("Observations longitude values:", obs_data.lon.values)
+    # print("Observations latitude values:", obs_data.lat.values)
+    # print("Observations longitude values:", obs_data.lon.values)
 
     # Select the first timestep of the observations
     obs_data_first = obs_data.isel(time=-1)
@@ -668,10 +670,10 @@ def plot_obs_data(obs_data):
     obs_var = obs_data_first["var151"]/100
 
     # print the value of the variable
-    print("Observations variable:", obs_var.values)
+    # print("Observations variable:", obs_var.values)
 
     # print the dimensions of the observations data
-    print("Observations dimensions:", obs_data_first)
+    # print("Observations dimensions:", obs_data_first)
 
     # Create a figure with one subplot
     fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
@@ -757,19 +759,19 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
 
     # Do we need to convert the lons in any way here?
     # print the values of lat and lon
-    print("obs lat values", obs_lat)
-    print("obs lon values", obs_lon) 
-    print("obs lat shape", np.shape(obs_lat))
-    print("obs lon shape", np.shape(obs_lon))
-    print("model lat shape", np.shape(lat))
-    print("model lon shape", np.shape(lon))
-    print("model lat values", lat)
-    print("model lon values", lon)
-    print("years values", years)
-    print("obs years values", obs_years)
-    print("obs years shape", np.shape(obs_years))
-    print("obs years type", type(obs_years))
-    print("model year shape", np.shape(years))
+    # print("obs lat values", obs_lat)
+    # print("obs lon values", obs_lon) 
+    # print("obs lat shape", np.shape(obs_lat))
+    # print("obs lon shape", np.shape(obs_lon))
+    # print("model lat shape", np.shape(lat))
+    # print("model lon shape", np.shape(lon))
+    # print("model lat values", lat)
+    # print("model lon values", lon)
+    # print("years values", years)
+    # print("obs years values", obs_years)
+    # print("obs years shape", np.shape(obs_years))
+    # print("obs years type", type(obs_years))
+    # print("model year shape", np.shape(years))
 
     # Make sure that the obs and model data are for the same time period
     # Find the years which are in both the obs and model data
@@ -800,7 +802,7 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     # Loop over the years array
     for year in years:
         # print the year
-        print("year", year)
+        # print("year", year)
 
         # Set up the figure
         # modify for three subplots
@@ -817,8 +819,8 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
 
         
         # Print the values of the model and obs arrays
-        print("model values", model[year_index, :, :])
-        print("obs values", obs[year_index, :, :])
+        # print("model values", model[year_index, :, :])
+        # print("obs values", obs[year_index, :, :])
 
         # Plot the ensemble mean on the subplot
         # for the specified year
@@ -989,10 +991,10 @@ def process_model_data_for_plot(model_data, models):
             ensemble_members.append(member)
 
             # Try to print values for each member
-            print("trying to print values for each member for debugging")
-            print("values for model:", model)
-            print("values for members:", member)
-            print("member values:", member.values)
+            # print("trying to print values for each member for debugging")
+            # print("values for model:", model)
+            # print("values for members:", member)
+            # print("member values:", member.values)
 
             # Extract the lat and lon values
             lat = member.lat.values
@@ -1012,16 +1014,16 @@ def process_model_data_for_plot(model_data, models):
     ensemble_members = np.array(ensemble_members)
 
     # Print the dimensions of the ensemble members
-    print("ensemble members shape", np.shape(ensemble_members))
+    # print("ensemble members shape", np.shape(ensemble_members))
 
 
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
 
     # Print the dimensions of the ensemble mean
-    print(np.shape(ensemble_mean))
-    print(type(ensemble_mean))
-    print(ensemble_mean)
+    # print(np.shape(ensemble_mean))
+    # print(type(ensemble_mean))
+    # print(ensemble_mean)
         
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
@@ -1046,8 +1048,8 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
 
     # Debug the model data
-    print("ensemble mean within spatial correlation function:", ensemble_mean)
-    print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
+    # print("ensemble mean within spatial correlation function:", ensemble_mean)
+    # print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
@@ -1085,7 +1087,7 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean)
 
     # Print the ensemble mean values
-    print("ensemble mean value after removing nans:", ensemble_mean.values)
+    # print("ensemble mean value after removing nans:", ensemble_mean.values)
 
     
     # Convert both the observed and model data to numpy arrays
@@ -1097,10 +1099,10 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     ensemble_mean_array = ensemble_mean.values / 100
 
     # Print the values and shapes of the observed and model data
-    print("observed data shape", np.shape(observed_data_array))
-    print("model data shape", np.shape(ensemble_mean_array))
-    print("observed data", observed_data_array)
-    print("model data", ensemble_mean_array)
+    # print("observed data shape", np.shape(observed_data_array))
+    # print("model data shape", np.shape(ensemble_mean_array))
+    # print("observed data", observed_data_array)
+    # print("model data", ensemble_mean_array)
 
     # Check that the observed data and ensemble mean have the same shape
     if observed_data_array.shape != ensemble_mean_array.shape:
@@ -1134,8 +1136,8 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         pfield = np.empty([len(obs_lat), len(obs_lon)])
 
         # Print the dimensions of the observed and model data
-        print("observed data shape", np.shape(observed_data))
-        print("model data shape", np.shape(model_data))
+        # print("observed data shape", np.shape(observed_data))
+        # print("model data shape", np.shape(model_data))
 
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
@@ -1145,15 +1147,15 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 mod = model_data[:, y, x]
 
                 # print the obs and model data
-                print("observed data", obs)
-                print("model data", mod)
+                # print("observed data", obs)
+                # print("model data", mod)
 
                 # Calculate the correlation coefficient and p-value
                 r, p = stats.pearsonr(obs, mod)
 
                 # print the correlation coefficient and p-value
-                print("correlation coefficient", r)
-                print("p-value", p)
+                # print("correlation coefficient", r)
+                # print("p-value", p)
 
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
