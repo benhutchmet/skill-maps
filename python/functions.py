@@ -1466,6 +1466,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
+    # Adjust the vertical spacing between the plots
+    plt.subplots_adjust(hspace=0.1)
+
     # Save the figure
     plt.savefig(fig_path, dpi=300, bbox_inches='tight')
     
