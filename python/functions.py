@@ -331,8 +331,6 @@ def select_region(regridded_obs_dataset, region_grid):
         sys.exit()
 
 def select_season(regridded_obs_dataset_region, season):
-
-def select_season(regridded_obs_dataset_region, season):
     """
     Selects a season from a regridded observation dataset based on the given season string.
 
