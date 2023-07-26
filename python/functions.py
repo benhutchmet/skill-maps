@@ -1371,7 +1371,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     proj = ccrs.PlateCarree()
     
     # Set the figure size and subplot parameters
-    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 20), subplot_kw={'projection': proj}, gridspec_kw={'hspace': 0.1, 'wspace': 0.1})
+    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 20), subplot_kw={'projection': proj}, gridspec_kw={'hspace': 0.05, 'wspace': 0.1})
 
     # Flatten the axs array
     axs = axs.flatten()
