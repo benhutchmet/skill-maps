@@ -1190,7 +1190,7 @@ def remove_years_with_nans(observed_data, ensemble_mean):
         # If there are any Nan values in the data
         if np.isnan(data['var151'].values).any():
             # Print the year
-            print(year)
+            # print(year)
 
             # Select the year from the observed data
             observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
@@ -1203,7 +1203,7 @@ def remove_years_with_nans(observed_data, ensemble_mean):
         # and "no nan for this year"
         # and continue the script
         else:
-            print(year, "no nan for this year")
+            # print(year, "no nan for this year")
 
             # exit the loop
             break
