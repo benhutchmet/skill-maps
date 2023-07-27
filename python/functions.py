@@ -1211,7 +1211,7 @@ def remove_years_with_nans(observed_data, ensemble_mean):
     return observed_data, ensemble_mean
 
 # plot the correlations and p-values
-def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid):
+def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, uk_s_box):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
@@ -1245,7 +1245,10 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
         Array of longitudes and latitudes for the Azores region.
     iceland_grid : array
         Array of longitudes and latitudes for the Iceland region.
-
+    uk_n_box : array
+        Array of longitudes and latitudes for the northern UK index box.
+    uk_s_box : array
+        Array of longitudes and latitudes for the southern UK index box.
     """
 
     # Extract the lats and lons for the azores grid
@@ -1256,9 +1259,21 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
     iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
 
+    # Extract the lats and lons for the northern UK index box
+    uk_n_lon1, uk_n_lon2 = uk_n_box['lon1'], uk_n_box['lon2']
+    uk_n_lat1, uk_n_lat2 = uk_n_box['lat1'], uk_n_box['lat2']
+
+    # Extract the lats and lons for the southern UK index box
+    uk_s_lon1, uk_s_lon2 = uk_s_box['lon1'], uk_s_box['lon2']
+    uk_s_lat1, uk_s_lat2 = uk_s_box['lat1'], uk_s_box['lat2']
+
     # subtract 180 from all of the azores and iceland lons
     azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
     iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+    # subtract 180 from all of the uk lons
+    uk_n_lon1, uk_n_lon2 = uk_n_lon1 - 180, uk_n_lon2 - 180
+    uk_s_lon1, uk_s_lon2 = uk_s_lon1 - 180, uk_s_lon2 - 180
 
     # set up the converted lons
     lons = lons_converted - 180
@@ -1285,6 +1300,10 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # Add green lines outlining the Azores and Iceland grids
     ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
     ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+
+    # Add green lines outlining the northern and southern UK index boxes
+    ax.plot([uk_n_lon1, uk_n_lon2, uk_n_lon2, uk_n_lon1, uk_n_lon1], [uk_n_lat1, uk_n_lat1, uk_n_lat2, uk_n_lat2, uk_n_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+    ax.plot([uk_s_lon1, uk_s_lon2, uk_s_lon2, uk_s_lon1, uk_s_lon1], [uk_s_lat1, uk_s_lat1, uk_s_lat2, uk_s_lat2, uk_s_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
 
     # Add filled contours
     # Contour levels
