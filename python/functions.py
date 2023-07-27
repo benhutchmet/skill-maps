@@ -1419,8 +1419,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
 
         # Set up the lats and lons for the iceland grid
         iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
-        iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid
-        ['lat2']
+        iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
         
         # Set up the lats and lons for the northern UK index box
         uk_n_lon1, uk_n_lon2 = uk_n_box['lon1'], uk_n_box['lon2']
