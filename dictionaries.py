@@ -24,6 +24,9 @@ obs_psl = "/home/users/benhutch/ERA5_psl/long-ERA5-full.nc"
 # For the north atlantic region
 obs_psl_na = "/home/users/benhutch/ERA5_psl/long-ERA5-full-north-atlantic.nc"
 
+# Global
+obs_psl_glob = "/home/users/benhutch/ERA5_psl/long-ERA5-full-global.nc"
+
 # the variable has to be extracted from these
 obs_tas = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"
 obs_sfcWind = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"

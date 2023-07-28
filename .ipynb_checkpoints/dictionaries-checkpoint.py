@@ -21,6 +21,12 @@ models = [ "BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-G
 # define the paths for the observations
 obs_psl = "/home/users/benhutch/ERA5_psl/long-ERA5-full.nc"
 
+# For the north atlantic region
+obs_psl_na = "/home/users/benhutch/ERA5_psl/long-ERA5-full-north-atlantic.nc"
+
+# Global
+obs_psl_glob = "/home/users/benhutch/ERA5_psl/long-ERA5-full-global.nc"
+
 # the variable has to be extracted from these
 obs_tas = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"
 obs_sfcWind = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"
@@ -74,3 +80,21 @@ iceland_grid = {
     'lat1': 63,
     'lat2': 70
 }
+
+# Define the dimensions for the gridbox for the N-S UK index
+# From thornton et al. 2019
+uk_n_box = {
+    'lon1': 153,
+    'lon2': 201,
+    'lat1': 57,
+    'lat2': 70
+}
+
+# And for the southern box
+uk_s_box = {
+    'lon1': 153,
+    'lon2': 201,
+    'lat1': 38,
+    'lat2': 51
+}
+
