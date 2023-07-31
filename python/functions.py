@@ -1277,7 +1277,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
 
     # set up the converted lons
     # Set up the converted lons
-    lons_converted = lons - 180
+    lons_converted = lons_converted - 180
 
     # Set up the lats and lons
     # if the region is global
