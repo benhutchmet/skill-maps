@@ -10,6 +10,7 @@ gif_plots_dir = base_dir + "/plots/gif"
 
 # list of the test model
 test_model = [ "CMCC-CM2-SR5" ]
+test_model_bcc = [ "BCC-CSM2-MR" ]
 test_model2 = [ "EC-Earth3" ]
 test_model_norcpm = [ "NorCPM1" ]
 test_model_hadgem = [ "HadGEM3-GC31-MM" ]
