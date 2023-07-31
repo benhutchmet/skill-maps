@@ -1,5 +1,5 @@
 gridtype=lonlat
-xfirst=0
+xfirst=-180
 xinc=2.5
 xsize=144
 yfirst=-90
