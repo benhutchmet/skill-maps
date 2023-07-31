@@ -1276,7 +1276,21 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     uk_s_lon1, uk_s_lon2 = uk_s_lon1 - 180, uk_s_lon2 - 180
 
     # set up the converted lons
-    lons = lons_converted - 180
+    # Set up the converted lons
+    lons_converted = lons - 180
+
+    # Set up the lats and lons
+    # if the region is global
+    if region == 'global':
+        lats = obs.lat
+        lons = obs.lon
+    # if the region is not global
+    elif region == 'north-atlantic':
+        lats = obs.lat
+        lons = lons_converted
+    else:
+        print("Error: region not found")
+        sys.exit()
 
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
@@ -1311,7 +1325,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # Contour levels for p-values
     clevs_p = np.arange(0, 1.1, 0.1)
     # Plot the filled contours
-    cf = plt.contourf(lons, obs.lat, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
+    cf = plt.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
     # replace values in pfield that are greater than 0.05 with nan
     pfield[pfield > 0.05] = np.nan
@@ -1320,7 +1334,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # print("pfield mod", pfield)
 
     # Add stippling where rfield is significantly different from zero
-    plt.contourf(lons, obs.lat, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
+    plt.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
 
     # Add colorbar
     cbar = plt.colorbar(cf, orientation='horizontal', pad=0.05, aspect=50)
