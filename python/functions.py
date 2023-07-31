@@ -1283,7 +1283,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # if the region is global
     if region == 'global':
         lats = obs.lat
-        lons = obs.lon
+        lons = lons_converted
     # if the region is not global
     elif region == 'north-atlantic':
         lats = obs.lat
@@ -1458,7 +1458,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # if the region is global
         if region == 'global':
             lats = obs.lat
-            lons = obs.lon
+            lons = lons_converted
         # if the region is not global
         elif region == 'north-atlantic':
             lats = obs.lat
