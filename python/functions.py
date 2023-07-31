@@ -1440,6 +1440,19 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # Set up the converted lons
         lons_converted = lons_converted - 180
 
+        # Set up the lats and lons
+        # if the region is global
+        if region == 'global':
+            lats = obs.lat
+            lons = obs.lon
+        # if the region is not global
+        elif region == 'north-atlantic':
+            lats = obs.lat
+            lons = lons_converted
+        else:
+            print("Error: region not found")
+            sys.exit()
+
         # Set up the axes
         ax = axs[i]
 
@@ -1467,13 +1480,13 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # Contour levels for p-values
         clevs_p = np.arange(0, 1.1, 0.1)
         # Plot the filled contours
-        cf = ax.contourf(lons_converted, obs.lat, rfield, clevs, cmap='RdBu_r', transform=proj)
+        cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
     
         # replace values in pfield that are greater than 0.01 with nan
         pfield[pfield > 0.05] = np.nan
     
         # Add stippling where rfield is significantly different from zero
-        ax.contourf(lons_converted, obs.lat, pfield, hatches=['....'], alpha=0, transform=proj)
+        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
     
         # Add title
         # ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
