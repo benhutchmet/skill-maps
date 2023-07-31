@@ -1,5 +1,5 @@
 *.drawio
-__pycache__/*
-.ipynb_checkpoints/*
-python/.ipynb_checkpoints/*
-python/__pycache__/*
+__pycache__/*.pyc
+.ipynb_checkpoints/*.py
+python/.ipynb_checkpoints/*.py
+python/__pycache__/*.pyc

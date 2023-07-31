@@ -417,6 +417,8 @@ def calculate_annual_mean_anomalies(obs_anomalies, season):
             obs_anomalies_shifted = obs_anomalies.shift(time=-3)
         elif season in ["DJF", "NDJF"]:
             obs_anomalies_shifted = obs_anomalies.shift(time=-2)
+        elif season in ["NDJ", "ONDJ"]:
+            obs_anomalies_shifted = obs_anomalies.shift(time=-1)
         else:
             obs_anomalies_shifted = obs_anomalies
 
@@ -1328,7 +1330,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     cf = plt.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
     # replace values in pfield that are greater than 0.05 with nan
-    pfield[pfield > 0.05] = np.nan
+    pfield[pfield > 0.01] = np.nan
 
     # print the pfield
     # print("pfield mod", pfield)
@@ -1497,7 +1499,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
     
         # replace values in pfield that are greater than 0.01 with nan
-        pfield[pfield > 0.05] = np.nan
+        pfield[pfield > 0.01] = np.nan
     
         # Add stippling where rfield is significantly different from zero
         ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
