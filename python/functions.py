@@ -406,7 +406,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # for the provided variable
     try:
         # Load the dataset for the selected variable
-        regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, combine='by_coords', chunks={"time": 50})[obs_var_name]
+        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', chunks={"time": 50})[obs_var_name]
 
         # Combine the two expver variables
         regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
