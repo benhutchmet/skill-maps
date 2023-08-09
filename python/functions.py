@@ -405,14 +405,13 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # Load the regridded and selected region dataset
     # for the provided variable
     try:
-        regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, chunks={"time": 50})[obs_var_name]
+        # Load the dataset for the selected variable
+        regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, combine='by_coords', chunks={"time": 50})[obs_var_name]
 
-        ERA5 = xr.open_mfdataset(observations_path, combine='by_coords', chunks={"time": 50})[obs_var_name]
-        ERA5_combine =ERA5.sel(expver=1).combine_first(ERA5.sel(expver=5))
-        ERA5_combine.load()
-        ERA5_combine.to_netcdf(observations_path + "_copy.nc")
+        # Combine the two expver variables
+        regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
 
-        return regrid_sel_region_dataset, ERA5_combine
+        return regrid_sel_region_dataset_combine
 
     except Exception as e:
         print(f"Error loading regridded and selected region dataset: {e}")
@@ -661,14 +660,14 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     try:
         # Regrid using CDO, select region and load observation dataset
         # for given variable
-        obs_dataset, ERA5_combine = regrid_and_select_region(observations_path, region, obs_var_name)
+        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
-        # Print the output for season selection
-        regridded_obs_dataset_region_season
+        # Print the dimensions of the regridded and selected region dataset
+        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.dims)
         
         # Calculate anomalies
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
@@ -679,7 +678,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # Select the forecast range
         obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
 
-        return obs_anomalies_annual_forecast_range, ERA5_combine
+        return obs_anomalies_annual_forecast_range
 
     except Exception as e:
         print(f"Error processing observations dataset: {e}")
