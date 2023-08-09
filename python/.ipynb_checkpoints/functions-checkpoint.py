@@ -405,9 +405,13 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # Load the regridded and selected region dataset
     # for the provided variable
     try:
-        regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, chunks={"time": 50})[obs_var_name]
+        # Load the dataset for the selected variable
+        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', chunks={"time": 50})[obs_var_name]
 
-        return regrid_sel_region_dataset
+        # Combine the two expver variables
+        regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
+
+        return regrid_sel_region_dataset_combine
 
     except Exception as e:
         print(f"Error loading regridded and selected region dataset: {e}")
@@ -662,8 +666,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
-        # Print the output for season selection
-        regridded_obs_dataset_region_season
+        # Print the dimensions of the regridded and selected region dataset
+        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
         
         # Calculate anomalies
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
