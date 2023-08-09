@@ -35,7 +35,7 @@ obs_sfcWind = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.684200
 
 obs_rsds="not/yet/implemented"
 
-obs = "/home/users/benhutch/ERA5/not-yet-downloaded"
+obs = "/home/users/benhutch/ERA5/adaptor.mars.internal-1691509121.3261805-29348-4-3a487c76-fc7b-421f-b5be-7436e2eb78d7.nc"
 
 gridspec_global = "/home/users/benhutch/gridspec/gridspec-global.txt"
 
