@@ -498,6 +498,44 @@ def check_for_nan_timesteps(ds):
     except Exception as e:
         print("Error checking for NaN values:", e)
 
+# Define a new function to load the observations
+# selecting a specific variable
+def load_observations(observations_path, obs_var_name):
+    """
+    Loads the observations dataset and selects a specific variable.
+    
+    Parameters:
+    variable (str): The variable to load.
+    obs_var_name (str): The name of the variable in the observations dataset.
+
+    Returns:
+    xarray.Dataset: The observations dataset for the given variable.
+    """
+
+    # Check if the observations file exists
+    check_file_exists(observations_path)
+
+    # check whether the variable name is valid
+    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds"]:
+        print("Invalid variable name")
+        sys.exit()
+
+    try:
+        # Load the observations dataset
+        obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[obs_var_name]
+
+        # Print the dimensions of the observations dataset
+        # print("Observations dataset:", obs_dataset.dims)
+
+        # Check for NaN values in the observations dataset
+        # check_for_nan_values(obs_dataset)
+
+        return obs_dataset
+
+    except Exception as e:
+        print(f"Error loading observations dataset: {e}")
+        sys.exit()
+
 # Call the functions to process the observations
 def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
     """
