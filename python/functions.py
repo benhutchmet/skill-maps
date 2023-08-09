@@ -26,6 +26,10 @@ import matplotlib.animation as animation
 from matplotlib import rcParams
 from PIL import Image
 
+# Import CDO
+from cdo import *
+cdo = Cdo()
+
 
 # Install imageio
 # ! pip install imageio
