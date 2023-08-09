@@ -26,6 +26,10 @@ import matplotlib.animation as animation
 from matplotlib import rcParams
 from PIL import Image
 
+# Import CDO
+from cdo import *
+cdo = Cdo()
+
 
 # Install imageio
 # ! pip install imageio
@@ -330,6 +334,86 @@ def select_region(regridded_obs_dataset, region_grid):
         print(f"Error selecting region: {e}")
         sys.exit()
 
+# Using cdo to do the regridding and selecting the region
+def regrid_and_select_region(observations_path, region, obs_var_name):
+    """
+    Uses CDO remapbil and a gridspec file to regrid and select the correct region for the obs dataset. Loads for the specified variable.
+    
+    Parameters:
+    observations_path (str): The path to the observations dataset.
+    region (str): The region to select.
+
+    Returns:
+    xarray.Dataset: The regridded and selected observations dataset.
+    """
+    
+    # First choose the gridspec file based on the region
+    gridspec_path = "/home/users/benhutch/gridspec"
+
+    # select the correct gridspec file
+    if region == "north-atlantic":
+        gridspec = gridspec_path + "/" + "gridspec-north-atlantic.txt"
+    elif region == "global":
+        gridspec = gridspec_path + "/" + "gridspec-global.txt"
+    elif region == "azores":
+        gridspec = gridspec_path + "/" + "gridspec-azores.txt"
+    elif region == "iceland":
+        gridspec = gridspec_path + "/" + "gridspec-iceland.txt"
+    else:
+        print("Invalid region")
+        sys.exit()
+
+    # Check that the gridspec file exists
+    if not os.path.exists(gridspec):
+        print("Gridspec file does not exist")
+        sys.exit()
+
+    # Create the output file path
+    regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region.nc"
+
+    # Check if the output file already exists
+    # If it does, then exit the program
+    if os.path.exists(regrid_sel_region_file):
+        print("File already exists")
+        # sys.exit()
+
+    # Regrid and select the region using cdo 
+    cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
+
+    # Load the regridded and selected region dataset
+    # for the provided variable
+    # check whether the variable name is valid
+    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos"]:
+        print("Invalid variable name")
+        sys.exit()
+
+    # Translate the variable name to the name used in the obs dataset
+    if obs_var_name == "psl":
+        obs_var_name = "msl"
+    elif obs_var_name == "tas":
+        obs_var_name = "t2m"
+    elif obs_var_name == "sfcWind":
+        obs_var_name = "si10"
+    elif obs_var_name == "rsds":
+        obs_var_name = "ssrd"
+    elif obs_var_name == "tos":
+        obs_var_name = "sst"
+    else:
+        print("Invalid variable name")
+        sys.exit()
+
+    # Load the regridded and selected region dataset
+    # for the provided variable
+    try:
+        regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, chunks={"time": 50})[obs_var_name]
+
+        return regrid_sel_region_dataset
+
+    except Exception as e:
+        print(f"Error loading regridded and selected region dataset: {e}")
+        sys.exit()    
+
+
 def select_season(regridded_obs_dataset_region, season):
     """
     Selects a season from a regridded observation dataset based on the given season string.
@@ -445,11 +529,15 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
     ValueError: If the input dataset is invalid.
     """
     try:
+        
         forecast_range_start, forecast_range_end = map(int, forecast_range.split("-"))
         print("Forecast range:", forecast_range_start, "-", forecast_range_end)
+        
         rolling_mean_range = forecast_range_end - forecast_range_start + 1
         print("Rolling mean range:", rolling_mean_range)
+        
         obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range, center = True).mean()
+        
         return obs_anomalies_annual_forecast_range
     except Exception as e:
         print("Error selecting forecast range:", e)
@@ -498,6 +586,50 @@ def check_for_nan_timesteps(ds):
     except Exception as e:
         print("Error checking for NaN values:", e)
 
+# Define a new function to load the observations
+# selecting a specific variable
+def load_observations(observations_path, obs_var_name):
+    """
+    Loads the observations dataset and selects a specific variable.
+    
+    Parameters:
+    variable (str): The variable to load.
+    obs_var_name (str): The name of the variable in the observations dataset.
+
+    Returns:
+    xarray.Dataset: The observations dataset for the given variable.
+    """
+
+    # Check if the observations file exists
+    check_file_exists(observations_path)
+
+    # check whether the variable name is valid
+    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds"]:
+        print("Invalid variable name")
+        sys.exit()
+
+    try:
+        # Load the observations dataset
+        obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[obs_var_name]
+
+        ERA5 = xr.open_mfdataset(observations_path, combine='by_coords', chunks={"time": 50})[obs_var_name]
+        ERA5_combine =ERA5.sel(expver=1).combine_first(ERA5.sel(expver=5))
+        ERA5_combine.load()
+        ERA5_combine.to_netcdf(observations_path + "_copy.nc")
+
+        
+        # Print the dimensions of the observations dataset
+        # print("Observations dataset:", obs_dataset.dims)
+
+        # Check for NaN values in the observations dataset
+        # check_for_nan_values(obs_dataset)
+
+        return obs_dataset, ERA5_combine
+
+    except Exception as e:
+        print(f"Error loading observations dataset: {e}")
+        sys.exit()
+
 # Call the functions to process the observations
 def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
     """
@@ -522,83 +654,25 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     check_file_exists(observations_path)
 
     try:
-        # Load the observations dataset
-        obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[variable] if variable in ["tas", "sfcWind"] else xr.open_dataset(observations_path, chunks={"time": 50})
-
-        # Print the dimensions of the observations dataset
-        # print("Observations dataset:", obs_dataset.dims)
-
-        # Check for NaN values in the observations dataset
-        # check_for_nan_values(obs_dataset)
-
-        # Regrid the observations to the model grid
-        # ---- DO WE NEED TO DO THIS FOR PROCESSED DATA? ----
-        # regridded_obs_dataset = regrid_observations(obs_dataset)
-
-        # # print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset.dims)
-
-        # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset.dims)
-        # print("Regridded observations variables:", regridded_obs_dataset)
-        # # Check for NaN values in the regridded observations dataset
-        # check_for_nan_values(regridded_obs_dataset)
-
-        # Select the region
-        # --- DON'T NEED TO DO THIS FOR PROCESSED DATA? ---
-        # regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
-
-        # # print the dimensions of the regridded observations dataset region
-        # print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
-
-        # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
-        # print("Regridded observations variables:", regridded_obs_dataset_region)
-        # # Check for NaN values in the regridded observations dataset
-        # check_for_nan_values(regridded_obs_dataset_region)
+        # Regrid using CDO, select region and load observation dataset
+        # for given variable
+        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
-        # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset_region_season)
-        # print("Regridded observations variables:", regridded_obs_dataset_region_season)
-        # # Check for NaN values in the regridded observations dataset
-        # check_for_nan_values(regridded_obs_dataset_region_season)
-
+        # Print the output for season selection
+        regridded_obs_dataset_region_season
+        
         # Calculate anomalies
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
-
-        # Print the dimensions of the processed dataset to the user
-        # print("Processed observations dataset obs anomalies:", obs_anomalies['var151'].values)
-        # # check for NaN values in the processed observations dataset
-        # check_for_nan_values(obs_anomalies)
 
         # Calculate annual mean anomalies
         obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
 
-        # Print
-        # print("checking whether nans emerge here")
-        # # Print the dimensions of the processed dataset to the user
-        # print("Processed observations dataset obs annual mean anoms:", obs_annual_mean_anomalies['var151'].values)
-        # print("Processed observations dataset obs annual mean anoms:", obs_annual_mean_anomalies)
-        # print("Processed observations dataset:", obs_annual_mean_anomalies.dims)
-        # check for NaN values in the processed observations dataset
-        # --- NaN values appear to emerge here, is this plausible? ---
-        # check_for_nan_values(obs_annual_mean_anomalies)
-
         # Select the forecast range
         obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
-
-        # Check for NaN values in the processed observations dataset
-        # print("after selecting forecast range:", obs_anomalies_annual_forecast_range)
-        # print("after selecting forecast range:", obs_anomalies_annual_forecast_range['var151'].values)
-        # # check for year NaN values in the processed observations dataset
-        # # check_for_nan_timesteps(obs_anomalies_annual_forecast_range)
-
-        # Print the dimensions of the processed dataset to the user
-        # print("Processed observations dataset:", obs_anomalies_annual_forecast_range.dims)
 
         return obs_anomalies_annual_forecast_range
 

@@ -375,7 +375,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # If it does, then exit the program
     if os.path.exists(regrid_sel_region_file):
         print("File already exists")
-        sys.exit()
+        # sys.exit()
 
     # Regrid and select the region using cdo 
     cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
@@ -407,7 +407,12 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     try:
         regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, chunks={"time": 50})[obs_var_name]
 
-        return regrid_sel_region_dataset
+        ERA5 = xr.open_mfdataset(observations_path, combine='by_coords', chunks={"time": 50})[obs_var_name]
+        ERA5_combine =ERA5.sel(expver=1).combine_first(ERA5.sel(expver=5))
+        ERA5_combine.load()
+        ERA5_combine.to_netcdf(observations_path + "_copy.nc")
+
+        return regrid_sel_region_dataset, ERA5_combine
 
     except Exception as e:
         print(f"Error loading regridded and selected region dataset: {e}")
@@ -612,13 +617,19 @@ def load_observations(observations_path, obs_var_name):
         # Load the observations dataset
         obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[obs_var_name]
 
+        ERA5 = xr.open_mfdataset(observations_path, combine='by_coords', chunks={"time": 50})[obs_var_name]
+        ERA5_combine =ERA5.sel(expver=1).combine_first(ERA5.sel(expver=5))
+        ERA5_combine.load()
+        ERA5_combine.to_netcdf(observations_path + "_copy.nc")
+
+        
         # Print the dimensions of the observations dataset
         # print("Observations dataset:", obs_dataset.dims)
 
         # Check for NaN values in the observations dataset
         # check_for_nan_values(obs_dataset)
 
-        return obs_dataset
+        return obs_dataset, ERA5_combine
 
     except Exception as e:
         print(f"Error loading observations dataset: {e}")
@@ -650,12 +661,15 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     try:
         # Regrid using CDO, select region and load observation dataset
         # for given variable
-        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
+        obs_dataset, ERA5_combine = regrid_and_select_region(observations_path, region, obs_var_name)
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
+        # Print the output for season selection
+        regridded_obs_dataset_region_season
+        
         # Calculate anomalies
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
 
@@ -665,7 +679,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # Select the forecast range
         obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
 
-        return obs_anomalies_annual_forecast_range
+        return obs_anomalies_annual_forecast_range, ERA5_combine
 
     except Exception as e:
         print(f"Error processing observations dataset: {e}")
