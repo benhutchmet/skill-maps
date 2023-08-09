@@ -35,6 +35,14 @@ obs_sfcWind = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.684200
 
 obs_rsds="not/yet/implemented"
 
+obs = "/home/users/benhutch/ERA5/not-yet-downloaded"
+
+gridspec_global = "/home/users/benhutch/gridspec/gridspec-global.txt"
+
+gridspec_north_atlantic = "/home/users/benhutch/gridspec/gridspec-north-atlantic.txt"
+
+obs_regrid = "/home/users/benhutch/ERA5/ERA5_full_global.nc"
+
 # Define the labels for the plots - wind
 sfc_wind_label="10-metre wind speed"
 sfc_wind_units = 'm s\u207b\u00b9'

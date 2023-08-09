@@ -334,6 +334,78 @@ def select_region(regridded_obs_dataset, region_grid):
         print(f"Error selecting region: {e}")
         sys.exit()
 
+# Using cdo to do the regridding and selecting the region
+def regrid_and_select_region(observations_path, region, obs_var_name):
+    """
+    Uses CDO remapbil and a gridspec file to regrid and select the correct region for the obs dataset. Loads for the specified variable.
+    
+    Parameters:
+    observations_path (str): The path to the observations dataset.
+    region (str): The region to select.
+
+    Returns:
+    xarray.Dataset: The regridded and selected observations dataset.
+    """
+    
+    # First choose the gridspec file based on the region
+    gridspec_path = "/home/users/benhutch/gridspec"
+
+    # select the correct gridspec file
+    if region == "north-atlantic":
+        gridspec = gridspec_path + "/" + "gridspec-north-atlantic.txt"
+    elif region == "global":
+        gridspec = gridspec_path + "/" + "gridspec-global.txt"
+    elif region == "azores":
+        gridspec = gridspec_path + "/" + "gridspec-azores.txt"
+    elif region == "iceland":
+        gridspec = gridspec_path + "/" + "gridspec-iceland.txt"
+    else:
+        print("Invalid region")
+        sys.exit()
+
+    # Check that the gridspec file exists
+    if not os.path.exists(gridspec):
+        print("Gridspec file does not exist")
+        sys.exit()
+
+    # Create the output file path
+    regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region.nc"
+
+    # Check if the output file already exists
+    # If it does, then exit the program
+    if os.path.exists(regrid_sel_region_file):
+        print("File already exists")
+        sys.exit()
+
+    # Regrid and select the region using cdo 
+    cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
+
+    # Load the regridded and selected region dataset
+    # for the provided variable
+    # check whether the variable name is valid
+    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos"]:
+        print("Invalid variable name")
+        sys.exit()
+
+    # Translate the variable name to the name used in the obs dataset
+    # if obs_var_name == "psl":
+    # 
+    # 
+    # 
+    # 
+
+    # Load the regridded and selected region dataset
+    # for the provided variable
+    try:
+        regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, chunks={"time": 50})[obs_var_name]
+
+        return regrid_sel_region_dataset
+
+    except Exception as e:
+        print(f"Error loading regridded and selected region dataset: {e}")
+        sys.exit()    
+
+
 def select_season(regridded_obs_dataset_region, season):
     """
     Selects a season from a regridded observation dataset based on the given season string.
@@ -564,40 +636,9 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     check_file_exists(observations_path)
 
     try:
-        # Load the observations dataset
-        obs_dataset = xr.open_dataset(observations_path, chunks={"time": 50})[variable] if variable in ["tas", "sfcWind"] else xr.open_dataset(observations_path, chunks={"time": 50})
-
-        # Print the dimensions of the observations dataset
-        # print("Observations dataset:", obs_dataset.dims)
-
-        # Check for NaN values in the observations dataset
-        # check_for_nan_values(obs_dataset)
-
-        # Regrid the observations to the model grid
-        # ---- DO WE NEED TO DO THIS FOR PROCESSED DATA? ----
-        # regridded_obs_dataset = regrid_observations(obs_dataset)
-
-        # # print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset.dims)
-
-        # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset.dims)
-        # print("Regridded observations variables:", regridded_obs_dataset)
-        # # Check for NaN values in the regridded observations dataset
-        # check_for_nan_values(regridded_obs_dataset)
-
-        # Select the region
-        # --- DON'T NEED TO DO THIS FOR PROCESSED DATA? ---
-        # regridded_obs_dataset_region = select_region(regridded_obs_dataset, region_grid)
-
-        # # print the dimensions of the regridded observations dataset region
-        # print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
-
-        # Print the dimensions of the regridded observations dataset
-        # print("Regridded observations dataset:", regridded_obs_dataset_region.dims)
-        # print("Regridded observations variables:", regridded_obs_dataset_region)
-        # # Check for NaN values in the regridded observations dataset
-        # check_for_nan_values(regridded_obs_dataset_region)
+        # Regrid using CDO, select region and load observation dataset
+        # for given variable
+        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
