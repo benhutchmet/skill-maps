@@ -559,7 +559,7 @@ def check_for_nan_values(obs):
     SystemExit: If there are NaN values in the observations dataset.
     """
     try:
-        if obs['var151'].isnull().values.any():
+        if obs['msl'].isnull().values.any():
             print("Error: NaN values in observations")
             sys.exit()
     except Exception as e:
@@ -662,21 +662,41 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # for given variable
         obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
 
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_dataset")
+        # check_for_nan_values(obs_dataset)
+
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
         # Print the dimensions of the regridded and selected region dataset
         print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
+
+        # # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in regridded_obs_dataset_region_season")
+        # check_for_nan_values(regridded_obs_dataset_region_season)
         
         # Calculate anomalies
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
 
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_anomalies")
+        # check_for_nan_values(obs_anomalies)
+
         # Calculate annual mean anomalies
         obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
 
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_annual_mean_anomalies")
+        # check_for_nan_values(obs_annual_mean_anomalies)
+
         # Select the forecast range
         obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_anomalies_annual_forecast_range")
+        # check_for_nan_values(obs_anomalies_annual_forecast_range)
+
 
         return obs_anomalies_annual_forecast_range
 
