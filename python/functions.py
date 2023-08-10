@@ -1128,7 +1128,7 @@ def process_model_data_for_plot(model_data, models):
 
     return ensemble_mean, lat, lon, years
 
-def calculate_spatial_correlations(observed_data, model_data, models):
+def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
     
@@ -1187,13 +1187,24 @@ def calculate_spatial_correlations(observed_data, model_data, models):
     # Print the ensemble mean values
     # print("ensemble mean value after removing nans:", ensemble_mean.values)
 
+    # choose the variable name for the observed data
+    # Translate the variable name to the name used in the obs dataset
+    if obs_var_name == "psl":
+        obs_var_name = "msl"
+    elif obs_var_name == "tas":
+        obs_var_name = "t2m"
+    elif obs_var_name == "sfcWind":
+        obs_var_name = "si10"
+    elif obs_var_name == "rsds":
+        obs_var_name = "ssrd"
+    elif obs_var_name == "tos":
+        obs_var_name = "sst"
+    else:
+        print("Invalid variable name")
+        sys.exit()
     
     # Convert both the observed and model data to numpy arrays
-    # ----------------------------------------
-    # Hardcoded for psl for now
-    # ----------------------------------------
-    # and also convert from hPa to Pa
-    observed_data_array = observed_data['var151'].values / 100
+    observed_data_array = observed_data[obs_var_name].values / 100
     ensemble_mean_array = ensemble_mean.values / 100
 
     # Print the values and shapes of the observed and model data
