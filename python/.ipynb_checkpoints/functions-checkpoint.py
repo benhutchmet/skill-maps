@@ -697,6 +697,14 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # print("Checking for NaN values in obs_anomalies_annual_forecast_range")
         # check_for_nan_values(obs_anomalies_annual_forecast_range)
 
+        # if the forecast range is "2-2" i.e. a year ahead forecast
+        # then we need to shift the dataset by 1 year
+        # where the model would show the DJFM average as Jan 1963 (s1961)
+        # the observations would show the DJFM average as Dec 1962
+        # so we need to shift the observations to the following year
+        if forecast_range == "2-2":
+            obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
+
 
         return obs_anomalies_annual_forecast_range
 
@@ -1465,7 +1473,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     cf = plt.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
     # replace values in pfield that are greater than 0.05 with nan
-    pfield[pfield > 0.01] = np.nan
+    pfield[pfield > 0.05] = np.nan
 
     # print the pfield
     # print("pfield mod", pfield)
@@ -1634,7 +1642,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
     
         # replace values in pfield that are greater than 0.01 with nan
-        pfield[pfield > 0.01] = np.nan
+        pfield[pfield > 0.05] = np.nan
     
         # Add stippling where rfield is significantly different from zero
         ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
