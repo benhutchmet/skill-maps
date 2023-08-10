@@ -697,6 +697,14 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # print("Checking for NaN values in obs_anomalies_annual_forecast_range")
         # check_for_nan_values(obs_anomalies_annual_forecast_range)
 
+        # if the forecast range is "2-2" i.e. a year ahead forecast
+        # then we need to shift the dataset by 1 year
+        # where the model would show the DJFM average as Jan 1963 (s1961)
+        # the observations would show the DJFM average as Dec 1962
+        # so we need to shift the observations to the following year
+        if forecast_range == "2-2":
+            obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
+
 
         return obs_anomalies_annual_forecast_range
 
