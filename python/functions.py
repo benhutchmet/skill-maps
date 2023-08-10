@@ -1182,29 +1182,33 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
 
     # Remove years with NaNs
-    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean)
+    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean, variable)
 
     # Print the ensemble mean values
     # print("ensemble mean value after removing nans:", ensemble_mean.values)
 
-    # choose the variable name for the observed data
-    # Translate the variable name to the name used in the obs dataset
-    if obs_var_name == "psl":
-        obs_var_name = "msl"
-    elif obs_var_name == "tas":
-        obs_var_name = "t2m"
-    elif obs_var_name == "sfcWind":
-        obs_var_name = "si10"
-    elif obs_var_name == "rsds":
-        obs_var_name = "ssrd"
-    elif obs_var_name == "tos":
-        obs_var_name = "sst"
-    else:
-        print("Invalid variable name")
-        sys.exit()
+    # # set the obs_var_name
+    # obs_var_name = variable
     
+    # # choose the variable name for the observed data
+    # # Translate the variable name to the name used in the obs dataset
+    # if obs_var_name == "psl":
+    #     obs_var_name = "msl"
+    # elif obs_var_name == "tas":
+    #     obs_var_name = "t2m"
+    # elif obs_var_name == "sfcWind":
+    #     obs_var_name = "si10"
+    # elif obs_var_name == "rsds":
+    #     obs_var_name = "ssrd"
+    # elif obs_var_name == "tos":
+    #     obs_var_name = "sst"
+    # else:
+    #     print("Invalid variable name")
+    #     sys.exit()
+
+    # variable extracted already
     # Convert both the observed and model data to numpy arrays
-    observed_data_array = observed_data[obs_var_name].values / 100
+    observed_data_array = observed_data.values / 100
     ensemble_mean_array = ensemble_mean.values / 100
 
     # Print the values and shapes of the observed and model data
@@ -1282,24 +1286,46 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         sys.exit()
 
 # checking for Nans in observed data
-def remove_years_with_nans(observed_data, ensemble_mean):
+def remove_years_with_nans(observed_data, ensemble_mean, variable):
     """
     Removes years from the observed data that contain NaN values.
 
     Args:
         observed_data (xarray.Dataset): The observed data.
         ensemble_mean (xarray.Dataset): The ensemble mean (model data).
+        variable (str): the variable name.
 
     Returns:
         xarray.Dataset: The observed data with years containing NaN values removed.
     """
 
+    # # Set the obs_var_name == variable
+    obs_var_name = variable
+
+    # Set up the obs_var_name
+    if obs_var_name == "psl":
+        obs_var_name = "msl"
+    elif obs_var_name == "tas":
+        obs_var_name = "t2m"
+    elif obs_var_name == "sfcWind":
+        obs_var_name = "si10"
+    elif obs_var_name == "rsds":
+        obs_var_name = "ssrd"
+    elif obs_var_name == "tos":
+        obs_var_name = "sst"
+    else:
+        print("Invalid variable name")
+        sys.exit()
+
+    print("var name for obs", obs_var_name)
+    
     for year in observed_data.time.dt.year.values[::-1]:
         # Extract the data for the year
         data = observed_data.sel(time=f"{year}")
 
+        
         # If there are any Nan values in the data
-        if np.isnan(data['var151'].values).any():
+        if np.isnan(data.values).any():
             # Print the year
             # print(year)
 
@@ -1560,7 +1586,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         model = [model]
     
         # Calculate the spatial correlations for the model
-        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model)
+        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model, variable)
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
