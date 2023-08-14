@@ -1472,8 +1472,11 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # Plot the filled contours
     cf = plt.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
+    # Set up the p_sig parameter
+    p_sig = 0.05
+
     # replace values in pfield that are greater than 0.05 with nan
-    pfield[pfield > 0.05] = np.nan
+    pfield[pfield > p_sig] = np.nan
 
     # print the pfield
     # print("pfield mod", pfield)
@@ -1498,11 +1501,15 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
         print("Error: model name not found")
         sys.exit()
 
+    # Set up the significance threshold
+    # if p_sig is 0.05, then sig_threshold is 95%
+    sig_threshold = (1 - p_sig) * 100
+
     # Add title
-    plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+    plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)")
 
     # set up the path for saving the figure
-    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
