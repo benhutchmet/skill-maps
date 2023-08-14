@@ -670,8 +670,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
-        # Print the dimensions of the regridded and selected region dataset
-        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
+        # # Print the dimensions of the regridded and selected region dataset
+        # print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
 
         # # Check for NaN values in the observations dataset
         # print("Checking for NaN values in regridded_obs_dataset_region_season")
@@ -1492,10 +1492,10 @@ def plot_correlations(models, rfield, pfield, obs, variable, region, season, for
     # we only want the model name
     # if the length of the list is 1
     # then the model name is the first element
-    if len(model) == 1:
-        model = model[0]
-    elif len(model) > 1:
-        model = "multi-model mean"
+    if len(models) == 1:
+        model = models[0]
+    elif len(models) > 1:
+        models = "multi-model mean"
     else :
         print("Error: model name not found")
         sys.exit()
@@ -1505,10 +1505,10 @@ def plot_correlations(models, rfield, pfield, obs, variable, region, season, for
     sig_threshold = int((1 - p_sig) * 100)
 
     # Add title
-    plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)")
+    plt.title(f"{models} {variable} {region} {season} {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)")
 
     # set up the path for saving the figure
-    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{models}_{variable}_{region}_{season}_{forecast_range}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
