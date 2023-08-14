@@ -35,6 +35,14 @@ obs_sfcWind = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.684200
 
 obs_rsds="not/yet/implemented"
 
+obs = "/home/users/benhutch/ERA5/adaptor.mars.internal-1691509121.3261805-29348-4-3a487c76-fc7b-421f-b5be-7436e2eb78d7.nc"
+
+gridspec_global = "/home/users/benhutch/gridspec/gridspec-global.txt"
+
+gridspec_north_atlantic = "/home/users/benhutch/gridspec/gridspec-north-atlantic.txt"
+
+obs_regrid = "/home/users/benhutch/ERA5/ERA5_full_global.nc"
+
 # Define the labels for the plots - wind
 sfc_wind_label="10-metre wind speed"
 sfc_wind_units = 'm s\u207b\u00b9'
@@ -99,3 +107,18 @@ uk_s_box = {
     'lat2': 51
 }
 
+sfcWind_models_numbers = [1, 2, 3, 5, 8, 9, 10, 11]
+no_sfcWind_models = 9
+sfcWind_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "HadGEM3-GC31-MM", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5"]
+
+rsds_models_numbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]
+no_rsds_models = 11
+rsds_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
+
+tas_models_numbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]
+no_tas_models = 11
+tas_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
+
+psl_models_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+no_psl_models = 12
+psl_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]

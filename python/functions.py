@@ -1587,8 +1587,10 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     nmodels = len(models)
 
     # Set the figure size and subplot parameters
-    if nmodels == 9:
-        fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    if nmodels == 8:
+        fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(18, 12), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # Remove the last subplot
+        axs[-1, -1].remove()
         # Set up where to plot the title
         title_index = 1
     elif nmodels == 11:
