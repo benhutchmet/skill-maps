@@ -1502,7 +1502,7 @@ def plot_correlations(models, rfield, pfield, obs, variable, region, season, for
 
     # Set up the significance threshold
     # if p_sig is 0.05, then sig_threshold is 95%
-    sig_threshold = (1 - p_sig) * 100
+    sig_threshold = int((1 - p_sig) * 100)
 
     # Add title
     plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)")
@@ -1589,13 +1589,23 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     # Set the figure size and subplot parameters
     if nmodels == 9:
         fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # Set up where to plot the title
+        title_index = 3
     elif nmodels == 11:
         fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
         axs[-1, -1].remove()
+        # Set up where to plot the title
+        title_index = 4
     elif nmodels == 12:
         fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # Set up where to plot the title
+        title_index = 4
     else:
         raise ValueError(f"Invalid number of models: {nmodels}")
+    
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
     
     # Flatten the axs array
     axs = axs.flatten()
@@ -1683,6 +1693,11 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     
         # Add the contourf object to the list
         cf_list.append(cf)
+
+        # If this is the centre subplot on the first row, set the title for the figure
+        if i == title_index:
+            # Add title
+            ax.set_title(f"{variable} {region} {season} years {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)", fontsize=12)
     
     # Create a single colorbar for all of the subplots
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
@@ -1694,13 +1709,6 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     # set up the path for saving the figure
     fig_name = f"{variable}_{region}_{season}_{forecast_range}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
-
-    # Set up the significance threshold
-    # e.g. 0.05 for 95% significance
-    sig_threshold = (1 - p_sig) * 100
-
-    # Set up a title
-    plt.suptitle(f"{variable} {region} {season} years {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)", fontsize=16, fontweight='bold') 
 
     # # Adjust the vertical spacing between the plots
     # plt.subplots_adjust(hspace=0.1)
