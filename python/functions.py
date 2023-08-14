@@ -1356,7 +1356,7 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
     return observed_data, ensemble_mean
 
 # plot the correlations and p-values
-def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, uk_s_box):
+def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig = 0.05):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
@@ -1394,6 +1394,8 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
         Array of longitudes and latitudes for the northern UK index box.
     uk_s_box : array
         Array of longitudes and latitudes for the southern UK index box.
+    p_sig : float, optional
+        Significance level for the p-values. The default is 0.05.
     """
 
     # Extract the lats and lons for the azores grid
@@ -1472,9 +1474,6 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # Plot the filled contours
     cf = plt.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
-    # Set up the p_sig parameter
-    p_sig = 0.05
-
     # replace values in pfield that are greater than 0.05 with nan
     pfield[pfield > p_sig] = np.nan
 
@@ -1519,7 +1518,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     plt.show()
 
 # Function for plotting the results for all of the models as 12 subplots
-def plot_correlations_subplots(models, obs, variable_data, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box):
+def plot_correlations_subplots(models, obs, variable_data, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig = 0.05):
     """Plot the spatial correlation coefficients and p-values for all models.
 
     This function plots the spatial correlation coefficients and p-values
@@ -1550,6 +1549,8 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         Array of longitudes and latitudes for the northern UK index box.
     uk_s_box : array
         Array of longitudes and latitudes for the southern UK index box.
+    p_sig : float, optional
+        Significance threshold. The default is 0.05.
     """
 
     # Set the font size for the plots
@@ -1647,9 +1648,9 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         clevs_p = np.arange(0, 1.1, 0.1)
         # Plot the filled contours
         cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
-    
+
         # replace values in pfield that are greater than 0.01 with nan
-        pfield[pfield > 0.05] = np.nan
+        pfield[pfield > p_sig] = np.nan
     
         # Add stippling where rfield is significantly different from zero
         ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
@@ -1680,8 +1681,15 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     # plt.tight_layout()
 
     # set up the path for saving the figure
-    fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{variable}_{region}_{season}_{forecast_range}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
+
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = (1 - p_sig) * 100
+
+    # Set up a title
+    plt.suptitle(f"{variable} {region} {season} years {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)", fontsize=16, fontweight='bold') 
 
     # # Adjust the vertical spacing between the plots
     # plt.subplots_adjust(hspace=0.1)
