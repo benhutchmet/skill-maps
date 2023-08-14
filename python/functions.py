@@ -1583,9 +1583,20 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     uk_n_lon1, uk_n_lon2 = uk_n_lon1 - 180, uk_n_lon2 - 180
     uk_s_lon1, uk_s_lon2 = uk_s_lon1 - 180, uk_s_lon2 - 180
 
-    # Set the figure size and subplot parameters
-    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    # Count the number of models available
+    nmodels = len(models)
 
+    # Set the figure size and subplot parameters
+    if nmodels == 9:
+        fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    elif nmodels == 11:
+        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        axs[-1, -1].remove()
+    elif nmodels == 12:
+        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    else:
+        raise ValueError(f"Invalid number of models: {nmodels}")
+    
     # Flatten the axs array
     axs = axs.flatten()
 
