@@ -1590,16 +1590,16 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     if nmodels == 9:
         fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
         # Set up where to plot the title
-        title_index = 3
+        title_index = 1
     elif nmodels == 11:
         fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
         axs[-1, -1].remove()
         # Set up where to plot the title
-        title_index = 4
+        title_index = 1
     elif nmodels == 12:
         fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
         # Set up where to plot the title
-        title_index = 4
+        title_index = 1
     else:
         raise ValueError(f"Invalid number of models: {nmodels}")
     
