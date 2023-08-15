@@ -671,7 +671,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
         # # Print the dimensions of the regridded and selected region dataset
-        # print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
+        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
 
         # # Check for NaN values in the observations dataset
         # print("Checking for NaN values in regridded_obs_dataset_region_season")
@@ -702,9 +702,10 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # where the model would show the DJFM average as Jan 1963 (s1961)
         # the observations would show the DJFM average as Dec 1962
         # so we need to shift the observations to the following year
-        if forecast_range == "2-2":
+        # if the forecast range is "2-2" and the season is "DJFM"
+        # then shift the dataset by 1 year
+        if forecast_range == "2-2" and season == "DJFM":
             obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
-
 
         return obs_anomalies_annual_forecast_range
 
