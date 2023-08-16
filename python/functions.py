@@ -1635,7 +1635,8 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         model = [model]
     
         # Calculate the spatial correlations for the model
-        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model, variable)
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs,
+                                                                                     variable_data, model, variable)
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
