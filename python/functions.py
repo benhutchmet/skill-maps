@@ -1359,7 +1359,9 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
     return observed_data, ensemble_mean
 
 # plot the correlations and p-values
-def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig = 0.05):
+def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, 
+                      obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
+                      uk_s_box, ensemble_members_count = None, p_sig = 0.05):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
