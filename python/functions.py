@@ -1509,11 +1509,16 @@ def plot_correlations(models, rfield, pfield, obs, variable, region, season, for
     # if p_sig is 0.05, then sig_threshold is 95%
     sig_threshold = int((1 - p_sig) * 100)
 
+    # Extract the number of ensemble members from the ensemble_members_count dictionary
+    # if the ensemble_members_count is not None
+    if ensemble_members_count is not None:
+        total_no_members = sum(ensemble_members_count.values())
+
     # Add title
-    plt.title(f"{models} {variable} {region} {season} {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)")
+    plt.title(f"{models} {variable} {region} {season} {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%), N = {total_no_members}")
 
     # set up the path for saving the figure
-    fig_name = f"{models}_{variable}_{region}_{season}_{forecast_range}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{models}_{variable}_{region}_{season}_{forecast_range}_N_{total_no_members}_p_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
