@@ -374,7 +374,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # Check if the output file already exists
     # If it does, then exit the program
     if os.path.exists(regrid_sel_region_file):
-        #print("File already exists")
+        print("File already exists")
         # sys.exit()
 
     # Regrid and select the region using cdo 
@@ -588,7 +588,7 @@ def check_for_nan_timesteps(ds):
             if ds.sel(time=time_step).isnull().values.any():
                 #print(f"Time step {time_step} contains NaN values")
     except Exception as e:
-        #print("Error checking for NaN values:", e)
+        print("Error checking for NaN values:", e)
 
 # Define a new function to load the observations
 # selecting a specific variable
@@ -900,7 +900,7 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     if np.shape(obs_array) != np.shape(model_array):
         raise ValueError("The shapes of the obs and model arrays do not match")
     else:
-        #print("The shapes of the obs and model arrays match")
+        print("The shapes of the obs and model arrays match")
 
     # assign the obs and model arrays to the same variable
     obs = obs_array
