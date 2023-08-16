@@ -1123,6 +1123,8 @@ def process_model_data_for_plot(model_data, models):
     # #print the dimensions of the ensemble members
     # #print("ensemble members shape", np.shape(ensemble_members))
 
+    # #print the ensemble members count
+    print("ensemble members count", ensemble_members_count)
 
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
@@ -1135,7 +1137,7 @@ def process_model_data_for_plot(model_data, models):
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
 
-    return ensemble_mean, lat, lon, years
+    return ensemble_mean, lat, lon, years, ensemble_members_count
 
 def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
@@ -1152,7 +1154,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
     # try:
     # Process the model data and calculate the ensemble mean
-    ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
+    ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
 
     # Debug the model data
     # #print("ensemble mean within spatial correlation function:", ensemble_mean)
@@ -1233,7 +1235,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # Calculate the correlations between the observed and model data
     rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
 
-    return rfield, pfield, obs_lons_converted, lons_converted
+    return rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count
 
     # except Exception as e:
     #     #print(f"An error occurred when calculating spatial correlations: {e}")
