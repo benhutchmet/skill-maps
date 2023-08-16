@@ -586,7 +586,7 @@ def check_for_nan_timesteps(ds):
         for time_step in time_steps:
             # Check for NaN values in the dataset for the current time step
             if ds.sel(time=time_step).isnull().values.any():
-                #print(f"Time step {time_step} contains NaN values")
+                print(f"Time step {time_step} contains NaN values")
     except Exception as e:
         print("Error checking for NaN values:", e)
 
