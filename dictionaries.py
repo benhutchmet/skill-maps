@@ -58,6 +58,8 @@ rsds_label="Surface solar radiation downwards"
 rsds_units="W m\u207b\u00b2"
 
 canari_base_dir = "/gws/nopw/j04/canari/users/benhutch"
+scratch_base_dir = "/work/scratch-nopw2/benhutch"
+home_dir = "/home/users/benhutch"
 
 # Define the dimensions for the grids
 # for processing the observations
