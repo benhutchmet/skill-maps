@@ -57,6 +57,8 @@ psl_units="hPa"
 rsds_label="Surface solar radiation downwards"
 rsds_units="W m\u207b\u00b2"
 
+canari_base_dir = "/gws/nopw/j04/canari/users/benhutch"
+
 # Define the dimensions for the grids
 # for processing the observations
 north_atlantic_grid = {

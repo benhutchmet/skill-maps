@@ -657,61 +657,83 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     # Check if the observations file exists
     check_file_exists(observations_path)
 
-    try:
-        # Regrid using CDO, select region and load observation dataset
-        # for given variable
-        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
+    # set up the file name for the processed observations dataset
+    processed_obs_file = dic.canari_base_dir + "/" + "processed_obs" + "/" + variable + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + variable + "_" + region + "_" + f"years_{forecast_range}" + "_" + season + "processed_obs.nc"
 
-        # Check for NaN values in the observations dataset
-        # #print("Checking for NaN values in obs_dataset")
-        # check_for_nan_values(obs_dataset)
+    # Check if the processed observations file already exists
+    # If it does, then load the processed observations dataset
+    # and return it
+    if os.path.exists(processed_obs_file):
+        print("Processed observations file already exists")
+        print("Loading processed observations dataset")
+        try:
+            processed_obs_dataset = xr.open_dataset(processed_obs_file, chunks={"time": 50})
+            return processed_obs_dataset
+        except Exception as e:
+            print(f"Error loading processed observations dataset: {e}")
+            sys.exit()
+    else:
+        print("Processed observations file does not exist")
+        print("Processing observations dataset")
+        try:
+            # Regrid using CDO, select region and load observation dataset
+            # for given variable
+            obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
 
-        # Select the season
-        # --- Although will already be in DJFM format, so don't need to do this ---
-        regridded_obs_dataset_region_season = select_season(obs_dataset, season)
+            # Check for NaN values in the observations dataset
+            # #print("Checking for NaN values in obs_dataset")
+            # check_for_nan_values(obs_dataset)
 
-        # # #print the dimensions of the regridded and selected region dataset
-        #print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
+            # Select the season
+            # --- Although will already be in DJFM format, so don't need to do this ---
+            regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
-        # # Check for NaN values in the observations dataset
-        # #print("Checking for NaN values in regridded_obs_dataset_region_season")
-        # check_for_nan_values(regridded_obs_dataset_region_season)
-        
-        # Calculate anomalies
-        obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
+            # # #print the dimensions of the regridded and selected region dataset
+            #print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
 
-        # Check for NaN values in the observations dataset
-        # #print("Checking for NaN values in obs_anomalies")
-        # check_for_nan_values(obs_anomalies)
+            # # Check for NaN values in the observations dataset
+            # #print("Checking for NaN values in regridded_obs_dataset_region_season")
+            # check_for_nan_values(regridded_obs_dataset_region_season)
+            
+            # Calculate anomalies
+            obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
 
-        # Calculate annual mean anomalies
-        obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
+            # Check for NaN values in the observations dataset
+            # #print("Checking for NaN values in obs_anomalies")
+            # check_for_nan_values(obs_anomalies)
 
-        # Check for NaN values in the observations dataset
-        # #print("Checking for NaN values in obs_annual_mean_anomalies")
-        # check_for_nan_values(obs_annual_mean_anomalies)
+            # Calculate annual mean anomalies
+            obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
 
-        # Select the forecast range
-        obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
-        # Check for NaN values in the observations dataset
-        # #print("Checking for NaN values in obs_anomalies_annual_forecast_range")
-        # check_for_nan_values(obs_anomalies_annual_forecast_range)
+            # Check for NaN values in the observations dataset
+            # #print("Checking for NaN values in obs_annual_mean_anomalies")
+            # check_for_nan_values(obs_annual_mean_anomalies)
 
-        # if the forecast range is "2-2" i.e. a year ahead forecast
-        # then we need to shift the dataset by 1 year
-        # where the model would show the DJFM average as Jan 1963 (s1961)
-        # the observations would show the DJFM average as Dec 1962
-        # so we need to shift the observations to the following year
-        # if the forecast range is "2-2" and the season is "DJFM"
-        # then shift the dataset by 1 year
-        if forecast_range == "2-2" and season == "DJFM":
-            obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
+            # Select the forecast range
+            obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
+            # Check for NaN values in the observations dataset
+            # #print("Checking for NaN values in obs_anomalies_annual_forecast_range")
+            # check_for_nan_values(obs_anomalies_annual_forecast_range)
 
-        return obs_anomalies_annual_forecast_range
+            # if the forecast range is "2-2" i.e. a year ahead forecast
+            # then we need to shift the dataset by 1 year
+            # where the model would show the DJFM average as Jan 1963 (s1961)
+            # the observations would show the DJFM average as Dec 1962
+            # so we need to shift the observations to the following year
+            # if the forecast range is "2-2" and the season is "DJFM"
+            # then shift the dataset by 1 year
+            if forecast_range == "2-2" and season == "DJFM":
+                obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
 
-    except Exception as e:
-        #print(f"Error processing observations dataset: {e}")
-        sys.exit()
+            # Save the processed observations dataset as a netCDF file
+
+            return obs_anomalies_annual_forecast_range
+
+        except Exception as e:
+            #print(f"Error processing observations dataset: {e}")
+            sys.exit()
+
+            
 
 def plot_data(obs_data, variable_data, model_time):
     """
