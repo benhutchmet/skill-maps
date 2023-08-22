@@ -335,6 +335,7 @@ def select_region(regridded_obs_dataset, region_grid):
         sys.exit()
 
 # Using cdo to do the regridding and selecting the region
+# Using cdo to do the regridding and selecting the region
 def regrid_and_select_region(observations_path, region, obs_var_name):
     """
     Uses CDO remapbil and a gridspec file to regrid and select the correct region for the obs dataset. Loads for the specified variable.
@@ -360,12 +361,12 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     elif region == "iceland":
         gridspec = gridspec_path + "/" + "gridspec-iceland.txt"
     else:
-        #print("Invalid region")
+        print("Invalid region")
         sys.exit()
 
     # Check that the gridspec file exists
     if not os.path.exists(gridspec):
-        #print("Gridspec file does not exist")
+        print("Gridspec file does not exist")
         sys.exit()
 
     # Create the output file path
@@ -375,16 +376,19 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # If it does, then exit the program
     if os.path.exists(regrid_sel_region_file):
         print("File already exists")
-        # sys.exit()
+        print("Loading ERA5 data")
+    else:
+        print("File does not exist")
+        print("Processing ERA5 data using CDO")
 
-    # Regrid and select the region using cdo 
-    cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
+        # Regrid and select the region using cdo 
+        cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
 
     # Load the regridded and selected region dataset
     # for the provided variable
     # check whether the variable name is valid
     if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos"]:
-        #print("Invalid variable name")
+        print("Invalid variable name")
         sys.exit()
 
     # Translate the variable name to the name used in the obs dataset
@@ -399,14 +403,14 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     elif obs_var_name == "tos":
         obs_var_name = "sst"
     else:
-        #print("Invalid variable name")
+        print("Invalid variable name")
         sys.exit()
 
     # Load the regridded and selected region dataset
     # for the provided variable
     try:
         # Load the dataset for the selected variable
-        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', chunks={"time": 50})[obs_var_name]
+        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', parallel=True, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
 
         # Combine the two expver variables
         regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
@@ -414,8 +418,8 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         return regrid_sel_region_dataset_combine
 
     except Exception as e:
-        #print(f"Error loading regridded and selected region dataset: {e}")
-        sys.exit()    
+        print(f"Error loading regridded and selected region dataset: {e}")
+        sys.exit()
 
 
 def select_season(regridded_obs_dataset_region, season):
