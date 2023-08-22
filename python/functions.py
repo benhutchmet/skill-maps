@@ -335,7 +335,6 @@ def select_region(regridded_obs_dataset, region_grid):
         sys.exit()
 
 # Using cdo to do the regridding and selecting the region
-# Using cdo to do the regridding and selecting the region
 def regrid_and_select_region(observations_path, region, obs_var_name):
     """
     Uses CDO remapbil and a gridspec file to regrid and select the correct region for the obs dataset. Loads for the specified variable.
