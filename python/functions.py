@@ -1669,7 +1669,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs,
-                                                                                     variable_data, model, variable)
+                                                                                        variable_data, model, variable)
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
@@ -1716,8 +1716,15 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         # Plot the filled contours
         cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
 
-        # replace values in pfield that are greater than 0.01 with nan
-        pfield[pfield > p_sig] = np.nan
+        # If the variables is 'tas'
+        # then we want to invert the stippling
+        # so that stippling is plotted where there is no significant correlation
+        if variable == 'tas':
+            # replace values in pfield that are less than 0.05 with nan
+            pfield[pfield < p_sig] = np.nan
+        else:
+            # replace values in pfield that are greater than 0.05 with nan
+            pfield[pfield > p_sig] = np.nan
     
         # Add stippling where rfield is significantly different from zero
         ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
