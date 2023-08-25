@@ -1996,8 +1996,8 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Add a textbox with the season name
         ax.text(0.05, 0.95, season, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
 
-        # Add a textbox with the number of ensemble members in the bottom right corner
-        ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+        # # Add a textbox with the number of ensemble members in the bottom right corner
+        # ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
         # Set up the text for the subplot
         ax.text(-0.1, 1.1, key, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top')
@@ -2024,7 +2024,198 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 # but for different variables (e.g. psl, tas, sfcWind, rsds)
 def plot_variable_correlations(models, observations_path, variables_list, region, region_grid, forecast_range, season,
                                 plots_dir, obs_var_names, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
+    """
+    Plot the spatial correlation coefficients and p-values for different variables,
+    but for the same season, region, and forecast range.
+    
+    Arguments
+    ---------
+    models : list
+        List of models.
+    obsservations_path : str
+        Path to the observations.
+    variables_list : list
+        List of variables.
+    region : str
+        Region.
+    region_grid : dict
+        Dictionary of region grid.
+    forecast_range : str
+        Forecast range.
+    season : str
+        Season.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    obs_var_names : list
+        List of observed variable names.
+    azores_grid : dict
+        Dictionary of Azores grid.
+    iceland_grid : dict
+        Dictionary of Iceland grid.
+    p_sig : float, optional
+        Significance threshold. The default is 0.05.
+    experiment : str, optional
+        Experiment name. The default is 'dcppA-hindcast'.
 
+    Returns
+    -------
+    None.
+
+    """
+
+    # Create an empty list to store the processed observations
+    obs_list = []
+
+    # Create empty lists to store the r and p fields
+    rfield_list = []
+    pfield_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Loop over the variables
+    for i in range(len(variables_list)):
+        
+        # Print the variable being processed
+        print("processing variable", variables_list[i])
+
+        # Process the observations
+        obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
+
+        # Load and process the model data
+        model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, season)
+        # Process the model data
+        model_data, model_time = process_data(model_datasets, variables_list[i])
+
+        # Calculate the spatial correlations for the model
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variables_list[i])
+
+        # Append the processed observations to the list
+        obs_list.append(obs)
+
+        # Append the r and p fields to the lists
+        rfield_list.append(rfield)
+        pfield_list.append(pfield)
+
+        # Append the ensemble members count to the list
+        ensemble_members_count_list.append(ensemble_members_count)
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the lats and lons for the azores grid
+    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+    # Set up the lats and lons for the iceland grid
+    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+    # subtract 180 from all of the azores and iceland lons
+    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+    # Set up the fgure size and subplot parameters
+    # for a 2x2 grid of subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), subplot_kw={'projection': proj})
+
+    # Set up the title for the figure
+    title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=16)
+
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Create a list to store the contourf objects
+    cf_list = []
+
+    # Loop over the variables
+    for i in range(len(variables_list)):
+
+        # Print the variable being plotted
+        print("plotting variable", variables_list[i])
+
+        # Extract the variable
+        variable = variables_list[i]
+
+        # Extract the obs
+        obs = obs_list[i]
+
+        # Extract the r and p fields
+        rfield, pfield = rfield_list[i], pfield_list[i]
+
+        # Set up the converted lons
+        lons_converted = lons_converted - 180
+
+        # Set up the lats and lons
+        lats = obs.lat
+        lons = lons_converted
+
+        # Set up the axes
+        ax = axs.flatten()[i]
+
+        # Add coastlines
+        ax.coastlines()
+
+        # Add greenlines outlining the Azores and Iceland grids
+        ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+
+        # Add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+        # If the variables is 'tas'
+        # then we want to invert the stippling
+        # so that stippling is plotted where there is no significant correlation
+        if variable == 'tas':
+            # replace values in pfield that are less than 0.05 with nan
+            pfield[pfield < p_sig] = np.nan
+        else:
+            # replace values in pfield that are greater than 0.05 with nan
+            pfield[pfield > p_sig] = np.nan
+
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+
+        # Add a textbox with the variable name
+        ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox with the number of ensemble members in the bottom right corner
+        ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add the contourf object to the list
+        cf_list.append(cf)
+
+    # Create a single colorbar for all of the subplots
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('correlation coefficients')
+
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+    for i, ax in enumerate(fig.axes):
+        # Add the label to the bottom left corner of the subplot
+        ax.test(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
+
+    # Set up the path for saving the figure
+    fig_name = f"{region}_{forecast_range}_{season}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
 
 # define a main function
 def main():
