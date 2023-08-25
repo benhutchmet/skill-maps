@@ -1865,6 +1865,11 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     rfield_list = []
     pfield_list = []
 
+    # Create lists to store the obs_lons_converted and lons_converted
+    # for each season
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
     # Create an empty list to store the ensemble members count
     ensemble_members_count_list = []
 
@@ -1896,6 +1901,10 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Append the ensemble members count to the list
         ensemble_members_count_list.append(ensemble_members_count)
 
+        # Append the obs_lons_converted and lons_converted to the lists
+        obs_lons_converted_list.append(obs_lons_converted)
+        lons_converted_list.append(lons_converted) 
+
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
 
@@ -1915,8 +1924,9 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
 
     # Set up the fgure size and subplot parameters
+    # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplot_mosaic("AB;CD", figsize=(14, 12), subplot_kw={'projection': proj}, constrained_layout=True)
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), subplot_kw={'projection': proj})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -1949,11 +1959,8 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Extract the r and p fields
         rfield, pfield = rfield_list[i], pfield_list[i]
 
-        # Extract the key for labelling subplots from subplots_mosaic
-        key = list(axs.keys())[i]
-
-        # Print the key
-        print("key", key)
+        # Extract the obs_lons_converted and lons_converted
+        obs_lons_converted, lons_converted = obs_lons_converted_list[i], lons_converted_list[i]
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
@@ -1999,8 +2006,8 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # # Add a textbox with the number of ensemble members in the bottom right corner
         # ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
-        # Set up the text for the subplot
-        ax.text(-0.1, 1.1, key, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top')
+        # # Set up the text for the subplot
+        # ax.text(-0.1, 1.1, key, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top')
 
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -2008,6 +2015,12 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Create a single colorbar for all of the subplots
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('correlation coefficients')
+
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+    for i, ax in enumerate(fig.axes):
+        # Add the label to the bottom left corner of the subplot
+        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
 
     # Set up the path for saving the figure
     fig_name = f"{variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
@@ -2205,7 +2218,7 @@ def plot_variable_correlations(models, observations_path, variables_list, region
     ax_labels = ['A', 'B', 'C', 'D']
     for i, ax in enumerate(fig.axes):
         # Add the label to the bottom left corner of the subplot
-        ax.test(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
+        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
 
     # Set up the path for saving the figure
     fig_name = f"{region}_{forecast_range}_{season}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
