@@ -1873,6 +1873,9 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Create an empty list to store the ensemble members count
     ensemble_members_count_list = []
 
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
     # Loop over the seasons
     for i in range(len(seasons_list_obs)):
         
@@ -2006,6 +2009,11 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # # Add a textbox with the number of ensemble members in the bottom right corner
         # ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
+        # Add a textbox in the bottom right with the figure letter
+        # extract the figure letter from the ax_labels list
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
         # # Set up the text for the subplot
         # ax.text(-0.1, 1.1, key, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top')
 
@@ -2016,9 +2024,10 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('correlation coefficients')
 
-    # Add labels A, B, C, D to the subplots
-    ax_labels = ['A', 'B', 'C', 'D']
-    for i, ax in enumerate(fig.axes):
+
+
+    print("ax_labels shape", np.shape(ax_labels))
+    for i, ax in enumerate(axs):
         # Add the label to the bottom left corner of the subplot
         ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
 
