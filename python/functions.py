@@ -1386,8 +1386,8 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
 
 # plot the correlations and p-values
 def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, 
-                      obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
-                      uk_s_box, ensemble_members_count = None, p_sig = 0.05):
+                        obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
+                            uk_s_box, ensemble_members_count = None, p_sig = 0.05):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
@@ -1505,8 +1505,15 @@ def plot_correlations(models, rfield, pfield, obs, variable, region, season, for
     # Plot the filled contours
     cf = plt.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
-    # replace values in pfield that are greater than 0.05 with nan
-    pfield[pfield > p_sig] = np.nan
+    # If the variables is 'tas'
+    # then we want to invert the stippling
+    # so that stippling is plotted where there is no significant correlation
+    if variable == 'tas':
+        # replace values in pfield that are less than 0.05 with nan
+        pfield[pfield < p_sig] = np.nan
+    else:
+        # replace values in pfield that are greater than 0.05 with nan
+        pfield[pfield > p_sig] = np.nan
 
     # #print the pfield
     # #print("pfield mod", pfield)
