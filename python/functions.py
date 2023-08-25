@@ -1916,7 +1916,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    fig, axs = plt.subplot_mosaic("AB;CD", figsize=(14, 12), subplot_kw={'projection': proj}, constrained_layout=True)
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -1948,6 +1948,12 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
         # Extract the r and p fields
         rfield, pfield = rfield_list[i], pfield_list[i]
+
+        # Extract the key for labelling subplots from subplots_mosaic
+        key = list(axs.keys())[i]
+
+        # Print the key
+        print("key", key)
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
@@ -1993,6 +1999,9 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Add a textbox with the number of ensemble members in the bottom right corner
         ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
+        # Set up the text for the subplot
+        ax.text(-0.1, 1.1, key, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top')
+
         # Add the contourf object to the list
         cf_list.append(cf)
 
@@ -2009,6 +2018,10 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
     # Show the figure
     plt.show()
+
+# Now we want to write another function for creating subplots
+# This one will plot for the same season, region, forecast range
+# but for different variables (e.g. psl, tas, sfcWind, rsds)
 
 
 # define a main function
