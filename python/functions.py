@@ -2022,6 +2022,8 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 # Now we want to write another function for creating subplots
 # This one will plot for the same season, region, forecast range
 # but for different variables (e.g. psl, tas, sfcWind, rsds)
+def plot_variable_correlations(models, observations_path, variables_list, region, region_grid, forecast_range, season,
+                                plots_dir, obs_var_names, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
 
 
 # define a main function

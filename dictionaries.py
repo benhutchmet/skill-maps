@@ -132,3 +132,9 @@ seasons_list_obs = ["DJFM", "MAM", "JJA", "SON"]
 
 # Define a seasons list for the observations
 seasons_list_model = ["DJFM", "MAY", "ULG", "SON"]
+
+# Set up a list of variables for plotting
+variables = ["psl", "tos", "sfcWind", "tas"]
+
+# Set up a list of variables for plotting
+obs_var_names = ["psl", "tos", "sfcWind", "tas"]
