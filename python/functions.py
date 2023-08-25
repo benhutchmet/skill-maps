@@ -1810,6 +1810,90 @@ def choose_obs_var_name(args):
         sys.exit()
     return obs_var_name
 
+# Write a new function which will plot a series of subplots
+# for the same variable, region and forecast range (e.g. psl global years 2-9)
+# but with different seasons (e.g. DJFM, MAM, JJA, SON)
+def plot_seasonal_correlations(models, observations_path, variable, region, region_grid, forecast_range, seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name, p_sig = 0.05):
+    """
+    Plot the spatial correlation coefficients and p-values for the same variable,
+    region and forecast range (e.g. psl global years 2-9) but with different seasons.
+    
+    Arguments
+    ---------
+    models : list
+        List of models.
+    obsservations_path : str
+        Path to the observations.
+    variable : str
+        Variable.
+    region : str
+        Region.
+    region_grid : dict
+        Dictionary of region grid.
+    forecast_range : str
+        Forecast range.
+    seasons_list_obs : list
+        List of seasons for the obs.
+    seasons_list_mod : list
+        List of seasons for the models.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    obs_var_name : str
+        Observed variable name.
+    p_sig : float, optional
+        Significance threshold. The default is 0.05.
+
+    Returns
+    -------
+    None.
+
+    """
+
+    # Create an empty list to store the processed observations
+    # for each season
+    obs_list = []
+
+    # Create empty lists to store the r and p fields
+    # for each season
+    rfield_list = []
+    pfield_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Loop over the seasons
+    for i in range(len(seasons_list_obs)):
+        
+        # Print the season(s) being processed
+        print("obs season", seasons_list_obs[i])
+        print("mod season", seasons_list_mod[i])
+
+        # Process the observations
+        obs = process_observations(variable, region, region_grid, forecast_range, seasons_list_obs[i], observations_path, obs_var_name)
+
+        # Load and process the model data
+        model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, seasons_list_mod[i])
+        # Process the model data
+        model_data, model_time = process_data(model_datasets, variable)
+
+        # Calculate the spatial correlations for the model
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
+
+        # Append the processed observations to the list
+        obs_list.append(obs)
+
+        # Append the r and p fields to the lists
+        rfield_list.append(rfield)
+        pfield_list.append(pfield)
+
+        # Append the ensemble members count to the list
+        ensemble_members_count_list.append(ensemble_members_count)
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+
+
 # define a main function
 def main():
     """Main function for the program.

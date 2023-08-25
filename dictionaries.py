@@ -126,3 +126,9 @@ tas_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM
 psl_models_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 no_psl_models = 12
 psl_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
+
+# Define a seasons list for the subplotting function
+seasons_list_obs = ["DJFM", "MAM", "JJA", "SON"]
+
+# Define a seasons list for the observations
+seasons_list_model = ["DJFM", "MAY", "ULG", "SON"]
