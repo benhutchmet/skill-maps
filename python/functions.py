@@ -1183,7 +1183,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # Debug the model data
     # #print("ensemble mean within spatial correlation function:", ensemble_mean)
-    # #print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
+    print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
@@ -1244,12 +1244,12 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # variable extracted already
     # Convert both the observed and model data to numpy arrays
-    observed_data_array = observed_data.values / 100
-    ensemble_mean_array = ensemble_mean.values / 100
+    observed_data_array = observed_data.values
+    ensemble_mean_array = ensemble_mean.values
 
     # #print the values and shapes of the observed and model data
-    # #print("observed data shape", np.shape(observed_data_array))
-    # #print("model data shape", np.shape(ensemble_mean_array))
+    print("observed data shape", np.shape(observed_data_array))
+    print("model data shape", np.shape(ensemble_mean_array))
     # #print("observed data", observed_data_array)
     # #print("model data", ensemble_mean_array)
 
@@ -1285,8 +1285,8 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         pfield = np.empty([len(obs_lat), len(obs_lon)])
 
         # #print the dimensions of the observed and model data
-        # #print("observed data shape", np.shape(observed_data))
-        # #print("model data shape", np.shape(model_data))
+        print("observed data shape", np.shape(observed_data))
+        print("model data shape", np.shape(model_data))
 
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
@@ -1890,10 +1890,16 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Process the observations
         obs = process_observations(variable, region, region_grid, forecast_range, seasons_list_obs[i], observations_path, obs_var_name)
 
+        # Print the shape of the observations
+        print("obs shape", np.shape(obs))
+
         # Load and process the model data
         model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, seasons_list_mod[i])
         # Process the model data
         model_data, model_time = process_data(model_datasets, variable)
+
+        # Print the shape of the model data
+        print("model shape", np.shape(model_data))
 
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
