@@ -1957,7 +1957,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(title, fontsize=12)
 
     # Set up the significance threshold
     # e.g. 0.05 for 95% significance
@@ -2182,7 +2182,7 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
     title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(title, fontsize=12)
 
     # Set up the significance threshold
     # e.g. 0.05 for 95% significance
