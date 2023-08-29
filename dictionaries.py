@@ -149,5 +149,11 @@ seasons_list_model_tos = ["DJFM", "ULG", "SON"]
 # Set up a list of variables for plotting
 variables = ["psl", "tos", "sfcWind", "tas"]
 
+# Variables no tos
+variables_no_tos = ["psl", "sfcWind", "tas"]
+
+# Variables no psl
+variables_no_psl = ["tos", "sfcWind", "tas"]
+
 # Set up a list of variables for plotting
 obs_var_names = ["psl", "tos", "sfcWind", "tas"]

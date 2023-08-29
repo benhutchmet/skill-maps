@@ -2139,6 +2139,8 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
             model_season = "ULG"
         elif season == "MAM":
             model_season = "MAY"
+        else:
+            model_season = season
 
         # Load and process the model data
         model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, model_season)
