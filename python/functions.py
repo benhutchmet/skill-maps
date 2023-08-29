@@ -1930,7 +1930,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Set up the fgure size and subplot parameters
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), subplot_kw={'projection': proj})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 10), subplot_kw={'projection': proj})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
