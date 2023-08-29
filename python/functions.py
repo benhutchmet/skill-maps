@@ -1951,7 +1951,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Set up the fgure size and subplot parameters
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -2176,7 +2176,7 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
 
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -2250,8 +2250,12 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
         # Add a textbox with the variable name
         ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
 
+        # Get the number of ensemble members
+        # as the sum of the ensemble_members_count_list
+        ensemble_members_count = sum(ensemble_members_count_list)
+
         # Add a textbox with the number of ensemble members in the bottom left corner
-        ax.text(0.05, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+        ax.text(0.05, 0.05, f"N = {ensemble_members_count}", transform=ax.transAxes, fontsize=10, va='bottom', ha='left', bbox=dict(facecolor='white', alpha=0.5))
 
         # Add a textbox in the bottom right with the figure letter
         fig_letter = ax_labels[i]
