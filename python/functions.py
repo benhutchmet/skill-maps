@@ -1957,9 +1957,9 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=12)
+    fig.suptitle(title, fontsize=12, y=0.92)
 
-    # Set up the significance threshold
+    # Set up the significance thresholdf
     # e.g. 0.05 for 95% significance
     sig_threshold = int((1 - p_sig) * 100)
 
@@ -2134,8 +2134,14 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
         # Process the observations
         obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
 
+        # Set up the model season
+        if season == "JJA":
+            model_season = "ULG"
+        elif season == "MAM":
+            model_season = "MAY"
+
         # Load and process the model data
-        model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, season)
+        model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, model_season)
         # Process the model data
         model_data, model_time = process_data(model_datasets, variables_list[i])
 
@@ -2182,7 +2188,7 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
     title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=12)
+    fig.suptitle(title, fontsize=12, y=0.92)
 
     # Set up the significance threshold
     # e.g. 0.05 for 95% significance
@@ -2208,6 +2214,9 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
 
         # Extract the obs_lons_converted and lons_converted
         obs_lons_converted, lons_converted = obs_lons_converted_list[i], lons_converted_list[i]
+
+        # Ensemble members count
+        ensemble_members_count = ensemble_members_count_list[i]
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
@@ -2252,7 +2261,7 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
 
         # Get the number of ensemble members
         # as the sum of the ensemble_members_count_list
-        ensemble_members_count = sum(ensemble_members_count_list)
+        ensemble_members_count = sum(ensemble_members_count.values())
 
         # Add a textbox with the number of ensemble members in the bottom left corner
         ax.text(0.05, 0.05, f"N = {ensemble_members_count}", transform=ax.transAxes, fontsize=10, va='bottom', ha='left', bbox=dict(facecolor='white', alpha=0.5))
