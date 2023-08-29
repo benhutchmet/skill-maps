@@ -1205,13 +1205,13 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     lons_converted = lons_converted + 180
 
     # #print the observed and model years
-    # #print('observed years', obs_years)
-    # #print('model years', years)
+    print('observed years', obs_years)
+    print('model years', years)
     
     # Find the years that are in both the observed and model data
     years_in_both = np.intersect1d(obs_years, years)
 
-    # #print('years in both', years_in_both)
+    print('years in both', years_in_both)
 
     # Select only the years that are in both the observed and model data
     observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
@@ -1364,29 +1364,31 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
         # print("data shape", np.shape(data))
 
         
-        # If there are any Nan values in the data
+        # If there are any NaN values in the data
         if np.isnan(data.values).any():
-            # #print the year
-            # #print(year)
+            # If there are only NaN values in the data
+            if np.isnan(data.values).all():
+                # Select the year from the observed data
+                observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
 
-            # Select the year from the observed data
-            observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
+                # for the model data
+                ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
 
-            # for the model data
-            ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
+                print(year, "all NaN values for this year")
+            else:
+                print(year, "some NaN values for this year")
 
-        # if there are no Nan values in the data for a year
+        # if there are no NaN values in the data for a year
         # then #print the year
         # and "no nan for this year"
         # and continue the script
         else:
-            print(year, "no nan for this year")
+            print(year, "no NaN values for this year")
 
             # exit the loop
             break
 
     return observed_data, ensemble_mean
-
 # plot the correlations and p-values
 def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, 
                         obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
