@@ -1288,6 +1288,14 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         print("observed data shape", np.shape(observed_data))
         print("model data shape", np.shape(model_data))
 
+        # if there are any NaN values in the observed data or model data
+        if np.isnan(observed_data).any() or np.isnan(model_data).any():
+            # Print a warning
+            print("Warning: NaN values detected in the data.")
+            # Then remove the NaN values from these arrays
+            observed_data = observed_data[~np.isnan(observed_data)]
+            model_data = model_data[~np.isnan(model_data)]
+
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
             for x in range(len(obs_lon)):
