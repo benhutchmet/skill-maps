@@ -136,8 +136,15 @@ tos_models_numbers = [3, 5, 8, 9, 11, 12]
 # Define a seasons list for the subplotting function
 seasons_list_obs = ["DJFM", "MAM", "JJA", "SON"]
 
+# Define a seasons list for the subplotting function for tos
+# missing MAM
+seasons_list_obs_tos = ["DJFM", "JJA", "SON"]
+
 # Define a seasons list for the observations
 seasons_list_model = ["DJFM", "MAY", "ULG", "SON"]
+
+# Define a seasons list for the observations
+seasons_list_model_tos = ["DJFM", "ULG", "SON"]
 
 # Set up a list of variables for plotting
 variables = ["psl", "tos", "sfcWind", "tas"]

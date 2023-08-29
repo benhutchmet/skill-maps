@@ -191,6 +191,9 @@ def process_data(datasets_by_model, variable):
         elif variable == "sfcWind":
             # Extract the variable.
             variable_data = dataset["sfcWind"]
+        elif variable == "tos":
+            # Extract the variable
+            variable_data = dataset["tos"]
         else:
             #print("Variable " + variable + " not recognised")
             sys.exit()

@@ -84,32 +84,32 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         # create the path to the files for this model
         files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
 
-        # print the path to the files
-        print("Searching for files in ", files_path)
+        # #print the path to the files
+        #print("Searching for files in ", files_path)
 
         # Create a list of the files for this model.
         files = glob.glob(files_path)
 
-        # if the list of files is empty, print a warning and
+        # if the list of files is empty, #print a warning and
         # exit the program
         if len(files) == 0:
-            print("No files found for " + model)
+            #print("No files found for " + model)
             sys.exit()
         
-        # Print the files to the screen.
-        print("Files for " + model + ":", files)
+        # #print the files to the screen.
+        #print("Files for " + model + ":", files)
 
         # Loop over the files.
         for file in files:
 
-            # Print the file to the screen.
-            # print(file)
+            # #print the file to the screen.
+            # #print(file)
             
             # check that the file exists
-            # if it doesn't exist, print a warning and
+            # if it doesn't exist, #print a warning and
             # exit the program
             if not os.path.exists(file):
-                print("File " + file + " does not exist")
+                #print("File " + file + " does not exist")
                 sys.exit()
 
             # Load the dataset.
@@ -142,7 +142,7 @@ def process_data(datasets_by_model, variable):
         model_time_by_model: the model time extracted from each model for each model.
     """
     
-    print(f"Dataset type: {type(datasets_by_model)}")
+    #print(f"Dataset type: {type(datasets_by_model)}")
 
     def process_model_dataset(dataset, variable):
         """Process a single dataset.
@@ -161,13 +161,13 @@ def process_data(datasets_by_model, variable):
         if variable == "psl":
            
 
-            # print the variable data
-            # print("Variable data: ", variable_data)
-            # # print the variable data type
-            # print("Variable data type: ", type(variable_data))
+            # #print the variable data
+            # #print("Variable data: ", variable_data)
+            # # #print the variable data type
+            # #print("Variable data type: ", type(variable_data))
 
-            # # print the len of the variable data dimensions
-            # print("Variable data dimensions: ", len(variable_data.dims))
+            # # #print the len of the variable data dimensions
+            # #print("Variable data dimensions: ", len(variable_data.dims))
             
             # Convert from Pa to hPa.
             # Using try and except to catch any errors.
@@ -175,11 +175,11 @@ def process_data(datasets_by_model, variable):
                 # Extract the variable.
                 variable_data = dataset["psl"]
 
-                # print the values of the variable data
-                # print("Variable data values: ", variable_data.values)
+                # #print the values of the variable data
+                # #print("Variable data values: ", variable_data.values)
 
             except:
-                print("Error converting from Pa to hPa")
+                #print("Error converting from Pa to hPa")
                 sys.exit()
 
         elif variable == "tas":
@@ -191,13 +191,16 @@ def process_data(datasets_by_model, variable):
         elif variable == "sfcWind":
             # Extract the variable.
             variable_data = dataset["sfcWind"]
+        elif variable == "tos":
+            # Extract the variable
+            variable_data = dataset["tos"]
         else:
-            print("Variable " + variable + " not recognised")
+            #print("Variable " + variable + " not recognised")
             sys.exit()
 
-        # If variable_data is empty, print a warning and exit the program.
+        # If variable_data is empty, #print a warning and exit the program.
         if variable_data is None:
-            print("Variable " + variable + " not found in dataset")
+            #print("Variable " + variable + " not found in dataset")
             sys.exit()
 
         # Extract the time dimension.
@@ -205,9 +208,9 @@ def process_data(datasets_by_model, variable):
         # Set the type for the time dimension.
         model_time = model_time.astype("datetime64[Y]")
 
-        # If model_time is empty, print a warning and exit the program.
+        # If model_time is empty, #print a warning and exit the program.
         if model_time is None:
-            print("Time not found in dataset")
+            #print("Time not found in dataset")
             sys.exit()
 
         return variable_data, model_time
@@ -228,8 +231,8 @@ def process_data(datasets_by_model, variable):
                 variable_data_by_model[model].append(variable_data)
                 model_time_by_model[model].append(model_time)
         except Exception as e:
-            print(f"Error processing dataset for model {model}: {e}")
-            print("Exiting the program")
+            #print(f"Error processing dataset for model {model}: {e}")
+            #print("Exiting the program")
             sys.exit()
 
     # Return the processed data.
@@ -253,7 +256,7 @@ def check_file_exists(file_path):
     """
     # Check if the file exists
     if not os.path.exists(file_path):
-        print(f"File {file_path} does not exist")
+        #print(f"File {file_path} does not exist")
         sys.exit()
 
 def regrid_observations(obs_dataset):
@@ -282,7 +285,7 @@ def regrid_observations(obs_dataset):
         return regridded_obs_dataset
     
     except Exception as e:
-        print(f"Error regridding observations: {e}")
+        #print(f"Error regridding observations: {e}")
         sys.exit()
 
 
@@ -303,7 +306,7 @@ def select_region(regridded_obs_dataset, region_grid):
     try:
 
         # Echo the dimensions of the region grid
-        print(f"Region grid dimensions: {region_grid}")
+        #print(f"Region grid dimensions: {region_grid}")
 
         # Define lon1, lon2, lat1, lat2
         lon1, lon2 = region_grid['lon1'], region_grid['lon2']
@@ -331,7 +334,7 @@ def select_region(regridded_obs_dataset, region_grid):
 
         return regridded_obs_dataset_region
     except Exception as e:
-        print(f"Error selecting region: {e}")
+        #print(f"Error selecting region: {e}")
         sys.exit()
 
 # Using cdo to do the regridding and selecting the region
@@ -375,10 +378,13 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # If it does, then exit the program
     if os.path.exists(regrid_sel_region_file):
         print("File already exists")
-        # sys.exit()
+        print("Loading ERA5 data")
+    else:
+        print("File does not exist")
+        print("Processing ERA5 data using CDO")
 
-    # Regrid and select the region using cdo 
-    cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
+        # Regrid and select the region using cdo 
+        cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
 
     # Load the regridded and selected region dataset
     # for the provided variable
@@ -406,7 +412,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # for the provided variable
     try:
         # Load the dataset for the selected variable
-        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', chunks={"time": 50})[obs_var_name]
+        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', parallel=True, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
 
         # Combine the two expver variables
         regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
@@ -415,7 +421,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
 
     except Exception as e:
         print(f"Error loading regridded and selected region dataset: {e}")
-        sys.exit()    
+        sys.exit()
 
 
 def select_season(regridded_obs_dataset_region, season):
@@ -461,7 +467,7 @@ def select_season(regridded_obs_dataset_region, season):
 
         return regridded_obs_dataset_region_season
     except:
-        print("Error selecting season")
+        #print("Error selecting season")
         sys.exit()
 
 def calculate_anomalies(regridded_obs_dataset_region_season):
@@ -482,7 +488,7 @@ def calculate_anomalies(regridded_obs_dataset_region_season):
         obs_anomalies = regridded_obs_dataset_region_season - obs_climatology
         return obs_anomalies
     except:
-        print("Error calculating anomalies for observations")
+        #print("Error calculating anomalies for observations")
         sys.exit()
 
 def calculate_annual_mean_anomalies(obs_anomalies, season):
@@ -515,7 +521,7 @@ def calculate_annual_mean_anomalies(obs_anomalies, season):
 
         return obs_anomalies_annual
     except:
-        print("Error shifting and calculating annual mean anomalies for observations")
+        #print("Error shifting and calculating annual mean anomalies for observations")
         sys.exit()
 
 def select_forecast_range(obs_anomalies_annual, forecast_range):
@@ -535,16 +541,16 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
     try:
         
         forecast_range_start, forecast_range_end = map(int, forecast_range.split("-"))
-        print("Forecast range:", forecast_range_start, "-", forecast_range_end)
+        #print("Forecast range:", forecast_range_start, "-", forecast_range_end)
         
         rolling_mean_range = forecast_range_end - forecast_range_start + 1
-        print("Rolling mean range:", rolling_mean_range)
+        #print("Rolling mean range:", rolling_mean_range)
         
         obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range, center = True).mean()
         
         return obs_anomalies_annual_forecast_range
     except Exception as e:
-        print("Error selecting forecast range:", e)
+        #print("Error selecting forecast range:", e)
         sys.exit()
 
 
@@ -560,17 +566,17 @@ def check_for_nan_values(obs):
     """
     try:
         if obs['msl'].isnull().values.any():
-            print("Error: NaN values in observations")
+            #print("Error: NaN values in observations")
             sys.exit()
     except Exception as e:
-        print("Error checking for NaN values in observations:", e)
+        #print("Error checking for NaN values in observations:", e)
         sys.exit()
 
 # Function for checking the model data for NaN values
 # For individual years
 def check_for_nan_timesteps(ds):
     """
-    Checks for NaN values in the given dataset and prints the timesteps that contain NaN values.
+    Checks for NaN values in the given dataset and #prints the timesteps that contain NaN values.
 
     Parameters:
     ds (xarray.Dataset): The dataset to check for NaN values.
@@ -609,7 +615,7 @@ def load_observations(observations_path, obs_var_name):
 
     # check whether the variable name is valid
     if obs_var_name not in ["psl", "tas", "sfcWind", "rsds"]:
-        print("Invalid variable name")
+        #print("Invalid variable name")
         sys.exit()
 
     try:
@@ -622,8 +628,8 @@ def load_observations(observations_path, obs_var_name):
         ERA5_combine.to_netcdf(observations_path + "_copy.nc")
 
         
-        # Print the dimensions of the observations dataset
-        # print("Observations dataset:", obs_dataset.dims)
+        # #print the dimensions of the observations dataset
+        # #print("Observations dataset:", obs_dataset.dims)
 
         # Check for NaN values in the observations dataset
         # check_for_nan_values(obs_dataset)
@@ -631,7 +637,7 @@ def load_observations(observations_path, obs_var_name):
         return obs_dataset, ERA5_combine
 
     except Exception as e:
-        print(f"Error loading observations dataset: {e}")
+        #print(f"Error loading observations dataset: {e}")
         sys.exit()
 
 # Call the functions to process the observations
@@ -657,44 +663,54 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     # Check if the observations file exists
     check_file_exists(observations_path)
 
+    # # set up the file name for the processed observations dataset
+    # processed_obs_file = dic.home_dir + "/" + "sm_processed_obs" + "/" + variable + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + variable + "_" + region + "_" + f"years_{forecast_range}" + "_" + season + "_processed_obs_da.nc"
+    # # make the directory if it doesn't exist
+    # if not os.path.exists(os.path.dirname(processed_obs_file)):
+    #     os.makedirs(os.path.dirname(processed_obs_file))
+
+    # # #print the processed observations file name
+    # print("Processed observations file name:", processed_obs_file)
+
+    # Process the observations using try and except to catch any errors
     try:
         # Regrid using CDO, select region and load observation dataset
         # for given variable
         obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
 
         # Check for NaN values in the observations dataset
-        # print("Checking for NaN values in obs_dataset")
+        # #print("Checking for NaN values in obs_dataset")
         # check_for_nan_values(obs_dataset)
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
-        # Print the dimensions of the regridded and selected region dataset
-        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
+        # # #print the dimensions of the regridded and selected region dataset
+        #print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
 
         # # Check for NaN values in the observations dataset
-        # print("Checking for NaN values in regridded_obs_dataset_region_season")
+        # #print("Checking for NaN values in regridded_obs_dataset_region_season")
         # check_for_nan_values(regridded_obs_dataset_region_season)
         
         # Calculate anomalies
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
 
         # Check for NaN values in the observations dataset
-        # print("Checking for NaN values in obs_anomalies")
+        # #print("Checking for NaN values in obs_anomalies")
         # check_for_nan_values(obs_anomalies)
 
         # Calculate annual mean anomalies
         obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
 
         # Check for NaN values in the observations dataset
-        # print("Checking for NaN values in obs_annual_mean_anomalies")
+        # #print("Checking for NaN values in obs_annual_mean_anomalies")
         # check_for_nan_values(obs_annual_mean_anomalies)
 
         # Select the forecast range
         obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
         # Check for NaN values in the observations dataset
-        # print("Checking for NaN values in obs_anomalies_annual_forecast_range")
+        # #print("Checking for NaN values in obs_anomalies_annual_forecast_range")
         # check_for_nan_values(obs_anomalies_annual_forecast_range)
 
         # if the forecast range is "2-2" i.e. a year ahead forecast
@@ -702,15 +718,25 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # where the model would show the DJFM average as Jan 1963 (s1961)
         # the observations would show the DJFM average as Dec 1962
         # so we need to shift the observations to the following year
-        if forecast_range == "2-2":
+        # if the forecast range is "2-2" and the season is "DJFM"
+        # then shift the dataset by 1 year
+        if forecast_range == "2-2" and season == "DJFM":
             obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
 
+        # Save the processed observations dataset as a netCDF file
+        # print that the file is being saved
+        # Save the processed observations dataset as a netCDF file
+        # Convert the variable to a DataArray object before saving
+        # print("Saving processed observations dataset")
+        # obs_anomalies_annual_forecast_range.to_netcdf(processed_obs_file)
 
         return obs_anomalies_annual_forecast_range
 
     except Exception as e:
-        print(f"Error processing observations dataset: {e}")
+        #print(f"Error processing observations dataset: {e}")
         sys.exit()
+
+
 
 def plot_data(obs_data, variable_data, model_time):
     """
@@ -726,8 +752,8 @@ def plot_data(obs_data, variable_data, model_time):
     None
     """
 
-    # print the dimensions of the observations data
-    # print("Observations dimensions:", obs_data.dims)
+    # #print the dimensions of the observations data
+    # #print("Observations dimensions:", obs_data.dims)
 
     # Take the time mean of the observations
     obs_data_mean = obs_data.mean(dim='time')
@@ -760,13 +786,13 @@ def plot_obs_data(obs_data):
     None
     """
 
-    # print the dimensions of the observations data
-    # print("Observations dimensions:", obs_data.dims)
-    # print("Observations variables:", obs_data)
+    # #print the dimensions of the observations data
+    # #print("Observations dimensions:", obs_data.dims)
+    # #print("Observations variables:", obs_data)
 
-    # Print all of the latitude values
-    # print("Observations latitude values:", obs_data.lat.values)
-    # print("Observations longitude values:", obs_data.lon.values)
+    # #print all of the latitude values
+    # #print("Observations latitude values:", obs_data.lat.values)
+    # #print("Observations longitude values:", obs_data.lon.values)
 
     # Select the first timestep of the observations
     obs_data_first = obs_data.isel(time=-1)
@@ -775,11 +801,11 @@ def plot_obs_data(obs_data):
     # and convert to hPa
     obs_var = obs_data_first["var151"]/100
 
-    # print the value of the variable
-    # print("Observations variable:", obs_var.values)
+    # #print the value of the variable
+    # #print("Observations variable:", obs_var.values)
 
-    # print the dimensions of the observations data
-    # print("Observations dimensions:", obs_data_first)
+    # #print the dimensions of the observations data
+    # #print("Observations dimensions:", obs_data_first)
 
     # Create a figure with one subplot
     fig, ax = plt.subplots(figsize=(12, 6), subplot_kw={'projection': ccrs.PlateCarree()})
@@ -831,9 +857,9 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
         # Create the directory
         os.makedirs(gif_plots_path)
 
-    # # print the values of lat and lon
-    # print("lat values", ensemble_mean[0, :, 0])
-    # print("lon values", ensemble_mean[0, 0, :])
+    # # #print the values of lat and lon
+    # #print("lat values", ensemble_mean[0, :, 0])
+    # #print("lon values", ensemble_mean[0, 0, :])
 
     # lat_test = ensemble_mean[0, :, 0]
     # lon_test = ensemble_mean[0, 0, :]
@@ -842,16 +868,16 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     filepaths = []
 
     # Extract the years from the model data
-    # print the values of the years
-    # print("years values", years)
-    # print("years shape", np.shape(years))
-    # print("years type", type(years))
+    # #print the values of the years
+    # #print("years values", years)
+    # #print("years shape", np.shape(years))
+    # #print("years type", type(years))
 
     # Process the model data and calculate the ensemble mean
     ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
 
-    # print the dimensions of the model data
-    print("ensemble mean shape", np.shape(ensemble_mean))
+    # #print the dimensions of the model data
+    #print("ensemble mean shape", np.shape(ensemble_mean))
 
     # set the vmin and vmax values
     vmin = -5
@@ -864,20 +890,20 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
     obs_years = observed_data.time.dt.year.values
 
     # Do we need to convert the lons in any way here?
-    # print the values of lat and lon
-    # print("obs lat values", obs_lat)
-    # print("obs lon values", obs_lon) 
-    # print("obs lat shape", np.shape(obs_lat))
-    # print("obs lon shape", np.shape(obs_lon))
-    # print("model lat shape", np.shape(lat))
-    # print("model lon shape", np.shape(lon))
-    # print("model lat values", lat)
-    # print("model lon values", lon)
-    # print("years values", years)
-    # print("obs years values", obs_years)
-    # print("obs years shape", np.shape(obs_years))
-    # print("obs years type", type(obs_years))
-    # print("model year shape", np.shape(years))
+    # #print the values of lat and lon
+    # #print("obs lat values", obs_lat)
+    # #print("obs lon values", obs_lon) 
+    # #print("obs lat shape", np.shape(obs_lat))
+    # #print("obs lon shape", np.shape(obs_lon))
+    # #print("model lat shape", np.shape(lat))
+    # #print("model lon shape", np.shape(lon))
+    # #print("model lat values", lat)
+    # #print("model lon values", lon)
+    # #print("years values", years)
+    # #print("obs years values", obs_years)
+    # #print("obs years shape", np.shape(obs_years))
+    # #print("obs years type", type(obs_years))
+    # #print("model year shape", np.shape(years))
 
     # Make sure that the obs and model data are for the same time period
     # Find the years which are in both the obs and model data
@@ -907,8 +933,8 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
 
     # Loop over the years array
     for year in years:
-        # print the year
-        # print("year", year)
+        # #print the year
+        # #print("year", year)
 
         # Set up the figure
         # modify for three subplots
@@ -924,9 +950,9 @@ def plot_model_data(model_data, observed_data, models, gif_plots_path):
         year_index = np.where(years == year)[0][0]
 
         
-        # Print the values of the model and obs arrays
-        # print("model values", model[year_index, :, :])
-        # print("obs values", obs[year_index, :, :])
+        # #print the values of the model and obs arrays
+        # #print("model values", model[year_index, :, :])
+        # #print("obs values", obs[year_index, :, :])
 
         # Plot the ensemble mean on the subplot
         # for the specified year
@@ -996,8 +1022,8 @@ def constrain_years(model_data, models):
     # Initialize a list to store the years for each model
     years_list = []
 
-    # Print the models being proces
-    # print("models:", models)
+    # #print the models being proces
+    # #print("models:", models)
     
     # Loop over the models
     for model in models:
@@ -1015,10 +1041,10 @@ def constrain_years(model_data, models):
     # Find the years that are in all of the models
     common_years = list(set(years_list[0]).intersection(*years_list))
 
-    # Print the common years for debugging
-    # print("Common years:", common_years)
-    # print("Common years type:", type(common_years))
-    # print("Common years shape:", np.shape(common_years))
+    # #print the common years for debugging
+    # #print("Common years:", common_years)
+    # #print("Common years type:", type(common_years))
+    # #print("Common years shape:", np.shape(common_years))
 
     # Initialize a dictionary to store the constrained data
     constrained_data = {}
@@ -1033,15 +1059,15 @@ def constrain_years(model_data, models):
             # Extract the years
             years = member.time.dt.year.values
 
-            # Print the years extracted from the model
-            # print('model years', years)
-            # print('model years shape', np.shape(years))
+            # #print the years extracted from the model
+            # #print('model years', years)
+            # #print('model years shape', np.shape(years))
             
             # Find the years that are in both the model data and the common years
             years_in_both = np.intersect1d(years, common_years)
 
-            # print("years in both shape", np.shape(years_in_both))
-            # print("years in both", years_in_both)
+            # #print("years in both shape", np.shape(years_in_both))
+            # #print("years in both", years_in_both)
             
             # Select only those years from the model data
             member = member.sel(time=member.time.dt.year.isin(years_in_both))
@@ -1051,8 +1077,8 @@ def constrain_years(model_data, models):
                 constrained_data[model] = []
             constrained_data[model].append(member)
 
-    # # Print the constrained data for debugging
-    # print("Constrained data:", constrained_data)
+    # # #print the constrained data for debugging
+    # #print("Constrained data:", constrained_data)
 
     return constrained_data
 
@@ -1083,8 +1109,8 @@ def process_model_data_for_plot(model_data, models):
         # Extract the model data
         model_data_combined = model_data[model]
 
-        # Print
-        print("extracting data for model:", model)
+        # #print
+        #print("extracting data for model:", model)
 
         # Set the ensemble members count to zero
         # if the model is not in the ensemble members count dictionary
@@ -1096,11 +1122,11 @@ def process_model_data_for_plot(model_data, models):
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
 
-            # Try to print values for each member
-            # print("trying to print values for each member for debugging")
-            # print("values for model:", model)
-            # print("values for members:", member)
-            # print("member values:", member.values)
+            # Try to #print values for each member
+            # #print("trying to #print values for each member for debugging")
+            # #print("values for model:", model)
+            # #print("values for members:", member)
+            # #print("member values:", member.values)
 
             # Extract the lat and lon values
             lat = member.lat.values
@@ -1109,9 +1135,9 @@ def process_model_data_for_plot(model_data, models):
             # Extract the years
             years = member.time.dt.year.values
 
-            # Print statements for debugging
-            # print('shape of years', np.shape(years))
-            # # print('years', years)
+            # #print statements for debugging
+            # #print('shape of years', np.shape(years))
+            # # #print('years', years)
 
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
@@ -1119,22 +1145,24 @@ def process_model_data_for_plot(model_data, models):
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
-    # Print the dimensions of the ensemble members
-    # print("ensemble members shape", np.shape(ensemble_members))
+    # #print the dimensions of the ensemble members
+    # #print("ensemble members shape", np.shape(ensemble_members))
 
+    # #print the ensemble members count
+    print("ensemble members count", ensemble_members_count)
 
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
 
-    # Print the dimensions of the ensemble mean
-    # print(np.shape(ensemble_mean))
-    # print(type(ensemble_mean))
-    # print(ensemble_mean)
+    # #print the dimensions of the ensemble mean
+    # #print(np.shape(ensemble_mean))
+    # #print(type(ensemble_mean))
+    # #print(ensemble_mean)
         
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
 
-    return ensemble_mean, lat, lon, years
+    return ensemble_mean, lat, lon, years, ensemble_members_count
 
 def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
@@ -1151,11 +1179,11 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
     # try:
     # Process the model data and calculate the ensemble mean
-    ensemble_mean, lat, lon, years = process_model_data_for_plot(model_data, models)
+    ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
 
     # Debug the model data
-    # print("ensemble mean within spatial correlation function:", ensemble_mean)
-    # print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
+    # #print("ensemble mean within spatial correlation function:", ensemble_mean)
+    # #print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
@@ -1176,14 +1204,14 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # # add 180 to the lons_converted
     lons_converted = lons_converted + 180
 
-    # Print the observed and model years
-    # print('observed years', obs_years)
-    # print('model years', years)
+    # #print the observed and model years
+    # #print('observed years', obs_years)
+    # #print('model years', years)
     
     # Find the years that are in both the observed and model data
     years_in_both = np.intersect1d(obs_years, years)
 
-    # print('years in both', years_in_both)
+    # #print('years in both', years_in_both)
 
     # Select only the years that are in both the observed and model data
     observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
@@ -1192,8 +1220,8 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # Remove years with NaNs
     observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean, variable)
 
-    # Print the ensemble mean values
-    # print("ensemble mean value after removing nans:", ensemble_mean.values)
+    # #print the ensemble mean values
+    # #print("ensemble mean value after removing nans:", ensemble_mean.values)
 
     # # set the obs_var_name
     # obs_var_name = variable
@@ -1211,7 +1239,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # elif obs_var_name == "tos":
     #     obs_var_name = "sst"
     # else:
-    #     print("Invalid variable name")
+    #     #print("Invalid variable name")
     #     sys.exit()
 
     # variable extracted already
@@ -1219,11 +1247,11 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     observed_data_array = observed_data.values / 100
     ensemble_mean_array = ensemble_mean.values / 100
 
-    # Print the values and shapes of the observed and model data
-    # print("observed data shape", np.shape(observed_data_array))
-    # print("model data shape", np.shape(ensemble_mean_array))
-    # print("observed data", observed_data_array)
-    # print("model data", ensemble_mean_array)
+    # #print the values and shapes of the observed and model data
+    # #print("observed data shape", np.shape(observed_data_array))
+    # #print("model data shape", np.shape(ensemble_mean_array))
+    # #print("observed data", observed_data_array)
+    # #print("model data", ensemble_mean_array)
 
     # Check that the observed data and ensemble mean have the same shape
     if observed_data_array.shape != ensemble_mean_array.shape:
@@ -1232,10 +1260,10 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # Calculate the correlations between the observed and model data
     rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
 
-    return rfield, pfield, obs_lons_converted, lons_converted
+    return rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count
 
     # except Exception as e:
-    #     print(f"An error occurred when calculating spatial correlations: {e}")
+    #     #print(f"An error occurred when calculating spatial correlations: {e}")
 
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
@@ -1256,9 +1284,9 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         rfield = np.empty([len(obs_lat), len(obs_lon)])
         pfield = np.empty([len(obs_lat), len(obs_lon)])
 
-        # Print the dimensions of the observed and model data
-        # print("observed data shape", np.shape(observed_data))
-        # print("model data shape", np.shape(model_data))
+        # #print the dimensions of the observed and model data
+        # #print("observed data shape", np.shape(observed_data))
+        # #print("model data shape", np.shape(model_data))
 
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
@@ -1267,30 +1295,30 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 obs = observed_data[:, y, x]
                 mod = model_data[:, y, x]
 
-                # print the obs and model data
-                # print("observed data", obs)
-                # print("model data", mod)
+                # #print the obs and model data
+                # #print("observed data", obs)
+                # #print("model data", mod)
 
                 # Calculate the correlation coefficient and p-value
                 r, p = stats.pearsonr(obs, mod)
 
-                # print the correlation coefficient and p-value
-                # print("correlation coefficient", r)
-                # print("p-value", p)
+                # #print the correlation coefficient and p-value
+                # #print("correlation coefficient", r)
+                # #print("p-value", p)
 
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
 
-        # Print the range of the correlation coefficients and p-values
+        # #print the range of the correlation coefficients and p-values
         # to 3 decimal places
-        print(f"Correlation coefficients range from {rfield.min():.3f} to {rfield.max():.3f}")
-        print(f"P-values range from {pfield.min():.3f} to {pfield.max():.3f}")
+        #print(f"Correlation coefficients range from {rfield.min():.3f} to {rfield.max():.3f}")
+        #print(f"P-values range from {pfield.min():.3f} to {pfield.max():.3f}")
 
         # Return the correlation coefficients and p-values
         return rfield, pfield
 
     except Exception as e:
-        print(f"Error calculating correlations: {e}")
+        #print(f"Error calculating correlations: {e}")
         sys.exit()
 
 # checking for Nans in observed data
@@ -1322,20 +1350,24 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
     elif obs_var_name == "tos":
         obs_var_name = "sst"
     else:
-        print("Invalid variable name")
+        #print("Invalid variable name")
         sys.exit()
 
-    print("var name for obs", obs_var_name)
+    #print("var name for obs", obs_var_name)
     
     for year in observed_data.time.dt.year.values[::-1]:
         # Extract the data for the year
         data = observed_data.sel(time=f"{year}")
 
+        # print("data type", (type(data)))
+        # print("data vaues", data)
+        # print("data shape", np.shape(data))
+
         
         # If there are any Nan values in the data
         if np.isnan(data.values).any():
-            # Print the year
-            # print(year)
+            # #print the year
+            # #print(year)
 
             # Select the year from the observed data
             observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
@@ -1344,11 +1376,11 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
             ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
 
         # if there are no Nan values in the data for a year
-        # then print the year
+        # then #print the year
         # and "no nan for this year"
         # and continue the script
         else:
-            # print(year, "no nan for this year")
+            print(year, "no nan for this year")
 
             # exit the loop
             break
@@ -1356,7 +1388,9 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
     return observed_data, ensemble_mean
 
 # plot the correlations and p-values
-def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, uk_s_box):
+def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, 
+                        obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
+                            uk_s_box, ensemble_members_count = None, p_sig = 0.05):
     """Plot the correlation coefficients and p-values.
     
     This function plots the correlation coefficients and p-values
@@ -1365,7 +1399,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     Parameters
     ----------
     model : str
-        Name of the model.
+        Name of the models.
     rfield : array
         Array of correlation coefficients.
     pfield : array
@@ -1394,6 +1428,8 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
         Array of longitudes and latitudes for the northern UK index box.
     uk_s_box : array
         Array of longitudes and latitudes for the southern UK index box.
+    p_sig : float, optional
+        Significance level for the p-values. The default is 0.05.
     """
 
     # Extract the lats and lons for the azores grid
@@ -1434,7 +1470,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
         lats = obs.lat
         lons = lons_converted
     else:
-        print("Error: region not found")
+        #print("Error: region not found")
         sys.exit()
 
     # Set the font size for the plots
@@ -1472,11 +1508,18 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # Plot the filled contours
     cf = plt.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
-    # replace values in pfield that are greater than 0.05 with nan
-    pfield[pfield > 0.05] = np.nan
+    # If the variables is 'tas'
+    # then we want to invert the stippling
+    # so that stippling is plotted where there is no significant correlation
+    if variable == 'tas':
+        # replace values in pfield that are less than 0.05 with nan
+        pfield[pfield < p_sig] = np.nan
+    else:
+        # replace values in pfield that are greater than 0.05 with nan
+        pfield[pfield > p_sig] = np.nan
 
-    # print the pfield
-    # print("pfield mod", pfield)
+    # #print the pfield
+    # #print("pfield mod", pfield)
 
     # Add stippling where rfield is significantly different from zero
     plt.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
@@ -1490,19 +1533,28 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # we only want the model name
     # if the length of the list is 1
     # then the model name is the first element
-    if len(model) == 1:
-        model = model[0]
-    elif len(model) > 1:
-        model = "multi-model mean"
+    if len(models) == 1:
+        model = models[0]
+    elif len(models) > 1:
+        models = "multi-model mean"
     else :
-        print("Error: model name not found")
+        #print("Error: model name not found")
         sys.exit()
 
+    # Set up the significance threshold
+    # if p_sig is 0.05, then sig_threshold is 95%
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Extract the number of ensemble members from the ensemble_members_count dictionary
+    # if the ensemble_members_count is not None
+    if ensemble_members_count is not None:
+        total_no_members = sum(ensemble_members_count.values())
+
     # Add title
-    plt.title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+    plt.title(f"{models} {variable} {region} {season} {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%), N = {total_no_members}")
 
     # set up the path for saving the figure
-    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{models}_{variable}_{region}_{season}_{forecast_range}_N_{total_no_members}_p_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
@@ -1512,7 +1564,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     plt.show()
 
 # Function for plotting the results for all of the models as 12 subplots
-def plot_correlations_subplots(models, obs, variable_data, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box):
+def plot_correlations_subplots(models, obs, variable_data, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig = 0.05):
     """Plot the spatial correlation coefficients and p-values for all models.
 
     This function plots the spatial correlation coefficients and p-values
@@ -1543,6 +1595,8 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         Array of longitudes and latitudes for the northern UK index box.
     uk_s_box : array
         Array of longitudes and latitudes for the southern UK index box.
+    p_sig : float, optional
+        Significance threshold. The default is 0.05.
     """
 
     # Set the font size for the plots
@@ -1575,9 +1629,32 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     uk_n_lon1, uk_n_lon2 = uk_n_lon1 - 180, uk_n_lon2 - 180
     uk_s_lon1, uk_s_lon2 = uk_s_lon1 - 180, uk_s_lon2 - 180
 
-    # Set the figure size and subplot parameters
-    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    # Count the number of models available
+    nmodels = len(models)
 
+    # Set the figure size and subplot parameters
+    if nmodels == 8:
+        fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(18, 12), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # Remove the last subplot
+        axs[-1, -1].remove()
+        # Set up where to plot the title
+        title_index = 1
+    elif nmodels == 11:
+        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        axs[-1, -1].remove()
+        # Set up where to plot the title
+        title_index = 1
+    elif nmodels == 12:
+        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # Set up where to plot the title
+        title_index = 1
+    else:
+        raise ValueError(f"Invalid number of models: {nmodels}")
+    
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+    
     # Flatten the axs array
     axs = axs.flatten()
 
@@ -1587,14 +1664,15 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     # Loop over the models
     for i, model in enumerate(models):
         
-        # Print the model name
-        print("Processing model:", model)
+        # #print the model name
+        #print("Processing model:", model)
     
         # Convert the model to a single index list
         model = [model]
     
         # Calculate the spatial correlations for the model
-        rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, model, variable)
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs,
+                                                                                        variable_data, model, variable)
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
@@ -1609,7 +1687,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
             lats = obs.lat
             lons = lons_converted
         else:
-            print("Error: region not found")
+            #print("Error: region not found")
             sys.exit()
 
         # Set up the axes
@@ -1640,9 +1718,16 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         clevs_p = np.arange(0, 1.1, 0.1)
         # Plot the filled contours
         cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
-    
-        # replace values in pfield that are greater than 0.01 with nan
-        pfield[pfield > 0.05] = np.nan
+
+        # If the variables is 'tas'
+        # then we want to invert the stippling
+        # so that stippling is plotted where there is no significant correlation
+        if variable == 'tas':
+            # replace values in pfield that are less than 0.05 with nan
+            pfield[pfield < p_sig] = np.nan
+        else:
+            # replace values in pfield that are greater than 0.05 with nan
+            pfield[pfield > p_sig] = np.nan
     
         # Add stippling where rfield is significantly different from zero
         ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
@@ -1656,7 +1741,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         elif len(model) > 1:
             model = "all_models"
         else :
-            print("Error: model name not found")
+            #print("Error: model name not found")
             sys.exit()
     
         # Add textbox with model name
@@ -1664,6 +1749,11 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     
         # Add the contourf object to the list
         cf_list.append(cf)
+
+        # If this is the centre subplot on the first row, set the title for the figure
+        if i == title_index:
+            # Add title
+            ax.set_title(f"{variable} {region} {season} years {forecast_range} Correlation Coefficients, p < {p_sig} ({sig_threshold}%)", fontsize=12)
     
     # Create a single colorbar for all of the subplots
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
@@ -1673,7 +1763,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     # plt.tight_layout()
 
     # set up the path for saving the figure
-    fig_name = f"{variable}_{region}_{season}_{forecast_range}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{variable}_{region}_{season}_{forecast_range}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
     # # Adjust the vertical spacing between the plots
@@ -1701,7 +1791,7 @@ def choose_obs_path(args):
     elif args.variable == "rsds":
         obs_path = dic.obs_rsds
     else:
-        print("Error: variable not found")
+        #print("Error: variable not found")
         sys.exit()
     return obs_path
 
@@ -1719,9 +1809,439 @@ def choose_obs_var_name(args):
     elif args.variable == "rsds":
         obs_var_name = dic.rsds_label
     else:
-        print("Error: variable not found")
+        #print("Error: variable not found")
         sys.exit()
     return obs_var_name
+
+# Write a new function which will plot a series of subplots
+# for the same variable, region and forecast range (e.g. psl global years 2-9)
+# but with different seasons (e.g. DJFM, MAM, JJA, SON)
+# TODO: this doesn't include bootstrapped p values
+def plot_seasonal_correlations(models, observations_path, variable, region, region_grid, forecast_range, seasons_list_obs, seasons_list_mod, 
+                                plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
+    """
+    Plot the spatial correlation coefficients and p-values for the same variable,
+    region and forecast range (e.g. psl global years 2-9) but with different seasons.
+    
+    Arguments
+    ---------
+    models : list
+        List of models.
+    obsservations_path : str
+        Path to the observations.
+    variable : str
+        Variable.
+    region : str
+        Region.
+    region_grid : dict
+        Dictionary of region grid.
+    forecast_range : str
+        Forecast range.
+    seasons_list_obs : list
+        List of seasons for the obs.
+    seasons_list_mod : list
+        List of seasons for the models.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    obs_var_name : str
+        Observed variable name.
+    azores_grid : dict
+        Dictionary of Azores grid.
+    iceland_grid : dict
+        Dictionary of Iceland grid.
+    p_sig : float, optional
+        Significance threshold. The default is 0.05.
+    experiment : str, optional
+        Experiment name. The default is 'dcppA-hindcast'.
+
+    Returns
+    -------
+    None.
+
+    """
+
+    # Create an empty list to store the processed observations
+    # for each season
+    obs_list = []
+
+    # Create empty lists to store the r and p fields
+    # for each season
+    rfield_list = []
+    pfield_list = []
+
+    # Create lists to store the obs_lons_converted and lons_converted
+    # for each season
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Loop over the seasons
+    for i in range(len(seasons_list_obs)):
+        
+        # Print the season(s) being processed
+        print("obs season", seasons_list_obs[i])
+        print("mod season", seasons_list_mod[i])
+
+        # Process the observations
+        obs = process_observations(variable, region, region_grid, forecast_range, seasons_list_obs[i], observations_path, obs_var_name)
+
+        # Load and process the model data
+        model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, seasons_list_mod[i])
+        # Process the model data
+        model_data, model_time = process_data(model_datasets, variable)
+
+        # Calculate the spatial correlations for the model
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
+
+        # Append the processed observations to the list
+        obs_list.append(obs)
+
+        # Append the r and p fields to the lists
+        rfield_list.append(rfield)
+        pfield_list.append(pfield)
+
+        # Append the ensemble members count to the list
+        ensemble_members_count_list.append(ensemble_members_count)
+
+        # Append the obs_lons_converted and lons_converted to the lists
+        obs_lons_converted_list.append(obs_lons_converted)
+        lons_converted_list.append(lons_converted) 
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the lats and lons for the azores grid
+    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+    # Set up the lats and lons for the iceland grid
+    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+    # subtract 180 from all of the azores and iceland lons
+    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+    # Set up the fgure size and subplot parameters
+    # Set up the fgure size and subplot parameters
+    # for a 2x2 grid of subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 10), subplot_kw={'projection': proj})
+
+    # Set up the title for the figure
+    title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=16)
+
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Flatten the axs array
+    axs = axs.flatten()
+
+    # Create a list to store the contourf objects
+    cf_list = []
+
+    # Loop over the seasons
+    for i in range(len(seasons_list_obs)):
+
+        # Print the season(s) being pplotted
+        print("plotting season", seasons_list_obs[i])
+
+        # Extract the season
+        season = seasons_list_obs[i]
+
+        # Extract the obs
+        obs = obs_list[i]
+
+        # Extract the r and p fields
+        rfield, pfield = rfield_list[i], pfield_list[i]
+
+        # Extract the obs_lons_converted and lons_converted
+        obs_lons_converted, lons_converted = obs_lons_converted_list[i], lons_converted_list[i]
+
+        # Set up the converted lons
+        lons_converted = lons_converted - 180
+
+        # Set up the lats and lons
+        lats = obs.lat
+        lons = lons_converted
+
+        # Set up the axes
+        ax = axs[i]
+
+        # Add coastlines
+        ax.coastlines()
+
+        # Add greenlines outlining the Azores and Iceland grids
+        ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+
+        # Add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+        # If the variables is 'tas'
+        # then we want to invert the stippling
+        # so that stippling is plotted where there is no significant correlation
+        if variable == 'tas':
+            # replace values in pfield that are less than 0.05 with nan
+            pfield[pfield < p_sig] = np.nan
+        else:
+            # replace values in pfield that are greater than 0.05 with nan
+            pfield[pfield > p_sig] = np.nan
+
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+
+        # Add a textbox with the season name
+        ax.text(0.05, 0.95, season, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # # Add a textbox with the number of ensemble members in the bottom right corner
+        # ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox in the bottom right with the figure letter
+        # extract the figure letter from the ax_labels list
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # # Set up the text for the subplot
+        # ax.text(-0.1, 1.1, key, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top')
+
+        # Add the contourf object to the list
+        cf_list.append(cf)
+
+    # Create a single colorbar for all of the subplots
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('correlation coefficients')
+
+
+
+    print("ax_labels shape", np.shape(ax_labels))
+    for i, ax in enumerate(axs):
+        # Add the label to the bottom left corner of the subplot
+        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
+
+    # Set up the path for saving the figure
+    fig_name = f"{variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
+
+# Now we want to write another function for creating subplots
+# This one will plot for the same season, region, forecast range
+# but for different variables (e.g. psl, tas, sfcWind, rsds)
+def plot_variable_correlations(models, observations_path, variables_list, region, region_grid, forecast_range, season,
+                                plots_dir, obs_var_names, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
+    """
+    Plot the spatial correlation coefficients and p-values for different variables,
+    but for the same season, region, and forecast range.
+    
+    Arguments
+    ---------
+    models : list
+        List of models.
+    obsservations_path : str
+        Path to the observations.
+    variables_list : list
+        List of variables.
+    region : str
+        Region.
+    region_grid : dict
+        Dictionary of region grid.
+    forecast_range : str
+        Forecast range.
+    season : str
+        Season.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    obs_var_names : list
+        List of observed variable names.
+    azores_grid : dict
+        Dictionary of Azores grid.
+    iceland_grid : dict
+        Dictionary of Iceland grid.
+    p_sig : float, optional
+        Significance threshold. The default is 0.05.
+    experiment : str, optional
+        Experiment name. The default is 'dcppA-hindcast'.
+
+    Returns
+    -------
+    None.
+
+    """
+
+    # Create an empty list to store the processed observations
+    obs_list = []
+
+    # Create empty lists to store the r and p fields
+    rfield_list = []
+    pfield_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Loop over the variables
+    for i in range(len(variables_list)):
+        
+        # Print the variable being processed
+        print("processing variable", variables_list[i])
+
+        # Process the observations
+        obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
+
+        # Load and process the model data
+        model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, season)
+        # Process the model data
+        model_data, model_time = process_data(model_datasets, variables_list[i])
+
+        # Calculate the spatial correlations for the model
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variables_list[i])
+
+        # Append the processed observations to the list
+        obs_list.append(obs)
+
+        # Append the r and p fields to the lists
+        rfield_list.append(rfield)
+        pfield_list.append(pfield)
+
+        # Append the ensemble members count to the list
+        ensemble_members_count_list.append(ensemble_members_count)
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the lats and lons for the azores grid
+    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+    # Set up the lats and lons for the iceland grid
+    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+    # subtract 180 from all of the azores and iceland lons
+    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+    # Set up the fgure size and subplot parameters
+    # for a 2x2 grid of subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), subplot_kw={'projection': proj})
+
+    # Set up the title for the figure
+    title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=16)
+
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Create a list to store the contourf objects
+    cf_list = []
+
+    # Loop over the variables
+    for i in range(len(variables_list)):
+
+        # Print the variable being plotted
+        print("plotting variable", variables_list[i])
+
+        # Extract the variable
+        variable = variables_list[i]
+
+        # Extract the obs
+        obs = obs_list[i]
+
+        # Extract the r and p fields
+        rfield, pfield = rfield_list[i], pfield_list[i]
+
+        # Set up the converted lons
+        lons_converted = lons_converted - 180
+
+        # Set up the lats and lons
+        lats = obs.lat
+        lons = lons_converted
+
+        # Set up the axes
+        ax = axs.flatten()[i]
+
+        # Add coastlines
+        ax.coastlines()
+
+        # Add greenlines outlining the Azores and Iceland grids
+        ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+
+        # Add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+        # If the variables is 'tas'
+        # then we want to invert the stippling
+        # so that stippling is plotted where there is no significant correlation
+        if variable == 'tas':
+            # replace values in pfield that are less than 0.05 with nan
+            pfield[pfield < p_sig] = np.nan
+        else:
+            # replace values in pfield that are greater than 0.05 with nan
+            pfield[pfield > p_sig] = np.nan
+
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+
+        # Add a textbox with the variable name
+        ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox with the number of ensemble members in the bottom right corner
+        ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add the contourf object to the list
+        cf_list.append(cf)
+
+    # Create a single colorbar for all of the subplots
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('correlation coefficients')
+
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+    for i, ax in enumerate(fig.axes):
+        # Add the label to the bottom left corner of the subplot
+        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
+
+    # Set up the path for saving the figure
+    fig_name = f"{region}_{forecast_range}_{season}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
 
 # define a main function
 def main():
@@ -1736,8 +2256,8 @@ def main():
 
     # Check if the number of arguments is correct.
     if len(sys.argv) != 6:
-        print(f"Expected 6 arguments, but got {len(sys.argv)}")
-        print(USAGE_STATEMENT)
+        #print(f"Expected 6 arguments, but got {len(sys.argv)}")
+        #print(USAGE_STATEMENT)
         sys.exit()
 
     # Make the plots directory if it doesn't exist.
@@ -1753,12 +2273,12 @@ def main():
     parser.add_argument("season", help="season", type=str)
     args = parser.parse_args()
 
-    # Print the arguments to the screen.
-    print("variable = ", args.variable)
-    print("model = ", args.model)
-    print("region = ", args.region)
-    print("forecast range = ", args.forecast_range)
-    print("season = ", args.season)
+    # #print the arguments to the screen.
+    #print("variable = ", args.variable)
+    #print("model = ", args.model)
+    #print("region = ", args.region)
+    #print("forecast range = ", args.forecast_range)
+    #print("season = ", args.season)
 
     # If the model specified == "all", then run the script for all models.
     if args.model == "all":
