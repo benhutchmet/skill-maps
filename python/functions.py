@@ -1205,13 +1205,13 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     lons_converted = lons_converted + 180
 
     # #print the observed and model years
-    print('observed years', obs_years)
-    print('model years', years)
+    # print('observed years', obs_years)
+    # print('model years', years)
     
     # Find the years that are in both the observed and model data
     years_in_both = np.intersect1d(obs_years, years)
 
-    print('years in both', years_in_both)
+    # print('years in both', years_in_both)
 
     # Select only the years that are in both the observed and model data
     observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
@@ -1250,8 +1250,8 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # #print the values and shapes of the observed and model data
     print("observed data shape", np.shape(observed_data_array))
     print("model data shape", np.shape(ensemble_mean_array))
-    print("observed data", observed_data_array)
-    print("model data", ensemble_mean_array)
+    # print("observed data", observed_data_array)
+    # print("model data", ensemble_mean_array)
 
     # Check that the observed data and ensemble mean have the same shape
     if observed_data_array.shape != ensemble_mean_array.shape:
@@ -1302,9 +1302,9 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 # If all of the values in the obs and model data are NaN
                 if np.isnan(obs).all() or np.isnan(mod).all():
                     # #print a warning
-                    print("Warning: All NaN values detected in the data.")
-                    print("Skipping this grid point.")
-                    print("")
+                    # print("Warning: All NaN values detected in the data.")
+                    # print("Skipping this grid point.")
+                    # print("")
 
                     # Set the correlation coefficient and p-value to NaN
                     rfield[y, x], pfield[y, x] = np.nan, np.nan
@@ -1951,7 +1951,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Set up the fgure size and subplot parameters
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 10), subplot_kw={'projection': proj})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -2046,12 +2046,10 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('correlation coefficients')
 
-
-
-    print("ax_labels shape", np.shape(ax_labels))
-    for i, ax in enumerate(axs):
-        # Add the label to the bottom left corner of the subplot
-        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
+    # print("ax_labels shape", np.shape(ax_labels))
+    # for i, ax in enumerate(axs):
+    #     # Add the label to the bottom left corner of the subplot
+    #     ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
 
     # Set up the path for saving the figure
     fig_name = f"{variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
@@ -2066,7 +2064,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 # Now we want to write another function for creating subplots
 # This one will plot for the same season, region, forecast range
 # but for different variables (e.g. psl, tas, sfcWind, rsds)
-def plot_variable_correlations(models, observations_path, variables_list, region, region_grid, forecast_range, season,
+def plot_variable_correlations(models_list, observations_path, variables_list, region, region_grid, forecast_range, season,
                                 plots_dir, obs_var_names, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
     """
     Plot the spatial correlation coefficients and p-values for different variables,
@@ -2117,11 +2115,21 @@ def plot_variable_correlations(models, observations_path, variables_list, region
     # Create an empty list to store the ensemble members count
     ensemble_members_count_list = []
 
+    # Create empty lists to store the obs_lons_converted and lons_converted
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
     # Loop over the variables
     for i in range(len(variables_list)):
         
         # Print the variable being processed
         print("processing variable", variables_list[i])
+
+        # Extract the models for the variable
+        models = models_list[i]
 
         # Process the observations
         obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
@@ -2144,6 +2152,10 @@ def plot_variable_correlations(models, observations_path, variables_list, region
         # Append the ensemble members count to the list
         ensemble_members_count_list.append(ensemble_members_count)
 
+        # Append the obs_lons_converted and lons_converted to the lists
+        obs_lons_converted_list.append(obs_lons_converted)
+        lons_converted_list.append(lons_converted) 
+
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
 
@@ -2164,7 +2176,7 @@ def plot_variable_correlations(models, observations_path, variables_list, region
 
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), subplot_kw={'projection': proj})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj})
 
     # Set up the title for the figure
     title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -2193,6 +2205,9 @@ def plot_variable_correlations(models, observations_path, variables_list, region
 
         # Extract the r and p fields
         rfield, pfield = rfield_list[i], pfield_list[i]
+
+        # Extract the obs_lons_converted and lons_converted
+        obs_lons_converted, lons_converted = obs_lons_converted_list[i], lons_converted_list[i]
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
@@ -2235,8 +2250,12 @@ def plot_variable_correlations(models, observations_path, variables_list, region
         # Add a textbox with the variable name
         ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
 
-        # Add a textbox with the number of ensemble members in the bottom right corner
-        ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+        # Add a textbox with the number of ensemble members in the bottom left corner
+        ax.text(0.05, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox in the bottom right with the figure letter
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -2244,12 +2263,6 @@ def plot_variable_correlations(models, observations_path, variables_list, region
     # Create a single colorbar for all of the subplots
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('correlation coefficients')
-
-    # Add labels A, B, C, D to the subplots
-    ax_labels = ['A', 'B', 'C', 'D']
-    for i, ax in enumerate(fig.axes):
-        # Add the label to the bottom left corner of the subplot
-        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
 
     # Set up the path for saving the figure
     fig_name = f"{region}_{forecast_range}_{season}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
