@@ -157,3 +157,7 @@ variables_no_psl = ["tos", "sfcWind", "tas"]
 
 # Set up a list of variables for plotting
 obs_var_names = ["psl", "tos", "sfcWind", "tas"]
+
+obs_var_names_no_tos = ["psl", "sfcWind", "tas"]
+
+obs_var_names_no_psl = ["tos", "sfcWind", "tas"]
