@@ -1813,6 +1813,7 @@ def choose_obs_var_name(args):
 # Write a new function which will plot a series of subplots
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
+# TODO: this doesn't include bootstrapped p values
 def plot_seasonal_correlations(models, observations_path, variable, region, region_grid, forecast_range, seasons_list_obs, seasons_list_mod, 
                                 plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
     """
