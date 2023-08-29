@@ -1319,6 +1319,10 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 # #print("correlation coefficient", r)
                 # #print("p-value", p)
 
+                # If the correlation coefficient is negative, set the p-value to NaN
+                if r < 0:
+                    p = np.nan
+
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
 
@@ -1957,7 +1961,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=12, y=0.92)
+    fig.suptitle(title, fontsize=12, y=0.90)
 
     # Set up the significance thresholdf
     # e.g. 0.05 for 95% significance
@@ -2190,7 +2194,7 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
     title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=12, y=0.92)
+    fig.suptitle(title, fontsize=12, y=0.90)
 
     # Set up the significance threshold
     # e.g. 0.05 for 95% significance
@@ -2248,15 +2252,18 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
         # If the variables is 'tas'
         # then we want to invert the stippling
         # so that stippling is plotted where there is no significant correlation
-        if variable == 'tas':
+        if variable in ['tas', 'tos']:
             # replace values in pfield that are less than 0.05 with nan
             pfield[pfield < p_sig] = np.nan
+
+            # Add stippling where rfield is significantly different from zero
+            ax.contourf(lons, lats, pfield, hatches=['xxxx'], alpha=0, transform=proj)
         else:
             # replace values in pfield that are greater than 0.05 with nan
             pfield[pfield > p_sig] = np.nan
 
-        # Add stippling where rfield is significantly different from zero
-        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+            # Add stippling where rfield is significantly different from zero
+            ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
 
         # Add a textbox with the variable name
         ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
