@@ -127,6 +127,12 @@ psl_models_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 no_psl_models = 12
 psl_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
 
+
+# Set up the tos models
+tos_models = [ "CanESM5", "HadGEM3-GC31-MM", "FGOALS-f3-L", "MIROC6", "CESM1-1-CAM5-CMIP5", "NorCPM1" ]
+no_tos_models = 6
+tos_models_numbers = [3, 5, 8, 9, 11, 12]
+
 # Define a seasons list for the subplotting function
 seasons_list_obs = ["DJFM", "MAM", "JJA", "SON"]
 
