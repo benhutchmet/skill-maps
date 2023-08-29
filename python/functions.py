@@ -1292,9 +1292,9 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         if np.isnan(observed_data).any() or np.isnan(model_data).any():
             # Print a warning
             print("Warning: NaN values detected in the data.")
-            # Then remove the NaN values from these arrays
-            observed_data = observed_data[~np.isnan(observed_data)]
-            model_data = model_data[~np.isnan(model_data)]
+            # # Then remove the NaN values from these arrays
+            # observed_data = observed_data[~np.isnan(observed_data)]
+            # model_data = model_data[~np.isnan(model_data)]
 
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
@@ -1302,6 +1302,19 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 # set up the obs and model data
                 obs = observed_data[:, y, x]
                 mod = model_data[:, y, x]
+
+                # Print the obs and model data
+                print("observed data", obs)
+                print("model data", mod)
+
+                # Remove NaN values from the obs and model data
+                if np.isnan(obs).any() or np.isnan(mod).any():
+                    print("NaN values detected in the data.")
+                    print("Removing NaN values from the data.")
+
+                    # # Then remove the NaN values from these arrays
+                    obs = obs[~np.isnan(obs)]
+                    mod = mod[~np.isnan(mod)]
 
                 # #print the obs and model data
                 # #print("observed data", obs)
@@ -1383,9 +1396,6 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
                 ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
 
                 print(year, "all NaN values for this year")
-            else:
-                print(year, "some NaN values for this year")
-
         # if there are no NaN values in the data for a year
         # then #print the year
         # and "no nan for this year"
