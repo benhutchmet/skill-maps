@@ -1250,8 +1250,8 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # #print the values and shapes of the observed and model data
     print("observed data shape", np.shape(observed_data_array))
     print("model data shape", np.shape(ensemble_mean_array))
-    # #print("observed data", observed_data_array)
-    # #print("model data", ensemble_mean_array)
+    print("observed data", observed_data_array)
+    print("model data", ensemble_mean_array)
 
     # Check that the observed data and ensemble mean have the same shape
     if observed_data_array.shape != ensemble_mean_array.shape:
@@ -1288,14 +1288,6 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         print("observed data shape", np.shape(observed_data))
         print("model data shape", np.shape(model_data))
 
-        # if there are any NaN values in the observed data or model data
-        if np.isnan(observed_data).any() or np.isnan(model_data).any():
-            # Print a warning
-            print("Warning: NaN values detected in the data.")
-            # # Then remove the NaN values from these arrays
-            # observed_data = observed_data[~np.isnan(observed_data)]
-            # model_data = model_data[~np.isnan(model_data)]
-
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
             for x in range(len(obs_lon)):
@@ -1303,22 +1295,22 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 obs = observed_data[:, y, x]
                 mod = model_data[:, y, x]
 
-                # Print the obs and model data
-                print("observed data", obs)
-                print("model data", mod)
+                # # Print the obs and model data
+                # print("observed data", obs)
+                # print("model data", mod)
 
-                # Remove NaN values from the obs and model data
-                if np.isnan(obs).any() or np.isnan(mod).any():
-                    print("NaN values detected in the data.")
-                    print("Removing NaN values from the data.")
+                # If all of the values in the obs and model data are NaN
+                if np.isnan(obs).all() or np.isnan(mod).all():
+                    # #print a warning
+                    print("Warning: All NaN values detected in the data.")
+                    print("Skipping this grid point.")
+                    print("")
 
-                    # # Then remove the NaN values from these arrays
-                    obs = obs[~np.isnan(obs)]
-                    mod = mod[~np.isnan(mod)]
+                    # Set the correlation coefficient and p-value to NaN
+                    rfield[y, x], pfield[y, x] = np.nan, np.nan
 
-                # #print the obs and model data
-                # #print("observed data", obs)
-                # #print("model data", mod)
+                    # Continue to the next grid point
+                    continue
 
                 # Calculate the correlation coefficient and p-value
                 r, p = stats.pearsonr(obs, mod)
