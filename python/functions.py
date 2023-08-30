@@ -362,6 +362,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         gridspec = gridspec_path + "/" + "gridspec-azores.txt"
     elif region == "iceland":
         gridspec = gridspec_path + "/" + "gridspec-iceland.txt"
+    elif region == "north-sea":
+        gridspec = gridspec_path + "/" + "gridspec-north-sea.txt"
+    elif region == "central-europe":
+        gridspec = gridspec_path + "/" + "gridspec-central-europe.txt"
     else:
         print("Invalid region")
         sys.exit()
@@ -1393,7 +1397,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
 
     # Remove years with NaNs
-    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean, variable)
+    observed_data, ensemble_mean, _, _ = remove_years_with_nans(observed_data, ensemble_mean, variable)
 
     # #print the ensemble mean values
     # #print("ensemble mean value after removing nans:", ensemble_mean.values)

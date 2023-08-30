@@ -106,8 +106,8 @@ north_sea_grid = {
 central_europe_grid = {
     'lon1': 5,
     'lon2': 35,
-    'lat1': 44,
-    'lat2': 57
+    'lat1': 45,
+    'lat2': 60
 }
 
 
