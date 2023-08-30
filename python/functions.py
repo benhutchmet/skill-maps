@@ -1465,8 +1465,33 @@ def calculate_correlations_timeseries(observed_data, model_data, models, variabl
 
     # Model data still needs to be processed to a 1D array
     # this is done by using process_model_data_for_plot_timeseries
-    # FIXME: this function is not yet defined
-    ensemble_mean, model_years, ensemble_members_count = !!!!!!!
+    ensemble_mean, model_years, ensemble_members_count = process_model_data_for_plot_timeseries(model_data, models, region)
+
+    # Print the shape of the ensemble mean
+    print("ensemble mean shape", np.shape(ensemble_mean))
+
+    # Find the years that are in both the observed and model data
+    obs_years = observed_data.time.dt.year.values
+    # Find the years that are in both the observed and model data
+    years_in_both = np.intersect1d(obs_years, model_years)
+
+    # Select only the years that are in both the observed and model data
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
+    ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
+
+    # Remove years with NaNs
+    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean, variable)
+
+    # Convert both the observed and model data to numpy arrays
+    observed_data_array = observed_data.values
+    ensemble_mean_array = ensemble_mean.values
+
+    # Check that the observed data and ensemble mean have the same shape
+    if observed_data_array.shape != ensemble_mean_array.shape:
+        raise ValueError("Observed data and ensemble mean must have the same shape.")
+    
+    # Calculate the correlations between the observed and model data
+    # Using the new function calculate_correlations_1D
 
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
@@ -1540,6 +1565,43 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     except Exception as e:
         #print(f"Error calculating correlations: {e}")
         sys.exit()
+
+# Define a new function to calculate the one dimensional correlations
+# between the observed and model data
+def calculate_correlations_1D(observed_data, model_data):
+    """
+    Calculates the correlations between the observed and model data.
+    
+    Parameters:
+    observed_data (numpy.ndarray): The processed observed data.
+    model_data (numpy.ndarray): The processed model data.
+    
+    Returns:
+    r (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
+    p (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data.
+    """
+
+    # Initialize empty arrays for the spatial correlations and p-values
+    r = []
+    p = []
+
+    # Verify that the observed and model data have the same shape
+    if observed_data.shape != model_data.shape:
+        raise ValueError("Observed data and model data must have the same shape.")
+    
+    # Verify that they don't contain all NaN values
+    if np.isnan(observed_data).all() or np.isnan(model_data).all():
+        # #print a warning
+        print("Warning: All NaN values detected in the data.")
+        print("exiting the script")
+        sys.exit()
+
+    # Calculate the correlation coefficient and p-value
+    r, p = stats.pearsonr(observed_data, model_data)
+
+    # return the correlation coefficient and p-value
+    return r, p
+        
 
 # checking for Nans in observed data
 def remove_years_with_nans(observed_data, ensemble_mean, variable):
