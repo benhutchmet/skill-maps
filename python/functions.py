@@ -2119,7 +2119,8 @@ def choose_obs_var_name(args):
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
 # TODO: this doesn't include bootstrapped p values
 def plot_seasonal_correlations(models, observations_path, variable, region, region_grid, forecast_range, seasons_list_obs, seasons_list_mod, 
-                                plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast', north_sea_grid = None, central_europe_grid = None):
+                                plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast', north_sea_grid = None, 
+                                    central_europe_grid = None, snao_south_grid = None, snao_north_grid = None):
     """
     Plot the spatial correlation coefficients and p-values for the same variable,
     region and forecast range (e.g. psl global years 2-9) but with different seasons.
@@ -2249,6 +2250,18 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         central_europe_lon1, central_europe_lon2 = central_europe_grid['lon1'], central_europe_grid['lon2']
         central_europe_lat1, central_europe_lat2 = central_europe_grid['lat1'], central_europe_grid['lat2']
 
+    # If the snao south grid is not None
+    if snao_south_grid is not None:
+        # Set up the lats and lons for the snao south grid
+        snao_south_lon1, snao_south_lon2 = snao_south_grid['lon1'], snao_south_grid['lon2']
+        snao_south_lat1, snao_south_lat2 = snao_south_grid['lat1'], snao_south_grid['lat2']
+
+    # If the snao north grid is not None
+    if snao_north_grid is not None:
+        # Set up the lats and lons for the snao north grid
+        snao_north_lon1, snao_north_lon2 = snao_north_grid['lon1'], snao_north_grid['lon2']
+        snao_north_lat1, snao_north_lat2 = snao_north_grid['lat1'], snao_north_grid['lat2']
+
     # subtract 180 from all of the azores and iceland lons
     azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
     iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
@@ -2318,6 +2331,16 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         if central_europe_grid is not None:
             # Add green lines outlining the Central Europe grid
             ax.plot([central_europe_lon1, central_europe_lon2, central_europe_lon2, central_europe_lon1, central_europe_lon1], [central_europe_lat1, central_europe_lat1, central_europe_lat2, central_europe_lat2, central_europe_lat1], color='green', linewidth=2, transform=proj)
+
+        # if the snao south grid is not None
+        if snao_south_grid is not None:
+            # Add green lines outlining the SNAO south grid
+            ax.plot([snao_south_lon1, snao_south_lon2, snao_south_lon2, snao_south_lon1, snao_south_lon1], [snao_south_lat1, snao_south_lat1, snao_south_lat2, snao_south_lat2, snao_south_lat1], color='cyan', linewidth=2, transform=proj)
+
+        # if the snao north grid is not None
+        if snao_north_grid is not None:
+            # Add green lines outlining the SNAO north grid
+            ax.plot([snao_north_lon1, snao_north_lon2, snao_north_lon2, snao_north_lon1, snao_north_lon1], [snao_north_lat1, snao_north_lat1, snao_north_lat2, snao_north_lat2, snao_north_lat1], color='cyan', linewidth=2, transform=proj)
 
         # Add filled contours
         # Contour levels
