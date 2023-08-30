@@ -1952,6 +1952,24 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
     iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
 
+    # If the north sea grid is not None
+    if north_sea_grid is not None:
+        # Set up the lats and lons for the north sea grid
+        north_sea_lon1, north_sea_lon2 = north_sea_grid['lon1'], north_sea_grid['lon2']
+        north_sea_lat1, north_sea_lat2 = north_sea_grid['lat1'], north_sea_grid['lat2']
+
+        # Subtract 180 from all of the north sea lons
+        north_sea_lon1, north_sea_lon2 = north_sea_lon1 - 180, north_sea_lon2 - 180
+    
+    # If the central europe grid is not None
+    if central_europe_grid is not None:
+        # Set up the lats and lons for the central europe grid
+        central_europe_lon1, central_europe_lon2 = central_europe_grid['lon1'], central_europe_grid['lon2']
+        central_europe_lat1, central_europe_lat2 = central_europe_grid['lat1'], central_europe_grid['lat2']
+
+        # Subtract 180 from all of the central europe lons
+        central_europe_lon1, central_europe_lon2 = central_europe_lon1 - 180, central_europe_lon2 - 180
+
     # subtract 180 from all of the azores and iceland lons
     azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
     iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
@@ -2011,6 +2029,16 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Add greenlines outlining the Azores and Iceland grids
         ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
         ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+
+        # if the north sea grid is not None
+        if north_sea_grid is not None:
+            # Add green lines outlining the North Sea grid
+            ax.plot([north_sea_lon1, north_sea_lon2, north_sea_lon2, north_sea_lon1, north_sea_lon1], [north_sea_lat1, north_sea_lat1, north_sea_lat2, north_sea_lat2, north_sea_lat1], color='pink', linewidth=2, transform=proj)
+
+        # if the central europe grid is not None
+        if central_europe_grid is not None:
+            # Add green lines outlining the Central Europe grid
+            ax.plot([central_europe_lon1, central_europe_lon2, central_europe_lon2, central_europe_lon1, central_europe_lon1], [central_europe_lat1, central_europe_lat1, central_europe_lat2, central_europe_lat2, central_europe_lat1], color='pink', linewidth=2, transform=proj)
 
         # Add filled contours
         # Contour levels
