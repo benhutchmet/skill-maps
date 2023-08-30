@@ -94,6 +94,26 @@ iceland_grid = {
     'lat2': 70
 }
 
+# Define the dimensions for the summertime NAO (SNAO) southern pole
+# As defined in Wang and Ting 2022
+# This is the pointwise definition of the SNAO
+# Which is well correlated with the EOF definition from Folland et al. 2009
+snao_south_grid = {
+    'lon1': -25, # degrees west
+    'lon2': 5, # degrees east
+    'lat1': 45,
+    'lat2': 55
+}
+
+# Define the dimensions for the summertime NAO (SNAO) northern pole
+# As defined in Wang and Ting 2022
+snao_north_grid = {
+    'lon1': -52, # degrees west
+    'lon2': -22, # degrees west
+    'lat1': 60,
+    'lat2': 70
+}
+
 # Define the dimensions for the gridbox for the North Sea Region
 north_sea_grid = {
     'lon1': -2,
