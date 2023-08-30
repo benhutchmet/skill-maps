@@ -2556,7 +2556,6 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         # Set up the plots
         # Add a horizontal line at zero
         ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
-        ax.set_xline
         ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
         ax.set_ylim([-10, 10])
         #ax.set_xlabel("Year")

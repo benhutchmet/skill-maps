@@ -362,6 +362,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         gridspec = gridspec_path + "/" + "gridspec-azores.txt"
     elif region == "iceland":
         gridspec = gridspec_path + "/" + "gridspec-iceland.txt"
+    elif region == "north-sea":
+        gridspec = gridspec_path + "/" + "gridspec-north-sea.txt"
+    elif region == "central-europe":
+        gridspec = gridspec_path + "/" + "gridspec-central-europe.txt"
     else:
         print("Invalid region")
         sys.exit()
@@ -736,6 +740,92 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         #print(f"Error processing observations dataset: {e}")
         sys.exit()
 
+# TODO: Add a function to process the observations for a timeseries
+def process_observations_timeseries(variable, region, forecast_range, season, observations_path):
+    """
+    Processes the observations for a specific variable, region, forecast range, and season.
+
+    Args:
+        variable (str): The variable to process.
+        region (str): The region to process.
+        forecast_range (list): The forecast range to process.
+        season (str): The season to process.
+        observations_path (str): The path to the observations file.
+
+    Returns:
+        xarray.Dataset: The processed observations dataset.
+    """
+
+    # First check if the observations file exists
+    check_file_exists(observations_path)
+
+    # First use try and except to process the observations for a specific variable
+    # and region
+    try:
+        # Regrid using CDO, select region and load observation dataset
+        # for given variable
+        obs_dataset = regrid_and_select_region(observations_path, region, variable)
+    except Exception as e:
+        print(f"Error processing observations dataset using CDO to regrid: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations for a specific season
+    try:
+        # Select the season
+        obs_dataset_season = select_season(obs_dataset, season)
+    except Exception as e:
+        print(f"Error processing observations dataset selecting season: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and calculate anomalies
+    try:
+        # Calculate anomalies
+        obs_anomalies = calculate_anomalies(obs_dataset_season)
+    except Exception as e:
+        print(f"Error processing observations dataset calculating anomalies: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and calculate annual mean anomalies
+    try:
+        # Calculate annual mean anomalies
+        obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
+    except Exception as e:
+        print(f"Error processing observations dataset calculating annual mean anomalies: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and select the forecast range
+    try:
+        # Select the forecast range
+        obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
+    except Exception as e:
+        print(f"Error processing observations dataset selecting forecast range: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and shift the forecast range
+    try:
+        # if the forecast range is "2-2" i.e. a year ahead forecast
+        # then we need to shift the dataset by 1 year
+        # where the model would show the DJFM average as Jan 1963 (s1961)
+        # the observations would show the DJFM average as Dec 1962
+        # so we need to shift the observations to the following year
+        # if the forecast range is "2-2" and the season is "DJFM"
+        # then shift the dataset by 1 year
+        if forecast_range == "2-2" and season == "DJFM":
+            obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
+    except Exception as e:
+        print(f"Error processing observations dataset shifting forecast range: {e}")
+        sys.exit()
+
+    # Then use try and except to process the gridbox mean of the observations
+    try:
+        # Calculate the gridbox mean of the observations
+        obs_gridbox_mean = obs_anomalies_annual_forecast_range.mean(dim=["lat", "lon"])
+    except Exception as e:
+        print(f"Error processing observations dataset calculating gridbox mean: {e}")
+        sys.exit()
+
+    # Return the processed observations dataset
+    return obs_gridbox_mean
 
 
 def plot_data(obs_data, variable_data, model_time):
@@ -1164,6 +1254,95 @@ def process_model_data_for_plot(model_data, models):
 
     return ensemble_mean, lat, lon, years, ensemble_members_count
 
+# Define a new function
+# process_model_data_for_plot_timeseries
+# which processes the model data for timeseries
+def process_model_data_for_plot_timeseries(model_data, models, region):
+    """
+    Processes the model data and calculates the ensemble mean as a timeseries.
+    
+    Parameters:
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
+    region (str): The region to be plotted.
+    
+    Returns:
+    ensemble_mean (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
+    years (numpy.ndarray): The years.
+    ensemble_members_count (dict): The number of ensemble members for each model.
+    """
+
+    # Initialize a list for the ensemble members
+    ensemble_members = []
+
+    # Initialize a dictionary to store the number of ensemble members
+    ensemble_members_count = {}
+
+    # First constrain the years to the years that are in all of the models
+    model_data = constrain_years(model_data, models)
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Set the ensemble members count to zero
+        # if model is not in the ensemble members count dictionary
+        if model not in ensemble_members_count:
+            ensemble_members_count[model] = 0
+
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+
+            # Set up the region
+            if region == "north-sea":
+                gridbox_dict = dic.north_sea_grid
+            elif region == "central-europe":
+                gridbox_dict = dic.central_europe_grid
+            else:
+                print("Invalid region")
+                sys.exit()
+
+            # Extract the lat and lon values
+            # from the gridbox dictionary
+            lon1, lon2 = gridbox_dict["lon1"], gridbox_dict["lon2"]
+            lat1, lat2 = gridbox_dict["lat1"], gridbox_dict["lat2"]
+
+            # Take the mean over the lat and lon values
+            # to get the mean over the region
+            # for the ensemble member
+            try:
+                member_gridbox_mean = member.sel(lat=slice(lat1, lat2), lon=slice(lon1, lon2)).mean(dim=["lat", "lon"])
+            except Exception as e:
+                print(f"Error taking gridbox mean: {e}")
+                sys.exit()
+
+            # Extract the years
+            years = member_gridbox_mean.time.dt.year.values
+
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members.append(member_gridbox_mean)
+
+            # Increment the count of ensemble members for the model
+            ensemble_members_count[model] += 1
+
+    # Convert the list of all ensemble members to a numpy array
+    ensemble_members = np.array(ensemble_members)
+
+    # #print the dimensions of the ensemble members
+    print("ensemble members shape", np.shape(ensemble_members))
+
+    # #print the ensemble members count
+    print("ensemble members count", ensemble_members_count)
+
+    # Take the equally weighted ensemble mean
+    ensemble_mean = ensemble_members.mean(axis=0)
+
+    # Convert ensemble_mean to an xarray DataArray
+    ensemble_mean = xr.DataArray(ensemble_mean, coords=member_gridbox_mean.coords, dims=member_gridbox_mean.dims)
+
+    return ensemble_mean, years, ensemble_members_count
+
 def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
@@ -1183,7 +1362,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # Debug the model data
     # #print("ensemble mean within spatial correlation function:", ensemble_mean)
-    # #print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
+    print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
@@ -1205,20 +1384,20 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     lons_converted = lons_converted + 180
 
     # #print the observed and model years
-    # #print('observed years', obs_years)
-    # #print('model years', years)
+    # print('observed years', obs_years)
+    # print('model years', years)
     
     # Find the years that are in both the observed and model data
     years_in_both = np.intersect1d(obs_years, years)
 
-    # #print('years in both', years_in_both)
+    # print('years in both', years_in_both)
 
     # Select only the years that are in both the observed and model data
     observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
     ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
 
     # Remove years with NaNs
-    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean, variable)
+    observed_data, ensemble_mean, _, _ = remove_years_with_nans(observed_data, ensemble_mean, variable)
 
     # #print the ensemble mean values
     # #print("ensemble mean value after removing nans:", ensemble_mean.values)
@@ -1244,14 +1423,14 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # variable extracted already
     # Convert both the observed and model data to numpy arrays
-    observed_data_array = observed_data.values / 100
-    ensemble_mean_array = ensemble_mean.values / 100
+    observed_data_array = observed_data.values
+    ensemble_mean_array = ensemble_mean.values
 
     # #print the values and shapes of the observed and model data
-    # #print("observed data shape", np.shape(observed_data_array))
-    # #print("model data shape", np.shape(ensemble_mean_array))
-    # #print("observed data", observed_data_array)
-    # #print("model data", ensemble_mean_array)
+    print("observed data shape", np.shape(observed_data_array))
+    print("model data shape", np.shape(ensemble_mean_array))
+    # print("observed data", observed_data_array)
+    # print("model data", ensemble_mean_array)
 
     # Check that the observed data and ensemble mean have the same shape
     if observed_data_array.shape != ensemble_mean_array.shape:
@@ -1264,6 +1443,63 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # except Exception as e:
     #     #print(f"An error occurred when calculating spatial correlations: {e}")
+
+
+# TODO: define a new function called calculate_correlations_timeseries
+# which will calculate the time series for obs and model 1D arrays for each grid box
+def calculate_correlations_timeseries(observed_data, model_data, models, variable, region):
+    """
+    Calculates the correlation coefficients and p-values between the observed and model data for the given 
+    models, variable, and region.
+
+    Args:
+        observed_data (pandas.DataFrame): The observed data.
+        model_data (dict): A dictionary containing the model data for each model.
+        models (list): A list of model names to calculate correlations for.
+        variable (str): The variable to calculate correlations for.
+        region (str): The region to calculate correlations for.
+
+    Returns:
+        dict: A dictionary containing the correlation coefficients and p-values for each model.
+    """
+
+    # First check the dimensions of the observed and model data
+    print("observed data shape", np.shape(observed_data))
+    print("model data shape", np.shape(model_data))
+
+    # Model data still needs to be processed to a 1D array
+    # this is done by using process_model_data_for_plot_timeseries
+    ensemble_mean, model_years, ensemble_members_count = process_model_data_for_plot_timeseries(model_data, models, region)
+
+    # Print the shape of the ensemble mean
+    print("ensemble mean shape", np.shape(ensemble_mean))
+
+    # Find the years that are in both the observed and model data
+    obs_years = observed_data.time.dt.year.values
+    # Find the years that are in both the observed and model data
+    years_in_both = np.intersect1d(obs_years, model_years)
+
+    # Select only the years that are in both the observed and model data
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
+    ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
+
+    # Remove years with NaNs
+    observed_data, ensemble_mean, obs_years, model_years = remove_years_with_nans(observed_data, ensemble_mean, variable)
+
+    # Convert both the observed and model data to numpy arrays
+    observed_data_array = observed_data.values
+    ensemble_mean_array = ensemble_mean.values
+
+    # Check that the observed data and ensemble mean have the same shape
+    if observed_data_array.shape != ensemble_mean_array.shape:
+        raise ValueError("Observed data and ensemble mean must have the same shape.")
+    
+    # Calculate the correlations between the observed and model data
+    # Using the new function calculate_correlations_1D
+    r, p = calculate_correlations_1D(observed_data_array, ensemble_mean_array)
+
+    # Return the correlation coefficients and p-values
+    return r, p, ensemble_mean_array, observed_data_array, ensemble_members_count, obs_years, model_years
 
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
@@ -1285,8 +1521,8 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         pfield = np.empty([len(obs_lat), len(obs_lon)])
 
         # #print the dimensions of the observed and model data
-        # #print("observed data shape", np.shape(observed_data))
-        # #print("model data shape", np.shape(model_data))
+        print("observed data shape", np.shape(observed_data))
+        print("model data shape", np.shape(model_data))
 
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
@@ -1295,9 +1531,22 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 obs = observed_data[:, y, x]
                 mod = model_data[:, y, x]
 
-                # #print the obs and model data
-                # #print("observed data", obs)
-                # #print("model data", mod)
+                # # Print the obs and model data
+                # print("observed data", obs)
+                # print("model data", mod)
+
+                # If all of the values in the obs and model data are NaN
+                if np.isnan(obs).all() or np.isnan(mod).all():
+                    # #print a warning
+                    # print("Warning: All NaN values detected in the data.")
+                    # print("Skipping this grid point.")
+                    # print("")
+
+                    # Set the correlation coefficient and p-value to NaN
+                    rfield[y, x], pfield[y, x] = np.nan, np.nan
+
+                    # Continue to the next grid point
+                    continue
 
                 # Calculate the correlation coefficient and p-value
                 r, p = stats.pearsonr(obs, mod)
@@ -1305,6 +1554,10 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 # #print the correlation coefficient and p-value
                 # #print("correlation coefficient", r)
                 # #print("p-value", p)
+
+                # If the correlation coefficient is negative, set the p-value to NaN
+                if r < 0:
+                    p = np.nan
 
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
@@ -1320,6 +1573,43 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     except Exception as e:
         #print(f"Error calculating correlations: {e}")
         sys.exit()
+
+# Define a new function to calculate the one dimensional correlations
+# between the observed and model data
+def calculate_correlations_1D(observed_data, model_data):
+    """
+    Calculates the correlations between the observed and model data.
+    
+    Parameters:
+    observed_data (numpy.ndarray): The processed observed data.
+    model_data (numpy.ndarray): The processed model data.
+    
+    Returns:
+    r (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
+    p (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data.
+    """
+
+    # Initialize empty arrays for the spatial correlations and p-values
+    r = []
+    p = []
+
+    # Verify that the observed and model data have the same shape
+    if observed_data.shape != model_data.shape:
+        raise ValueError("Observed data and model data must have the same shape.")
+    
+    # Verify that they don't contain all NaN values
+    if np.isnan(observed_data).all() or np.isnan(model_data).all():
+        # #print a warning
+        print("Warning: All NaN values detected in the data.")
+        print("exiting the script")
+        sys.exit()
+
+    # Calculate the correlation coefficient and p-value
+    r, p = stats.pearsonr(observed_data, model_data)
+
+    # return the correlation coefficient and p-value
+    return r, p
+        
 
 # checking for Nans in observed data
 def remove_years_with_nans(observed_data, ensemble_mean, variable):
@@ -1364,29 +1654,32 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
         # print("data shape", np.shape(data))
 
         
-        # If there are any Nan values in the data
+        # If there are any NaN values in the data
         if np.isnan(data.values).any():
-            # #print the year
-            # #print(year)
+            # If there are only NaN values in the data
+            if np.isnan(data.values).all():
+                # Select the year from the observed data
+                observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
 
-            # Select the year from the observed data
-            observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
+                # for the model data
+                ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
 
-            # for the model data
-            ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
-
-        # if there are no Nan values in the data for a year
+                print(year, "all NaN values for this year")
+        # if there are no NaN values in the data for a year
         # then #print the year
         # and "no nan for this year"
         # and continue the script
         else:
-            print(year, "no nan for this year")
+            print(year, "no NaN values for this year")
 
             # exit the loop
             break
 
-    return observed_data, ensemble_mean
+    # Set up the years to be returned
+    obs_years = observed_data.time.dt.year.values
+    model_years = ensemble_mean.time.dt.year.values
 
+    return observed_data, ensemble_mean, obs_years, model_years
 # plot the correlations and p-values
 def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, 
                         obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
@@ -1818,7 +2111,7 @@ def choose_obs_var_name(args):
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
 # TODO: this doesn't include bootstrapped p values
 def plot_seasonal_correlations(models, observations_path, variable, region, region_grid, forecast_range, seasons_list_obs, seasons_list_mod, 
-                                plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
+                                plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast', north_sea_grid = None, central_europe_grid = None):
     """
     Plot the spatial correlation coefficients and p-values for the same variable,
     region and forecast range (e.g. psl global years 2-9) but with different seasons.
@@ -1853,6 +2146,10 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         Significance threshold. The default is 0.05.
     experiment : str, optional
         Experiment name. The default is 'dcppA-hindcast'.
+    north_sea_grid : dict, optional
+        Dictionary of North Sea grid. The default is None.
+    central_europe_grid : dict, optional
+        Dictionary of Central Europe grid. The default is None.
 
     Returns
     -------
@@ -1890,10 +2187,16 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Process the observations
         obs = process_observations(variable, region, region_grid, forecast_range, seasons_list_obs[i], observations_path, obs_var_name)
 
+        # Print the shape of the observations
+        print("obs shape", np.shape(obs))
+
         # Load and process the model data
         model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, seasons_list_mod[i])
         # Process the model data
         model_data, model_time = process_data(model_datasets, variable)
+
+        # Print the shape of the model data
+        print("model shape", np.shape(model_data))
 
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
@@ -1926,6 +2229,18 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
     iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
 
+    # If the north sea grid is not None
+    if north_sea_grid is not None:
+        # Set up the lats and lons for the north sea grid
+        north_sea_lon1, north_sea_lon2 = north_sea_grid['lon1'], north_sea_grid['lon2']
+        north_sea_lat1, north_sea_lat2 = north_sea_grid['lat1'], north_sea_grid['lat2']
+    
+    # If the central europe grid is not None
+    if central_europe_grid is not None:
+        # Set up the lats and lons for the central europe grid
+        central_europe_lon1, central_europe_lon2 = central_europe_grid['lon1'], central_europe_grid['lon2']
+        central_europe_lat1, central_europe_lat2 = central_europe_grid['lat1'], central_europe_grid['lat2']
+
     # subtract 180 from all of the azores and iceland lons
     azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
     iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
@@ -1933,15 +2248,15 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Set up the fgure size and subplot parameters
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 10), subplot_kw={'projection': proj})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(title, fontsize=12, y=0.90)
 
-    # Set up the significance threshold
+    # Set up the significance thresholdf
     # e.g. 0.05 for 95% significance
     sig_threshold = int((1 - p_sig) * 100)
 
@@ -1986,6 +2301,16 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
         ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
 
+        # if the north sea grid is not None
+        if north_sea_grid is not None:
+            # Add green lines outlining the North Sea grid
+            ax.plot([north_sea_lon1, north_sea_lon2, north_sea_lon2, north_sea_lon1, north_sea_lon1], [north_sea_lat1, north_sea_lat1, north_sea_lat2, north_sea_lat2, north_sea_lat1], color='pink', linewidth=2, transform=proj)
+
+        # if the central europe grid is not None
+        if central_europe_grid is not None:
+            # Add green lines outlining the Central Europe grid
+            ax.plot([central_europe_lon1, central_europe_lon2, central_europe_lon2, central_europe_lon1, central_europe_lon1], [central_europe_lat1, central_europe_lat1, central_europe_lat2, central_europe_lat2, central_europe_lat1], color='pink', linewidth=2, transform=proj)
+
         # Add filled contours
         # Contour levels
         clevs = np.arange(-1, 1.1, 0.1)
@@ -2028,12 +2353,10 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('correlation coefficients')
 
-
-
-    print("ax_labels shape", np.shape(ax_labels))
-    for i, ax in enumerate(axs):
-        # Add the label to the bottom left corner of the subplot
-        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
+    # print("ax_labels shape", np.shape(ax_labels))
+    # for i, ax in enumerate(axs):
+    #     # Add the label to the bottom left corner of the subplot
+    #     ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
 
     # Set up the path for saving the figure
     fig_name = f"{variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
@@ -2045,10 +2368,263 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Show the figure
     plt.show()
 
+# TODO: Write new function to plot the gridbox average correlations
+# for the same variable, region and forecast range (e.g. psl global years 2-9)
+# but with different seasons (e.g. DJFM, MAM, JJA, SON)
+def plot_seasonal_correlations_timeseries(models, observations_path, variable, forecast_range, 
+                                        seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
+                                        north_sea_grid, central_europe_grid, 
+                                        p_sig=0.05, experiment='dcppA-hindcast'):
+    """
+    Plots the time series of correlations between the observed and model data for the given variable, region, 
+    forecast range, and seasons.
+
+    Args:
+        models (list): A list of model names to plot.
+        observations_path (str): The path to the observations file.
+        variable (str): The variable to plot.
+        region (str): The region to plot.
+        region_grid (list): The gridboxes that define the region.
+        forecast_range (list): The forecast range to plot.
+        seasons_list_obs (list): The seasons to plot for the observed data.
+        seasons_list_mod (list): The seasons to plot for the model data.
+        plots_dir (str): The directory to save the plots in.
+        obs_var_name (str): The name of the variable in the observations file.
+        north_sea_grid (list): The gridboxes that define the North Sea region.
+        central_europe_grid (list): The gridboxes that define the Central Europe region.
+        p_sig (float): The significance level for the correlation coefficient.
+        experiment (str): The name of the experiment to plot.
+
+    Returns:
+        None.
+    """
+    
+    # Create an empty list to store the processed observations
+    # for each season
+    obs_list = []
+
+    # Create empty lists to store the r field
+    # for each season
+    r_north_sea_list = []
+    r_central_europe_list = []
+
+    # Store the p values
+    p_north_sea_list = []
+    p_central_europe_list = []
+
+    # List for the ensemble mean array
+    ensemble_mean_array_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Create an empty list to store the obs years and model years
+    obs_years_list = []
+    model_years_list = []
+
+    # Set up the labels for the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Set up the model load region
+    # will always be global
+    model_load_region = 'global'
+
+    # Loop over the seasons
+    for i, season in enumerate(seasons_list_obs):
+
+        # Print the season(s) being processed
+        print("obs season", season)
+
+        # Set up the model season
+        model_season = seasons_list_mod[i]
+        print("model season", model_season)
+
+        # If the season is DJFM or MAM
+        # then we want to use the North Sea grid
+        if season in ['DJFM', 'MAM']:
+            # Set up the region
+            region = 'north-sea'
+        elif season in ['JJA', 'SON']:
+            # Set up the region
+            region = 'central-europe'
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Print the region
+        print("region", region)
+
+        # Process the observations
+        # To get a 1D array of the observations
+        # which is the gridbox average
+        obs = process_observations_timeseries(variable, region, forecast_range, 
+                                                season, observations_path)
+
+        # Print the shape of the observations
+        print("obs shape", np.shape(obs))
+
+        # Load the model data
+        model_datasets = load_data(dic.base_dir, models, variable, model_load_region, 
+                                    forecast_range, model_season)
+        # Process the model data
+        model_data, _ = process_data(model_datasets, variable)
+
+        # Print the shape of the model data
+        # this still has spatial dimensions
+        print("model shape", np.shape(model_data))
+
+        # now use the function calculate_correlations_timeseries
+        # to get the correlation time series for the seasons
+        r, p, ensemble_mean_array, observed_data_array, ensemble_members_count, obs_years, model_years = calculate_correlations_timeseries(obs, model_data, models, variable, region)
+
+        # Verify thet the shape of the ensemble mean array is correct
+        if np.shape(ensemble_mean_array) != np.shape(observed_data_array):
+            print("Error: ensemble mean array shape does not match observed data array shape")
+            sys.exit()
+
+        # Depending on the season, append the r to the correct list
+        if season in ['DJFM', 'MAM']:
+            r_north_sea_list.append(r)
+            p_north_sea_list.append(p)
+        elif season in ['JJA', 'SON']:
+            r_central_europe_list.append(r)
+            p_central_europe_list.append(p)
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Append the ensemble members count to the list
+        ensemble_members_count_list.append(ensemble_members_count)
+
+        # Append the ensemble mean array to the list
+        ensemble_mean_array_list.append(ensemble_mean_array)
+
+        # Append the processed observations to the list
+        obs_list.append(observed_data_array)
+
+        # Append the obs years and model years to the lists
+        obs_years_list.append(obs_years)
+        model_years_list.append(model_years)
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set up the figure size and subplot parameters
+    # for a 2x2 grid of subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), sharex=True, sharey=True, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+
+    # Set up the title for the figure
+    title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients timeseries, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=12, y=0.90)
+
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Flatten the axs array
+    axs = axs.flatten()
+
+    # Iterate over the seasons
+    for i, season in enumerate(seasons_list_obs):
+        ax = axs[i]
+
+        # Print the season being plotted
+        print("plotting season", season)
+        # Print the axis index
+        print("axis index", i)
+
+        # Extract the r and p values
+        # depending on the season
+        if season in ['DJFM', 'MAM']:
+            r = r_north_sea_list[i]
+            p = p_north_sea_list[i]
+        elif season in ['JJA', 'SON']:
+            r = r_central_europe_list[i]
+            p = p_central_europe_list[i]
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Plot the ensemble mean
+        ax.plot(model_years_list[i], ensemble_mean_array_list[i], color='red', label='dcppA')
+
+        # Plot the observed data
+        ax.plot(obs_years_list[i], obs_list[i], color='black', label='ERA5')
+
+        # Set up the plots
+        # Add a horizontal line at zero
+        ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+        ax.set_xline
+        ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
+        ax.set_ylim([-10, 10])
+        #ax.set_xlabel("Year")
+        ax.set_ylabel("NAO anomalies (hPa)")
+
+        # set the x-axis label for the bottom row
+        if i == 2 or i == 3:
+            ax.set_xlabel("year")
+
+        # Set up a textbox with the season name in the top left corner
+        ax.text(0.05, 0.95, season, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Depending on the season, set up the region name
+        # as a textbox in the top right corner
+        if season in ['DJFM', 'MAM']:
+            region_name = 'North Sea'
+        elif season in ['JJA', 'SON']:
+            region_name = 'Central Europe'
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Add a textbox with the region name
+        ax.text(0.95, 0.95, region_name, transform=ax.transAxes, fontsize=8, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox in the bottom right with the figure letter
+        # extract the figure letter from the ax_labels list
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Set up the p values
+        # If less that 0.05, then set as text '< 0.05'
+        # If less than 0.01, then set as text '< 0.01'
+        if p < 0.01:
+            p_text = "< 0.01"
+        elif p < 0.05:
+            p_text = "< 0.05"
+        else:
+            p_text = f"{p:.2f}"
+            
+        # Extract the ensemble members count
+        ensemble_members_count = ensemble_members_count_list[i]
+        # Take the sum of the ensemble members count
+        no_ensemble_members = sum(ensemble_members_count.values())
+
+        # Set up the title for the subplot
+        ax.set_title(f"ACC = +{r:.2f}, p = +{p_text}, n = {no_ensemble_members}", fontsize=10)
+
+    # Adjust the layout
+    plt.tight_layout()
+
+    # Set up the path for saving the figure
+    fig_name = f"{variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_timeseries_subplots_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+
+    # Set up the figure path
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
+
+
 # Now we want to write another function for creating subplots
 # This one will plot for the same season, region, forecast range
 # but for different variables (e.g. psl, tas, sfcWind, rsds)
-def plot_variable_correlations(models, observations_path, variables_list, region, region_grid, forecast_range, season,
+def plot_variable_correlations(models_list, observations_path, variables_list, region, region_grid, forecast_range, season,
                                 plots_dir, obs_var_names, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
     """
     Plot the spatial correlation coefficients and p-values for different variables,
@@ -2099,17 +2675,35 @@ def plot_variable_correlations(models, observations_path, variables_list, region
     # Create an empty list to store the ensemble members count
     ensemble_members_count_list = []
 
+    # Create empty lists to store the obs_lons_converted and lons_converted
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
     # Loop over the variables
     for i in range(len(variables_list)):
         
         # Print the variable being processed
         print("processing variable", variables_list[i])
 
+        # Extract the models for the variable
+        models = models_list[i]
+
         # Process the observations
         obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
 
+        # Set up the model season
+        if season == "JJA":
+            model_season = "ULG"
+        elif season == "MAM":
+            model_season = "MAY"
+        else:
+            model_season = season
+
         # Load and process the model data
-        model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, season)
+        model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, model_season)
         # Process the model data
         model_data, model_time = process_data(model_datasets, variables_list[i])
 
@@ -2125,6 +2719,10 @@ def plot_variable_correlations(models, observations_path, variables_list, region
 
         # Append the ensemble members count to the list
         ensemble_members_count_list.append(ensemble_members_count)
+
+        # Append the obs_lons_converted and lons_converted to the lists
+        obs_lons_converted_list.append(obs_lons_converted)
+        lons_converted_list.append(lons_converted) 
 
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
@@ -2146,13 +2744,13 @@ def plot_variable_correlations(models, observations_path, variables_list, region
 
     # Set up the fgure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), subplot_kw={'projection': proj})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{region} {forecast_range} {season} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(title, fontsize=12, y=0.90)
 
     # Set up the significance threshold
     # e.g. 0.05 for 95% significance
@@ -2175,6 +2773,12 @@ def plot_variable_correlations(models, observations_path, variables_list, region
 
         # Extract the r and p fields
         rfield, pfield = rfield_list[i], pfield_list[i]
+
+        # Extract the obs_lons_converted and lons_converted
+        obs_lons_converted, lons_converted = obs_lons_converted_list[i], lons_converted_list[i]
+
+        # Ensemble members count
+        ensemble_members_count = ensemble_members_count_list[i]
 
         # Set up the converted lons
         lons_converted = lons_converted - 180
@@ -2204,21 +2808,32 @@ def plot_variable_correlations(models, observations_path, variables_list, region
         # If the variables is 'tas'
         # then we want to invert the stippling
         # so that stippling is plotted where there is no significant correlation
-        if variable == 'tas':
+        if variable in ['tas', 'tos']:
             # replace values in pfield that are less than 0.05 with nan
             pfield[pfield < p_sig] = np.nan
+
+            # Add stippling where rfield is significantly different from zero
+            ax.contourf(lons, lats, pfield, hatches=['xxxx'], alpha=0, transform=proj)
         else:
             # replace values in pfield that are greater than 0.05 with nan
             pfield[pfield > p_sig] = np.nan
 
-        # Add stippling where rfield is significantly different from zero
-        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+            # Add stippling where rfield is significantly different from zero
+            ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
 
         # Add a textbox with the variable name
         ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
 
-        # Add a textbox with the number of ensemble members in the bottom right corner
-        ax.text(0.95, 0.05, f"N = {ensemble_members_count_list[i]}", transform=ax.transAxes, fontsize=10, va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+        # Get the number of ensemble members
+        # as the sum of the ensemble_members_count_list
+        ensemble_members_count = sum(ensemble_members_count.values())
+
+        # Add a textbox with the number of ensemble members in the bottom left corner
+        ax.text(0.05, 0.05, f"N = {ensemble_members_count}", transform=ax.transAxes, fontsize=10, va='bottom', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox in the bottom right with the figure letter
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -2226,12 +2841,6 @@ def plot_variable_correlations(models, observations_path, variables_list, region
     # Create a single colorbar for all of the subplots
     cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
     cbar.set_label('correlation coefficients')
-
-    # Add labels A, B, C, D to the subplots
-    ax_labels = ['A', 'B', 'C', 'D']
-    for i, ax in enumerate(fig.axes):
-        # Add the label to the bottom left corner of the subplot
-        ax.text(0.05, 0.05, ax_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom')
 
     # Set up the path for saving the figure
     fig_name = f"{region}_{forecast_range}_{season}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
