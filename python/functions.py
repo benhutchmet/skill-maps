@@ -1250,6 +1250,95 @@ def process_model_data_for_plot(model_data, models):
 
     return ensemble_mean, lat, lon, years, ensemble_members_count
 
+# Define a new function
+# process_model_data_for_plot_timeseries
+# which processes the model data for timeseries
+def process_model_data_for_plot_timeseries(model_data, models, region):
+    """
+    Processes the model data and calculates the ensemble mean as a timeseries.
+    
+    Parameters:
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
+    region (str): The region to be plotted.
+    
+    Returns:
+    ensemble_mean (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
+    years (numpy.ndarray): The years.
+    ensemble_members_count (dict): The number of ensemble members for each model.
+    """
+
+    # Initialize a list for the ensemble members
+    ensemble_members = []
+
+    # Initialize a dictionary to store the number of ensemble members
+    ensemble_members_count = {}
+
+    # First constrain the years to the years that are in all of the models
+    model_data = constrain_years(model_data, models)
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Set the ensemble members count to zero
+        # if model is not in the ensemble members count dictionary
+        if model not in ensemble_members_count:
+            ensemble_members_count[model] = 0
+
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+
+            # Set up the region
+            if region == "north-sea"
+                gridbox_dict = dic.north_sea_grid
+            elif region == "central-europe"
+                gridbox_dict = dic.central_europe_grid
+            else:
+                print("Invalid region")
+                sys.exit()
+
+            # Extract the lat and lon values
+            # from the gridbox dictionary
+            lon1, lon2 = gridbox_dict["lon1"], gridbox_dict["lon2"]
+            lat1, lat2 = gridbox_dict["lat1"], gridbox_dict["lat2"]
+
+            # Take the mean over the lat and lon values
+            # to get the mean over the region
+            # for the ensemble member
+            try:
+                member_gridbox_mean = member.sel(lat=slice(lat1, lat2), lon=slice(lon1, lon2)).mean(dim=["lat", "lon"])
+            except Exception as e:
+                print(f"Error taking gridbox mean: {e}")
+                sys.exit()
+
+            # Extract the years
+            years = member_gridbox_mean.time.dt.year.values
+
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members.append(member_gridbox_mean)
+
+            # Increment the count of ensemble members for the model
+            ensemble_members_count[model] += 1
+
+    # Convert the list of all ensemble members to a numpy array
+    ensemble_members = np.array(ensemble_members)
+
+    # #print the dimensions of the ensemble members
+    print("ensemble members shape", np.shape(ensemble_members))
+
+    # #print the ensemble members count
+    print("ensemble members count", ensemble_members_count)
+
+    # Take the equally weighted ensemble mean
+    ensemble_mean = ensemble_members.mean(axis=0)
+
+    # Convert ensemble_mean to an xarray DataArray
+    ensemble_mean = xr.DataArray(ensemble_mean, coords=member_gridbox_mean.coords, dims=member_gridbox_mean.dims)
+
+    return ensemble_mean, years, ensemble_members_count
+
 def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
@@ -1376,6 +1465,8 @@ def calculate_correlations_timeseries(observed_data, model_data, models, variabl
 
     # Model data still needs to be processed to a 1D array
     # this is done by using process_model_data_for_plot_timeseries
+    # FIXME: this function is not yet defined
+    ensemble_mean, model_years, ensemble_members_count = !!!!!!!
 
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
