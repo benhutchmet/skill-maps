@@ -1963,7 +1963,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Set up the lats and lons for the central europe grid
         central_europe_lon1, central_europe_lon2 = central_europe_grid['lon1'], central_europe_grid['lon2']
         central_europe_lat1, central_europe_lat2 = central_europe_grid['lat1'], central_europe_grid['lat2']
-        
+
     # subtract 180 from all of the azores and iceland lons
     azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
     iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
@@ -2090,6 +2090,69 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
     # Show the figure
     plt.show()
+
+# TODO: Write new function to plot the gridbox average correlations
+# for the same variable, region and forecast range (e.g. psl global years 2-9)
+# but with different seasons (e.g. DJFM, MAM, JJA, SON)
+def plot_seasonal_correlations_timeseries(models, observations_path, variable, region, 
+                                        region_grid, forecast_range, seasons_list_obs, 
+                                        seasons_list_mod, plots_dir, obs_var_name,
+                                        north_sea_grid, central_europe_grid, 
+                                        p_sig=0.05, experiment='dcppA-hindcast'):
+    """
+    Plots the time series of correlations between the observed and model data for the given variable, region, 
+    forecast range, and seasons.
+
+    Args:
+        models (list): A list of model names to plot.
+        observations_path (str): The path to the observations file.
+        variable (str): The variable to plot.
+        region (str): The region to plot.
+        region_grid (list): The gridboxes that define the region.
+        forecast_range (list): The forecast range to plot.
+        seasons_list_obs (list): The seasons to plot for the observed data.
+        seasons_list_mod (list): The seasons to plot for the model data.
+        plots_dir (str): The directory to save the plots in.
+        obs_var_name (str): The name of the variable in the observations file.
+        north_sea_grid (list): The gridboxes that define the North Sea region.
+        central_europe_grid (list): The gridboxes that define the Central Europe region.
+        p_sig (float): The significance level for the correlation coefficient.
+        experiment (str): The name of the experiment to plot.
+
+    Returns:
+        None.
+    """
+    
+    # Create an empty list to store the processed observations
+    # for each season
+    obs_list = []
+
+    # Create empty lists to store the r field
+    # for each season
+    rfield_north_sea_list = []
+    rfield_central_europe_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Set up the labels for the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Loop over the seasons
+    for i, season in enumerate(seasons_list_obs):
+
+        # Print the season(s) being processed
+        print("obs season", season)
+
+        # Set up the model season
+        model_season = seasons_list_mod[i]
+        print("model season", model_season)
+
+        # Process the observations
+        # To get a 1D array of the observations
+        # which is the gridbox average
+
+
 
 # Now we want to write another function for creating subplots
 # This one will plot for the same season, region, forecast range
