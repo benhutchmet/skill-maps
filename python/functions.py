@@ -370,6 +370,9 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         print("Invalid region")
         sys.exit()
 
+    # echo the gridspec file
+    print("Gridspec file:", gridspec)
+
     # Check that the gridspec file exists
     if not os.path.exists(gridspec):
         print("Gridspec file does not exist")
@@ -1296,8 +1299,10 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
 
             # Set up the region
             if region == "north-sea":
+                print("North Sea region gridbox mean")
                 gridbox_dict = dic.north_sea_grid
             elif region == "central-europe":
+                print("Central Europe region gridbox mean")
                 gridbox_dict = dic.central_europe_grid
             else:
                 print("Invalid region")
@@ -1466,6 +1471,9 @@ def calculate_correlations_timeseries(observed_data, model_data, models, variabl
     # First check the dimensions of the observed and model data
     print("observed data shape", np.shape(observed_data))
     print("model data shape", np.shape(model_data))
+
+    # Print the region being processed
+    print("region being processed in calculate_correlations_timeseries", region)
 
     # Model data still needs to be processed to a 1D array
     # this is done by using process_model_data_for_plot_timeseries
@@ -2534,6 +2542,13 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         print("plotting season", season)
         # Print the axis index
         print("axis index", i)
+
+        # Print the values in the r and p lists
+        print("r_north_sea_list", r_north_sea_list)
+        print("p_north_sea_list", p_north_sea_list)
+
+        print("r_central_europe_list", r_central_europe_list)
+        print("p_central_europe_list", p_central_europe_list)
 
         # Extract the r and p values
         # depending on the season
