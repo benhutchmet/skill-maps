@@ -1291,9 +1291,9 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
         for member in model_data_combined:
 
             # Set up the region
-            if region == "north-sea"
+            if region == "north-sea":
                 gridbox_dict = dic.north_sea_grid
-            elif region == "central-europe"
+            elif region == "central-europe":
                 gridbox_dict = dic.central_europe_grid
             else:
                 print("Invalid region")
