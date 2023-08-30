@@ -1760,7 +1760,7 @@ def calculate_nao_correlations(obs_nao, model_nao, variable):
     r, p = calculate_correlations_1D(obs_nao_array, model_nao_array)
 
     # Return the correlation coefficients and p-values
-    return r, p, model_nao_array, obs_nao_array
+    return r, p, model_nao_array, obs_nao_array, model_years, obs_years
 
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
@@ -3065,10 +3065,147 @@ def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_r
         # Now use the function calculate_nao_correlations
         # to get the correlations and p values for the NAO anomalies
         # for the different seasons
-        r, p, ensemble_mean_nao_array, observed_nao_array = calculate_nao_correlations(obs_nao_anoms, ensemble_mean_nao_anoms, variable)
+        r, p, ensemble_mean_nao_array, observed_nao_array, model_years, obs_years = calculate_nao_correlations(obs_nao_anoms, ensemble_mean_nao_anoms, variable)
 
+        # Verify thet the shape of the ensemble mean array is correct
+        if np.shape(ensemble_mean_nao_array) != np.shape(observed_nao_array):
+            print("Error: ensemble mean array shape does not match observed data array shape")
+            sys.exit()
 
+        # Append the ensemble members count to the list
+        ensemble_members_count_list.append(ensemble_members_count)
 
+        # Append the ensemble mean array to the list
+        model_nao_anoms_list.append(ensemble_mean_nao_array)
+
+        # Append the processed observations to the list
+        obs_nao_anoms_list.append(observed_nao_array)
+
+        # Append the r and p values to the lists
+        r_list.append(r)
+        p_list.append(p)
+
+        # Append the obs years and model years to the lists
+        obs_years_list.append(obs_years)
+        model_years_list.append(model_years)
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set up the figure size and subplot parameters
+    # for a 2x2 grid of subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 8), sharex=True, sharey='row', gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+
+    # Set up the title for the figure
+    title = f"{variable} {forecast_range} {experiment} NAO anomalies timeseries, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=12, y=0.95)
+
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Flatten the axs array
+    axs = axs.flatten()
+
+    # Iterate over the seasons
+    for i, season in enumerate(seasons_list_obs):
+        ax = axs[i]
+
+        # Print the season being plotted
+        print("plotting season", season)
+        # Print the axis index
+        print("axis index", i)
+
+        # Print the values in the r and p lists
+        print("r_list", r_list)
+        print("p_list", p_list)
+
+        # Extract the r and p values
+        # depending on the season
+        r = r_list[i]
+        p = p_list[i]
+
+        # print the shape of the model years
+        # print("model years shape", np.shape(model_years_list[i]))
+        # print("model years", model_years_list[i])
+
+        # # print the shape of the ensemble mean array
+        # print("ensemble mean array shape", np.shape(ensemble_mean_array_list[i]))
+
+        # # print the shape of the obs years
+        # print("obs years shape", np.shape(obs_years_list[i]))
+        # print("obs years", obs_years_list[i])
+
+        # # print the shape of the obs
+        # print("obs shape", np.shape(obs_list[i]))
+
+        # Plot the ensemble mean
+        ax.plot(model_years_list[i], model_nao_anoms_list[i], color='red', label='dcppA')
+
+        # Plot the observed data
+        ax.plot(obs_years_list[i], obs_nao_anoms_list[i], color='black', label='ERA5')
+
+        # Set up the plots
+        # Add a horizontal line at zero
+        ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+        # ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
+        ax.set_ylim([-10, 10])
+        #ax.set_xlabel("Year")
+        if i == 0 or i == 2:
+            ax.set_ylabel("NAO anomalies (hPa)")
+
+        # set the x-axis label for the bottom row
+        if i == 2 or i == 3:
+            ax.set_xlabel("year")
+
+        # Set up a textbox with the season name in the top left corner
+        ax.text(0.05, 0.95, season, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox in the bottom right with the figure letter
+        # extract the figure letter from the ax_labels list
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Depending on the season, set up the NAO name
+        if season == 'JJA':
+            nao_name = 'SNAO'
+            # set this up in a textbox in the top right corner
+            ax.text(0.95, 0.95, nao_name, transform=ax.transAxes, fontsize=8, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+        
+        # Set up the p values
+        # If less that 0.05, then set as text '< 0.05'
+        # If less than 0.01, then set as text '< 0.01'
+        if p < 0.01:
+            p_text = "< 0.01"
+        elif p < 0.05:
+            p_text = "< 0.05"
+        else:
+            p_text = f"{p:.2f}"
+
+        # Extract the ensemble members count
+        ensemble_members_count = ensemble_members_count_list[i]
+        # Take the sum of the ensemble members count
+        no_ensemble_members = sum(ensemble_members_count.values())
+
+        # Set up the title for the subplot
+        ax.set_title(f"ACC = +{r:.2f}, p = {p_text}, n = {no_ensemble_members}", fontsize=10)
+
+    # Adjust the layout
+    # plt.tight_layout()
+
+    # Set up the path for saving the figure
+    fig_name = f"{variable}_{forecast_range}_{experiment}_sig-{p_sig}_nao_anomalies_timeseries_subplots_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+
+    # Set up the figure path
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
 
 
 # Now we want to write another function for creating subplots
