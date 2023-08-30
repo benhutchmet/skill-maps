@@ -1428,6 +1428,124 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
 
     return ensemble_mean, years, ensemble_members_count
 
+# Define a new function to calculate the model NAO index
+# like process_model_data_for_plot_timeseries
+# but for the NAO index
+def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid, 
+                            snao_south_grid, snao_north_grid, nao_type="default"):
+    """
+    Calculates the model NAO index for each ensemble member and the ensemble mean.
+
+    Parameters:
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
+    azores_grid (dict): Latitude and longitude coordinates of the Azores grid point.
+    iceland_grid (dict): Latitude and longitude coordinates of the Iceland grid point.
+    snao_south_grid (dict): Latitude and longitude coordinates of the southern SNAO grid point.
+    snao_north_grid (dict): Latitude and longitude coordinates of the northern SNAO grid point.
+    nao_type (str, optional): Type of NAO index to calculate, by default 'default'. Also supports 'snao'.
+
+    Returns:
+    ensemble_mean_nao_anoms (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
+    ensemble_members_nao_anoms (list): The NAO index anomalies for each ensemble member.
+    years (numpy.ndarray): The years.
+    ensemble_members_count (dict): The number of ensemble members for each model.
+    """
+
+    # Initialize a list for the ensemble members
+    ensemble_members_nao_anoms = []
+
+    # Initialize a dictionary to store the number of ensemble members
+    ensemble_members_count = {}
+
+    # First constrain the years to the years that are in all of the models
+    model_data = constrain_years(model_data, models)
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Set the ensemble members count to zero
+        # if model is not in the ensemble members count dictionary
+        if model not in ensemble_members_count:
+            ensemble_members_count[model] = 0
+
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+            # depending on the NAO type
+            # set up the region grid
+            if nao_type == "default":
+                print("Calculating model NAO index using default definition")
+
+                # Set up the dict for the southern box
+                south_gridbox_dict = azores_grid
+                # Set up the dict for the northern box
+                north_gridbox_dict = iceland_grid
+            elif nao_type == "snao":
+                print("Calculating model NAO index using SNAO definition")
+
+                # Set up the dict for the southern box
+                south_gridbox_dict = snao_south_grid
+                # Set up the dict for the northern box
+                north_gridbox_dict = snao_north_grid
+            else:
+                print("Invalid NAO type")
+                sys.exit()
+
+            # Extract the lat and lon values
+            # from the gridbox dictionary
+            # first for the southern box
+            s_lon1, s_lon2 = south_gridbox_dict["lon1"], south_gridbox_dict["lon2"]
+            s_lat1, s_lat2 = south_gridbox_dict["lat1"], south_gridbox_dict["lat2"]
+
+            # second for the northern box
+            n_lon1, n_lon2 = north_gridbox_dict["lon1"], north_gridbox_dict["lon2"]
+            n_lat1, n_lat2 = north_gridbox_dict["lat1"], north_gridbox_dict["lat2"]
+
+            # Take the mean over the lat and lon values
+            # for the southern box for the ensemble member
+            try:
+                south_gridbox_mean = member.sel(lat=slice(s_lat1, s_lat2), lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
+                north_gridbox_mean = member.sel(lat=slice(n_lat1, n_lat2), lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
+            except Exception as e:
+                print(f"Error taking gridbox mean: {e}")
+                sys.exit()
+
+            # Calculate the NAO index for the ensemble member
+            try:
+                nao_index = south_gridbox_mean - north_gridbox_mean
+            except Exception as e:
+                print(f"Error calculating NAO index: {e}")
+                sys.exit()
+
+            # Extract the years
+            years = nao_index.time.dt.year.values
+
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members_nao_anoms.append(nao_index)
+
+            # Increment the count of ensemble members for the model
+            ensemble_members_count[model] += 1
+
+    # Convert the list of all ensemble members to a numpy array
+    ensemble_members_nao_anoms = np.array(ensemble_members_nao_anoms)
+
+    # #print the dimensions of the ensemble members
+    print("ensemble members shape", np.shape(ensemble_members_nao_anoms))
+
+    # #print the ensemble members count
+    print("ensemble members count", ensemble_members_count)
+
+    # Take the equally weighted ensemble mean
+    ensemble_mean_nao_anoms = ensemble_members_nao_anoms.mean(axis=0)
+
+    # Convert ensemble_mean to an xarray DataArray
+    ensemble_mean_nao_anoms = xr.DataArray(ensemble_mean_nao_anoms, coords=nao_index.coords, dims=nao_index.dims)
+
+    return ensemble_mean_nao_anoms, ensemble_members_nao_anoms, years, ensemble_members_count
+
+
 def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
@@ -2762,9 +2880,9 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
 # for the different seasons: DJFM, MAM, JJA, SON
 # But using the pointwise definition of the summertime NAO index from Wang and Ting (2022)
 def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_range,
-                                           seasons_list_obs, seasons_list_mod, plots_dir, azores_grid, 
-                                           iceland_grid, snao_south_grid, snao_north_grid,
-                                           p_sig=0.05, experiment='dcppA-hindcast', variable = 'psl'):
+                                        seasons_list_obs, seasons_list_mod, plots_dir, azores_grid, 
+                                        iceland_grid, snao_south_grid, snao_north_grid,
+                                        p_sig=0.05, experiment='dcppA-hindcast', variable = 'psl'):
     """
     Plot the NAO anomalies time series for the different seasons: DJFM, MAM, JJA, SON,
     using the pointwise definition of the summertime NAO index from Wang and Ting (2022).
@@ -2844,7 +2962,50 @@ def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_r
         # Process the observations
         # To get a 1D array of the NAO anomalies (azores - iceland)
         # Using the function process_obs_nao_anoms
-        obs_nao_anoms = !!!!!
+        # the function call depends on the season
+        if season in ['DJFM', 'MAM', 'SON']:
+            # Process the obs NAO anomalies
+            obs_nao_anoms = process_obs_nao_index(forecast_range, season, observations_path, 
+                                                variable=variable, nao_type='default')
+        elif season in ['JJA']:
+            # Process the obs SNAO anomalies
+            obs_nao_anoms = process_obs_nao_index(forecast_range, season, observations_path,
+                                                variable=variable, nao_type='snao')
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Print the shape of the observations
+        print("obs shape", np.shape(obs_nao_anoms))
+
+        # Load the model data
+        model_datasets = load_data(dic.base_dir, models, variable, model_load_region,
+                                forecast_range, model_season)
+        # Process the model data
+        model_data, _ = process_data(model_datasets, variable)
+
+        # Print the shape of the model data
+        # this still has spatial dimensions
+        print("model shape", np.shape(model_data))
+
+        # Now calculate the NAO anomalies for the model data
+        # Using the function calculate_model_nao_anoms
+        # the function call depends on the season
+        if season in ['DJFM', 'MAM', 'SON']:
+            # Calculate the model NAO anomalies
+            ensemble_mean_nao_anoms, ensemble_members_nao_anoms, \
+            model_years, ensemble_members_count = calculate_model_nao_anoms(model_data, models, azores_grid,
+                                                                            iceland_grid, snao_south_grid,
+                                                                            snao_north_grid, nao_type='default')
+        elif season in ['JJA']:
+            # Calculate the model SNAO anomalies
+            ensemble_mean_nao_anoms, ensemble_members_nao_anoms, \
+            model_years, ensemble_members_count = calculate_model_nao_anoms(model_data, models, azores_grid,
+                                                                            iceland_grid, snao_south_grid,
+                                                                            snao_north_grid, nao_type='snao')
+        else:
+            print("Error: season not found")
+            sys.exit()
 
 
 
