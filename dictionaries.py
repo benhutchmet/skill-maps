@@ -96,17 +96,17 @@ iceland_grid = {
 
 # Define the dimensions for the gridbox for the North Sea Region
 north_sea_grid = {
-    'lon1': 0,
-    'lon2': 10,
-    'lat1': 55,
+    'lon1': -5,
+    'lon2': 8,
+    'lat1': 50,
     'lat2': 65
 }
 
 # Define the dimensions for the gridbox for Central Europe
 central_europe_grid = {
-    'lon1': 10,
+    'lon1': 5,
     'lon2': 30,
-    'lat1': 45,
+    'lat1': 40,
     'lat2': 55
 }
 
