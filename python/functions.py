@@ -1834,7 +1834,7 @@ def choose_obs_var_name(args):
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
 # TODO: this doesn't include bootstrapped p values
 def plot_seasonal_correlations(models, observations_path, variable, region, region_grid, forecast_range, seasons_list_obs, seasons_list_mod, 
-                                plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast'):
+                                plots_dir, obs_var_name, azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast', north_sea_grid = None, central_europe_grid = None):
     """
     Plot the spatial correlation coefficients and p-values for the same variable,
     region and forecast range (e.g. psl global years 2-9) but with different seasons.
@@ -1869,6 +1869,10 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         Significance threshold. The default is 0.05.
     experiment : str, optional
         Experiment name. The default is 'dcppA-hindcast'.
+    north_sea_grid : dict, optional
+        Dictionary of North Sea grid. The default is None.
+    central_europe_grid : dict, optional
+        Dictionary of Central Europe grid. The default is None.
 
     Returns
     -------

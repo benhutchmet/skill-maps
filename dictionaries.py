@@ -94,6 +94,23 @@ iceland_grid = {
     'lat2': 70
 }
 
+# Define the dimensions for the gridbox for the North Sea Region
+north_sea_grid = {
+    'lon1': 0,
+    'lon2': 10,
+    'lat1': 55,
+    'lat2': 65
+}
+
+# Define the dimensions for the gridbox for Central Europe
+central_europe_grid = {
+    'lon1': 10,
+    'lon2': 30,
+    'lat1': 45,
+    'lat2': 55
+}
+
+
 # Define the dimensions for the gridbox for the N-S UK index
 # From thornton et al. 2019
 uk_n_box = {
