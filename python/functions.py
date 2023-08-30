@@ -366,6 +366,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         gridspec = gridspec_path + "/" + "gridspec-north-sea.txt"
     elif region == "central-europe":
         gridspec = gridspec_path + "/" + "gridspec-central-europe.txt"
+    elif region == "snao-south":
+        gridspec = gridspec_path + "/" + "gridspec-snao-south.txt"
+    elif region == "snao-north":
+        gridspec = gridspec_path + "/" + "gridspec-snao-north.txt"
     else:
         print("Invalid region")
         sys.exit()
@@ -829,6 +833,57 @@ def process_observations_timeseries(variable, region, forecast_range, season, ob
 
     # Return the processed observations dataset
     return obs_gridbox_mean
+
+# Define a new function which calculates the observed NAO index
+# for a given season
+# as azores minus iceland
+def process_obs_nao_index(forecast_range, season, observations_path, variable="psl", nao_type="default"):
+    """
+    Calculate the observed NAO index for a given season, using the pointwise definition of the summertime NAO index
+    from Wang and Ting (2022).
+    
+    Parameters
+    ----------
+    forecast_range : str
+        Forecast range to calculate the NAO index for, in the format 'YYYY-MM'.
+    season : str
+        Season to calculate the NAO index for, one of 'DJFM', 'MAM', 'JJA', 'SON'.
+    observations_path : str
+        Path to the observations file.
+    azores_grid : tuple of float
+        Latitude and longitude coordinates of the Azores grid point.
+    iceland_grid : tuple of float
+        Latitude and longitude coordinates of the Iceland grid point.
+    snao_south_grid : tuple of float
+        Latitude and longitude coordinates of the southern SNAO grid point.
+    snao_north_grid : tuple of float
+        Latitude and longitude coordinates of the northern SNAO grid point.
+    variable : str, optional
+        Name of the variable to use for the NAO index calculation, by default 'psl'.
+    nao_type : str, optional
+        Type of NAO index to calculate, by default 'default'. Also supports 'snao'.
+    
+    Returns
+    -------
+    float
+        The observed NAO index for the given season and forecast range.
+    """
+    # If the NAO type is 'default'
+    if nao_type == "default":
+        print("Calculating observed NAO index using default definition")
+
+        # 
+
+    elif nao_type == "snao":
+        print("Calculating observed NAO index using SNAO definition")
+
+
+
+    else:
+        print("Invalid NAO type")
+        sys.exit()
+
+
 
 
 def plot_data(obs_data, variable_data, model_time):
@@ -2677,6 +2732,97 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
 
     # Show the figure
     plt.show()
+
+# Define a new function to plot the NAO anomalies time series
+# for the different seasons: DJFM, MAM, JJA, SON
+# But using the pointwise definition of the summertime NAO index from Wang and Ting (2022)
+def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_range,
+                                           seasons_list_obs, seasons_list_mod, plots_dir, azores_grid, 
+                                           iceland_grid, snao_south_grid, snao_north_grid,
+                                           p_sig=0.05, experiment='dcppA-hindcast', variable = 'psl'):
+    """
+    Plot the NAO anomalies time series for the different seasons: DJFM, MAM, JJA, SON,
+    using the pointwise definition of the summertime NAO index from Wang and Ting (2022).
+    
+    Parameters
+    ----------
+    models : list of str
+        List of model names to plot.
+    observations_path : str
+        Path to the observations file.
+    forecast_range : str
+        Forecast range to plot, in the format 'YYYY-MM'.
+    seasons_list_obs : list of str
+        List of seasons to plot for the observations.
+    seasons_list_mod : list of str
+        List of seasons to plot for the models.
+    plots_dir : str
+        Directory where the plots will be saved.
+    azores_grid : dict
+        Latitude and longitude coordinates of the Azores grid point.
+    iceland_grid : dict
+        Latitude and longitude coordinates of the Iceland grid point.
+    snao_south_grid : dict
+        Latitude and longitude coordinates of the southern SNAO grid point.
+    snao_north_grid : dict
+        Latitude and longitude coordinates of the northern SNAO grid point.
+    p_sig : float, optional
+        Significance level for the correlation coefficient, by default 0.05.
+    experiment : str, optional
+        Name of the experiment, by default 'dcppA-hindcast'.
+    variable : str, optional
+        Variable to plot, by default 'psl'.
+    
+    Returns
+    -------
+    None
+    """
+
+    # Create an empty list to store the processed obs NAO
+    obs_nao_anoms_list = []
+
+    # Create empty lists to store the r field and p field for the NAO
+    # anomaly correlations
+    r_list = []
+    p_list = []
+
+    # Create empty lists to store the ensemble mean array
+    model_nao_anoms_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Create an empty list to store the obs years and model years
+    obs_years_list = []
+    model_years_list = []
+
+    # Set up the labels for the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Set up the labels for the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Set up the model load region
+    # will always be global
+    model_load_region = 'global'
+
+    # Loop over the seasons
+    for i, season in enumerate(seasons_list_obs):
+
+        # Print the season(s) being processed
+        print("obs season", season)
+
+        # Set up the model season
+        model_season = seasons_list_mod[i]
+        print("model season", model_season)
+
+        # Process the observations
+        # To get a 1D array of the NAO anomalies (azores - iceland)
+        # Using the function process_obs_nao_anoms
+        obs_nao_anoms = !!!!!
+
+
+
 
 
 # Now we want to write another function for creating subplots
