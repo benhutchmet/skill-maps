@@ -1480,7 +1480,7 @@ def calculate_correlations_timeseries(observed_data, model_data, models, variabl
     ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
 
     # Remove years with NaNs
-    observed_data, ensemble_mean = remove_years_with_nans(observed_data, ensemble_mean, variable)
+    observed_data, ensemble_mean, obs_years, model_years = remove_years_with_nans(observed_data, ensemble_mean, variable)
 
     # Convert both the observed and model data to numpy arrays
     observed_data_array = observed_data.values
@@ -1495,7 +1495,7 @@ def calculate_correlations_timeseries(observed_data, model_data, models, variabl
     r, p = calculate_correlations_1D(observed_data_array, ensemble_mean_array)
 
     # Return the correlation coefficients and p-values
-    return r, p, ensemble_members_count
+    return r, p, ensemble_mean_array, observed_data_array, ensemble_members_count, obs_years, model_years
 
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
@@ -1671,7 +1671,11 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
             # exit the loop
             break
 
-    return observed_data, ensemble_mean
+    # Set up the years to be returned
+    obs_years = observed_data.time.dt.year.values
+    model_years = ensemble_mean.time.dt.year.values
+
+    return observed_data, ensemble_mean, obs_years, model_years
 # plot the correlations and p-values
 def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, 
                         obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
@@ -2363,9 +2367,8 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 # TODO: Write new function to plot the gridbox average correlations
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
-def plot_seasonal_correlations_timeseries(models, observations_path, variable, region, 
-                                        region_grid, forecast_range, seasons_list_obs, 
-                                        seasons_list_mod, plots_dir, obs_var_name,
+def plot_seasonal_correlations_timeseries(models, observations_path, variable, forecast_range, 
+                                        seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
                                         north_sea_grid, central_europe_grid, 
                                         p_sig=0.05, experiment='dcppA-hindcast'):
     """
@@ -2405,8 +2408,15 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
     p_north_sea_list = []
     p_central_europe_list = []
 
+    # List for the ensemble mean array
+    ensemble_mean_array_list = []
+
     # Create an empty list to store the ensemble members count
     ensemble_members_count_list = []
+
+    # Create an empty list to store the obs years and model years
+    obs_years_list = []
+    model_years_list = []
 
     # Set up the labels for the subplots
     ax_labels = ['A', 'B', 'C', 'D']
@@ -2424,6 +2434,21 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
         # Set up the model season
         model_season = seasons_list_mod[i]
         print("model season", model_season)
+
+        # If the season is DJFM or MAM
+        # then we want to use the North Sea grid
+        if season in ['DJFM', 'MAM']:
+            # Set up the region
+            region = 'north-sea'
+        elif season in ['JJA', 'SON']:
+            # Set up the region
+            region = 'central-europe'
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Print the region
+        print("region", region)
 
         # Process the observations
         # To get a 1D array of the observations
@@ -2446,7 +2471,7 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
 
         # now use the function calculate_correlations_timeseries
         # to get the correlation time series for the seasons
-        r, p, ensemble_members_count = calculate_correlations_timeseries(obs, model_data, models, variable, region)
+        r, p, ensemble_mean_array, observed_data_array, ensemble_members_count, obs_years, model_years = calculate_correlations_timeseries(obs, model_data, models, variable, region)
 
         # Depending on the season, append the r to the correct list
         if season in ['DJFM', 'MAM']:
@@ -2462,18 +2487,22 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
         # Append the ensemble members count to the list
         ensemble_members_count_list.append(ensemble_members_count)
 
+        # Append the ensemble mean array to the list
+        ensemble_mean_array_list.append(ensemble_mean_array)
+
         # Append the processed observations to the list
-        obs_list.append(obs)
+        obs_list.append(observed_data_array)
+
+        # Append the obs years and model years to the lists
+        obs_years_list.append(obs_years)
+        model_years_list.append(model_years)
 
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
 
-    # Set up the projection
-    proj = ccrs.PlateCarree()
-
     # Set up the figure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), sharex=True, sharey=True, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients timeseries, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -2488,10 +2517,99 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
     # Flatten the axs array
     axs = axs.flatten()
 
-    
-        
-        
+    # Iterate over the seasons
+    for i, season in enumerate(seasons_list_obs):
+        ax = axs[i]
 
+        # Print the season being plotted
+        print("plotting season", season)
+        # Print the axis index
+        print("axis index", i)
+
+        # Extract the r and p values
+        # depending on the season
+        if season in ['DJFM', 'MAM']:
+            r = r_north_sea_list[i]
+            p = p_north_sea_list[i]
+        elif season in ['JJA', 'SON']:
+            r = r_central_europe_list[i]
+            p = p_central_europe_list[i]
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Plot the ensemble mean
+        ax.plot(model_years_list[i], ensemble_mean_array_list[i], color='red', label='dcppA')
+
+        # Plot the observed data
+        ax.plot(obs_years_list[i], obs_list[i], color='black', label='ERA5')
+
+        # Set up the plots
+        # Add a horizontal line at zero
+        ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+        ax.set_xline
+        ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
+        ax.set_ylim([-10, 10])
+        #ax.set_xlabel("Year")
+        ax.set_ylabel("NAO anomalies (hPa)")
+
+        # set the x-axis label for the bottom row
+        if i == 2 or i == 3:
+            ax.set_xlabel("year")
+
+        # Set up a textbox with the season name in the top left corner
+        ax.text(0.05, 0.95, season, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Depending on the season, set up the region name
+        # as a textbox in the top right corner
+        if season in ['DJFM', 'MAM']:
+            region_name = 'North Sea'
+        elif season in ['JJA', 'SON']:
+            region_name = 'Central Europe'
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Add a textbox with the region name
+        ax.text(0.95, 0.95, region_name, transform=ax.transAxes, fontsize=8, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox in the bottom right with the figure letter
+        # extract the figure letter from the ax_labels list
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Set up the p values
+        # If less that 0.05, then set as text '< 0.05'
+        # If less than 0.01, then set as text '< 0.01'
+        if p < 0.01:
+            p_text = "< 0.01"
+        elif p < 0.05:
+            p_text = "< 0.05"
+        else:
+            p_text = f"{p:.2f}"
+            
+        # Extract the ensemble members count
+        ensemble_members_count = ensemble_members_count_list[i]
+        # Take the sum of the ensemble members count
+        no_ensemble_members = sum(ensemble_members_count.values())
+
+        # Set up the title for the subplot
+        ax.set_title(f"ACC = +{r:.2f}, p = +{p_text}, n = {no_ensemble_members}", fontsize=10)
+
+    # Adjust the layout
+    plt.tight_layout()
+
+    # Set up the path for saving the figure
+    fig_name = f"{variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_timeseries_subplots_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+
+    # Set up the figure path
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
 
 
 # Now we want to write another function for creating subplots
