@@ -872,16 +872,41 @@ def process_obs_nao_index(forecast_range, season, observations_path, variable="p
     if nao_type == "default":
         print("Calculating observed NAO index using default definition")
 
-        # 
+        # Process the gridbox mean of the observations
+        # for both the Azores and Iceland
+        # Set up the region grid for the Azores
+        region = "azores"
+        obs_azores = process_observations_timeseries(variable, region, forecast_range, 
+                                                    season, observations_path)
+        # Set up the region grid for Iceland
+        region = "iceland"
+        obs_iceland = process_observations_timeseries(variable, region, forecast_range, 
+                                                    season, observations_path)
 
+        # Calculate the observed NAO index
+        obs_nao_index = obs_azores - obs_iceland
     elif nao_type == "snao":
         print("Calculating observed NAO index using SNAO definition")
 
-
-
+        # Process the gridbox mean of the observations
+        # for both the southern and northern SNAO
+        # Set up the region grid for the southern SNAO
+        region = "snao-south"
+        obs_snao_south = process_observations_timeseries(variable, region, forecast_range, 
+                                                    season, observations_path)
+        # Set up the region grid for the northern SNAO
+        region = "snao-north"
+        obs_snao_north = process_observations_timeseries(variable, region, forecast_range,
+                                                    season, observations_path)
+        
+        # Calculate the observed NAO index
+        obs_nao_index = obs_snao_south - obs_snao_north
     else:
         print("Invalid NAO type")
         sys.exit()
+
+    # Return the observed NAO index
+    return obs_nao_index
 
 
 
