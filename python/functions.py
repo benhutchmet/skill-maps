@@ -3141,11 +3141,17 @@ def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_r
         # # print the shape of the obs
         # print("obs shape", np.shape(obs_list[i]))
 
+        # process the nao data
+        model_nao_anoms = model_nao_anoms_list[i] / 100
+
         # Plot the ensemble mean
-        ax.plot(model_years_list[i], model_nao_anoms_list[i], color='red', label='dcppA')
+        ax.plot(model_years_list[i], model_nao_anoms, color='red', label='dcppA')
 
         # Plot the observed data
-        ax.plot(obs_years_list[i], obs_nao_anoms_list[i], color='black', label='ERA5')
+        obs_nao_anoms = obs_nao_anoms_list[i] / 100
+
+        # Plot the observed data
+        ax.plot(obs_years_list[i], obs_nao_anoms, color='black', label='ERA5')
 
         # Set up the plots
         # Add a horizontal line at zero
