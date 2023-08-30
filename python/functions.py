@@ -2473,6 +2473,11 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         # to get the correlation time series for the seasons
         r, p, ensemble_mean_array, observed_data_array, ensemble_members_count, obs_years, model_years = calculate_correlations_timeseries(obs, model_data, models, variable, region)
 
+        # Verify thet the shape of the ensemble mean array is correct
+        if np.shape(ensemble_mean_array) != np.shape(observed_data_array):
+            print("Error: ensemble mean array shape does not match observed data array shape")
+            sys.exit()
+
         # Depending on the season, append the r to the correct list
         if season in ['DJFM', 'MAM']:
             r_north_sea_list.append(r)
