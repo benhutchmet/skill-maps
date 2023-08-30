@@ -1707,6 +1707,61 @@ def calculate_correlations_timeseries(observed_data, model_data, models, variabl
     # Return the correlation coefficients and p-values
     return r, p, ensemble_mean_array, observed_data_array, ensemble_members_count, obs_years, model_years
 
+
+# Define a new function to calculate the correlations between the observed and model data
+# for the NAO index time series
+def calculate_nao_correlations(obs_nao, model_nao, variable):
+    """
+    Calculates the correlation coefficients between the observed North Atlantic Oscillation (NAO) index and the NAO indices
+    of multiple climate models.
+
+    Args:
+        obs_nao (array-like): The observed NAO index values.
+        model_nao (dict): A dictionary containing the NAO index values for each climate model.
+        models (list): A list of strings representing the names of the climate models.
+
+    Returns:
+        A dictionary containing the correlation coefficients between the observed NAO index and the NAO indices of each
+        climate model.
+    """
+    
+    # First check the dimensions of the observed and model data
+    print("observed data shape", np.shape(obs_nao))
+    print("model data shape", np.shape(model_nao))
+
+    # Find the years that are in both the observed and model data
+    obs_years = obs_nao.time.dt.year.values
+    model_years = model_nao.time.dt.year.values
+
+    # print the years
+    print("observed years", obs_years)
+    print("model years", model_years)
+
+    # Find the years that are in both the observed and model data
+    years_in_both = np.intersect1d(obs_years, model_years)
+
+    # Select only the years that are in both the observed and model data
+    obs_nao = obs_nao.sel(time=obs_nao.time.dt.year.isin(years_in_both))
+    model_nao = model_nao.sel(time=model_nao.time.dt.year.isin(years_in_both))
+
+    # Remove years with NaNs
+    obs_nao, model_nao, obs_years, model_years = remove_years_with_nans(obs_nao, model_nao, variable)
+
+    # Convert both the observed and model data to numpy arrays
+    obs_nao_array = obs_nao.values
+    model_nao_array = model_nao.values
+
+    # Check that the observed data and ensemble mean have the same shape
+    if obs_nao_array.shape != model_nao_array.shape:
+        raise ValueError("Observed data and ensemble mean must have the same shape.")
+    
+    # Calculate the correlations between the observed and model data
+    # Using the new function calculate_correlations_1D
+    r, p = calculate_correlations_1D(obs_nao_array, model_nao_array)
+
+    # Return the correlation coefficients and p-values
+    return r, p, model_nao_array, obs_nao_array
+
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
     Calculates the spatial correlations between the observed and model data.
@@ -3006,6 +3061,11 @@ def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_r
         else:
             print("Error: season not found")
             sys.exit()
+
+        # Now use the function calculate_nao_correlations
+        # to get the correlations and p values for the NAO anomalies
+        # for the different seasons
+        r, p, ensemble_mean_nao_array, observed_nao_array = calculate_nao_correlations(obs_nao_anoms, ensemble_mean_nao_anoms, variable)
 
 
 
