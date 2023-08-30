@@ -736,6 +736,92 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         #print(f"Error processing observations dataset: {e}")
         sys.exit()
 
+# TODO: Add a function to process the observations for a timeseries
+def process_observations_timeseries(variable, region, forecast_range, season, observations_path):
+    """
+    Processes the observations for a specific variable, region, forecast range, and season.
+
+    Args:
+        variable (str): The variable to process.
+        region (str): The region to process.
+        forecast_range (list): The forecast range to process.
+        season (str): The season to process.
+        observations_path (str): The path to the observations file.
+
+    Returns:
+        xarray.Dataset: The processed observations dataset.
+    """
+
+    # First check if the observations file exists
+    check_file_exists(observations_path)
+
+    # First use try and except to process the observations for a specific variable
+    # and region
+    try:
+        # Regrid using CDO, select region and load observation dataset
+        # for given variable
+        obs_dataset = regrid_and_select_region(observations_path, region, variable)
+    except Exception as e:
+        print(f"Error processing observations dataset using CDO to regrid: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations for a specific season
+    try:
+        # Select the season
+        obs_dataset_season = select_season(obs_dataset, season)
+    except Exception as e:
+        print(f"Error processing observations dataset selecting season: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and calculate anomalies
+    try:
+        # Calculate anomalies
+        obs_anomalies = calculate_anomalies(obs_dataset_season)
+    except Exception as e:
+        print(f"Error processing observations dataset calculating anomalies: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and calculate annual mean anomalies
+    try:
+        # Calculate annual mean anomalies
+        obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
+    except Exception as e:
+        print(f"Error processing observations dataset calculating annual mean anomalies: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and select the forecast range
+    try:
+        # Select the forecast range
+        obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
+    except Exception as e:
+        print(f"Error processing observations dataset selecting forecast range: {e}")
+        sys.exit()
+
+    # Then use try and except to process the observations and shift the forecast range
+    try:
+        # if the forecast range is "2-2" i.e. a year ahead forecast
+        # then we need to shift the dataset by 1 year
+        # where the model would show the DJFM average as Jan 1963 (s1961)
+        # the observations would show the DJFM average as Dec 1962
+        # so we need to shift the observations to the following year
+        # if the forecast range is "2-2" and the season is "DJFM"
+        # then shift the dataset by 1 year
+        if forecast_range == "2-2" and season == "DJFM":
+            obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
+    except Exception as e:
+        print(f"Error processing observations dataset shifting forecast range: {e}")
+        sys.exit()
+
+    # Then use try and except to process the gridbox mean of the observations
+    try:
+        # Calculate the gridbox mean of the observations
+        obs_gridbox_mean = obs_anomalies_annual_forecast_range.mean(dim=["lat", "lon"])
+    except Exception as e:
+        print(f"Error processing observations dataset calculating gridbox mean: {e}")
+        sys.exit()
+
+    # Return the processed observations dataset
+    return obs_gridbox_mean
 
 
 def plot_data(obs_data, variable_data, model_time):
