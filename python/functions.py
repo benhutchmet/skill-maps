@@ -1351,6 +1351,32 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # except Exception as e:
     #     #print(f"An error occurred when calculating spatial correlations: {e}")
 
+
+# TODO: define a new function called calculate_correlations_timeseries
+# which will calculate the time series for obs and model 1D arrays for each grid box
+def calculate_correlations_timeseries(observed_data, model_data, models, variable, region):
+    """
+    Calculates the correlation coefficients and p-values between the observed and model data for the given 
+    models, variable, and region.
+
+    Args:
+        observed_data (pandas.DataFrame): The observed data.
+        model_data (dict): A dictionary containing the model data for each model.
+        models (list): A list of model names to calculate correlations for.
+        variable (str): The variable to calculate correlations for.
+        region (str): The region to calculate correlations for.
+
+    Returns:
+        dict: A dictionary containing the correlation coefficients and p-values for each model.
+    """
+
+    # First check the dimensions of the observed and model data
+    print("observed data shape", np.shape(observed_data))
+    print("model data shape", np.shape(model_data))
+
+    # Model data still needs to be processed to a 1D array
+    # this is done by using process_model_data_for_plot_timeseries
+
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
     Calculates the spatial correlations between the observed and model data.
@@ -2224,6 +2250,10 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
     # Set up the labels for the subplots
     ax_labels = ['A', 'B', 'C', 'D']
 
+    # Set up the model load region
+    # will always be global
+    model_load_region = 'global'
+
     # Loop over the seasons
     for i, season in enumerate(seasons_list_obs):
 
@@ -2237,6 +2267,27 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
         # Process the observations
         # To get a 1D array of the observations
         # which is the gridbox average
+        obs = process_observations_timeseries(variable, region, forecast_range, 
+                                                season, observations_path)
+
+        # Print the shape of the observations
+        print("obs shape", np.shape(obs))
+
+        # Load the model data
+        model_datasets = load_data(dic.base_dir, models, variable, model_load_region, 
+                                    forecast_range, model_season)
+        # Process the model data
+        model_data, _ = process_data(model_datasets, variable)
+
+        # Print the shape of the model data
+        # this still has spatial dimensions
+        print("model shape", np.shape(model_data))
+
+        # now use the function calculate_correlations_timeseries
+        # to get the correlation time series for the seasons
+
+        
+        
 
 
 
