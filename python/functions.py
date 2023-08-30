@@ -2312,12 +2312,12 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # if the north sea grid is not None
         if north_sea_grid is not None:
             # Add green lines outlining the North Sea grid
-            ax.plot([north_sea_lon1, north_sea_lon2, north_sea_lon2, north_sea_lon1, north_sea_lon1], [north_sea_lat1, north_sea_lat1, north_sea_lat2, north_sea_lat2, north_sea_lat1], color='pink', linewidth=2, transform=proj)
+            ax.plot([north_sea_lon1, north_sea_lon2, north_sea_lon2, north_sea_lon1, north_sea_lon1], [north_sea_lat1, north_sea_lat1, north_sea_lat2, north_sea_lat2, north_sea_lat1], color='green', linewidth=2, transform=proj)
 
         # if the central europe grid is not None
         if central_europe_grid is not None:
             # Add green lines outlining the Central Europe grid
-            ax.plot([central_europe_lon1, central_europe_lon2, central_europe_lon2, central_europe_lon1, central_europe_lon1], [central_europe_lat1, central_europe_lat1, central_europe_lat2, central_europe_lat2, central_europe_lat1], color='pink', linewidth=2, transform=proj)
+            ax.plot([central_europe_lon1, central_europe_lon2, central_europe_lon2, central_europe_lon1, central_europe_lon1], [central_europe_lat1, central_europe_lat1, central_europe_lat2, central_europe_lat2, central_europe_lat1], color='green', linewidth=2, transform=proj)
 
         # Add filled contours
         # Contour levels
@@ -2519,7 +2519,7 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
 
     # Set up the figure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8), sharex=True, sharey=True, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(14, 8), sharex=True, sharey='row', gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients timeseries, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -2566,18 +2566,18 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
             sys.exit()
 
         # print the shape of the model years
-        print("model years shape", np.shape(model_years_list[i]))
-        print("model years", model_years_list[i])
+        # print("model years shape", np.shape(model_years_list[i]))
+        # print("model years", model_years_list[i])
 
-        # print the shape of the ensemble mean array
-        print("ensemble mean array shape", np.shape(ensemble_mean_array_list[i]))
+        # # print the shape of the ensemble mean array
+        # print("ensemble mean array shape", np.shape(ensemble_mean_array_list[i]))
 
-        # print the shape of the obs years
-        print("obs years shape", np.shape(obs_years_list[i]))
-        print("obs years", obs_years_list[i])
+        # # print the shape of the obs years
+        # print("obs years shape", np.shape(obs_years_list[i]))
+        # print("obs years", obs_years_list[i])
 
-        # print the shape of the obs
-        print("obs shape", np.shape(obs_list[i]))
+        # # print the shape of the obs
+        # print("obs shape", np.shape(obs_list[i]))
 
         # Plot the ensemble mean
         ax.plot(model_years_list[i], ensemble_mean_array_list[i], color='red', label='dcppA')
@@ -2589,9 +2589,13 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         # Add a horizontal line at zero
         ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
         # ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
-        # ax.set_ylim([-1, 1])
+        if i == 0 or i == 1:
+            ax.set_ylim([-0.6, 0.6])
+        elif i == 2 or i == 3:
+            ax.set_ylim([-0.2, 0.2])
         #ax.set_xlabel("Year")
-        ax.set_ylabel("sfcWind anomalies (m/s)")
+        if i == 0 or i == 2:
+            ax.set_ylabel("sfcWind anomalies (m/s)")
 
         # set the x-axis label for the bottom row
         if i == 2 or i == 3:
@@ -2634,7 +2638,7 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         no_ensemble_members = sum(ensemble_members_count.values())
 
         # Set up the title for the subplot
-        ax.set_title(f"ACC = +{r:.2f}, p = +{p_text}, n = {no_ensemble_members}", fontsize=10)
+        ax.set_title(f"ACC = +{r:.2f}, p = {p_text}, n = {no_ensemble_members}", fontsize=10)
 
     # Adjust the layout
     # plt.tight_layout()
