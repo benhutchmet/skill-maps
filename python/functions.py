@@ -2511,13 +2511,13 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
 
     # Set up the figure size and subplot parameters
     # for a 2x2 grid of subplots
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), sharex=True, sharey=True, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8), sharex=True, sharey=True, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients timeseries, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
-    fig.suptitle(title, fontsize=12, y=0.90)
+    fig.suptitle(title, fontsize=12, y=0.95)
 
     # Set up the significance threshold
     # e.g. 0.05 for 95% significance
@@ -2541,11 +2541,28 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
             r = r_north_sea_list[i]
             p = p_north_sea_list[i]
         elif season in ['JJA', 'SON']:
-            r = r_central_europe_list[i]
-            p = p_central_europe_list[i]
+            # run the index back by 2
+            # so that the index matches the correct season
+            i_season = i - 2
+            r = r_central_europe_list[i_season]
+            p = p_central_europe_list[i_season]
         else:
             print("Error: season not found")
             sys.exit()
+
+        # print the shape of the model years
+        print("model years shape", np.shape(model_years_list[i]))
+        print("model years", model_years_list[i])
+
+        # print the shape of the ensemble mean array
+        print("ensemble mean array shape", np.shape(ensemble_mean_array_list[i]))
+
+        # print the shape of the obs years
+        print("obs years shape", np.shape(obs_years_list[i]))
+        print("obs years", obs_years_list[i])
+
+        # print the shape of the obs
+        print("obs shape", np.shape(obs_list[i]))
 
         # Plot the ensemble mean
         ax.plot(model_years_list[i], ensemble_mean_array_list[i], color='red', label='dcppA')
@@ -2556,10 +2573,10 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         # Set up the plots
         # Add a horizontal line at zero
         ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
-        ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
-        ax.set_ylim([-10, 10])
+        # ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
+        # ax.set_ylim([-1, 1])
         #ax.set_xlabel("Year")
-        ax.set_ylabel("NAO anomalies (hPa)")
+        ax.set_ylabel("sfcWind anomalies (m/s)")
 
         # set the x-axis label for the bottom row
         if i == 2 or i == 3:
@@ -2605,7 +2622,7 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         ax.set_title(f"ACC = +{r:.2f}, p = +{p_text}, n = {no_ensemble_members}", fontsize=10)
 
     # Adjust the layout
-    plt.tight_layout()
+    # plt.tight_layout()
 
     # Set up the path for saving the figure
     fig_name = f"{variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_timeseries_subplots_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
