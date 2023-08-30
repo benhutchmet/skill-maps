@@ -1492,6 +1492,10 @@ def calculate_correlations_timeseries(observed_data, model_data, models, variabl
     
     # Calculate the correlations between the observed and model data
     # Using the new function calculate_correlations_1D
+    r, p = calculate_correlations_1D(observed_data_array, ensemble_mean_array)
+
+    # Return the correlation coefficients and p-values
+    return r, p, ensemble_members_count
 
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
@@ -2394,8 +2398,12 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
 
     # Create empty lists to store the r field
     # for each season
-    rfield_north_sea_list = []
-    rfield_central_europe_list = []
+    r_north_sea_list = []
+    r_central_europe_list = []
+
+    # Store the p values
+    p_north_sea_list = []
+    p_central_europe_list = []
 
     # Create an empty list to store the ensemble members count
     ensemble_members_count_list = []
@@ -2438,7 +2446,49 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, r
 
         # now use the function calculate_correlations_timeseries
         # to get the correlation time series for the seasons
+        r, p, ensemble_members_count = calculate_correlations_timeseries(obs, model_data, models, variable, region)
 
+        # Depending on the season, append the r to the correct list
+        if season in ['DJFM', 'MAM']:
+            r_north_sea_list.append(r)
+            p_north_sea_list.append(p)
+        elif season in ['JJA', 'SON']:
+            r_central_europe_list.append(r)
+            p_central_europe_list.append(p)
+        else:
+            print("Error: season not found")
+            sys.exit()
+
+        # Append the ensemble members count to the list
+        ensemble_members_count_list.append(ensemble_members_count)
+
+        # Append the processed observations to the list
+        obs_list.append(obs)
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set up the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the figure size and subplot parameters
+    # for a 2x2 grid of subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+
+    # Set up the title for the figure
+    title = f"{variable} {region} {forecast_range} {experiment} correlation coefficients timeseries, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=12, y=0.90)
+
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Flatten the axs array
+    axs = axs.flatten()
+
+    
         
         
 
