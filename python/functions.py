@@ -2515,9 +2515,9 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         snao_north_lon1, snao_north_lon2 = snao_north_grid['lon1'], snao_north_grid['lon2']
         snao_north_lat1, snao_north_lat2 = snao_north_grid['lat1'], snao_north_grid['lat2']
 
-    # subtract 180 from all of the azores and iceland lons
-    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
-    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+    # # subtract 180 from all of the azores and iceland lons
+    # azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+    # iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
 
     # Set up the fgure size and subplot parameters
     # Set up the fgure size and subplot parameters
