@@ -86,10 +86,26 @@ azores_grid = {
     'lat2': 40
 }
 
+# Define the dimensions for the gridbox for the azores
+azores_grid_corrected = {
+    'lon1': -28,
+    'lon2': -20,
+    'lat1': 36,
+    'lat2': 40
+}
+
 # Define the dimensions for the gridbox for iceland
 iceland_grid = {
     'lon1': 155,
     'lon2': 164,
+    'lat1': 63,
+    'lat2': 70
+}
+
+# Define the dimensions for the gridbox for the azores
+iceland_grid_corrected = {
+    'lon1': -25,
+    'lon2': -16,
     'lat1': 63,
     'lat2': 70
 }
