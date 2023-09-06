@@ -1833,8 +1833,8 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 # #print("p-value", p)
 
                 # If the correlation coefficient is negative, set the p-value to NaN
-                if r < 0:
-                    p = np.nan
+                # if r < 0:
+                    # p = np.nan
 
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
