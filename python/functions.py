@@ -104,24 +104,23 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
 
             # #print the file to the screen.
             # print(file)
-            
+
             # Conditional statement to ensure that models are common to all variables
             if model == "CMCC-CM2-SR5":
-                # Don't use the files containing r11 and above or r2?i?p?f?
-                if "r1?i?" in file or "r2?i?" in file:
+                # Don't use the files containing r11 and above or r2?i?
+                if re.search(r"r1[1-9]", file) or re.search(r"r2.i.", file):
                     print("Skipping file", file)
                     continue
             elif model == "EC-Earth3":
-                # Don't use the files containing r?i2p?f? or r??i2p?f?
-                if "r?i2" in file or "r??i2" in file:
+                # Don't use the files containing r?i2 or r??i2
+                if re.search(r"r.i2", file) or re.search(r"r..i2", file):
                     print("Skipping file", file)
                     continue
             elif model == "FGOALS-f3-L":
-                # Don't use files containing r1-6i?p?f? or r??i?p?f?
-                for i in range(1,7):
-                    if f"r{i}i?" in file or "r??i?" in file:
-                        print("Skipping file", file)
-                        continue
+                # Don't use files containing r1-6i? or r??i?
+                if any(re.search(fr"r{i}i.", file) for i in range(1, 7)) or re.search(r"r..i.", file):
+                    print("Skipping file", file)
+                    continue
 
             # check that the file exists
             # if it doesn't exist, #print a warning and
