@@ -1392,6 +1392,9 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
 
+            # model_name = member.attrs['source_id']
+            member_id = member.attrs['variant_label']
+
             # Set up the region
             if region == "north-sea":
                 print("North Sea region gridbox mean")
@@ -1419,6 +1422,9 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
 
             # Extract the years
             years = member_gridbox_mean.time.dt.year.values
+
+            # Print the years for debugging
+            print("len years for model", model, "and member", member_id, ":", len(years))
 
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member_gridbox_mean)
