@@ -180,6 +180,8 @@ psl_models_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 no_psl_models = 12
 psl_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
 
+# common models for different variables (not sfcWind)
+common_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
 
 # Set up the tos models
 tos_models = [ "CanESM5", "HadGEM3-GC31-MM", "FGOALS-f3-L", "MIROC6", "CESM1-1-CAM5-CMIP5", "NorCPM1" ]
@@ -200,7 +202,7 @@ seasons_list_model = ["DJFM", "MAY", "ULG", "SON"]
 seasons_list_model_tos = ["DJFM", "ULG", "SON"]
 
 # Set up a list of variables for plotting
-variables = ["psl", "tos", "sfcWind", "tas"]
+variables = ["psl", "tas", "sfcWind", "rsds"]
 
 # Variables no tos
 variables_no_tos = ["psl", "sfcWind", "tas"]
@@ -214,3 +216,11 @@ obs_var_names = ["psl", "tos", "sfcWind", "tas"]
 obs_var_names_no_tos = ["psl", "sfcWind", "tas"]
 
 obs_var_names_no_psl = ["tos", "sfcWind", "tas"]
+
+
+models_list = [ psl_models, tos_models, sfcWind_models, tas_models ]
+
+# Common models list
+# for updated variables
+# which is psl, tas, sfcwind and rsds
+updated_models_list = [ common_models, common_models, sfcWind_models, common_models ]
