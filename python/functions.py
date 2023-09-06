@@ -1310,6 +1310,8 @@ def process_model_data_for_plot(model_data, models):
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
 
+            member_id = member.attrs['variant_label']
+
             # Try to #print values for each member
             # #print("trying to #print values for each member for debugging")
             # #print("values for model:", model)
@@ -1326,6 +1328,7 @@ def process_model_data_for_plot(model_data, models):
             # #print statements for debugging
             # #print('shape of years', np.shape(years))
             # # #print('years', years)
+            print("len years for model", model, "and member", member_id, ":", len(years))
 
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
