@@ -131,7 +131,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
                 sys.exit()
 
             # Load the dataset.
-            dataset = xr.open_dataset(file, chunks = {"time":50})
+            dataset = xr.open_dataset(file, chunks = {"time":50, "lat":100, "lon":100})
 
             # Append the dataset to the list of datasets for this model.
             datasets_by_model[model].append(dataset)
@@ -177,8 +177,6 @@ def process_data(datasets_by_model, variable):
         """
         
         if variable == "psl":
-           
-
             # #print the variable data
             # #print("Variable data: ", variable_data)
             # # #print the variable data type
