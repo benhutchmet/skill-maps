@@ -1316,6 +1316,12 @@ def process_model_data_for_plot(model_data, models):
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
             
+            # Modify the time dimension
+            member_time = member.time.astype('datetime64[ns]')
+
+            # Set the time dimension to the modified time dimension
+            member.time = member_time
+
             # Print the type of the calendar
             print(model, "calendar type:", member.time)
             print("calendar type:", type(member.time))
