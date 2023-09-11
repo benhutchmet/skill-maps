@@ -1226,13 +1226,17 @@ def constrain_years(model_data, models):
             # Append the years to the list of years
             years_list.append(years)
 
+    # #print the years list for debugging
+    print("years list:", years_list)
+
     # Find the years that are in all of the models
     common_years = list(set(years_list[0]).intersection(*years_list))
 
+
     # #print the common years for debugging
-    # #print("Common years:", common_years)
-    # #print("Common years type:", type(common_years))
-    # #print("Common years shape:", np.shape(common_years))
+    print("Common years:", common_years)
+    print("Common years type:", type(common_years))
+    print("Common years shape:", np.shape(common_years))
 
     # Initialize a dictionary to store the constrained data
     constrained_data = {}
@@ -1310,7 +1314,7 @@ def process_model_data_for_plot(model_data, models):
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
 
-            member_id = member.attrs['variant_label']
+            #member_id = member.attrs['variant_label']
 
             # Try to #print values for each member
             # #print("trying to #print values for each member for debugging")
@@ -1328,7 +1332,7 @@ def process_model_data_for_plot(model_data, models):
             # #print statements for debugging
             # #print('shape of years', np.shape(years))
             # # #print('years', years)
-            print("len years for model", model, "and member", member_id, ":", len(years))
+            # print("len years for model", model, "and member", member, ":", len(years))
 
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
@@ -1396,7 +1400,7 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
         for member in model_data_combined:
 
             # model_name = member.attrs['source_id']
-            member_id = member.attrs['variant_label']
+            # member_id = member.attrs['variant_label']
 
             # Set up the region
             if region == "north-sea":
@@ -1427,7 +1431,7 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
             years = member_gridbox_mean.time.dt.year.values
 
             # Print the years for debugging
-            print("len years for model", model, "and member", member_id, ":", len(years))
+            print("len years for model", model, "and member", member, ":", len(years))
 
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member_gridbox_mean)
