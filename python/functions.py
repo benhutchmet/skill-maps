@@ -1230,17 +1230,17 @@ def constrain_years(model_data, models):
             # Append the years to the list of years
             years_list.append(years)
 
-    # #print the years list for debugging
-    print("years list:", years_list)
+    # # #print the years list for debugging
+    # print("years list:", years_list)
 
     # Find the years that are in all of the models
     common_years = list(set(years_list[0]).intersection(*years_list))
 
 
-    # #print the common years for debugging
-    print("Common years:", common_years)
-    print("Common years type:", type(common_years))
-    print("Common years shape:", np.shape(common_years))
+    # # #print the common years for debugging
+    # print("Common years:", common_years)
+    # print("Common years type:", type(common_years))
+    # print("Common years shape:", np.shape(common_years))
 
     # Initialize a dictionary to store the constrained data
     constrained_data = {}
