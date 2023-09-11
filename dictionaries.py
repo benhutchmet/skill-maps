@@ -183,6 +183,8 @@ psl_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM
 # common models for different variables (not sfcWind)
 common_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
 
+common_models_noCMCC = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "HadGEM3-GC31-MM", "EC-Earth3", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
+
 # Set up the tos models
 tos_models = [ "CanESM5", "HadGEM3-GC31-MM", "FGOALS-f3-L", "MIROC6", "CESM1-1-CAM5-CMIP5", "NorCPM1" ]
 no_tos_models = 6
@@ -223,4 +225,4 @@ models_list = [ psl_models, tos_models, sfcWind_models, tas_models ]
 # Common models list
 # for updated variables
 # which is psl, tas, sfcwind and rsds
-updated_models_list = [ common_models, common_models, sfcWind_models, common_models ]
+updated_models_list = [ common_models, common_models, sfcWind_models, common_models_noCMCC ]
