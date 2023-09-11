@@ -1317,8 +1317,8 @@ def process_model_data_for_plot(model_data, models):
         for member in model_data_combined:
             
             # Print the type of the calendar
-            print(model, "calendar type:", member.time.calendar)
-            # print("calendar type:", member.time.calendar)
+            print(model, "calendar type:", member.time)
+            print("calendar type:", type(member.time))
 
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
