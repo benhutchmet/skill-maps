@@ -1315,6 +1315,11 @@ def process_model_data_for_plot(model_data, models):
         
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
+            
+            # Print the type of the calendar
+            print(model, "calendar type:", member.time.calendar)
+            # print("calendar type:", member.time.calendar)
+
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
 
