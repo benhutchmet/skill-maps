@@ -1223,6 +1223,10 @@ def constrain_years(model_data, models):
             # Extract the years
             years = member.time.dt.year.values
 
+            # print the model name
+            # #print("model name:", model)
+            print("years len:", len(years), "for model:", model)
+
             # Append the years to the list of years
             years_list.append(years)
 
