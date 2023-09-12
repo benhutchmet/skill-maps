@@ -1268,6 +1268,13 @@ def constrain_years(model_data, models):
             # # #print("model name:", model)
             # print("years len:", len(years), "for model:", model)
 
+            # if len years is less than 10
+            # print the model name, member name, and len years
+            if len(years) < 10:
+                print("model name:", model)
+                print("member name:", member)
+                print("years len:", len(years))
+
             # Append the years to the list of years
             years_list.append(years)
 
