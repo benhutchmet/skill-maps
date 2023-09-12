@@ -745,9 +745,9 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
 
             # If the dataset contains more than one vertical level
             # then give an error and exit the program
-            if len(obs_dataset.plev) > 1:
-                print("Error: More than one vertical level in observations dataset")
-                sys.exit()
+            # if len(obs_dataset.plev) > 1:
+            #     print("Error: More than one vertical level in observations dataset")
+            #     sys.exit()
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
