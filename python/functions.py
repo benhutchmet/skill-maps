@@ -397,8 +397,14 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         print("Gridspec file does not exist")
         sys.exit()
 
-    # Create the output file path
-    regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region.nc"
+
+    # If the variable is ua or va, then we want to select the plev=85000
+    if obs_var_name in ["ua", "va"]:
+        print("Variable is ua or va, creating new file name")
+        regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + ".nc"
+    else:
+        print("Variable is not ua or va, creating new file name")
+        regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + ".nc"
 
     # Check if the output file already exists
     # If it does, then exit the program
@@ -415,7 +421,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # Load the regridded and selected region dataset
     # for the provided variable
     # check whether the variable name is valid
-    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos"]:
+    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos", "ua", "va"]:
         print("Invalid variable name")
         sys.exit()
 
@@ -430,6 +436,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         obs_var_name = "ssrd"
     elif obs_var_name == "tos":
         obs_var_name = "sst"
+    elif obs_var_name == "ua":
+        obs_var_name = "var131"
+    elif obs_var_name == "va":
+        obs_var_name = "var132"
     else:
         print("Invalid variable name")
         sys.exit()
@@ -437,6 +447,11 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # Load the regridded and selected region dataset
     # for the provided variable
     try:
+
+        # If variable is ua or va, then we want to load the dataset differently
+        if obs_var_name in ["var131", "var132"]:
+            regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
+
         # Load the dataset for the selected variable
         regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', parallel=True, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
 
@@ -1339,8 +1354,8 @@ def process_model_data_for_plot(model_data, models):
             # member = member.assign_coords(time=member_time)
 
             # Print the type of the calendar
-            print(model, "calendar type:", member.time)
-            print("calendar type:", type(member.time))
+            # print(model, "calendar type:", member.time)
+            # print("calendar type:", type(member.time))
 
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
