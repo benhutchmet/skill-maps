@@ -1729,7 +1729,13 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # Check that the observed data and ensemble mean have the same shape
     if observed_data_array.shape != ensemble_mean_array.shape:
-        raise ValueError("Observed data and ensemble mean must have the same shape.")
+        print("Observed data and ensemble mean must have the same shape.")
+        print("observed data shape", np.shape(observed_data_array))
+        print("model data shape", np.shape(ensemble_mean_array))
+        if variable in ["var131", "var132", "ua", "va"]:
+            print("removing the vertical dimension")
+            # using the .squeeze() method
+            ensemble_mean_array = ensemble_mean_array.squeeze()
 
     # Calculate the correlations between the observed and model data
     rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
@@ -1992,6 +1998,14 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
         obs_var_name = "ssrd"
     elif obs_var_name == "tos":
         obs_var_name = "sst"
+    elif obs_var_name == "ua":
+        obs_var_name = "var131"
+    elif obs_var_name == "va":
+        obs_var_name = "var132"
+    elif obs_var_name == "var131":
+        obs_var_name = "var131"
+    elif obs_var_name == "var132":
+        obs_var_name = "var132"
     else:
         #print("Invalid variable name")
         sys.exit()
