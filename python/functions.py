@@ -93,7 +93,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         # if the list of files is empty, #print a warning and
         # exit the program
         if len(files) == 0:
-            #print("No files found for " + model)
+            print("No files found for " + model)
             sys.exit()
         
         # #print the files to the screen.
@@ -209,6 +209,12 @@ def process_data(datasets_by_model, variable):
         elif variable == "tos":
             # Extract the variable
             variable_data = dataset["tos"]
+        elif variable == "ua":
+            # Extract the variable
+            variable_data = dataset["ua"]
+        elif variable == "va":
+            # Extract the variable
+            variable_data = dataset["va"]
         else:
             #print("Variable " + variable + " not recognised")
             sys.exit()
@@ -404,7 +410,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + ".nc"
     else:
         print("Variable is not ua or va, creating new file name")
-        regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + ".nc"
+        regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region" + ".nc"
 
     # Check if the output file already exists
     # If it does, then exit the program
