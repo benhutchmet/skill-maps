@@ -206,6 +206,9 @@ seasons_list_model_tos = ["DJFM", "ULG", "SON"]
 # Set up a list of variables for plotting
 variables = ["psl", "tas", "sfcWind", "rsds"]
 
+# Set up a list of variables for plotting
+variables_850u = ["psl", "tas", "ua", "rsds"]
+
 # Variables no tos
 variables_no_tos = ["psl", "sfcWind", "tas"]
 
@@ -214,6 +217,9 @@ variables_no_psl = ["tos", "sfcWind", "tas"]
 
 # Set up a list of variables for plotting
 obs_var_names = ["psl", "tos", "sfcWind", "tas"]
+
+# Obs var names for 850U
+obs_var_names_850u = ["psl", "tos", "ua", "tas"]
 
 obs_var_names_no_tos = ["psl", "sfcWind", "tas"]
 
@@ -226,3 +232,6 @@ models_list = [ psl_models, tos_models, sfcWind_models, tas_models ]
 # for updated variables
 # which is psl, tas, sfcwind and rsds
 updated_models_list = [ common_models, common_models, sfcWind_models, common_models_noCMCC ]
+
+# Substituting 850U in the place of sfcWind
+updated_models_list_850u = [ common_models, common_models, common_models, common_models_noCMCC ]

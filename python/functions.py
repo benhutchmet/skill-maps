@@ -698,6 +698,11 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     # # #print the processed observations file name
     # print("Processed observations file name:", processed_obs_file)
 
+    # If the variable is ua or va, then we want to select the plev=85000
+    # level for the observations dataset
+    # Create the output file path
+
+
     # Process the observations using try and except to catch any errors
     try:
         # Regrid using CDO, select region and load observation dataset
@@ -707,6 +712,16 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # Check for NaN values in the observations dataset
         # #print("Checking for NaN values in obs_dataset")
         # check_for_nan_values(obs_dataset)
+        if variable in ["ua", "va"]:
+            # Use xarray to select the plev=85000 level
+            print("Selecting plev=85000 level for observations dataset")
+            obs_dataset = obs_dataset.sel(plev=85000)
+
+            # If the dataset contains more than one vertical level
+            # then give an error and exit the program
+            if len(obs_dataset.plev) > 1:
+                print("Error: More than one vertical level in observations dataset")
+                sys.exit()
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
@@ -1316,11 +1331,12 @@ def process_model_data_for_plot(model_data, models):
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
             
-            # Modify the time dimension
-            member_time = member.time.astype('datetime64[ns]')
+            # TODO: Figure out issue with time dimension for variable correlations plot MAY
+            # # Modify the time dimension
+            # member_time = member.time.astype('datetime64[ns]')
 
-            # Modify the time coordinate using the assign_coords() method
-            member = member.assign_coords(time=member_time)
+            # # Modify the time coordinate using the assign_coords() method
+            # member = member.assign_coords(time=member_time)
 
             # Print the type of the calendar
             print(model, "calendar type:", member.time)
@@ -3326,6 +3342,11 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
 
         # Extract the models for the variable
         models = models_list[i]
+
+        # If the variable is ua or va, then set up a different path for the observations
+        if variables_list[i] in ['ua', 'va']:
+            # Set up the observations path
+            observations_path = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
 
         # Process the observations
         obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
