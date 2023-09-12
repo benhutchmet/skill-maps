@@ -235,3 +235,5 @@ updated_models_list = [ common_models, common_models, sfcWind_models, common_mod
 
 # Substituting 850U in the place of sfcWind
 updated_models_list_850u = [ common_models, common_models, common_models, common_models_noCMCC ]
+
+obs_ua_va = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
