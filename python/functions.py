@@ -446,6 +446,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
         obs_var_name = "var131"
     elif obs_var_name == "va":
         obs_var_name = "var132"
+    elif obs_var_name == "var131":
+        obs_var_name = "var131"
+    elif obs_var_name == "var132":
+        obs_var_name = "var132"
     else:
         print("Invalid variable name")
         sys.exit()
