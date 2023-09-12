@@ -405,7 +405,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
 
 
     # If the variable is ua or va, then we want to select the plev=85000
-    if obs_var_name in ["ua", "va"]:
+    if obs_var_name in ["ua", "va", "var131", "var132"]:
         print("Variable is ua or va, creating new file name")
         regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + ".nc"
     else:
@@ -460,13 +460,14 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
 
         # If variable is ua or va, then we want to load the dataset differently
         if obs_var_name in ["var131", "var132"]:
-            regrid_sel_region_dataset = xr.open_dataset(regrid_sel_region_file, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
+            regrid_sel_region_dataset_combine = xr.open_dataset(regrid_sel_region_file, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
+        else:
 
-        # Load the dataset for the selected variable
-        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', parallel=True, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
+            # Load the dataset for the selected variable
+            regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', parallel=True, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
 
-        # Combine the two expver variables
-        regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
+            # Combine the two expver variables
+            regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
 
         return regrid_sel_region_dataset_combine
 
