@@ -2783,6 +2783,64 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
 # Plot seasonal correlations for the wind speed at a given level
 # TODO: WRIte function for plotting wind speed correlations at a given level (850 hPa)
+def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, region_grid, forecast_range,           
+                                            seasons_list_obs, seasons_list_mod, plots_dir, azores_grid, iceland_grid,
+                                                p_sig=0.05, experiment='dcppA-hindcast'):
+    """
+    Plots the seasonal correlations between the wind speed at a given level and the observed wind speed.
+
+    Parameters:
+    shared_models (list): The list of shared models to be plotted.
+    obs_path (str): The path to the observed data file.
+    region (str): The region to be plotted.
+    region_grid (numpy.ndarray): The grid of the region to be plotted.
+    forecast_range (list): The forecast range to be plotted.
+    seasons_list_obs (list): The list of seasons to be plotted for the observed data.
+    seasons_list_mod (list): The list of seasons to be plotted for the model data.
+    plots_dir (str): The directory where the plots will be saved.
+    azores_grid (numpy.ndarray): The grid of the Azores region.
+    iceland_grid (numpy.ndarray): The grid of the Iceland region.
+    p_sig (float): The significance level for the correlation coefficients.
+    experiment (str): The name of the experiment to be plotted.
+
+    Returns:
+    None
+    """
+
+    # Create an empty list to store the processed observations
+    # for each season
+    obs_list = []
+
+    # Create empty lists to store the r and p fields
+    # for each season
+    rfield_list = []
+    pfield_list = []
+
+    # Create lists to store the obs_lons_converted and lons_converted
+    # for each season
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Add labels A, B, C, D to the subplots
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Set up the list of model variables
+    model_ws_variables = ["ua", "va"]
+
+    # Set up the list of obs variables
+    obs_ws_variables = ["var131", "var132"]
+
+    # Loop over the seasons
+    for i in range(len(seasons_list_obs)):
+        # Print the seasons being processed
+        print("obs season", seasons_list_obs[i])
+        print("mod season", seasons_list_mod[i])
+
+        # Loop over the obs
+
 
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
