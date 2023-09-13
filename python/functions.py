@@ -1906,6 +1906,18 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
 
                     # Continue to the next grid point
                     continue
+            
+                # If there are any NaN values in the obs or model data
+                if np.isnan(obs).any() or np.isnan(mod).any():
+                    # #print a warning
+                    print("Warning: NaN values detected in the data.")
+                    print("Setting rfield and pfield to NaN.")
+
+                    # Set the correlation coefficient and p-value to NaN
+                    rfield[y, x], pfield[y, x] = np.nan, np.nan
+
+                    # Continue to the next grid point
+                    continue
 
                 # Calculate the correlation coefficient and p-value
                 r, p = stats.pearsonr(obs, mod)
