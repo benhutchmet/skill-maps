@@ -2866,6 +2866,9 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
         try:
             # Calculate the wind speed for the model data
             model_data = np.sqrt(model_data_u**2 + model_data_v**2)
+
+            # TODO: Loop over models and members
+
         except Exception as e:
             print("Error when trying to calculate wind speeds from the model data xarrays: ", e)
             sys.exit()
