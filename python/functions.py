@@ -1365,11 +1365,15 @@ def process_model_data_for_plot(model_data, models):
         for member in model_data_combined:
             
             # TODO: Figure out issue with time dimension for variable correlations plot MAY
+            
             # # Modify the time dimension
-            # member_time = member.time.astype('datetime64[ns]')
+            # if type is not already datetime64
+            # then convert the time type to datetime64
+            if type(member.time.values[0]) != np.datetime64:
+                member_time = member.time.astype('datetime64[ns]')
 
-            # # Modify the time coordinate using the assign_coords() method
-            # member = member.assign_coords(time=member_time)
+                # # Modify the time coordinate using the assign_coords() method
+                member = member.assign_coords(time=member_time)
 
             # Print the type of the calendar
             # print(model, "calendar type:", member.time)
