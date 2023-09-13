@@ -2781,7 +2781,9 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     # Show the figure
     plt.show()
 
-# TODO: Write new function to plot the gridbox average correlations
+# Plot seasonal correlations for the wind speed at a given level
+# TODO: WRIte function for plotting wind speed correlations at a given level (850 hPa)
+
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
 def plot_seasonal_correlations_timeseries(models, observations_path, variable, forecast_range, 
