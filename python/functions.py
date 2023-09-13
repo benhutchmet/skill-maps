@@ -2029,6 +2029,8 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
         obs_var_name = "var131"
     elif obs_var_name == "var132":
         obs_var_name = "var132"
+    elif obs_var_name == "Wind":
+        obs_var_name = "Wind"
     else:
         #print("Invalid variable name")
         sys.exit()
@@ -2860,6 +2862,19 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
         model_data_u, model_time_u = process_data(model_datasets_u, model_ws_variables[0])
         model_data_v, model_time_v = process_data(model_datasets_v, model_ws_variables[1])
 
+        # Use a try statement to catch any errors
+        try:
+            # Calculate the wind speed for the model data
+            model_data = np.sqrt(model_data_u**2 + model_data_v**2)
+        except Exception as e:
+            print("Error when trying to calculate wind speeds from the model data xarrays: ", e)
+            sys.exit()
+
+        # Define a test ws variable
+        windspeed_var_name = "Wind"
+
+        # Calculate the spatial correlations for the season
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, shared_models, windspeed_var_name)
 
 
 
