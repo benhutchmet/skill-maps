@@ -1375,6 +1375,20 @@ def process_model_data_for_plot(model_data, models):
                 # # Modify the time coordinate using the assign_coords() method
                 member = member.assign_coords(time=member_time)
 
+            # Extract the lat and lon values
+            lat = member.lat.values
+            lon = member.lon.values
+
+            # Extract the years
+            years = member.time.dt.year.values
+
+            # If the years index has duplicate values
+            # Then we will skip over this ensemble member
+            # and not append it to the list of ensemble members
+            if len(years) != len(set(years)):
+                print("Duplicate years in ensemble member")
+                continue
+
             # Print the type of the calendar
             # print(model, "calendar type:", member.time)
             # print("calendar type:", type(member.time))
@@ -1389,13 +1403,6 @@ def process_model_data_for_plot(model_data, models):
             # #print("values for model:", model)
             # #print("values for members:", member)
             # #print("member values:", member.values)
-
-            # Extract the lat and lon values
-            lat = member.lat.values
-            lon = member.lon.values
-
-            # Extract the years
-            years = member.time.dt.year.values
 
             # #print statements for debugging
             # #print('shape of years', np.shape(years))
