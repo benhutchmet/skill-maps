@@ -2839,7 +2839,29 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
         print("obs season", seasons_list_obs[i])
         print("mod season", seasons_list_mod[i])
 
-        # Loop over the obs
+        # Calculate the U and V wind components for the observations
+        obs_u = process_observations(model_ws_variables[0], region, region_grid, forecast_range, seasons_list_obs[i], obs_path, obs_ws_variables[0])
+        obs_v = process_observations(model_ws_variables[1], region, region_grid, forecast_range, seasons_list_obs[i], obs_path, obs_ws_variables[1])
+
+        # Use a try statement to catch any errors
+        try:
+            # Calculate the wind speed for the observations
+            obs = np.sqrt(obs_u**2 + obs_v**2)
+        except Exception as e:
+            print("Error when trying to calculate wind speeds from the obs xarrays: ", e)
+            sys.exit()
+
+        # Load and process the model data
+        # for the U and V wind components
+        model_datasets_u = load_data(dic.base_dir, shared_models, model_ws_variables[0], region, forecast_range, seasons_list_mod[i])
+        model_datasets_v = load_data(dic.base_dir, shared_models, model_ws_variables[1], region, forecast_range, seasons_list_mod[i])
+
+        # Process the model data
+        model_data_u, model_time_u = process_data(model_datasets_u, model_ws_variables[0])
+        model_data_v, model_time_v = process_data(model_datasets_v, model_ws_variables[1])
+
+
+
 
 
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
