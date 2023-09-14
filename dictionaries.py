@@ -146,6 +146,14 @@ central_europe_grid = {
     'lat2': 60
 }
 
+# Define the dimensions for another central europe grid for RSDS correlations
+central_europe_grid_rsds = {
+    'lon1': 5,
+    'lon2': 40,
+    'lat1': 40,
+    'lat2': 70
+}
+
 
 # Define the dimensions for the gridbox for the N-S UK index
 # From thornton et al. 2019
