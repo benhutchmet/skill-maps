@@ -2867,7 +2867,35 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
             # Calculate the wind speed for the model data
             model_data = np.sqrt(model_data_u**2 + model_data_v**2)
 
+            # Create a dictionary to store the model data
+            model_data_ws = {}
+
             # TODO: Loop over models and members
+            for model in shared_models:
+                # Extract the model data for the u and v wind components
+                model_data_u = model_data_u[model]
+                model_data_v = model_data_v[model]
+
+                # Create a list to store the ensemble members
+                # for wind speed
+                model_data_ws[model] = []
+
+                # Loop over the ensemble members for the model
+                for i in range(len(model_data_u[:, 0, 0, 0, 0])):
+                    
+                    # Make sure that model data u and v are the same shape
+                    if np.shape(model_data_u[i, :, :, :, :]) == np.shape(model_data_v[i, :, :, :, :]):
+                        # Calculate the wind speed
+                        model_data_ws[model].append(np.sqrt(model_data_u[i, :, :, :, :]**2 + model_data_v[i, :, :, :, :]**2))
+                    else:
+                        print("Error: model data u and v are not the same shape")
+                        sys.exit()
+                    
+                    # Calculate the wind speed for the model data
+                    # For the new list of ensemble members
+
+
+                    # 
 
         except Exception as e:
             print("Error when trying to calculate wind speeds from the model data xarrays: ", e)
