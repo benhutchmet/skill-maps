@@ -3733,6 +3733,13 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
         if variables_list[i] in ['ua', 'va']:
             # Set up the observations path
             observations_path = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
+        elif variables_list[i] == 'Wind':
+            # Print that the variable is Wind
+            print("variable is Wind")
+            print("Processing the 850 level wind speeds")
+
+            # TODO: Set up processing of the obs and model data for the 850 level wind speeds here
+
 
         # Process the observations
         obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
