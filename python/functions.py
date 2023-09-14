@@ -1743,10 +1743,12 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
         print("Observed data and ensemble mean must have the same shape.")
         print("observed data shape", np.shape(observed_data_array))
         print("model data shape", np.shape(ensemble_mean_array))
-        if variable in ["var131", "var132", "ua", "va"]:
+        if variable in ["var131", "var132", "ua", "va", "Wind"]:
             print("removing the vertical dimension")
             # using the .squeeze() method
             ensemble_mean_array = ensemble_mean_array.squeeze()
+            print("model data shape after removing vertical dimension", np.shape(ensemble_mean_array))
+            print("observed data shape", np.shape(observed_data_array))
 
     # Calculate the correlations between the observed and model data
     rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
