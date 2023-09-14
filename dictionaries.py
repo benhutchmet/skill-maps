@@ -148,9 +148,9 @@ central_europe_grid = {
 
 # Define the dimensions for another central europe grid for RSDS correlations
 central_europe_grid_rsds = {
-    'lon1': 5,
-    'lon2': 40,
-    'lat1': 40,
+    'lon1': 165,
+    'lon2': 220,
+    'lat1': 30,
     'lat2': 70
 }
 
