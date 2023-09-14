@@ -2873,22 +2873,22 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
             # Loop over the models and members
             for model in shared_models:
                 # Extract the model data for the u and v wind components
-                model_data_u = model_data_u[model]
-                model_data_v = model_data_v[model]
+                model_data_u_model = model_data_u[model]
+                model_data_v_model = model_data_v[model]
 
                 # Create a list to store the ensemble members
                 # for wind speed
                 model_data_ws[model] = []
 
-                no_members_model = len(model_data_u)
+                no_members_model = len(model_data_u_model)
 
                 # Loop over the ensemble members for the model
                 for i in range(no_members_model):
                     
                     # Extract the u field for the ensemble member
-                    u_field = model_data_u[i]
+                    u_field = model_data_u_model[i]
                     # Extract the v field for the ensemble member
-                    v_field = model_data_v[i]
+                    v_field = model_data_v_model[i]
 
                     # Calculate the wind speed for the ensemble member
                     ws_field = np.sqrt(np.square(u_field) + np.square(v_field))
