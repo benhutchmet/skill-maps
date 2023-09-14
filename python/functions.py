@@ -1512,6 +1512,13 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
             # Extract the years
             years = member_gridbox_mean.time.dt.year.values
 
+            # If the years index has duplicate values
+            # Then we will skip over this ensemble member
+            # and not append it to the list of ensemble members
+            if len(years) != len(set(years)):
+                print("Duplicate years in ensemble member")
+                continue
+
             # Print the years for debugging
             print("len years for model", model, "and member", member, ":", len(years))
 
