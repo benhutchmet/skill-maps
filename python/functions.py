@@ -2880,23 +2880,24 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
                 # for wind speed
                 model_data_ws[model] = []
 
+                no_members = len(model_data_u[:, 0, 0, 0, 0])
+
                 # Loop over the ensemble members for the model
-                for i in range(len(model_data_u[:, 0, 0, 0, 0])):
+                for i in range(no_members):
                     
-                    # Make sure that model data u and v are the same shape
-                    if np.shape(model_data_u[i, :, :, :, :]) == np.shape(model_data_v[i, :, :, :, :]):
+                    # Extract the u field for the ensemble member
+                    u_field = model_data_u[i, :, :, :, :]
+                    # Extract the v field for the ensemble member
+                    v_field = model_data_v[i, :, :, :, :]
+
+                    # If the u and v fields are the same shape
+                    if np.shape(u_field) == np.shape(v_field):
                         # Calculate the wind speed
-                        model_data_ws[model].append(np.sqrt(model_data_u[i, :, :, :, :]**2 + model_data_v[i, :, :, :, :]**2))
+                        model_data_ws[model].append(np.sqrt(np.square(u_field) + np.square(v_field)))
                     else:
                         print("Error: model data u and v are not the same shape")
                         sys.exit()
-                    
-                    # Calculate the wind speed for the model data
-                    # For the new list of ensemble members
-
-
-                    # 
-
+                
         except Exception as e:
             print("Error when trying to calculate wind speeds from the model data xarrays: ", e)
             sys.exit()
@@ -2905,7 +2906,7 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
         windspeed_var_name = "Wind"
 
         # Calculate the spatial correlations for the season
-        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, shared_models, windspeed_var_name)
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data_ws, shared_models, windspeed_var_name)
 
         # Append the processed observations to the list
         obs_list.append(obs)
