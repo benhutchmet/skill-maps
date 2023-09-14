@@ -3633,7 +3633,7 @@ def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_r
         elif p < 0.05:
             p_text = "< 0.05"
         else:
-            p_text = f"{p:.2f}"
+            p_text = f"= {p:.2f}"
 
         # Extract the ensemble members count
         ensemble_members_count = ensemble_members_count_list[i]
@@ -3641,7 +3641,7 @@ def plot_seasonal_nao_anomalies_timeseries(models, observations_path, forecast_r
         no_ensemble_members = sum(ensemble_members_count.values())
 
         # Set up the title for the subplot
-        ax.set_title(f"ACC = +{r:.2f}, p = {p_text}, n = {no_ensemble_members}", fontsize=10)
+        ax.set_title(f"ACC = {r:.2f}, p {p_text}, n = {no_ensemble_members}", fontsize=10)
 
     # Adjust the layout
     # plt.tight_layout()
