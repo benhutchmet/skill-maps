@@ -2867,13 +2867,10 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
 
         # Use a try statement to catch any errors
         try:
-            # Calculate the wind speed for the model data
-            model_data = np.sqrt(model_data_u**2 + model_data_v**2)
-
             # Create a dictionary to store the model data
             model_data_ws = {}
 
-            # TODO: Loop over models and members
+            # Loop over the models and members
             for model in shared_models:
                 # Extract the model data for the u and v wind components
                 model_data_u = model_data_u[model]
@@ -2883,24 +2880,21 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
                 # for wind speed
                 model_data_ws[model] = []
 
-                no_members = len(model_data_u[:, 0, 0, 0, 0])
+                no_members_model = len(model_data_u)
 
                 # Loop over the ensemble members for the model
-                for i in range(no_members):
+                for i in range(no_members_model):
                     
                     # Extract the u field for the ensemble member
-                    u_field = model_data_u[i, :, :, :, :]
+                    u_field = model_data_u[i]
                     # Extract the v field for the ensemble member
-                    v_field = model_data_v[i, :, :, :, :]
+                    v_field = model_data_v[i]
 
-                    # If the u and v fields are the same shape
-                    if np.shape(u_field) == np.shape(v_field):
-                        # Calculate the wind speed
-                        model_data_ws[model].append(np.sqrt(np.square(u_field) + np.square(v_field)))
-                    else:
-                        print("Error: model data u and v are not the same shape")
-                        sys.exit()
-                
+                    # Calculate the wind speed for the ensemble member
+                    ws_field = np.sqrt(np.square(u_field) + np.square(v_field))
+
+                    # Append the wind speed field to the list
+                    model_data_ws[model].append(ws_field)
         except Exception as e:
             print("Error when trying to calculate wind speeds from the model data xarrays: ", e)
             sys.exit()
