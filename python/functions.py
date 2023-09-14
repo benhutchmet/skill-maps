@@ -3122,15 +3122,24 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
 
         # If the season is DJFM or MAM
         # then we want to use the North Sea grid
-        if season in ['DJFM', 'MAM']:
-            # Set up the region
-            region = 'north-sea'
-        elif season in ['JJA', 'SON']:
+        # If the variable is 'sfcWind'
+        if variable == 'sfcWind':
+            print("variable is sfcWind")
+            print("Selecting boxes according to the season of interest")
+            if season in ['DJFM', 'MAM']:
+                # Set up the region
+                region = 'north-sea'
+            elif season in ['JJA', 'SON']:
+                # Set up the region
+                region = 'central-europe'
+            else:
+                print("Error: season not found")
+                sys.exit()
+        else:
+            print("variable is not sfcWind")
+            print("Selecting a single box for all seasons")
             # Set up the region
             region = 'central-europe'
-        else:
-            print("Error: season not found")
-            sys.exit()
 
         # Print the region
         print("region", region)
@@ -3163,16 +3172,21 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
             print("Error: ensemble mean array shape does not match observed data array shape")
             sys.exit()
 
-        # Depending on the season, append the r to the correct list
-        if season in ['DJFM', 'MAM']:
-            r_north_sea_list.append(r)
-            p_north_sea_list.append(p)
-        elif season in ['JJA', 'SON']:
+        if variable == 'sfcWind':
+            # Depending on the season, append the r to the correct list
+            if season in ['DJFM', 'MAM']:
+                r_north_sea_list.append(r)
+                p_north_sea_list.append(p)
+            elif season in ['JJA', 'SON']:
+                r_central_europe_list.append(r)
+                p_central_europe_list.append(p)
+            else:
+                print("Error: season not found")
+                sys.exit()
+        else:
+            # Append the r to the central europe list
             r_central_europe_list.append(r)
             p_central_europe_list.append(p)
-        else:
-            print("Error: season not found")
-            sys.exit()
 
         # Append the ensemble members count to the list
         ensemble_members_count_list.append(ensemble_members_count)
@@ -3217,26 +3231,31 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         print("axis index", i)
 
         # Print the values in the r and p lists
-        print("r_north_sea_list", r_north_sea_list)
-        print("p_north_sea_list", p_north_sea_list)
+        # print("r_north_sea_list", r_north_sea_list)
+        # print("p_north_sea_list", p_north_sea_list)
 
-        print("r_central_europe_list", r_central_europe_list)
-        print("p_central_europe_list", p_central_europe_list)
+        # print("r_central_europe_list", r_central_europe_list)
+        # print("p_central_europe_list", p_central_europe_list)
 
-        # Extract the r and p values
-        # depending on the season
-        if season in ['DJFM', 'MAM']:
-            r = r_north_sea_list[i]
-            p = p_north_sea_list[i]
-        elif season in ['JJA', 'SON']:
-            # run the index back by 2
-            # so that the index matches the correct season
-            i_season = i - 2
-            r = r_central_europe_list[i_season]
-            p = p_central_europe_list[i_season]
+        if variable == 'sfcWind':
+            # Extract the r and p values
+            # depending on the season
+            if season in ['DJFM', 'MAM']:
+                r = r_north_sea_list[i]
+                p = p_north_sea_list[i]
+            elif season in ['JJA', 'SON']:
+                # run the index back by 2
+                # so that the index matches the correct season
+                i_season = i - 2
+                r = r_central_europe_list[i_season]
+                p = p_central_europe_list[i_season]
+            else:
+                print("Error: season not found")
+                sys.exit()
         else:
-            print("Error: season not found")
-            sys.exit()
+            # Extract the r and p values
+            r = r_central_europe_list[i]
+            p = p_central_europe_list[i]
 
         # print the shape of the model years
         # print("model years shape", np.shape(model_years_list[i]))
@@ -3262,13 +3281,22 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         # Add a horizontal line at zero
         ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
         # ax.set_xlim([np.datetime64("1960"), np.datetime64("2020")])
-        if i == 0 or i == 1:
-            ax.set_ylim([-0.6, 0.6])
-        elif i == 2 or i == 3:
-            ax.set_ylim([-0.2, 0.2])
-        #ax.set_xlabel("Year")
-        if i == 0 or i == 2:
-            ax.set_ylabel("sfcWind anomalies (m/s)")
+        if variable == 'sfcWind':
+            if i == 0 or i == 1:
+                ax.set_ylim([-0.6, 0.6])
+            elif i == 2 or i == 3:
+                ax.set_ylim([-0.2, 0.2])
+            #ax.set_xlabel("Year")
+            if i == 0 or i == 2:
+                ax.set_ylabel("sfcWind anomalies (m/s)")
+        else:
+            if i == 0 or i == 1:
+                ax.set_ylim([-5, 5])
+            elif i == 2 or i == 3:
+                ax.set_ylim([-5, 5])
+            #ax.set_xlabel("Year")
+            if i == 0 or i == 2:
+                ax.set_ylabel("Irradiance anomalies (W m^-2)")
 
         # set the x-axis label for the bottom row
         if i == 2 or i == 3:
@@ -3277,15 +3305,20 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         # Set up a textbox with the season name in the top left corner
         ax.text(0.05, 0.95, season, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
 
-        # Depending on the season, set up the region name
-        # as a textbox in the top right corner
-        if season in ['DJFM', 'MAM']:
-            region_name = 'North Sea'
-        elif season in ['JJA', 'SON']:
-            region_name = 'Central Europe'
+        # Only if the variable is sfcWind
+        if variable == 'sfcWind':
+            # Depending on the season, set up the region name
+            # as a textbox in the top right corner
+            if season in ['DJFM', 'MAM']:
+                region_name = 'North Sea'
+            elif season in ['JJA', 'SON']:
+                region_name = 'Central Europe'
+            else:
+                print("Error: season not found")
+                sys.exit()
         else:
-            print("Error: season not found")
-            sys.exit()
+            # Set up the region name as a textbox in the top right corner
+            region_name = 'Central Europe'
 
         # Add a textbox with the region name
         ax.text(0.95, 0.95, region_name, transform=ax.transAxes, fontsize=8, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
@@ -3303,7 +3336,7 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         elif p < 0.05:
             p_text = "< 0.05"
         else:
-            p_text = f"{p:.2f}"
+            p_text = f"= {p:.2f}"
             
         # Extract the ensemble members count
         ensemble_members_count = ensemble_members_count_list[i]
@@ -3311,7 +3344,7 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         no_ensemble_members = sum(ensemble_members_count.values())
 
         # Set up the title for the subplot
-        ax.set_title(f"ACC = +{r:.2f}, p = {p_text}, n = {no_ensemble_members}", fontsize=10)
+        ax.set_title(f"ACC = {r:.2f}, p {p_text}, n = {no_ensemble_members}", fontsize=10)
 
     # Adjust the layout
     # plt.tight_layout()
