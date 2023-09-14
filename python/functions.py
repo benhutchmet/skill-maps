@@ -3285,6 +3285,12 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
         # # print the shape of the obs
         # print("obs shape", np.shape(obs_list[i]))
 
+        # if the variable is rsds
+        # Divide the ERA5 monthly mean ssrd by 86400 to convert from J m^-2 to W m^-2
+        if variable == 'rsds':
+            # Divide the obs by 86400
+            obs_list[i] = obs_list[i] / 86400
+
         # Plot the ensemble mean
         ax.plot(model_years_list[i], ensemble_mean_array_list[i], color='red', label='dcppA')
 
@@ -3304,11 +3310,6 @@ def plot_seasonal_correlations_timeseries(models, observations_path, variable, f
             if i == 0 or i == 2:
                 ax.set_ylabel("sfcWind anomalies (m/s)")
         else:
-            if i == 0 or i == 1:
-                ax.set_ylim([-5, 5])
-            elif i == 2 or i == 3:
-                ax.set_ylim([-5, 5])
-            #ax.set_xlabel("Year")
             if i == 0 or i == 2:
                 ax.set_ylabel("Irradiance anomalies (W m^-2)")
 
