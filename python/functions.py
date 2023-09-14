@@ -1474,8 +1474,15 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
 
-            # model_name = member.attrs['source_id']
-            # member_id = member.attrs['variant_label']
+            # Modify the time dimension
+            # if type is not already datetime64
+            # then convert the time type to datetime64
+            if type(member.time.values[0]) != np.datetime64:
+                # Extract the time values as datetime64
+                member_time = member.time.astype('datetime64[ns]')
+
+                # Modify the time coordinate using the assign_coords() method
+                member = member.assign_coords(time=member_time)
 
             # Set up the region
             if region == "north-sea":
