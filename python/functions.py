@@ -2868,7 +2868,7 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
         # Use a try statement to catch any errors
         try:
             # Calculate the wind speed for the observations
-            obs = np.sqrt(obs_u**2 + obs_v**2)
+            obs = np.sqrt(np.square(obs_u) + np.square(obs_v))
         except Exception as e:
             print("Error when trying to calculate wind speeds from the obs xarrays: ", e)
             sys.exit()
