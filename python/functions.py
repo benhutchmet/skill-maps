@@ -1363,9 +1363,7 @@ def process_model_data_for_plot(model_data, models):
         
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
-            
-            # TODO: Figure out issue with time dimension for variable correlations plot MAY
-            
+                        
             # # Modify the time dimension
             # if type is not already datetime64
             # then convert the time type to datetime64
