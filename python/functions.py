@@ -2608,6 +2608,11 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
         # Print the shape of the model data
         print("model shape", np.shape(model_data))
 
+        # If the variable is 'rsds'
+        # divide the obs data by 86400 to convert from J/m2 to W/m2
+        if variable == 'rsds':
+            obs /= 86400
+
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
 
