@@ -1756,7 +1756,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
         print("observed data shape", np.shape(observed_data_array))
         print("model data shape", np.shape(ensemble_mean_array))
         print(f"variable = {variable}")
-        if variable in ["var131", "var132", "ua", "va", "Wind"]:
+        if variable in ["var131", "var132", "ua", "va", "Wind", "wind"]:
             print("removing the vertical dimension")
             # using the .squeeze() method
             ensemble_mean_array = ensemble_mean_array.squeeze()
