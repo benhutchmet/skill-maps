@@ -2025,31 +2025,6 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
     # # Set the obs_var_name == variable
     obs_var_name = variable
 
-    # Set up the obs_var_name
-    if obs_var_name == "psl":
-        obs_var_name = "msl"
-    elif obs_var_name == "tas":
-        obs_var_name = "t2m"
-    elif obs_var_name == "sfcWind":
-        obs_var_name = "si10"
-    elif obs_var_name == "rsds":
-        obs_var_name = "ssrd"
-    elif obs_var_name == "tos":
-        obs_var_name = "sst"
-    elif obs_var_name == "ua":
-        obs_var_name = "var131"
-    elif obs_var_name == "va":
-        obs_var_name = "var132"
-    elif obs_var_name == "var131":
-        obs_var_name = "var131"
-    elif obs_var_name == "var132":
-        obs_var_name = "var132"
-    elif obs_var_name == "Wind":
-        obs_var_name = "Wind"
-    else:
-        #print("Invalid variable name")
-        sys.exit()
-
     #print("var name for obs", obs_var_name)
     
     for year in observed_data.time.dt.year.values[::-1]:
