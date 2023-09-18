@@ -3792,10 +3792,10 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
                 no_members_model = len(model_data_u_model)
 
                 # Loop over the ensemble members
-                for i in range(no_members_model):
+                for n in range(no_members_model):
                     # Extract the u and v components
-                    u = model_data_u_model[i]
-                    v = model_data_v_model[i]
+                    u = model_data_u_model[n]
+                    v = model_data_v_model[n]
 
                     # Calculate the wind speed
                     ws = np.sqrt(np.square(u) + np.square(v))
