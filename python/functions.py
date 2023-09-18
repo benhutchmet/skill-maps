@@ -3730,6 +3730,9 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
             print("variable is Wind")
             print("Processing the 850 level wind speeds")
 
+            # Hard code the observations path lol
+            observations_path = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
+
             # TODO: Set up processing of the obs and model data for the 850 level wind speeds here
             # Calculate the U and V components of the observed wind
             obs_u = process_observations(model_ws_variables[0], region, region_grid, forecast_range, 
