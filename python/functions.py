@@ -3723,6 +3723,12 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
     # Add labels A, B, C, D to the subplots
     ax_labels = ['A', 'B', 'C', 'D']
 
+    # Set up the list of model variables
+    model_ws_variables = ["ua", "va"]
+
+    # Set up the list of obs variables
+    obs_ws_variables = ["var131", "var132"]
+
     # Loop over the variables
     for i in range(len(variables_list)):
         
@@ -3732,21 +3738,6 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
         # Extract the models for the variable
         models = models_list[i]
 
-        # If the variable is ua or va, then set up a different path for the observations
-        if variables_list[i] in ['ua', 'va']:
-            # Set up the observations path
-            observations_path = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
-        elif variables_list[i] == 'Wind':
-            # Print that the variable is Wind
-            print("variable is Wind")
-            print("Processing the 850 level wind speeds")
-
-            # TODO: Set up processing of the obs and model data for the 850 level wind speeds here
-
-
-        # Process the observations
-        obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
-
         # Set up the model season
         if season == "JJA":
             model_season = "ULG"
@@ -3755,10 +3746,74 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
         else:
             model_season = season
 
-        # Load and process the model data
-        model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, model_season)
-        # Process the model data
-        model_data, model_time = process_data(model_datasets, variables_list[i])
+        # If the variable is ua or va, then set up a different path for the observations
+        if variables_list[i] in ['ua', 'va']:
+            # Set up the observations path
+            observations_path = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
+        elif variables_list[i] == 'wind':
+            # Print that the variable is Wind
+            print("variable is Wind")
+            print("Processing the 850 level wind speeds")
+
+            # TODO: Set up processing of the obs and model data for the 850 level wind speeds here
+            # Calculate the U and V components of the observed wind
+            obs_u = process_observations(model_ws_variables[0], region, region_grid, forecast_range, 
+                                        season, observations_path, obs_ws_variables[0])
+            obs_v = process_observations(model_ws_variables[1], region, region_grid, forecast_range,
+                                        season, observations_path, obs_ws_variables[1])
+            
+            # Calculate the observed wind speed
+            obs = np.sqrt(np.square(obs_u) + np.square(obs_v))
+
+            # Append the processed observations to the list
+            obs_list.append(obs)
+
+            # Load and process the model data for both the U and V components
+            model_datasets_u = load_data(dic.base_dir, models, model_ws_variables[0], region, forecast_range, season)
+            model_data_u, model_time_u = process_data(model_datasets_u, model_ws_variables[0])
+
+            # For the v component
+            model_datasets_v = load_data(dic.base_dir, models, model_ws_variables[1], region, forecast_range, season)
+            model_data_v, model_time_v = process_data(model_datasets_v, model_ws_variables[1])
+
+            # Create a dictionary to store the model data
+            model_data_ws = {}
+
+            # Loop over the models
+            for model in models:
+                # Extract the U and V components
+                model_data_u_model = model_data_u[model]
+                model_data_v_model = model_data_v[model]
+
+                # Create a list to store the ensemble members
+                model_data_ws[model] = []
+
+                # Set up the no. of ensemble members
+                no_members_model = len(model_data_u_model)
+
+                # Loop over the ensemble members
+                for i in range(no_members_model):
+                    # Extract the u and v components
+                    u = model_data_u_model[i]
+                    v = model_data_v_model[i]
+
+                    # Calculate the wind speed
+                    ws = np.sqrt(np.square(u) + np.square(v))
+
+                    # Append the wind speed to the list
+                    model_data_ws[model].append(ws)
+
+            # Set up the model data
+            model_data = model_data_ws
+        else:
+            print("variable is not wind or wind components")
+            # Process the observations
+            obs = process_observations(variables_list[i], region, region_grid, forecast_range, season, observations_path, obs_var_names[i])
+
+            # Load and process the model data
+            model_datasets = load_data(dic.base_dir, models, variables_list[i], region, forecast_range, model_season)
+            # Process the model data
+            model_data, model_time = process_data(model_datasets, variables_list[i])
 
         # Calculate the spatial correlations for the model
         rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variables_list[i])
