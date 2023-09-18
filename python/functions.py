@@ -3744,11 +3744,11 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
             obs_list.append(obs)
 
             # Load and process the model data for both the U and V components
-            model_datasets_u = load_data(dic.base_dir, models, model_ws_variables[0], region, forecast_range, season)
+            model_datasets_u = load_data(dic.base_dir, models, model_ws_variables[0], region, forecast_range, model_season)
             model_data_u, model_time_u = process_data(model_datasets_u, model_ws_variables[0])
 
             # For the v component
-            model_datasets_v = load_data(dic.base_dir, models, model_ws_variables[1], region, forecast_range, season)
+            model_datasets_v = load_data(dic.base_dir, models, model_ws_variables[1], region, forecast_range, model_season)
             model_data_v, model_time_v = process_data(model_datasets_v, model_ws_variables[1])
 
             # Create a dictionary to store the model data
