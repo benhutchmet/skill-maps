@@ -1968,7 +1968,7 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         return rfield, pfield
 
     except Exception as e:
-        #print(f"Error calculating correlations: {e}")
+        print(f"Error calculating correlations: {e}")
         sys.exit()
 
 # Define a new function to calculate the one dimensional correlations
