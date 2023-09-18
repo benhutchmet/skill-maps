@@ -251,3 +251,6 @@ obs_ua_va = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694
 # for the new set of variables subplots
 variables_list_updated = [ "psl", "tas", "wind", "rsds" ]
 models_list_updated = [ common_models, common_models, common_models, common_models_noCMCC ]
+
+# Updates obs var names
+obs_var_names_updated = ["psl", "tas", "wind", "rsds"]
