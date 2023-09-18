@@ -254,3 +254,6 @@ models_list_updated = [ common_models, common_models, common_models, common_mode
 
 # Updates obs var names
 obs_var_names_updated = ["psl", "tas", "wind", "rsds"]
+
+variables_list_ws_compare = [ "psl", "rsds", "wind", "sfcWind" ]
+models_list_ws_compare = [ common_models, common_models_noCMCC, common_models, sfcWind_models ]
