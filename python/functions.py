@@ -53,7 +53,7 @@ import dictionaries as dic
 # forecast_range: the forecast range to load, extracted from the command line
 # season: the season to load, extracted from the command line
 
-def load_data(base_directory, models, variable, region, forecast_range, season):
+def load_data(base_directory, models, variable, region, forecast_range, season, level=None):
     """Load the data from the base directory into a dictionary of datasets.
     
     This function takes a base directory and a list of models and loads
@@ -67,6 +67,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         region: The region to load, extracted from the command line.
         forecast_range: The forecast range to load, extracted from the command line.
         season: The season to load, extracted from the command line.
+        Level: The level to load, extracted from the command line. Default is None.
         
     Returns:
         A dictionary of datasets grouped by models.
@@ -81,8 +82,12 @@ def load_data(base_directory, models, variable, region, forecast_range, season):
         # Create an empty list to store the datasets for this model.
         datasets_by_model[model] = []
         
-        # create the path to the files for this model
-        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
+        # If the level is not None, then we want to load the data for the specified level
+        if level is not None:
+            files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + f"plev_{level}" + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
+        else:
+            # create the path to the files for this model
+            files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
 
         # #print the path to the files
         #print("Searching for files in ", files_path)
