@@ -248,7 +248,7 @@ updated_models_list_850u = [ common_models, common_models, common_models, common
 
 obs_ua_va = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
 
-obs_ua_va_925_1000 = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1695119417.6957593-19943-15-3e812c68-d8c5-42b1-bac9-d086b50ae406.grib"
+obs_ua_va_925_1000 = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1695119417.6957593-19943-15-3e812c68-d8c5-42b1-bac9-d086b50ae406.nc"
 
 # for the new set of variables subplots
 variables_list_updated = [ "psl", "tas", "wind", "rsds" ]
