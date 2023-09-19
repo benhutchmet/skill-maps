@@ -415,7 +415,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
     if obs_var_name in ["ua", "va", "var131", "var132"]:
         print("Variable is ua or va, creating new file name")
         if level is not None:
-            regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + "_" + level + ".grib"
+            regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + "_" + level + ".nc"
         else:
             regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + ".nc"
     else:
