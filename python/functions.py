@@ -415,7 +415,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
     if obs_var_name in ["ua", "va", "var131", "var132"]:
         print("Variable is ua or va, creating new file name")
         if level is not None:
-            regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + "_" + level + ".nc"
+            regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + "_" + level + ".grib"
         else:
             regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + ".nc"
     else:
@@ -470,7 +470,12 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
 
         # If variable is ua or va, then we want to load the dataset differently
         if obs_var_name in ["var131", "var132"]:
-            regrid_sel_region_dataset_combine = xr.open_dataset(regrid_sel_region_file, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
+            # if regrid_sel_region_file is a grib file, then we need to use the grib option
+            if regrid_sel_region_file.endswith(".grib"):
+                # Load the dataset for the selected variable
+                regrid_sel_region_dataset_combine = xr.open_dataset(regrid_sel_region_file, engine='cfgrib', backend_kwargs={'indexpath': ''})[obs_var_name]
+            else:
+                regrid_sel_region_dataset_combine = xr.open_dataset(regrid_sel_region_file, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
         else:
 
             # Load the dataset for the selected variable
