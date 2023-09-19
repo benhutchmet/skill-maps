@@ -364,13 +364,15 @@ def select_region(regridded_obs_dataset, region_grid):
         sys.exit()
 
 # Using cdo to do the regridding and selecting the region
-def regrid_and_select_region(observations_path, region, obs_var_name):
+def regrid_and_select_region(observations_path, region, obs_var_name, level=None):
     """
     Uses CDO remapbil and a gridspec file to regrid and select the correct region for the obs dataset. Loads for the specified variable.
     
     Parameters:
     observations_path (str): The path to the observations dataset.
     region (str): The region to select.
+    obs_var_name (str): The name of the variable in the observations dataset.
+    level (str): The level to load, extracted from the command line. Default is None.
 
     Returns:
     xarray.Dataset: The regridded and selected observations dataset.
@@ -412,7 +414,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # If the variable is ua or va, then we want to select the plev=85000
     if obs_var_name in ["ua", "va", "var131", "var132"]:
         print("Variable is ua or va, creating new file name")
-        regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + ".nc"
+        if level is not None:
+            regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + "_" + level + ".nc"
+        else:
+            regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region_" + obs_var_name + ".nc"
     else:
         print("Variable is not ua or va, creating new file name")
         regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region" + ".nc"
@@ -739,7 +744,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
     try:
         # Regrid using CDO, select region and load observation dataset
         # for given variable
-        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
+        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name, plev)
 
         # Check for NaN values in the observations dataset
         # #print("Checking for NaN values in obs_dataset")
