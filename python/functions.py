@@ -693,7 +693,7 @@ def load_observations(observations_path, obs_var_name):
         sys.exit()
 
 # Call the functions to process the observations
-def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
+def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name, plev=None):
     """
     Processes the observations dataset by regridding it to the model grid, selecting a region and season,
     calculating anomalies, calculating annual mean anomalies, selecting the forecast range, and returning
@@ -707,6 +707,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         season (str): The season to select.
         observations_path (str): The path to the observations dataset.
         obs_var_name (str): The name of the variable in the observations dataset.
+        plev (int): The pressure level to select for the observations dataset. Defaults to None.
 
     Returns:
         xarray.Dataset: The processed observations dataset.
@@ -740,8 +741,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # check_for_nan_values(obs_dataset)
         if variable in ["ua", "va"]:
             # Use xarray to select the plev=85000 level
-            print("Selecting plev=85000 level for observations dataset")
-            obs_dataset = obs_dataset.sel(plev=85000)
+            print("Selecting plev=,", plev, "level for observations dataset")
+            obs_dataset = obs_dataset.sel(plev=plev)
 
             # If the dataset contains more than one vertical level
             # then give an error and exit the program
