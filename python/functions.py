@@ -1672,13 +1672,940 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
 
     return observed_data, constrained_data
 
+# Write a function to rescale the NAO index
+# We will only consider the non-lagged ensemble index for now
+def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, lagged = False):
+    """
+    Rescales the NAO index according to Doug Smith's (2020) method.
+    
+    Parameters
+    ----------
+    obs_nao : xarray.Dataset
+        Observations.
+    model_nao : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets.
+    models : list
+        List of models to be plotted. Different models for each variable.
+    season : str
+        Season name.
+    forecast_range : str
+        Forecast range.
+    output_dir : str
+        Path to the output directory.
+    lagged : bool, optional
+        Flag to indicate whether the NAO index is lagged or not. The default is False.
+
+    Returns
+    -------
+    rescaled_model_nao : numpy.ndarray
+        Array contains the rescaled NAO index.
+    ensemble_mean_nao : numpy.ndarray
+        Ensemble mean NAO index. Not rescaled
+    ensemble_members_nao : numpy.ndarray
+        Ensemble members NAO index. Not rescaled
+    """
+
+    # First calculate the ensemble mean NAO index
+    ensemble_mean_nao, ensemble_members_nao = calculate_ensemble_mean(model_nao, models)
+
+    # Extract the years from the ensemble members
+    model_years = ensemble_mean_nao.time.dt.year.values
+    # Extract the years from the obs
+    obs_years = obs_nao.time.dt.year.values
+
+    # If the two years arrays are not equal
+    if not np.array_equal(model_years, obs_years):
+        # Print a warning and exit the program
+        print("The years for the ensemble members and the observations are not equal")
+        sys.exit()
+
+    # if the type of obs_nao is not a numpy array
+    # Then convert to a numpy array
+    if type(obs_nao) != np.ndarray:
+        print("Converting obs_nao to a numpy array")
+        obs_nao = obs_nao.values
+
+    # Create an empty numpy array to store the rescaled NAO index
+    rescaled_model_nao = np.empty((len(model_years)))
+
+    # Loop over the years and perform the rescaling (including cross-validation)
+    for i, year in enumerate(model_years):
+
+        # Compute the rescaled NAO index for this year
+        signal_adjusted_nao_index_year, _ = rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
+                                                            forecast_range, output_dir, lagged=False, omit_no_either_side=1)
+
+        # Append the rescaled NAO index to the list, along with the year
+        rescaled_model_nao[i] = signal_adjusted_nao_index_year
+
+    # Convert the list to an xarray DataArray
+    # With the same coordinates as the ensemble mean NAO index
+    rescaled_model_nao = xr.DataArray(rescaled_model_nao, coords=ensemble_mean_nao.coords, dims=ensemble_mean_nao.dims)
+
+    # If the time type is not datetime64 for the rescaled model nao
+    # Then convert the time type to datetime64
+    if type(rescaled_model_nao.time.values[0]) != np.datetime64:
+        rescaled_model_nao_time = rescaled_model_nao.time.astype('datetime64[ns]')
+
+        # Modify the time coordinate using the assign_coords() method
+        rescaled_model_nao = rescaled_model_nao.assign_coords(time=rescaled_model_nao_time)
+
+    # Return the rescaled model NAO index
+    return rescaled_model_nao, ensemble_mean_nao, ensemble_members_nao
+
+# Define a new function to rescalse the NAO index for each year
+def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
+                            forecast_range, output_dir, lagged=False, omit_no_either_side=1):
+    """
+    Rescales the observed and model NAO indices for a given year and season, and saves the results to disk.
+
+    Parameters
+    ----------
+    year : int
+        The year for which to rescale the NAO indices.
+    obs_nao : pandas.DataFrame
+        A DataFrame containing the observed NAO index values, with a DatetimeIndex.
+    ensemble_mean_nao : pandas.DataFrame
+        A DataFrame containing the ensemble mean NAO index values, with a DatetimeIndex.
+    ensemble_members_nao : dict
+        A dictionary containing the NAO index values for each ensemble member, with a DatetimeIndex.
+    season : str
+        The season for which to rescale the NAO indices. Must be one of 'DJF', 'MAM', 'JJA', or 'SON'.
+    forecast_range : int
+        The number of months to forecast ahead.
+    output_dir : str
+        The directory where to save the rescaled NAO indices.
+    lagged : bool, optional
+        Whether to use lagged NAO indices in the rescaling. Default is False.
+
+    Returns
+    -------
+    None
+    """
+
+    # Print the year for which the NAO indices are being rescaled
+    print(f"Rescaling NAO indices for {year}")
+
+    # Extract the model years
+    model_years = ensemble_mean_nao.time.dt.year.values
+
+    # Ensure that the type of ensemble_mean_nao and ensemble_members_nao is a an array
+    if type(ensemble_mean_nao) and type(ensemble_members_nao) != np.ndarray and type(obs_nao) != np.ndarray:
+        AssertionError("The type of ensemble_mean_nao and ensemble_members_nao and obs_nao is not a numpy array")
+        sys.exit()
+
+    # If the year is not in the ensemble members years
+    if year not in model_years:
+        # Print a warning and exit the program
+        print(f"Year {year} is not in the ensemble members years")
+        sys.exit()
+
+    # Extract the index for the year
+    year_index = np.where(model_years == year)[0]
+
+    # Extract the ensemble members for the year
+    ensemble_members_nao_year = ensemble_members_nao[:, year_index]
+
+    # Compute the ensemble mean NAO for this year
+    ensemble_mean_nao_year = ensemble_members_nao_year.mean(axis=0)
+
+    # Set up the indicies for the cross-validation
+    # In the case of the first year
+    if year == model_years[0]:
+        print("Cross-validation case for the first year")
+        print("Removing the first year and:", omit_no_either_side, "years forward")
+        # Set up the indices to use for the cross-validation
+        # Remove the first year and omit_no_either_side years forward
+        cross_validation_indices = np.arange(0, omit_no_either_side + 1)
+    # In the case of the last year
+    elif year == model_years[-1]:
+        print("Cross-validation case for the last year")
+        print("Removing the last year and:", omit_no_either_side, "years backward")
+        # Set up the indices to use for the cross-validation
+        # Remove the last year and omit_no_either_side years backward
+        cross_validation_indices = np.arange(-1, -omit_no_either_side - 2, -1)
+    # In the case of any other year
+    else:
+        # Omit the year and omit_no_either_side years forward and backward
+        print("Cross-validation case for any other year")
+        print("Removing the year and:", omit_no_either_side, "years backward")
+        # Set up the indices to use for the cross-validation
+        # Use the year index and omit_no_either_side years forward and backward
+        cross_validation_indices = np.arange(year_index - omit_no_either_side, year_index + omit_no_either_side + 1)
+    
+    # Log which years are being used for the cross-validation
+    print("Cross-validation indices:", cross_validation_indices)
+
+    # Extract the ensemble members for the cross-validation
+    # i.e. don't use the years given by the cross_validation_indices
+    ensemble_members_nao_array_cross_val = np.delete(ensemble_members_nao, cross_validation_indices, axis=1)
+    # Take the mean over the ensemble members
+    # to get the ensemble mean nao for the cross-validation
+    ensemble_mean_nao_cross_val = ensemble_members_nao_array_cross_val.mean(axis=0)
+
+    # Remove the indicies from the obs_nao
+    obs_nao_cross_val = np.delete(obs_nao, cross_validation_indices, axis=0)
+
+    # Calculate the pearson correlation coefficient between the observed and model NAO indices
+    acc_score, p_value = stats.pearsonr(obs_nao_cross_val, ensemble_mean_nao_cross_val)
+
+    # Calculate the RPS score 
+    rps_score = calculate_rps(acc_score, ensemble_members_nao_array_cross_val, obs_nao_cross_val)  
+
+    # Compute the rescaled NAO index for the year
+    signal_adjusted_nao_index = ensemble_mean_nao_year * rps_score
+
+    return signal_adjusted_nao_index, ensemble_mean_nao_year
+
+# Write a function which performs the NAO matching
+# TODO: Modify variable names
+def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_variable_model, match_variable_obs, match_var_base_dir,
+                            match_var_models, match_var_obs_path, region, season, forecast_range, 
+                                start_year, end_year, output_dir, save_dir, lagged=False, 
+                                    no_subset_members=20, level = None):
+    """
+    Performs the NAO matching for the given variable. E.g. T2M.
+
+    Parameters
+    ----------
+    rescaled_model_nao : xarray.DataArray
+        Rescaled NAO index.
+    model_nao : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+    psl_models : list
+        List of models to be plotted. Different models for each variable.
+    match_variable_model : str
+        Variable name for the variable which will undergo matching for the model.
+    match_variable_obs : str
+        Variable name for the variable which will undergo matching for the obs.
+    match_var_base_dir : str
+        Path to the base directory containing the variable data.
+    match_var_models : list
+        List of models to be plotted for the matched variable. Different models for each variable.
+    region : str
+        Region name.
+    season : str
+        Season name.
+    forecast_range : str
+        Forecast range.
+    start_year : int
+        Start year.
+    end_year : int
+        End year.
+    output_dir : str
+        Path to the output directory.
+    save_dir : str`
+        Path to the save directory.
+    lagged : bool, optional
+        Flag to indicate whether the ensemble is lagged or not. The default is False.
+    no_subset_members : int, optional
+        Number of ensemble members to subset. The default is 20.
+    level : int, optional
+        Pressure level. The default is None. For the matched variable.
+    
+    Returns
+    -------
+    None
+    """
+
+    # Set up the folder to save the data
+    save_dir = f"{save_dir}/{match_variable_model}/{region}/{season}/{forecast_range}/{start_year}-{end_year}"
+    # If the folder does not exist
+    if not os.path.exists(save_dir):
+        # Create the folder
+        os.makedirs(save_dir)
+
+    # Set up the filename
+    filename = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_mean.nc"
+
+    # Set up the path to save the data
+    save_path = f"{save_dir}/{filename}"
+
+    # If the file already exists
+    if os.path.exists(save_path):
+        # Print a notification
+        print(f"The file {filename} already exists")
+        print("Loading the file")
+        # Load the file
+        matched_var_ensemble_mean = xr.open_dataset(save_path)
+    else:
+        # Print the variable which is being matched
+        print(f"Performing NAO matching for {match_variable_model}")
+
+        # Extract the obs data for the matched variable
+        match_var_obs_anomalies = read_obs(match_variable_obs, region, forecast_range,
+                                            season, match_var_obs_path, start_year, end_year, level=level)
+        
+        # Extract the model data for the matched variable
+        match_var_datasets = load_data(match_var_base_dir, match_var_models, match_variable_model, 
+                                        region, forecast_range, season, level=level)
+        
+        # process the model data
+        match_var_model_anomalies, _ = process_data(match_var_datasets, match_variable_model)
+
+        # Make sure that each of the models have the same time period
+        match_var_model_anomalies = constrain_years(match_var_model_anomalies, match_var_models)
+
+        # Remove years containing NaN values from the obs and model data
+        # and align the time periods
+        match_var_obs_anomalies, match_var_model_anomalies = remove_years_with_nans(match_var_obs_anomalies,
+                                                                                        match_var_model_anomalies,
+                                                                                            match_var_models)
+
+        # Now we want to make sure that the match_var_model_anomalies and the model_nao
+        # have the same models
+        model_nao_constrained, match_var_model_anomalies_constrained, \
+        models_in_both = constrain_models_members(model_nao, psl_models, 
+                                                    match_var_model_anomalies, match_var_models)
+        
+        # Make sure that the years for rescaled_model_nao and model_nao 
+        # and match_var_model_anomalies_constrained are the same
+        rescaled_model_years = rescaled_model_nao.time.dt.year.values
+        model_nao_years = model_nao_constrained[psl_models[0]][0].time.dt.year.values
+        match_var_model_years = match_var_model_anomalies_constrained[match_var_models[0]][0].time.dt.year.values
+
+        # If the years are not equal
+        if not np.array_equal(rescaled_model_years, model_nao_years) or not np.array_equal(rescaled_model_years, match_var_model_years):
+            # Print a warning and exit the program
+            print("The years for the rescaled model NAO, the model NAO and the matched variable model anomalies are not equal")
+            
+            # Extract the years which are in the rescaled model nao and the model nao
+            # Constrain the rescaled NAO and the model NAO constrained to the same years as match var model years
+            model_nao_constrained, match_var_model_anomalies_constrained, years_in_both \
+                                = constrain_years_psl_match_var(model_nao_constrained, model_nao_years, models_in_both,
+                                                                    match_var_model_anomalies_constrained, match_var_model_years, models_in_both)
+            # Set rescalled_model_nao to the years_in_both
+            rescaled_model_years = years_in_both
+
+        # Set up the years to loop over
+        years = rescaled_model_years
+
+        # Set up the lats and lons for the array
+        lats = match_var_model_anomalies_constrained[match_var_models[0]][0].lat.values
+        lons = match_var_model_anomalies_constrained[match_var_models[0]][0].lon.values
+
+        # Set up an array to fill the matched variable ensemble mean
+        matched_var_ensemble_mean_array = np.empty((len(years), len(lats), len(lons)))
+
+        # Extract the coords for the first years=years of the match_var_model_anomalies_constrained
+        # Select the years from the match_var_model_anomalies_constrained
+        # Select only the data for the years in the 'years' array
+        match_var_model_anomalies_constrained_years = match_var_model_anomalies_constrained[match_var_models[0]][0].sel(time=match_var_model_anomalies_constrained[match_var_models[0]][0].time.dt.year.isin(years))
+        # Extract the coords for the first years=years of the model_nao_constrained
+        coords = match_var_model_anomalies_constrained_years.coords
+        dims = match_var_model_anomalies_constrained_years.dims
+
+        # Loop over the years and perform the NAO matching                                                                               
+        for i, year in enumerate(years):
+            print("Selecting members for year: ", year)
+
+            # Extract the members with the closest NAO index to the rescaled NAO index
+            # for the given year
+            smallest_diff = calculate_closest_members(year, rescaled_model_nao, model_nao_constrained, models_in_both, 
+                                                        season, forecast_range, output_dir, lagged=lagged,
+                                                            no_subset_members=no_subset_members)  
+
+            # Using the closest NAO index members, extract the same members
+            # for the matched variable
+            matched_var_members = extract_matched_var_members(year, match_var_model_anomalies_constrained, smallest_diff)
+            
+            matched_var_members_array = np.empty((len(matched_var_members)))
+
+            # Now we want to calculate the ensemble mean for the matched variable for this year
+            matched_var_ensemble_mean = calculate_matched_var_ensemble_mean(matched_var_members, year)
+
+            # Append the matched_var_ensemble_mean to the array
+            matched_var_ensemble_mean_array[i] = matched_var_ensemble_mean
+
+        # Convert the matched_var_ensemble_mean_array to an xarray DataArray
+        matched_var_ensemble_mean = xr.DataArray(matched_var_ensemble_mean_array, coords=coords, dims=dims)
+
+        # Save the data
+        matched_var_ensemble_mean.to_netcdf(save_path)
+
+    # Return the matched_var_ensemble_mean
+    return matched_var_ensemble_mean
+
+
+# Define a function which will make sure that the model_nao and the match_var_model_anomalies
+# have the same models and members
+def constrain_models_members(model_nao, psl_models, match_var_model_anomalies, match_var_models):
+    """
+    Makes sure that the model_nao and the match_var_model_anomalies have the same models and members.
+    """
+
+    # Set up dictionaries to store the models and members
+    psl_models_dict = {}
+    match_var_models_dict = {}
+
+    # If the two models lists are not equal
+    if not np.array_equal(psl_models, match_var_models):
+        # Print a warning and exit the program
+        print("The two models lists are not equal")
+        print("Constraining the models")
+
+        # Find the models that are in both the psl_models and the match_var_models
+        models_in_both = np.intersect1d(psl_models, match_var_models)
+    else:
+        # Set the models_in_both to the psl_models
+        print("The two models lists are equal")
+        models_in_both = psl_models
+
+    # Loop over the models in the model_nao
+    for model in models_in_both:
+        print("Model:", model)
+
+        # Append the model to the psl_models_dict
+        psl_models_dict[model] = []
+
+        # Append the model to the match_var_models_dict
+        match_var_models_dict[model] = []
+
+        # Extract the NAO data for the model
+        model_nao_by_model = model_nao[model]
+
+        # Extract the match_var_model_anomalies for the model
+        match_var_model_anomalies_by_model = match_var_model_anomalies[model]
+
+        # Extract a list of the variant labels for the model
+        variant_labels_psl = [member.attrs["variant_label"] for member in model_nao_by_model]
+        print("Variant labels for the model psl:", variant_labels_psl)
+        # Extract a list of the variant labels for the match_var_model_anomalies
+        variant_labels_match_var = [member.attrs["variant_label"] for member in match_var_model_anomalies_by_model]
+        print("Variant labels for the model match_var:", variant_labels_match_var)
+
+        # If the two variant labels lists are not equal
+        if not set(variant_labels_psl) == set(variant_labels_match_var):
+            # Print a warning and exit the program
+            print("The two variant labels lists are not equal")
+            print("Constraining the variant labels")
+
+            # Find the variant labels that are in both the variant_labels_psl and the variant_labels_match_var
+            variant_labels_in_both = np.intersect1d(variant_labels_psl, variant_labels_match_var)
+
+            # Now filter the model_nao data
+            psl_models_dict[model] = filter_model_data_by_variant_labels(model_nao_by_model, variant_labels_in_both, psl_models_dict[model])
+                
+            # Now filter the match_var_model_anomalies data
+            match_var_models_dict[model] = filter_model_data_by_variant_labels(match_var_model_anomalies_by_model, variant_labels_in_both, match_var_models_dict[model])
+
+        else:
+            print("The two variant labels lists are equal")
+            # Loop over the members in the model_nao_by_model
+            for member in model_nao_by_model:
+                # Append the member to the psl_models_dict
+                psl_models_dict[model].append(member)
+
+            # Loop over the members in the match_var_model_anomalies_by_model
+            for member in match_var_model_anomalies_by_model:
+                # if the type of the member is not datetime64
+                if type(member.time.values[0]) != np.datetime64:
+                    # Extract the time values as a datetime64
+                    member_time = member.time.astype('datetime64[ns]')
+
+                    # Add the time values back to the member
+                    member = member.assign_coords(time=member_time)
+
+                # Append the member to the match_var_models_dict
+                match_var_models_dict[model].append(member)
+
+    return psl_models_dict, match_var_models_dict, models_in_both
+
+def filter_model_data_by_variant_labels(model_data, variant_labels_in_both, model_dict):
+    """
+    Filters the model data to only include ensemble members with variant labels that are in both the model NAO data
+    and the observed data.
+
+    Parameters
+    ----------
+    model_data : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+    variant_labels_in_both : list
+        List of variant labels that are in both the model NAO data and the observed NAO data.
+    model_dict : dict
+        Dictionary containing the model names as keys and the variant labels as values.
+        
+    Returns
+    -------
+    psl_models_dict : dict
+        Dictionary of filtered model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+    """
+
+    # Loop over the members in the model_data
+    for member in model_data:
+        # Extract the variant label for the member
+        variant_label = member.attrs["variant_label"]
+
+        # Only if the variant label is in the variant_labels_in_both
+        if variant_label in variant_labels_in_both:
+            # Append the member to the model_dict
+            model_dict.append(member)
+        else:
+            print("Variant label:", variant_label, "not in the variant_labels_in_both")
+
+    return model_dict
+
+
+# Function to constrain the years between the rescaled model nao and the matched variable
+# For NAO, the variable will always be psl
+def constrain_years_psl_match_var(model_nao_constrained, model_nao_years, psl_models, 
+                                    match_var_model_anomalies_constrained, match_var_model_years, match_var_models):
+    """
+    Ensures that the years are the same for both the matched variable and the NAO index (psl).
+    
+    Parameters
+    ----------
+    model_nao_constrained : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+        This is the constrained model NAO index.
+    model_nao_years : numpy.ndarray
+        Array of years for the model NAO index.
+    psl_models : list
+        List of models to be plotted for the NAO index. Different models for each variable.
+    match_var_model_anomalies_constrained : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the matched variable.
+        This is the constrained matched variable.
+    match_var_model_years : numpy.ndarray
+        Array of years for the matched variable.
+    match_var_models : list
+        List of models to be plotted for the matched variable. Different models for each variable.
+        
+        Returns
+        -------
+    model_nao_constrained : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+        This is the constrained model NAO index.
+    match_var_model_anomalies_constrained : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the matched variable.
+    """
+
+    # First identify which years are in both the model_nao_constrained and the match_var_model_anomalies_constrained
+    # find where model_nao_years and match_var_model_years are equal
+    years_in_both = np.intersect1d(model_nao_years, match_var_model_years)
+    print("Years in both:", years_in_both)
+
+    # Initialize dictionaries to store the constrained model_nao and the constrained match_var_model_anomalies
+    model_nao_constrained_dict = {}
+    match_var_model_anomalies_constrained_dict = {}
+
+    # Loop over the models in the model_nao_constrained
+    for model in psl_models:
+        # Extract the model data for the model
+        model_nao_constrained_model = model_nao_constrained[model]
+
+        # Loop over the members in the model_nao_constrained_model
+        for member in model_nao_constrained_model:
+            # Extract the years
+            model_nao_constrained_years = member.time.dt.year.values
+
+            # if the years are not equal
+            if not np.array_equal(model_nao_constrained_years, years_in_both):
+                # Print a warning and exit the program
+                print("The years for the model_nao_constrained and the years_in_both are not equal")
+                print("Constraining the years")
+                # Constrain the years
+                member = member.sel(time=member.time.dt.year.isin(years_in_both))
+
+            # Add the member to the model_nao_constrained_dict
+            if model not in model_nao_constrained_dict:
+                model_nao_constrained_dict[model] = []
+            # Append the member to the model_nao_constrained_dict
+            model_nao_constrained_dict[model].append(member)
+
+    # Loop over the models in the match_var_model_anomalies_constrained
+    for model in match_var_models:
+        # Extract the model data for the model
+        match_var_model_anomalies_constrained_model = match_var_model_anomalies_constrained[model]
+
+        # Loop over the members in the match_var_model_anomalies_constrained_model
+        for member in match_var_model_anomalies_constrained_model:
+            # Extract the years
+            match_var_model_anomalies_constrained_years = member.time.dt.year.values
+
+            # if the years are not equal
+            if not np.array_equal(match_var_model_anomalies_constrained_years, years_in_both):
+                # Print a warning and exit the program
+                print("The years for the match_var_model_anomalies_constrained and the years_in_both are not equal")
+                print("Constraining the years")
+                # Constrain the years
+                member = member.sel(time=member.time.dt.year.isin(years_in_both))
+
+            # Add the member to the match_var_model_anomalies_constrained_dict
+            if model not in match_var_model_anomalies_constrained_dict:
+                match_var_model_anomalies_constrained_dict[model] = []
+            # Append the member to the match_var_model_anomalies_constrained_dict
+            match_var_model_anomalies_constrained_dict[model].append(member)
+
+    # Return the model_nao_constrained_dict and the match_var_model_anomalies_constrained_dict
+    return model_nao_constrained_dict, match_var_model_anomalies_constrained_dict, years_in_both
+
+
+# Function to calculate the ensemble mean for the matched variable
+def calculate_matched_var_ensemble_mean(matched_var_members, year):
+    """
+    Calculates the ensemble mean for the matched variable for a given year.
+
+    Parameters
+    ----------
+    matched_var_members : list
+        List of ensemble members for the matched variable.
+        Each ensemble member is an xarray dataset containing the matched variable.
+    year : int
+        The year for which to calculate the ensemble mean.
+
+    Returns
+    -------
+    matched_var_ensemble_mean : xarray.DataArray
+        Ensemble mean for the matched variable for the specified year.
+    """
+
+    # Create an empty list to store the matched variable members
+    matched_var_members_list = []
+
+    # Loop over the ensemble members for the matched variable
+    for i, member in enumerate(matched_var_members):
+        
+        # Chceck that the data is for the correct year
+        if member.time.dt.year.values != year:
+            print("member time", member.time.dt.year.values)
+            print("year", year)
+            # Print a warning and exit the program
+            print("The data is not for the correct year")
+            sys.exit()
+
+
+
+        # Append the member to the list
+        matched_var_members_list.append(member)
+
+    # Concatenate the matched_var_members_list
+    matched_var_members = xr.concat(matched_var_members_list, dim="member", coords="minimal", compat="override")
+
+    # for each of the members in the matched_var_members
+    # group by the year and take the mean
+    matched_var_members = matched_var_members.groupby("time.year").mean()
+
+    # Calculate the ensemble mean for the matched variable
+    matched_var_ensemble_mean = matched_var_members.mean(dim="member")
+
+    # Convert the matched_var_ensemble_mean to an xarray DataArray
+    coords = matched_var_members[0].coords
+    dims = matched_var_members[0].dims
+    matched_var_ensemble_mean = xr.DataArray(matched_var_ensemble_mean, coords=coords, dims=dims)
+
+    return matched_var_ensemble_mean
+
+# Define a function which will extract the right model members for the matched variable
+def extract_matched_var_members(year, match_var_model_anomalies_constrained, smallest_diff):
+    """
+    Extracts the right model members for the matched variable.
+    These members have the correct magnitude of the NAO index.
+    """
+
+    # Create an empty list to store the matched variable members
+    matched_var_members = []
+
+    # Extract the models from the smallest_diff
+    smallest_diff_models = [member.attrs["source_id"] for member in smallest_diff]
+
+    # Extract only the unique models
+    smallest_diff_models = np.unique(smallest_diff_models)
+
+    # print the smallest_diff_models
+    print("smallest_diff_models", smallest_diff_models)
+
+    # Create a dictionary to store the models and their members contained within the smallest_diff
+    smallest_diff_models_dict = {}
+    # Loop over the members in the smallest_diff
+    for member in smallest_diff:
+        # Extract the model name
+        model_name = member.attrs["source_id"]
+
+        # Extract the associated variant label
+        variant_label = member.attrs["variant_label"]
+
+        # Append this pair to the dictionary
+        model_variant_pair = (model_name, variant_label)
+
+        print("model_variant_pair", model_variant_pair)
+
+        # Add the model and variant label pair to the dictionary
+        if model_name in smallest_diff_models_dict:
+            smallest_diff_models_dict[model_name].add(model_variant_pair)
+        else:
+            smallest_diff_models_dict[model_name] = {model_variant_pair}
+    
+    # Loop over the models in the smallest_diff
+    for model in smallest_diff_models:
+        # Extract the pair from the dictionary
+        model_variant_pairs = smallest_diff_models_dict[model]
+
+        # extract the model data for the model
+        model_data = match_var_model_anomalies_constrained[model]
+
+        # Loop over the members in the model_data
+        for member in model_data:
+            # Check if the model and variant label pair is in the model_variant_pairs
+            if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pairs:
+                print("Appending member:", member.attrs["variant_label"]
+                        , "from model:", member.attrs["source_id"])
+                
+                # Select the data for the year
+                member = member.sel(time=f"{year}")
+
+                # Append the member to the matched_var_members
+                matched_var_members.append(member)
+
+    # return the matched_var_members
+    return matched_var_members
+
+# Calculate the members which have the closest NAO index to the rescaled NAO index
+def calculate_closest_members(year, rescaled_model_nao, model_nao, models, season, forecast_range, 
+                                output_dir, lagged=False, no_subset_members=20):
+    """
+    Calculates the ensemble members (within model_nao) which have the closest NAO index to the rescaled NAO index.
+
+    Parameters
+    ----------
+    year : int
+        The year for which to rescale the NAO indices.
+    rescaled_model_nao : xarray.DataArray
+        Rescaled NAO index.
+    model_nao : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+    models : list
+        List of models to be plotted. Different models for each variable.
+    season : str
+        Season name.
+    forecast_range : str
+        Forecast range.
+    output_dir : str
+        Path to the output directory.
+    lagged : bool, optional
+        Flag to indicate whether the ensemble is lagged or not. The default is False.
+    no_subset_members : int, optional
+        Number of ensemble members to subset. The default is 20.
+    
+    Returns
+    -------
+    closest_nao_members : dict
+        Dictionary containing the closest ensemble members for each model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+    """
+
+    # Print the year which is being processed
+    print(f"Calculating nearest members for year: {year}")
+
+    # Extract the years for the rescaled NAO index and the model NAO index
+    rescaled_model_nao_years = rescaled_model_nao.time.dt.year.values
+    model_nao_years = model_nao[models[0]][0].time.dt.year.values
+
+    # # If the two years arrays are not equal
+    # if not np.array_equal(rescaled_model_nao_years, model_nao_years):
+    #     # Print a warning and exit the program
+    #     print("The years for the rescaled NAO index and the model NAO index are not equal")
+    #     sys.exit()
+
+    # Initialize a list to store the smallest difference between the rescaled NAO index and the model NAO index
+    smallest_diff = []
+
+    # Extract the data for the year for the rescaled NAO index
+    rescaled_model_nao_year = rescaled_model_nao.sel(time=f"{year}")
+
+    # Form the list of ensemble members
+    ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models)
+
+    # Loop over the ensemble members
+    for member in ensemble_members_list:
+        # Extract the data for the year
+        model_nao_year = member.sel(time=f"{year}")
+
+        # Print the model and member name
+        print("Model:", member.attrs["source_id"])
+        print("Member:", member.attrs["variant_label"])
+
+        # print the values of the rescaled NAO index and the model NAO index
+        print("rescaled NAO index", rescaled_model_nao_year.values)
+        print("model NAO index", model_nao_year.values)
+
+        # print the types of the values of the rescaled NAO index and the model NAO index
+        print("rescaled NAO index type", type(rescaled_model_nao_year.values))
+        print("model NAO index type", type(model_nao_year.values))
+
+        # Print the dimensions of the rescaled NAO index and the model NAO index
+        print("rescaled NAO index dimensions", rescaled_model_nao_year.dims)
+        print("model NAO index dimensions", model_nao_year.dims)
+
+        # Print the coordinates of the rescaled NAO index and the model NAO index
+        print("rescaled NAO index coordinates", rescaled_model_nao_year.coords)
+        print("model NAO index coordinates", model_nao_year.coords)
+
+        # Make sure that rescaled model nao and model nao have the same dimensions
+        if rescaled_model_nao_year.dims != model_nao_year.dims:
+            AssertionError("The dimensions of rescaled model nao and model nao are not the same")
+            sys.exit()
+
+        # # If the coordinates of the rescaled NAO index and the model NAO index are not the same
+        # if rescaled_model_nao_year.coords != model_nao_year.coords:
+        #     # Print a warning and exit the program
+        #     print("The coordinates of the rescaled NAO index and the model NAO index are not the same")
+        #     print("rescaled NAO index coordinates", rescaled_model_nao_year.coords)
+        #     print("model NAO index coordinates", model_nao_year.coords)
+        #     print("reshaping coordinates")
+        #     # Extract the time coordinate from the rescaled NAO index
+        #     rescaled_model_nao_year_time = rescaled_model_nao_year.time.values
+
+        #     # Extract the time coordinate from the model NAO index
+        #     model_nao_year_time = model_nao_year.time.values
+
+        #     # Find the difference between the two time coordinates
+        #     time_diff = (rescaled_model_nao_year_time - model_nao_year_time)
+
+        #     # print the time difference
+        #     print("time difference", time_diff)
+        #     # and the type of the time difference
+        #     print("time difference type", type(time_diff))
+
+        #     # Now we want to extract the values of model_nao_year for the current time
+        #     model_nao_index_value = model_nao_year.sel(time=model_nao_year_time)
+
+        #     # And we want to assign this value to the same time as the rescaled model nao
+        #     model_nao_index = model_nao_index.assign(time=model_nao_year_time + pd.Timedelta(days=time_diff), model_nao_index = model_nao_index_value)
+
+        # print the coordinates of the rescaled NAO index and the model NAO index
+        print("rescaled NAO index coordinates", rescaled_model_nao_year.coords)
+        print("model NAO index coordinates", model_nao_year.coords)
+
+        # Calculate the annual mean for the rescaled NAO index and the model NAO index
+        rescaled_model_nao_year_ann_mean = rescaled_model_nao_year.groupby("time.year").mean()
+        model_nao_year_ann_mean = model_nao_year.groupby("time.year").mean()
+
+        # print the coordinates of the rescaled NAO index and the model NAO index
+        print("rescaled NAO index coordinates", rescaled_model_nao_year_ann_mean.coords)
+        print("model NAO index coordinates", model_nao_year_ann_mean.coords)
+
+        # Calculate the difference between the rescaled NAO index and the model NAO index
+        nao_diff = np.abs(rescaled_model_nao_year_ann_mean - model_nao_year_ann_mean)
+
+        # Print the difference
+        print("Difference:", nao_diff.values)
+
+        # Assign the coordinates of the rescaled NAO index to the difference
+        nao_diff = nao_diff.assign_coords(coords=rescaled_model_nao_year_ann_mean.coords)
+
+        # Extract the attributes from the member
+        member_attributes = member.attrs
+
+        # Add the attributes to the diff
+        nao_diff.attrs = member_attributes
+        
+        # Append the difference to the list
+        smallest_diff.append(nao_diff)
+
+    # Sort the list of differences
+    smallest_diff.sort()
+
+    # Logging the smallest difference
+    for i, member in enumerate(smallest_diff):
+        print("Smallest difference member full ensemble:", i+1)
+        # print the model name and the member name
+        print("Model:", member.attrs["source_id"])
+        print("Member:", member.attrs["variant_label"])
+        # Print the value of the difference
+        print("Difference:", member.values)
+
+    # Select only the first no_subset_members members
+    smallest_diff = smallest_diff[:no_subset_members]
+
+    # Loop over the members with the smallest differences
+    for i, member in enumerate(smallest_diff):
+        print("Smallest difference member:", i+1)
+        # print the model name and the member name
+        print("Model:", member.attrs["source_id"])
+        print("Member:", member.attrs["variant_label"])
+        # Print the value of the difference
+        print("Difference:", member.values)
+
+    return smallest_diff
+
+# Define a new function to form the list of ensemble members
+def form_ensemble_members_list(model_nao, models):
+    """
+    Forms a list of ensemble members, not a dictionary with model keys.
+    Each xarray object should have the associated metadata stored in attributes.
+    
+    Parameters
+    ----------
+    model_nao : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+    models : list
+        List of models to be plotted. Different models for each variable.
+    
+    
+    Returns
+    -------
+    ensemble_members_list : list
+        List of ensemble members, which are xarray datasets containing the NAO index.
+    """
+
+    # Initialize a list to store the ensemble members
+    ensemble_members_list = []
+
+    # Initialize a dictionary to store the number of ensemble members for each model
+    ensemble_members_count = {}
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_nao_by_model = model_nao[model]
+
+        # If the model is not in the ensemble_members_count dictionary
+        if model not in ensemble_members_count:
+            # Add the model to the ensemble_members_count dictionary
+            ensemble_members_count[model] = 0
+
+        # Loop over the ensemble members
+        for member in model_nao_by_model:
+
+            # if the type of time is not a datetime64
+            if type(member.time.values[0]) != np.datetime64:
+                # Extract the time values as a datetime64
+                member_time = member.time.astype('datetime64[ns]')
+
+                # Add the time values back to the member
+                member = member.assign_coords(time=member_time)
+
+            # If the years are not unique
+            years = member.time.dt.year.values
+
+            # Check that the years are unique
+            if len(years) != len(set(years)):
+                raise ValueError("Duplicate years in the member")
+            
+            # Add the member to the ensemble_members_list
+            ensemble_members_list.append(member)
+
+            # Add one to the ensemble_members_count dictionary
+            ensemble_members_count[model] += 1
+
+    return ensemble_members_list, ensemble_members_count
 
 # Write a function to calculate the NAO index
 # For both the obs and model data
 def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, season, forecast_range,
                                     output_dir, plot_graphics=False, azores_grid = dic.azores_grid, 
                                         iceland_grid = dic.iceland_grid, snao_south_grid = dic.snao_south_grid, 
-                                            snao_north_grid = dic.snao_north_grid):
+                                            snao_north_grid = dic.snao_north_grid, lag=None):
     """
     Calculates the NAO index for both the obs and model data.
     Then plots the NAO index for both the obs and model data if the plot_graphics flag is set to True.
@@ -1710,6 +2637,8 @@ def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, s
         SNAO south grid. The default is dic.snao_south_grid.
     snao_north_grid : str, optional
         SNAO north grid. The default is dic.snao_north_grid.
+    lag : int, optional
+        Lag. The default is None.
 
     Returns
     -------
@@ -1742,11 +2671,21 @@ def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, s
     # Calculate the NAO index for the observations
     obs_nao = calculate_obs_nao(obs_anomaly, south_grid, north_grid)
 
-    # Calculate the NAO index for the model data
-    model_nao, years, \
-    ensemble_members_count = calculate_model_nao_anoms(model_anomaly, models, azores_grid,
-                                                                            iceland_grid, snao_south_grid, snao_north_grid,
-                                                                                nao_type=nao_type)
+    # if the lag is none
+    if lag == None:
+        # Calculate the NAO index for the model data
+        model_nao, years, \
+        ensemble_members_count = calculate_model_nao_anoms(model_anomaly, models, azores_grid,
+                                                            iceland_grid, snao_south_grid, snao_north_grid,
+                                                                nao_type=nao_type)
+    else:
+        print("Calculating NAO index with for laggged ensemble with lag: ", lag)
+
+        # Calculate the NAO index for the model data
+        model_nao, years, \
+        ensemble_members_count = calculate_model_nao_anoms(model_anomaly, models, azores_grid,
+                                                            iceland_grid, snao_south_grid, snao_north_grid,
+                                                                nao_type=nao_type, lag=lag)
     
     # If the plot_graphics flag is set to True
     if plot_graphics:
@@ -2503,7 +3442,7 @@ def process_model_data_for_plot_timeseries(model_data, models, region):
 # like process_model_data_for_plot_timeseries
 # but for the NAO index
 def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid, 
-                            snao_south_grid, snao_north_grid, nao_type="default"):
+                            snao_south_grid, snao_north_grid, nao_type="default", lag=None):
     """
     Calculates the model NAO index for each ensemble member and the ensemble mean.
 
@@ -2515,6 +3454,7 @@ def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid,
     snao_south_grid (dict): Latitude and longitude coordinates of the southern SNAO grid point.
     snao_north_grid (dict): Latitude and longitude coordinates of the northern SNAO grid point.
     nao_type (str, optional): Type of NAO index to calculate, by default 'default'. Also supports 'snao'.
+    lag (int, optional): The lag to be applied. Default is None.
 
     Returns:
     ensemble_mean_nao_anoms (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
@@ -2601,6 +3541,15 @@ def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid,
 
     # Convert the list of all ensemble members to a numpy array
     ensemble_members_nao_anoms = np.array(ensemble_members_nao_anoms)
+
+    # If the lag is not None
+    # then lag the ensemble members
+    if lag is not None:
+        # Lag the ensemble members
+        ensemble_members_nao_anoms = lag_ensemble(ensemble_members_nao_anoms, lag)
+
+        # Multiply the ensemble members count by the lag
+        ensemble_members_count = {k: v * lag for k, v in ensemble_members_count.items()}
 
     # #print the dimensions of the ensemble members
     print("ensemble members shape", np.shape(ensemble_members_nao_anoms))
@@ -3742,7 +4691,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
 # Plot the seasonal correlations for the raw ensemble, the lagged ensemble and the NAO-matched ensemble
 # TODO: work the bootstrapped p values into this function
-def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, variable, region, region_grid, 
+def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, model_variable, obs_variable, obs_path, region, region_grid, 
                                                     forecast_range, start_year, end_year, seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
                                                         azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast',
                                                             bootstrapped_pval = False, lag=4, no_subset_members=20):
@@ -3753,7 +4702,9 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, var
     Arguments:
     - models: a list of strings with the names of the models to be plotted.
     - observations_path: a string with the path to the observations file.
-    - variable: a string with the name of the variable to be plotted.
+    - model_variable: a string with the name of the variable to be plotted for the models.
+    - obs_variable: a string with the name of the variable to be plotted for the observations.
+    - obs_path: a string with the path to the observations file.
     - region: a string with the name of the region to be plotted.
     - region_grid: a string with the name of the grid to be used for the region.
     - forecast_range: a string with the forecast range to be plotted.
@@ -3809,12 +4760,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, var
             print("mod season", model_season)
 
             # Process the observations
-            obs = process_observations(variable, region, region_grid, forecast_range, obs_season, 
+            obs = process_observations(obs_variable, region, region_grid, forecast_range, obs_season, 
                                         observations_path, obs_var_name)
             
             # if the variable is 'rsds'
             # divide the obs data by 86400 to convert from J/m2 to W/m2
-            if variable == 'rsds':
+            if obs_variable == 'rsds':
                 obs /= 86400
 
             # Append the processed observations to the list
@@ -3824,23 +4775,23 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, var
             if method == 'raw':
                 print("method", method)
                 # Load and process the model data
-                model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, model_season)
+                model_datasets = load_data(dic.base_dir, models, model_variable, region, forecast_range, model_season)
                 # Process the model data
-                model_data, model_time = process_data(model_datasets, variable)
+                model_data, model_time = process_data(model_datasets, model_variable)
 
                 # Calculate the spatial correlations for the model
                 rfield, pfield, obs_lons_converted, \
-                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
+                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, model_variable)
             elif method == 'lagged':
                 print("method", method)
                 # Load and process the model data
-                model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, model_season)
+                model_datasets = load_data(dic.base_dir, models, model_variable, region, forecast_range, model_season)
                 # Process the model data
-                model_data, model_time = process_data(model_datasets, variable)
+                model_data, model_time = process_data(model_datasets, model_variable)
 
                 # Calculate the spatial correlations for the model
                 rfield, pfield, obs_lons_converted, \
-                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable, lag=lag)
+                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, obs_variable, lag=lag)
             elif method == 'nao_matched':
                 print("method", method)
 
@@ -3862,8 +4813,21 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, var
                 obs_psl_anomaly, model_data_psl = remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl, 
                                                                                 dic.psl_models, NAO_matched=False)
 
-                # Calculate the NAO index
-                obs_nao, model_nao 
+                # Calculate the lagged NAO index
+                obs_nao, model_nao = calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, dic.psl_models,
+                                                                    'psl', obs_season, forecast_range, plots_dir,
+                                                                        lag=lag)
+                
+                # Rescale the NAO index
+                rescaled_nao, ensemble_mean_nao, ensemble_members_nao = rescale_nao(obs_nao, model_nao, dic.psl_models,
+                                                                                        obs_season, forecast_range, plots_dir)
+
+                # Perform the NAO matching for the target variable
+                matched_var_ensemble_mean = nao_matching_other_var(rescaled_nao, model_nao,
+                                                                    models, model_variable, obs_variable, dic.base_dir,
+                                                                        models, obs_path, region, obs_season, forecast_range,
+                                                                            start_year, end_year, plots_dir, dic.save_dir,
+                                                                                lagged=False, no_subset_members=no_subset_members)
 
 
 

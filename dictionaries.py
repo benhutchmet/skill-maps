@@ -61,6 +61,9 @@ canari_base_dir = "/gws/nopw/j04/canari/users/benhutch"
 scratch_base_dir = "/work/scratch-nopw2/benhutch"
 home_dir = "/home/users/benhutch"
 
+
+save_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
+
 # Define the dimensions for the grids
 # for processing the observations
 north_atlantic_grid = {
