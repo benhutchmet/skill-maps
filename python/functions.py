@@ -4865,23 +4865,150 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
                 # Now calculate the spatial correlations
                 rfield, pfield, obs_lons_converted, \
-                lons_converted, _ = calculate_spatial_correlations(obs_match_var, matched_var_ensemble_mean, models, obs_variable, NAO_matched=True)                                                                   
+                lons_converted, _ = calculate_spatial_correlations(obs_match_var, matched_var_ensemble_mean, models, 
+                                                                    obs_variable, lag=lag, NAO_matched=True)
                 
-
-
-
-
-                
-
-
-
-
-            
-
-            
             else:
                 print("Error: method not found")
                 sys.exit()
+
+            # Append the r and p fields to the lists
+            # for each season
+            # for each method
+            rfield_list.append(rfield)
+            pfield_list.append(pfield)
+
+            # Append the ensemble members count to the list
+            # for each season
+            # for each method 
+            ensemble_members_count_list.append(ensemble_members_count)
+
+            # Append the obs_lons_converted and lons_converted to the lists
+            obs_lons_converted_list.append(obs_lons_converted)
+            lons_converted_list.append(lons_converted)
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 8})
+
+    # Set up the projection
+    proj = ccrs.PlateCarree()                                                                
+                
+    # Set up the lats and lons for the azores grid
+    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+    # Set up the lats and lons for the iceland grid
+    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+    # Set up the fgure size and subplot parameters
+    # for a 3x4 grid of subplots
+    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(14, 10), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+
+    # Set up the title for the figure
+    title = f"{model_variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=10, y=0.90)
+
+    # Set up the significance thresholdf
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Flatten the axs array
+    axs = axs.flatten()
+
+    # Create a list to store the contourf objects
+    cf_list = []
+
+    # Loop over the methods
+    for i, method in enumerate(methods):
+        # Loop over the seasons
+        for j, obs_season in enumerate(seasons_list_obs):
+
+            # Print the season(s) being plotted
+            print("plotting season", obs_season)
+
+            # Extract the obs
+            obs = obs_list[j]
+
+            # Extract the r and p fields
+            rfield, pfield = rfield_list[j], pfield_list[j]
+
+            # Extract the obs_lons_converted and lons_converted
+            obs_lons_converted, lons_converted = obs_lons_converted_list[j], lons_converted_list[j]
+
+            # Set up the converted lons
+            lons_converted = lons_converted - 180
+
+            # Set up the lats and lons
+            lats = obs.lat
+            lons = lons_converted
+
+            # Set up the axes
+            ax = axs[i * 4 + j]
+
+            # Add coastlines
+            ax.coastlines()
+
+            # Add greenlines outlining the Azores and Iceland grids
+            ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+            ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+
+            # Add filled contours
+            # Contour levels
+            clevs = np.arange(-1, 1.1, 0.1)
+            # Contour levels for p-values
+            clevs_p = np.arange(0, 1.1, 0.1)
+            # Plot the filled contours
+            cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+            # If the variables is 'tas'
+            # then we want to invert the stippling
+            # so that stippling is plotted where there is no significant correlation
+            if model_variable == 'tas':
+                # replace values in pfield that are less than 0.05 with nan
+                pfield[pfield < p_sig] = np.nan
+            else:
+                # replace values in pfield that are greater than 0.05 with nan
+                pfield[pfield > p_sig] = np.nan
+
+            # Add stippling where rfield is significantly different from zero
+            ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+
+            # Add a textbox with the season name
+            ax.text(0.05, 0.95, obs_season, transform=ax.transAxes, fontsize=6, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+            # Add a textbox with the method name
+            # in the top right
+            ax.text(0.95, 0.95, method, transform=ax.transAxes, fontsize=6, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+            # Add a textbox with the figure letter
+            fig_letter = ax_labels[i * 4 + j]
+            ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=6, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+            # Add the contourf object to the list
+            cf_list.append(cf)
+
+    # Create a single colorbar for all of the subplots
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('correlation coefficients')
+
+    # Set up the path for saving the figure
+    fig_name = f"{model_variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
+
+
+            
+
+            
+
             
 
      
