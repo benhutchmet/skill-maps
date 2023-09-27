@@ -2934,7 +2934,7 @@ def calculate_ensemble_mean(model_var, models, lag=None):
     # if lag is not None
     if lag is not None:
         # Lage the ensemble members
-        ensemble_members_var = lag_ensemble(ensemble_members_var, lag)
+        ensemble_members_var = lag_ensemble(ensemble_members_var, lag, NAO_index=True)
 
     # Calculate the ensemble mean NAO index
     ensemble_mean_var = np.mean(ensemble_members_var, axis=0)
@@ -3034,7 +3034,7 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
 
 # Define a new function to rescalse the NAO index for each year
 def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
-                            forecast_range, output_dir, lagged=False, omit_no_either_side=1):
+                            forecast_range, output_dir, lagged=False, omit_no_either_side=1, lag=None):
     """
     Rescales the observed and model NAO indices for a given year and season, and saves the results to disk.
 
@@ -3078,6 +3078,25 @@ def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, 
         # Print a warning and exit the program
         print(f"Year {year} is not in the ensemble members years")
         sys.exit()
+
+    # If lag is not none
+    if lag is not None:
+        # print that we are removing the years containing nans from the arrays
+        print("Removing the years containing nans from the arrays")
+        # extract the size of the years axis
+        years_size = ensemble_members_nao.shape[1]
+
+        # Loop over the years
+        for i in range(years_size):
+            # extract the values for the year
+            current_year = ensemble_members_nao[:, i]
+
+            # If all of the values are nans
+            if np.isnan(current_year).all():
+                # Remove the year from the ensemble members
+                ensemble_members_nao = np.delete(ensemble_members_nao, i, axis=1)
+                # Remove the year from the model years
+                model_years = np.delete(model_years, i)
 
     # Extract the index for the year
     year_index = np.where(model_years == year)[0]
@@ -5043,7 +5062,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                 
                 # Rescale the NAO index
                 rescaled_nao, ensemble_mean_nao, ensemble_members_nao = rescale_nao(obs_nao, model_nao, dic.psl_models,
-                                                                                        obs_season, forecast_range, plots_dir)
+                                                                                        obs_season, forecast_range, plots_dir, lag=lag)
 
                 # Perform the NAO matching for the target variable
                 matched_var_ensemble_mean = nao_matching_other_var(rescaled_nao, model_nao,
