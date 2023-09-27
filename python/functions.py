@@ -175,7 +175,7 @@ def process_data(datasets_by_model, variable):
     
     #print(f"Dataset type: {type(datasets_by_model)}")
 
-    def process_model_dataset(dataset, variable):
+    def process_model_dataset(dataset, variable, attributes):
         """Process a single dataset.
         
         This function takes a single dataset and processes the data.
@@ -248,6 +248,9 @@ def process_data(datasets_by_model, variable):
             #print("Time not found in dataset")
             sys.exit()
 
+        # Set up the attributes for the variable.
+        variable_data.attrs = attributes
+
         return variable_data, model_time
     
     # Create empty dictionaries to store the processed data.
@@ -260,8 +263,10 @@ def process_data(datasets_by_model, variable):
             model_time_by_model[model] = []
             # Loop over the datasets for this model.
             for dataset in datasets:
-                # Process the dataset.
-                variable_data, model_time = process_model_dataset(dataset, variable)
+                # Extract the attributes from the dataset.
+                attributes = dataset.attrs
+                # Process the dataset
+                variable_data, model_time = process_model_dataset(dataset, variable, attributes)
                 # Append the processed data to the lists.
                 variable_data_by_model[model].append(variable_data)
                 model_time_by_model[model].append(model_time)
@@ -2729,8 +2734,7 @@ def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, s
     obs_nao = calculate_obs_nao(obs_anomaly, south_grid, north_grid)
 
     # Calculate the NAO index for the model data
-    model_nao, years, ensemble_members_count_nao = calculate_model_nao_anoms_matching(model_anomaly, models, azores_grid,
-                                                                                        iceland_grid, snao_south_grid, snao_north_grid,
+    model_nao, years, ensemble_members_count_nao = calculate_model_nao_anoms_matching(model_anomaly, models, azores_grid,                                                                                    iceland_grid, snao_south_grid, snao_north_grid,
                                                                                             nao_type=nao_type)
     
     # If the plot_graphics flag is set to True
