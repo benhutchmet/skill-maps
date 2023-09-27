@@ -20,7 +20,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
-from datetime import datetime
+from _datetime import datetime
 import scipy.stats as stats
 import matplotlib.animation as animation
 from matplotlib import rcParams
@@ -34,7 +34,6 @@ import iris.coord_categorisation as coord_cat
 import iris.plot as iplt
 import scipy
 import pdb
-import datetime
 import iris.quickplot as qplt
 
 # Import CDO

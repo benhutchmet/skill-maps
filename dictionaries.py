@@ -61,6 +61,18 @@ canari_base_dir = "/gws/nopw/j04/canari/users/benhutch"
 scratch_base_dir = "/work/scratch-nopw2/benhutch"
 home_dir = "/home/users/benhutch"
 
+# Define a dictionary to map the season strings to their corresponding months
+season_month_map = {
+    "DJF": [12, 1, 2],
+    "MAM": [3, 4, 5],
+    "JJA": [6, 7, 8],
+    "JJAS": [6, 7, 8, 9],
+    "SON": [9, 10, 11],
+    "SOND": [9, 10, 11, 12],
+    "NDJF": [11, 12, 1, 2],
+    "DJFM": [12, 1, 2, 3],
+    "djfm": [12, 1, 2, 3]
+}
 
 save_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
 
