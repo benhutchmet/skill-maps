@@ -634,6 +634,11 @@ def calculate_annual_mean_anomalies(obs_anomalies, season):
     Raises:
     ValueError: If the input dataset is invalid.
     """
+    
+    # if the type of obs_anomalies is an iris cube, then convert to an xarray dataset
+    if type(obs_anomalies) == iris.cube.Cube:
+        obs_anomalies = xr.DataArray.from_iris(obs_anomalies)
+    
     try:
         # Shift the dataset if necessary
         if season in ["DJFM", "NDJFM"]:
@@ -4877,7 +4882,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                                                 observations_path, start_year, end_year)
 
                 # Load and process the model data for the NAO index
-                model_datasets_psl = load_data(dic.base_dir, models, 'psl', region, forecast_range, 
+                model_datasets_psl = load_data(dic.base_dir, dic.psl_models, 'psl', region, forecast_range, 
                                             model_season)
                 # Process the model data
                 model_data_psl, _ = process_data(model_datasets_psl, 'psl')
