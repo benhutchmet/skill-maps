@@ -2728,21 +2728,10 @@ def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, s
     # Calculate the NAO index for the observations
     obs_nao = calculate_obs_nao(obs_anomaly, south_grid, north_grid)
 
-    # if the lag is none
-    if lag == None:
-        # Calculate the NAO index for the model data
-        model_nao, years, \
-        ensemble_members_count = calculate_model_nao_anoms(model_anomaly, models, azores_grid,
-                                                            iceland_grid, snao_south_grid, snao_north_grid,
-                                                                nao_type=nao_type)
-    else:
-        print("Calculating NAO index with for laggged ensemble with lag: ", lag)
-
-        # Calculate the NAO index for the model data
-        model_nao, years, \
-        ensemble_members_count = calculate_model_nao_anoms(model_anomaly, models, azores_grid,
-                                                            iceland_grid, snao_south_grid, snao_north_grid,
-                                                                nao_type=nao_type, lag=lag)
+    # Calculate the NAO index for the model data
+    model_nao, years, ensemble_members_count_nao = calculate_model_nao_anoms_matching(model_anomaly, models, azores_grid,
+                                                                                        iceland_grid, snao_south_grid, snao_north_grid,
+                                                                                            nao_type=nao_type)
     
     # If the plot_graphics flag is set to True
     if plot_graphics:
@@ -2754,7 +2743,7 @@ def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, s
 
         # Plot the NAO index
         plot_nao_index(obs_nao, ensemble_mean_nao, variable, season, forecast_range, r, p, output_dir,
-                            ensemble_members_count, nao_type=nao_type)
+                            ensemble_members_count_nao, nao_type=nao_type)
         
     return obs_nao, model_nao
 
@@ -2908,7 +2897,7 @@ def calculate_obs_nao(obs_anomaly, south_grid, north_grid):
     return obs_nao
 
 # Define a function to calculate the ensemble mean NAO index
-def calculate_ensemble_mean(model_var, models):
+def calculate_ensemble_mean(model_var, models, lag=None):
     """
     Calculates the ensemble mean NAO index for the given model data.
     
@@ -2938,6 +2927,11 @@ def calculate_ensemble_mean(model_var, models):
     # Convert the list of ensemble members to a numpy array
     ensemble_members_var = np.array(ensemble_members_var)
 
+    # if lag is not None
+    if lag is not None:
+        # Lage the ensemble members
+        ensemble_members_var = lag_ensemble(ensemble_members_var, lag)
+
     # Calculate the ensemble mean NAO index
     ensemble_mean_var = np.mean(ensemble_members_var, axis=0)
 
@@ -2948,7 +2942,7 @@ def calculate_ensemble_mean(model_var, models):
 
 # Write a function to rescale the NAO index
 # We will only consider the non-lagged ensemble index for now
-def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, lagged = False):
+def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, lag=None):
     """
     Rescales the NAO index according to Doug Smith's (2020) method.
     
@@ -2967,8 +2961,8 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
         Forecast range.
     output_dir : str
         Path to the output directory.
-    lagged : bool, optional
-        Flag to indicate whether the NAO index is lagged or not. The default is False.
+    lag : int, optional
+        Lag. The default is None.
 
     Returns
     -------
@@ -2980,8 +2974,13 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
         Ensemble members NAO index. Not rescaled
     """
 
-    # First calculate the ensemble mean NAO index
-    ensemble_mean_nao, ensemble_members_nao = calculate_ensemble_mean(model_nao, models)
+    if lag is None:
+        # First calculate the ensemble mean NAO index
+        ensemble_mean_nao, ensemble_members_nao = calculate_ensemble_mean(model_nao, models)
+    else:
+        # Calculate the lagged ensemble mean NAO index
+        ensemble_mean_nao, ensemble_members_nao = calculate_ensemble_mean(model_nao, models, lag)
+
 
     # Extract the years from the ensemble members
     model_years = ensemble_mean_nao.time.dt.year.values
@@ -3623,7 +3622,7 @@ def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid,
     # then lag the ensemble members
     if lag is not None:
         # Lag the ensemble members
-        ensemble_members_nao_anoms = lag_ensemble(ensemble_members_nao_anoms, lag)
+        ensemble_members_nao_anoms = lag_ensemble(ensemble_members_nao_anoms, lag, NAO_index=True)
 
         # Multiply the ensemble members count by the lag
         ensemble_members_count = {k: v * lag for k, v in ensemble_members_count.items()}
@@ -3642,6 +3641,125 @@ def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid,
 
     return ensemble_mean_nao_anoms, ensemble_members_nao_anoms, years, ensemble_members_count
 
+
+# Define a new function to calculate the model NAO index
+# like process_model_data_for_plot_timeseries
+# but for the NAO index
+def calculate_model_nao_anoms_matching(model_data, models, azores_grid, iceland_grid, 
+                                snao_south_grid, snao_north_grid, nao_type="default"):
+    """
+    Calculates the model NAO index for each ensemble member and the ensemble mean.
+
+    Parameters:
+    model_data (dict): The processed model data.
+    models (list): The list of models to be plotted.
+    azores_grid (dict): Latitude and longitude coordinates of the Azores grid point.
+    iceland_grid (dict): Latitude and longitude coordinates of the Iceland grid point.
+    snao_south_grid (dict): Latitude and longitude coordinates of the southern SNAO grid point.
+    snao_north_grid (dict): Latitude and longitude coordinates of the northern SNAO grid point.
+    nao_type (str, optional): Type of NAO index to calculate, by default 'default'. Also supports 'snao'.
+
+    Returns:
+    ensemble_mean_nao_anoms (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
+    ensemble_members_nao_anoms (list): The NAO index anomalies for each ensemble member.
+    years (numpy.ndarray): The years.
+    ensemble_members_count (dict): The number of ensemble members for each model.
+    """
+
+    # Initialize a list for the ensemble members
+    ensemble_members_nao_anoms = {}
+
+    # Initialize a dictionary to store the number of ensemble members
+    ensemble_members_count = {}
+
+    # First constrain the years to the years that are in all of the models
+    model_data = constrain_years(model_data, models)
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Set the ensemble members count to zero
+        # if model is not in the ensemble members count dictionary
+        if model not in ensemble_members_count:
+            ensemble_members_count[model] = 0
+
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+            # depending on the NAO type
+            # set up the region grid
+            if nao_type == "default":
+                print("Calculating model NAO index using default definition")
+
+                # Set up the dict for the southern box
+                south_gridbox_dict = azores_grid
+                # Set up the dict for the northern box
+                north_gridbox_dict = iceland_grid
+            elif nao_type == "snao":
+                print("Calculating model NAO index using SNAO definition")
+
+                # Set up the dict for the southern box
+                south_gridbox_dict = snao_south_grid
+                # Set up the dict for the northern box
+                north_gridbox_dict = snao_north_grid
+            else:
+                print("Invalid NAO type")
+                sys.exit()
+
+            # Extract the attributes
+            member_id = member.attrs["variant_label"]
+
+            # Print the model and member id
+            print("calculated NAO for model", model, "member", member_id)
+
+            # Extract the attributes from the member
+            attributes = member.attrs
+
+            # Extract the lat and lon values
+            # from the gridbox dictionary
+            # first for the southern box
+            s_lon1, s_lon2 = south_gridbox_dict["lon1"], south_gridbox_dict["lon2"]
+            s_lat1, s_lat2 = south_gridbox_dict["lat1"], south_gridbox_dict["lat2"]
+
+            # second for the northern box
+            n_lon1, n_lon2 = north_gridbox_dict["lon1"], north_gridbox_dict["lon2"]
+            n_lat1, n_lat2 = north_gridbox_dict["lat1"], north_gridbox_dict["lat2"]
+
+            # Take the mean over the lat and lon values
+            # for the southern box for the ensemble member
+            try:
+                south_gridbox_mean = member.sel(lat=slice(s_lat1, s_lat2), lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
+                north_gridbox_mean = member.sel(lat=slice(n_lat1, n_lat2), lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
+            except Exception as e:
+                print(f"Error taking gridbox mean: {e}")
+                sys.exit()
+
+            # Calculate the NAO index for the ensemble member
+            try:
+                nao_index = south_gridbox_mean - north_gridbox_mean
+            except Exception as e:
+                print(f"Error calculating NAO index: {e}")
+                sys.exit()
+
+            # Extract the years
+            years = nao_index.time.dt.year.values
+
+            # Associate the attributes with the NAO index
+            nao_index.attrs = attributes
+
+            # If model is not in the ensemble_members_nao_anoms
+            # then add it to the ensemble_members_nao_anoms
+            if model not in ensemble_members_nao_anoms:
+                ensemble_members_nao_anoms[model] = []
+
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members_nao_anoms[model].append(nao_index)
+
+            # Increment the count of ensemble members for the model
+            ensemble_members_count[model] += 1
+
+    return ensemble_members_nao_anoms, years, ensemble_members_count
 
 def calculate_spatial_correlations(observed_data, model_data, models, variable, lag=None, NAO_matched=False):
     """
@@ -4917,8 +5035,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
                 # Calculate the lagged NAO index
                 obs_nao, model_nao = calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, dic.psl_models,
-                                                                    'psl', obs_season, forecast_range, plots_dir,
-                                                                        lag=lag)
+                                                                    'psl', obs_season, forecast_range, plots_dir)                                                    
                 
                 # Rescale the NAO index
                 rescaled_nao, ensemble_mean_nao, ensemble_members_nao = rescale_nao(obs_nao, model_nao, dic.psl_models,
