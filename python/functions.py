@@ -1734,88 +1734,6 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
 
     return observed_data, constrained_data
 
-# Write a function to rescale the NAO index
-# We will only consider the non-lagged ensemble index for now
-def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, lagged = False):
-    """
-    Rescales the NAO index according to Doug Smith's (2020) method.
-    
-    Parameters
-    ----------
-    obs_nao : xarray.Dataset
-        Observations.
-    model_nao : dict
-        Dictionary of model data. Sorted by model.
-        Each model contains a list of ensemble members, which are xarray datasets.
-    models : list
-        List of models to be plotted. Different models for each variable.
-    season : str
-        Season name.
-    forecast_range : str
-        Forecast range.
-    output_dir : str
-        Path to the output directory.
-    lagged : bool, optional
-        Flag to indicate whether the NAO index is lagged or not. The default is False.
-
-    Returns
-    -------
-    rescaled_model_nao : numpy.ndarray
-        Array contains the rescaled NAO index.
-    ensemble_mean_nao : numpy.ndarray
-        Ensemble mean NAO index. Not rescaled
-    ensemble_members_nao : numpy.ndarray
-        Ensemble members NAO index. Not rescaled
-    """
-
-    # First calculate the ensemble mean NAO index
-    ensemble_mean_nao, ensemble_members_nao = calculate_ensemble_mean(model_nao, models)
-
-    # Extract the years from the ensemble members
-    model_years = ensemble_mean_nao.time.dt.year.values
-    # Extract the years from the obs
-    obs_years = obs_nao.time.dt.year.values
-
-    # If the two years arrays are not equal
-    if not np.array_equal(model_years, obs_years):
-        # Print a warning and exit the program
-        print("The years for the ensemble members and the observations are not equal")
-        sys.exit()
-
-    # if the type of obs_nao is not a numpy array
-    # Then convert to a numpy array
-    if type(obs_nao) != np.ndarray:
-        print("Converting obs_nao to a numpy array")
-        obs_nao = obs_nao.values
-
-    # Create an empty numpy array to store the rescaled NAO index
-    rescaled_model_nao = np.empty((len(model_years)))
-
-    # Loop over the years and perform the rescaling (including cross-validation)
-    for i, year in enumerate(model_years):
-
-        # Compute the rescaled NAO index for this year
-        signal_adjusted_nao_index_year, _ = rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
-                                                            forecast_range, output_dir, lagged=False, omit_no_either_side=1)
-
-        # Append the rescaled NAO index to the list, along with the year
-        rescaled_model_nao[i] = signal_adjusted_nao_index_year
-
-    # Convert the list to an xarray DataArray
-    # With the same coordinates as the ensemble mean NAO index
-    rescaled_model_nao = xr.DataArray(rescaled_model_nao, coords=ensemble_mean_nao.coords, dims=ensemble_mean_nao.dims)
-
-    # If the time type is not datetime64 for the rescaled model nao
-    # Then convert the time type to datetime64
-    if type(rescaled_model_nao.time.values[0]) != np.datetime64:
-        rescaled_model_nao_time = rescaled_model_nao.time.astype('datetime64[ns]')
-
-        # Modify the time coordinate using the assign_coords() method
-        rescaled_model_nao = rescaled_model_nao.assign_coords(time=rescaled_model_nao_time)
-
-    # Return the rescaled model NAO index
-    return rescaled_model_nao, ensemble_mean_nao, ensemble_members_nao
-
 # Define a new function to rescalse the NAO index for each year
 def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
                             forecast_range, output_dir, lagged=False, omit_no_either_side=1):
@@ -3011,7 +2929,7 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
 
         # Compute the rescaled NAO index for this year
         signal_adjusted_nao_index_year, _ = rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
-                                                            forecast_range, output_dir, lagged=False, omit_no_either_side=1)
+                                                            forecast_range, output_dir, lagged=False, omit_no_either_side=1, lag=lag)
 
         # Append the rescaled NAO index to the list, along with the year
         rescaled_model_nao[i] = signal_adjusted_nao_index_year
