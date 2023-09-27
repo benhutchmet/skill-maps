@@ -3311,6 +3311,14 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                     lagged_ensemble[member, year, :, :] = np.nan
                 else:
                     lagged_ensemble[member, year] = np.nan
+            # Loop over the lag
+            for lag_index in range(lag):
+                # Set the lag_index members with the year <= lag - 1 to NaN
+                if year <= lag_index:
+                    if not NAO_index:
+                        lagged_ensemble[member * lag + lag_index, year, :, :] = np.nan
+                    else:
+                        lagged_ensemble[member * lag + lag_index, year] = np.nan
             # if the year index is greater than or equal to lag - 1
             else:
                 # Loop over the lag
@@ -4905,10 +4913,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
 
     # Create a list of the methods to use
-    methods = ['raw', 'lagged', 'nao_matched']
+    #methods = ['raw', 'lagged', 'nao_matched']
+
+    test_methods = ['nao_matched']
 
     # Loop over the methods
-    for method in methods:
+    for method in test_methods:
         # Print the method being used
         print("method", method)
 
