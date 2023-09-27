@@ -373,6 +373,59 @@ def select_region(regridded_obs_dataset, region_grid):
         #print(f"Error selecting region: {e}")
         sys.exit()
 
+# Define a function which regrids and selects the region according to the specified gridspec
+# The same is done for the model data
+def regrid_and_select_region_nao(variable, region, observations_path, level=None):
+    """
+    Regrids and selects the region according to the specified gridspec.
+    
+    Parameters
+    ----------
+    variable : str
+        Variable name.
+    region : str
+        Region name.
+    observations_path : str
+        Path to the observations.
+    level : str, optional
+        Level name. The default is None.
+        
+    Returns
+    -------
+    regrid_obs_path : str
+        Path to the regridded observations.
+    """
+
+    # Check whether the gridspec path exists for the specified region
+    gridspec_path = f"/home/users/benhutch/gridspec/gridspec-{region}.txt"
+
+    if not os.path.exists(gridspec_path):
+        print('The gridspec path does not exist for the specified region: ', region)
+        sys.exit()
+
+    # Form the wind speed variables list
+    wind_speed_variables = ['ua', 'va', 'var131', 'var132']
+
+    if variable in wind_speed_variables and level is None:
+        print('The level must be specified for the wind speed variables')
+        sys.exit()
+
+    # Form the regrid sel region path accordingly
+    if variable in wind_speed_variables:
+        regrid_obs_path = f"/home/users/benhutch/ERA5/{region}_regrid_sel_region_{variable}_{level}.nc"
+    else:
+        regrid_obs_path = f"/home/users/benhutch/ERA5/{region}_regrid_sel_region.nc"
+    
+    # Check whether the regrid sel region path exists
+    if not os.path.exists(regrid_obs_path):
+        print('The regrid sel region path does not exist')
+        print('Regridding and selecting the region')
+
+        # Regrid and select the region using CDO
+        cdo.remapbil(gridspec_path, input=observations_path, output=regrid_obs_path)
+
+    return regrid_obs_path
+
 # Using cdo to do the regridding and selecting the region
 def regrid_and_select_region(observations_path, region, obs_var_name, level=None):
     """
@@ -769,7 +822,7 @@ def read_obs(variable, region, forecast_range, season, observations_path, start_
         sys.exit()
 
     # Get the path to the regridded and selected region observations
-    regrid_obs_path = regrid_and_select_region(variable, region, observations_path, level=level)
+    regrid_obs_path = regrid_and_select_region_nao(variable, region, observations_path, level=level)
 
     # Load the obs data into Iris cubes
     obs = load_obs(variable, regrid_obs_path)
@@ -3672,7 +3725,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     # variable extracted already
     # Convert both the observed and model data to numpy arrays
     observed_data_array = observed_data.values
-    if variable in ["tas", "sfcWind", "rsds"]:
+    if type(model_data) != dict and variable in ["tas", "sfcWind", "rsds"]:
         ensemble_mean_array = ensemble_mean['__xarray_dataarray_variable__'].values
     else:
         ensemble_mean_array = ensemble_mean.values
@@ -4716,7 +4769,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 # TODO: work the bootstrapped p values into this function
 #TODO: get this to work for MSESS and RPC
 def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, model_variable, obs_variable, obs_path, region, region_grid, 
-                                                    forecast_range, start_year, end_year, seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
+                                                    forecast_range, start_year, end_year, seasons_list_obs, seasons_list_mod, plots_dir, save_dir, obs_var_name,
                                                         azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast',
                                                             bootstrapped_pval = False, lag=4, no_subset_members=20):
     """
@@ -4737,6 +4790,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     - seasons_list_obs: a list of strings with the seasons to be plotted for the observations.
     - seasons_list_mod: a list of strings with the seasons to be plotted for the models.
     - plots_dir: a string with the path to the directory where the plots will be saved.
+    - save_dir: a string with the path to the directory where the processed data will be saved.
     - obs_var_name: a string with the name of the variable in the observations file.
     - azores_grid: a string with the name of the grid to be used for the Azores region.
     - iceland_grid: a string with the name of the grid to be used for the Iceland region.

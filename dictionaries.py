@@ -64,6 +64,19 @@ home_dir = "/home/users/benhutch"
 
 save_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
 
+# Define a dictionary to map the variable names to their corresponding names in the obs dataset
+var_name_map = {
+    "psl": "msl",
+    "tas": "t2m",
+    "sfcWind": "si10",
+    "rsds": "ssrd",
+    "tos": "sst",
+    "ua": "var131",
+    "va": "var132",
+    "var131": "var131",
+    "var132": "var132"
+}
+
 # Define the dimensions for the grids
 # for processing the observations
 north_atlantic_grid = {
