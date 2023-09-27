@@ -3316,13 +3316,14 @@ def process_model_data_for_plot(model_data, models, lag=None):
 
 
 # Create a function for lagging the ensemble
-def lag_ensemble(ensemble_members, lag):
+def lag_ensemble(ensemble_members, lag, NAO_index=False):
     """
     Lag the ensemble members array by combining each year with the previous lag-1 years.
     
     Parameters:
     ensemble_members (numpy.ndarray): The ensemble members to be lagged.
     lag (int): The lag to be applied.
+    NAO_index (bool): Flag to indicate whether the NAO index is being lagged. Default is False.
 
     Returns:
     lagged_ensemble (numpy.ndarray): The lagged ensemble members.
@@ -3339,9 +3340,11 @@ def lag_ensemble(ensemble_members, lag):
     # Extract the number of years
     n_years = ensemble_members.shape[1]
 
-    # Extract the shape of the lat and lon dimensions
-    lat_shape = ensemble_members.shape[2]
-    lon_shape = ensemble_members.shape[3]
+    # if the nao_index is not true
+    if not NAO_index:
+        # Extract the shape of the lat and lon dimensions
+        lat_shape = ensemble_members.shape[2]
+        lon_shape = ensemble_members.shape[3]
 
     # Print the number of ensemble members and years
     print("Number of ensemble members:", m_ensemble_members)
@@ -3350,8 +3353,12 @@ def lag_ensemble(ensemble_members, lag):
     # Set up the no_lagged_members
     m_lagged_ensemble_members = m_ensemble_members * lag
 
-    # Set up an empty array for the lagged ensemble members
-    lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years, lat_shape, lon_shape))
+    if not NAO_index:
+        # Set up an empty array for the lagged ensemble members
+        lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years, lat_shape, lon_shape))
+    else:
+        # Set up an empty array for the lagged ensemble members
+        lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years))
 
     # Loop over the ensemble members
     for member in range(m_ensemble_members):
@@ -3360,7 +3367,10 @@ def lag_ensemble(ensemble_members, lag):
             # If the year index is less than lag - 1
             # Then set the lagged ensemble member to NaN
             if year < lag - 1:
-                lagged_ensemble[member, year, :, :] = np.nan
+                if not NAO_index:
+                    lagged_ensemble[member, year, :, :] = np.nan
+                else:
+                    lagged_ensemble[member, year] = np.nan
             # if the year index is greater than or equal to lag - 1
             else:
                 # Loop over the lag
@@ -3368,17 +3378,27 @@ def lag_ensemble(ensemble_members, lag):
                     # Set the lagged ensemble member
                     # to the ensemble member
                     # for the current year minus the lag index
-                    lagged_ensemble[member * lag + lag_index, year, :, :] = ensemble_members[member, year - lag_index, :, :]
+                    if not NAO_index:
+                        lagged_ensemble[member * lag + lag_index, year, :, :] = ensemble_members[member, year - lag_index, :, :]
+                    else:
+                        lagged_ensemble[member * lag + lag_index, year] = ensemble_members[member, year - lag_index]
 
     # Remove the years which only contain NaN values
     # Loop over the years
     for year in range(n_years):
         # If the year only contains NaN values
-        if np.isnan(lagged_ensemble[:, year, :, :]).all():
-            print("Year only contains NaN values:", year)
-            print("Removing year")
-            # Remove the year
-            lagged_ensemble = np.delete(lagged_ensemble, year, axis=1)
+        if not NAO_index:
+            if np.isnan(lagged_ensemble[:, year, :, :]).all():
+                print("Year only contains NaN values:", year)
+                print("Removing year")
+                # Remove the year
+                lagged_ensemble = np.delete(lagged_ensemble, year, axis=1)
+        else:
+            if np.isnan(lagged_ensemble[:, year]).all():
+                print("Year only contains NaN values:", year)
+                print("Removing year")
+                # Remove the year
+                lagged_ensemble = np.delete(lagged_ensemble, year, axis=1)
 
     # Return the lagged ensemble
     return lagged_ensemble
