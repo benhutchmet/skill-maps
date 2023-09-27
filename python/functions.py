@@ -5029,7 +5029,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                                                                     models, model_variable, obs_variable, dic.base_dir,
                                                                         models, obs_path, region, obs_season, forecast_range,
                                                                             start_year, end_year, plots_dir, dic.save_dir, lagged_years=years,
-                                                                                lagged_nao=False, no_subset_members=no_subset_members)
+                                                                                lagged_nao=True, no_subset_members=no_subset_members)
             
                 # Set up the no_ensemble_members variables
                 no_ensemble_members = no_subset_members
