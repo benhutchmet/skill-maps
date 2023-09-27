@@ -3311,10 +3311,9 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                     lagged_ensemble[member, year, :, :] = np.nan
                 else:
                     lagged_ensemble[member, year] = np.nan
-            # Loop over the lag
-            for lag_index in range(lag):
-                # Set the lag_index members with the year <= lag - 1 to NaN
-                if year <= lag_index:
+                # Loop over the lag
+                for lag_index in range(lag):
+                    # Set the lag_index members with the year <= lag - 1 to NaN
                     if not NAO_index:
                         lagged_ensemble[member * lag + lag_index, year, :, :] = np.nan
                     else:
@@ -3340,16 +3339,16 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                 print("Year only contains NaN values:", year)
                 print("Removing year")
                 # Remove the year
-                lagged_ensemble = np.delete(lagged_ensemble, year, axis=1)
+                lagged_ensemble_constrained = np.delete(lagged_ensemble, year, axis=1)
         else:
             if np.isnan(lagged_ensemble[:, year]).all():
                 print("Year only contains NaN values:", year)
                 print("Removing year")
                 # Remove the year
-                lagged_ensemble = np.delete(lagged_ensemble, year, axis=1)
+                lagged_ensemble_constrained = np.delete(lagged_ensemble, year, axis=1)
 
     # Return the lagged ensemble
-    return lagged_ensemble
+    return lagged_ensemble_constrained
 
 
 # Define a new function
