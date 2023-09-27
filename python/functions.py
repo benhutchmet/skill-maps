@@ -1842,7 +1842,7 @@ def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, 
 # TODO: Modify variable names
 def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_variable_model, match_variable_obs, match_var_base_dir,
                             match_var_models, match_var_obs_path, region, season, forecast_range, 
-                                start_year, end_year, output_dir, save_dir, lagged=False, 
+                                start_year, end_year, output_dir, save_dir, lagged_years=None, lagged_nao=False, 
                                     no_subset_members=20, level = None):
     """
     Performs the NAO matching for the given variable. E.g. T2M.
@@ -1878,6 +1878,8 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         Path to the output directory.
     save_dir : str`
         Path to the save directory.
+    years : list, optional
+        List of years to loop over. The default is None.
     lagged : bool, optional
         Flag to indicate whether the ensemble is lagged or not. The default is False.
     no_subset_members : int, optional
@@ -1930,7 +1932,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
 
         # Remove years containing NaN values from the obs and model data
         # and align the time periods
-        match_var_obs_anomalies, match_var_model_anomalies = remove_years_with_nans(match_var_obs_anomalies,
+        match_var_obs_anomalies, match_var_model_anomalies = remove_years_with_nans_nao(match_var_obs_anomalies,
                                                                                         match_var_model_anomalies,
                                                                                             match_var_models)
 
@@ -1962,6 +1964,10 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         # Set up the years to loop over
         years = rescaled_model_years
 
+        # if lagged_nao is True
+        if lagged_nao == True:
+            years = lagged_years
+
         # Set up the lats and lons for the array
         lats = match_var_model_anomalies_constrained[match_var_models[0]][0].lat.values
         lons = match_var_model_anomalies_constrained[match_var_models[0]][0].lon.values
@@ -1977,6 +1983,8 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         coords = match_var_model_anomalies_constrained_years.coords
         dims = match_var_model_anomalies_constrained_years.dims
 
+        print("looping over the years:", years)
+
         # Loop over the years and perform the NAO matching                                                                               
         for i, year in enumerate(years):
             print("Selecting members for year: ", year)
@@ -1984,7 +1992,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             # Extract the members with the closest NAO index to the rescaled NAO index
             # for the given year
             smallest_diff = calculate_closest_members(year, rescaled_model_nao, model_nao_constrained, models_in_both, 
-                                                        season, forecast_range, output_dir, lagged=lagged,
+                                                        season, forecast_range, output_dir, lagged=False,
                                                             no_subset_members=no_subset_members)  
 
             # Using the closest NAO index members, extract the same members
@@ -2845,6 +2853,9 @@ def calculate_ensemble_mean(model_var, models, lag=None):
         for member in model_data_combined:
             # Append the ensemble member to the list of ensemble members
             ensemble_members_var.append(member)
+    
+    coords = member.coords
+    dims = member.dims
 
     # Convert the list of ensemble members to a numpy array
     ensemble_members_var = np.array(ensemble_members_var)
@@ -2852,7 +2863,20 @@ def calculate_ensemble_mean(model_var, models, lag=None):
     # if lag is not None
     if lag is not None:
         # Lage the ensemble members
-        ensemble_members_var = lag_ensemble(ensemble_members_var, lag, NAO_index=True)
+        ensemble_members_var, years_to_keep = lag_ensemble(ensemble_members_var, lag, NAO_index=True)
+
+        # Remove the first lag - 1 years from the member
+        years = member.time.dt.year.values
+
+        # remove the first lag - 1 years from the years
+        years_constrained = years[lag-1:]
+
+        # Extract the constrained years from the ensemble members
+        member = member.sel(time=member.time.dt.year.isin(years_constrained))
+
+        # extract the coords from the member
+        coords = member.coords
+        dims = member.dims
 
     # Calculate the ensemble mean NAO index
     ensemble_mean_var = np.mean(ensemble_members_var, axis=0)
@@ -2903,6 +2927,15 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
         # Calculate the lagged ensemble mean NAO index
         ensemble_mean_nao, ensemble_members_nao = calculate_ensemble_mean(model_nao, models, lag)
 
+        # Remove the first lag - 1 years from the obs_nao
+        years = obs_nao.time.dt.year.values
+        years_constrained = years[lag-1:]
+
+        # Extract the constrained years from the obs_nao
+        obs_nao = obs_nao.sel(time=obs_nao.time.dt.year.isin(years_constrained))
+
+        obs_years = years_constrained
+
 
     # Extract the years from the ensemble members
     model_years = ensemble_mean_nao.time.dt.year.values
@@ -2947,7 +2980,7 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
         rescaled_model_nao = rescaled_model_nao.assign_coords(time=rescaled_model_nao_time)
 
     # Return the rescaled model NAO index
-    return rescaled_model_nao, ensemble_mean_nao, ensemble_members_nao
+    return rescaled_model_nao, ensemble_mean_nao, ensemble_members_nao, obs_years
 
 
 # Define a new function to rescalse the NAO index for each year
@@ -3331,24 +3364,24 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                         lagged_ensemble[member * lag + lag_index, year] = ensemble_members[member, year - lag_index]
 
     # Remove the years which only contain NaN values
+    years_to_keep = []
     # Loop over the years
     for year in range(n_years):
         # If the year only contains NaN values
         if not NAO_index:
-            if np.isnan(lagged_ensemble[:, year, :, :]).all():
-                print("Year only contains NaN values:", year)
-                print("Removing year")
-                # Remove the year
-                lagged_ensemble_constrained = np.delete(lagged_ensemble, year, axis=1)
+            if not np.isnan(lagged_ensemble[:, year, :, :]).all():
+                years_to_keep.append(year)
         else:
-            if np.isnan(lagged_ensemble[:, year]).all():
-                print("Year only contains NaN values:", year)
-                print("Removing year")
-                # Remove the year
-                lagged_ensemble_constrained = np.delete(lagged_ensemble, year, axis=1)
+            if not np.isnan(lagged_ensemble[:, year]).all():
+                years_to_keep.append(year)
+    # Create a new array that only contains the non-NaN years
+    lagged_ensemble_constrained = lagged_ensemble[:, years_to_keep, :, :] if not NAO_index else lagged_ensemble[:, years_to_keep]
+
+    # Set the index of the years to keep
+    years_to_keep = np.array(years_to_keep)
 
     # Return the lagged ensemble
-    return lagged_ensemble_constrained
+    return lagged_ensemble_constrained, years_to_keep
 
 
 # Define a new function
@@ -4988,15 +5021,15 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                                                                     'psl', obs_season, forecast_range, plots_dir)                                                    
                 
                 # Rescale the NAO index
-                rescaled_nao, ensemble_mean_nao, ensemble_members_nao = rescale_nao(obs_nao, model_nao, dic.psl_models,
+                rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = rescale_nao(obs_nao, model_nao, dic.psl_models,
                                                                                         obs_season, forecast_range, plots_dir, lag=lag)
 
                 # Perform the NAO matching for the target variable
                 matched_var_ensemble_mean = nao_matching_other_var(rescaled_nao, model_nao,
                                                                     models, model_variable, obs_variable, dic.base_dir,
                                                                         models, obs_path, region, obs_season, forecast_range,
-                                                                            start_year, end_year, plots_dir, dic.save_dir,
-                                                                                lagged=False, no_subset_members=no_subset_members)
+                                                                            start_year, end_year, plots_dir, dic.save_dir, lagged_years=years,
+                                                                                lagged_nao=False, no_subset_members=no_subset_members)
             
                 # Set up the no_ensemble_members variables
                 no_ensemble_members = no_subset_members
