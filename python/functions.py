@@ -26,6 +26,17 @@ import matplotlib.animation as animation
 from matplotlib import rcParams
 from PIL import Image
 
+import matplotlib.cm as mpl_cm
+import matplotlib
+import cartopy.crs as ccrs
+import iris
+import iris.coord_categorisation as coord_cat
+import iris.plot as iplt
+import scipy
+import pdb
+import datetime
+import iris.quickplot as qplt
+
 # Import CDO
 from cdo import *
 cdo = Cdo()
@@ -49,7 +60,6 @@ import dictionaries as dic
 # base_directory: the base directory where the data is stored
 # models: a list of models to load
 # variable: the variable to load, extracted from the command line
-# region: the region to load, extracted from the command line
 # forecast_range: the forecast range to load, extracted from the command line
 # season: the season to load, extracted from the command line
 
@@ -662,6 +672,155 @@ def check_for_nan_timesteps(ds):
                 print(f"Time step {time_step} contains NaN values")
     except Exception as e:
         print("Error checking for NaN values:", e)
+
+# Define a function to load the obs data into Iris cubes
+def load_obs(variable, regrid_obs_path):
+    """
+    Loads the obs data into Iris cubes.
+    
+    Parameters
+    ----------
+    variable : str
+        Variable name.
+    regrid_obs_path : str
+        Path to the regridded observations.
+        
+    Returns
+    -------
+    obs : iris.cube.Cube
+        Observations.
+    """
+
+    # Verify that the regrid obs path exists
+    if not os.path.exists(regrid_obs_path):
+        print('The regrid obs path does not exist')
+        sys.exit()
+
+    if variable not in dic.var_name_map:
+        print('The variable is not in the dictionary')
+        sys.exit()
+
+    # Extract the variable name from the dictionary
+    obs_variable = dic.var_name_map[variable]
+
+    if obs_variable in dic.obs_ws_var_names:
+        print('The obs variable is a wind speed variable')
+        
+        # Load the regrid obs file into an Iris cube
+        obs = iris.load_cube(regrid_obs_path, obs_variable)
+    else:
+        # Load using xarray
+        obs = xr.open_mfdataset(regrid_obs_path, combine='by_coords', parallel=True)[obs_variable]
+
+        # Combine the two expver variables
+        obs = obs.sel(expver=1).combine_first(obs.sel(expver=5))
+
+        # Convert to an Iris cube
+        obs = obs.to_iris()
+
+        # if the type of obs is not a cube, then exit
+        if type(obs) != iris.cube.Cube:
+            print('The type of obs is not a cube')
+            sys.exit()
+
+    return obs
+
+
+# We want to write a function which reads and processes the observations
+# then returns the obs anomaly field
+def read_obs(variable, region, forecast_range, season, observations_path, start_year, end_year, level=None):
+    """
+    Processes the observations to have the same grid as the model data
+    using CDO. Then selects the region and season. Then calculates the
+    anomaly field using the climatology. Then calculates the annual 
+    mean of the anomaly field. Then selects the forecast range (e.g. 
+    years 2-5). Then selects the season. Then returns the anomaly field.
+    
+
+    Parameters
+    ----------
+    variable : str
+        Variable name.
+    region : str
+        Region name.
+    forecast_range : str
+        Forecast range.
+    season : str
+        Season name.
+    observations_path : str
+        Path to the observations.
+    start_year : str
+        Start year.
+    end_year : str
+        End year.
+    level : str, optional
+        Level name. The default is None.
+
+    Returns
+    -------
+    obs_anomaly : iris.cube.Cube
+        Anomaly field.
+
+    """
+
+    # First check that the obs_path exists
+    if not os.path.exists(observations_path):
+        print('The observations path does not exist')
+        sys.exit()
+
+    # Get the path to the regridded and selected region observations
+    regrid_obs_path = regrid_and_select_region(variable, region, observations_path, level=level)
+
+    # Load the obs data into Iris cubes
+    obs = load_obs(variable, regrid_obs_path)
+
+    # If the level is not None, then extract the level
+    if level is not None:
+        obs = obs.extract(iris.Constraint(air_pressure=level))
+
+    # Select the season
+    if season not in dic.season_month_map:
+        raise ValueError('The season is not in the dictionary')
+        sys.exit()
+    
+    # Extract the months corresponding to the season
+    months = dic.season_month_map[season]
+
+    # Set up the iris constraint for the start and end years
+    # Create the date time objects
+    start_date = datetime(int(start_year), 12, 1)
+    end_date = datetime(int(end_year), 3, 31)
+    iris_constraint = iris.Constraint(time=lambda cell: start_date <= cell.point <= end_date)
+    # Apply the iris constraint to the cube
+    obs = obs.extract(iris_constraint)
+
+    # Set up the iris constraint
+    iris_constraint = iris.Constraint(time=lambda cell: cell.point.month in months)
+    # Apply the iris constraint to the cube
+    obs = obs.extract(iris_constraint)
+
+    # # Add a month coordinate to the cube
+    # coord_cat.add_month(obs, 'time')
+
+    # Calculate the seasonal climatology
+    # First collapse the time dimension by taking the mean
+    climatology = obs.collapsed('time', iris.analysis.MEAN)
+
+    # Calculate the anomaly field
+    obs_anomaly = obs - climatology
+
+    # Calculate the annual mean anomalies
+    obs_anomaly_annual = calculate_annual_mean_anomalies(obs_anomaly, season)
+
+    # Select the forecast range
+    obs_anomaly_annual_forecast_range = select_forecast_range(obs_anomaly_annual, forecast_range)
+
+    # If the type of obs_anomaly_annual_forecast_range is not a cube, then convert to a cube
+    # if type(obs_anomaly_annual_forecast_range) != iris.cube.Cube:
+    #     obs_anomaly_annual_forecast_range = xr.DataArray.to_iris(obs_anomaly_annual_forecast_range)
+
+    # Return the anomaly field
+    return obs_anomaly_annual_forecast_range
 
 # Define a new function to load the observations
 # selecting a specific variable
@@ -1341,6 +1500,707 @@ def constrain_years(model_data, models):
     # #print("Constrained data:", constrained_data)
 
     return constrained_data
+
+
+# checking for Nans in observed data
+def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=False):
+    """
+    Removes years from the observed data that contain NaN values.
+
+    Args:
+        observed_data (xarray.Dataset): The observed data.
+        model_data (dict): The model data.
+        models (list): The list of models to be plotted.
+        variable (str): the variable name.
+
+    Returns:
+        xarray.Dataset: The observed data with years containing NaN values removed.
+    """
+
+    # If NAO_matched is False
+    if NAO_matched == False:
+        # Check that there are no NaN values in the model data
+        # Loop over the models
+        for model in models:
+            # Extract the model data
+            model_data_by_model = model_data[model]
+
+            # Loop over the ensemble members in the model data
+            for member in model_data_by_model:
+                
+                # # Modify the time dimension
+                # if type is not already datetime64
+                # then convert the time type to datetime64
+                if type(member.time.values[0]) != np.datetime64:
+                    member_time = member.time.astype('datetime64[ns]')
+
+                    # # Modify the time coordinate using the assign_coords() method
+                    member = member.assign_coords(time=member_time)
+                
+                
+                # Extract the years
+                model_years = member.time.dt.year.values
+
+            # If the years has duplicate values
+            if len(model_years) != len(set(model_years)):
+                # Raise a value error
+                raise ValueError("The models years has duplicate values for model " + model + "member " + member)
+
+            # Only if there are no NaN values in the model data
+            # Will we loop over the years
+            if not np.isnan(member.values).any():
+                print("No NaN values in the model data")
+                # continue with the loop
+                continue
+
+            print("NaN values in the model data")
+            print("Model:", model)
+            print("Member:", member)
+            print("Looping over the years")
+            # Loop over the years
+            for year in model_years:
+                # Extract the data for the year
+                data = member.sel(time=f"{year}")
+
+                if np.isnan(data.values).any():
+                    print("NaN values in the model data for this year")
+                    print("Model:", model)
+                    print("Year:", year)
+                    if np.isnan(data.values).all():
+                        print("All NaN values in the model data for this year")
+                        print("Model:", model)
+                        print("Year:", year)
+                        # De-Select the year from the observed data
+                        member = member.sel(time=member.time.dt.year != year)
+
+                        print(year, "all NaN values for this year")
+                else:
+                    print(year, "no NaN values for this year")
+    else:
+        print("NAO_matched is True")
+        print("Checking for NaN values in the xarray dataset")
+
+        # if there are any NaN values in the xarray dataset
+        # Extract the years from the xarray dataset
+        model_years = model_data.time.dt.year.values
+
+        # Loop over the years
+        for year in model_years:
+            # Extract the data for the year
+            data = model_data.sel(time=f"{year}")
+
+            # If there are any NaN values in the data
+            if np.isnan(data['__xarray_dataarray_variable__'].values).any():
+                # If there are only NaN values in the data
+                if np.isnan(data['__xarray_dataarray_variable__'].values).all():
+                    # Select the year from the observed data
+                    model_data = model_data.sel(time=model_data.time.dt.year != year)
+
+                    print(year, "all NaN values for this year")
+            # if there are no NaN values in the data for a year
+            # then #print the year
+            # and "no nan for this year"
+            # and continue the script
+            else:
+                print(year, "no NaN values for this year")
+
+    # Now check that there are no NaN values in the observed data
+    for year in observed_data.time.dt.year.values:
+        # Extract the data for the year
+        data = observed_data.sel(time=f"{year}")
+
+        # print("data type", (type(data)))
+        # print("data vaues", data)
+        # print("data shape", np.shape(data))
+
+        # If there are any NaN values in the data
+        if np.isnan(data.values).any():
+            # If there are only NaN values in the data
+            if np.isnan(data.values).all():
+                # Select the year from the observed data
+                observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
+
+                print(year, "all NaN values for this year")
+        # if there are no NaN values in the data for a year
+        # then #print the year
+        # and "no nan for this year"
+        # and continue the script
+        else:
+            print(year, "no NaN values for this year")
+
+    # Set up the years to be returned
+    obs_years = observed_data.time.dt.year.values
+
+    # Initialize a dictionary to store the constrained data
+    constrained_data = {}
+
+    # if obs years and model years are not the same
+    if obs_years != model_years:
+        print("obs years and model years are not the same")
+        print("Aligning the years")
+
+        # Find the years that are in both the model data and the common years
+        years_in_both = np.intersect1d(obs_years, model_years)
+
+        # Select only those years from the model data
+        observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
+
+        # if NAO_matched is False
+        if NAO_matched == False:
+            # for the model data
+            for model in models:
+                # Extract the model data
+                model_data_by_model = model_data[model]
+
+                # Loop over the ensemble members in the model data
+                for member in model_data_by_model:
+                    # Extract the years
+                    model_years = member.time.dt.year.values
+
+                    # Select only those years from the model data
+                    member = member.sel(time=member.time.dt.year.isin(years_in_both))
+
+                    # Add the member to the constrained data dictionary
+                    if model not in constrained_data:
+                        constrained_data[model] = []
+
+                    # Append the member to the constrained data dictionary
+                    constrained_data[model].append(member)
+        else:
+            # Select only those years from the model data
+            constrained_data = model_data.sel(time=model_data.time.dt.year.isin(years_in_both))
+
+    return observed_data, constrained_data
+
+
+# Write a function to calculate the NAO index
+# For both the obs and model data
+def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, season, forecast_range,
+                                    output_dir, plot_graphics=False, azores_grid = dic.azores_grid, 
+                                        iceland_grid = dic.iceland_grid, snao_south_grid = dic.snao_south_grid, 
+                                            snao_north_grid = dic.snao_north_grid):
+    """
+    Calculates the NAO index for both the obs and model data.
+    Then plots the NAO index for both the obs and model data if the plot_graphics flag is set to True.
+
+    Parameters
+    ----------
+    obs_anomaly : xarray.Dataset
+        Observations.
+    model_anomaly : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets.
+    models : list
+        List of models to be plotted. Different models for each variable.
+    variable : str
+        Variable name.
+    season : str
+        Season name.
+    forecast_range : str
+        Forecast range.
+    output_dir : str
+        Path to the output directory.
+    plot_graphics : bool, optional
+        Flag to plot the NAO index. The default is False.
+    azores_grid : str, optional
+        Azores grid. The default is dic.azores_grid.
+    iceland_grid : str, optional
+        Iceland grid. The default is dic.iceland_grid.
+    snao_south_grid : str, optional
+        SNAO south grid. The default is dic.snao_south_grid.
+    snao_north_grid : str, optional
+        SNAO north grid. The default is dic.snao_north_grid.
+
+    Returns
+    -------
+    obs_nao: xarray.Dataset
+        Observations. NAO index.
+    model_nao: dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
+    """
+
+    # If the variable is not psl, then exit
+    if variable != 'psl':
+        AssertionError('The variable is not psl')
+        sys.exit()
+    
+    # if the season is JJA, use the summer definition of the NAO
+    if season == "JJA":
+        print("Calculating NAO index using summer definition")
+        # Set up the dict for the southern box and northern box
+        south_grid, north_grid = snao_south_grid, snao_north_grid
+        # Set up the NAO type for the summer definition
+        nao_type = "snao"
+    else:
+        print("Calculating NAO index using standard definition")
+        # Set up the dict for the southern box and northern box
+        south_grid, north_grid = azores_grid, iceland_grid
+        # Set up the NAO type for the standard definition
+        nao_type = "default"
+
+    # Calculate the NAO index for the observations
+    obs_nao = calculate_obs_nao(obs_anomaly, south_grid, north_grid)
+
+    # Calculate the NAO index for the model data
+    model_nao, years, \
+    ensemble_members_count = calculate_model_nao_anoms(model_anomaly, models, azores_grid,
+                                                                            iceland_grid, snao_south_grid, snao_north_grid,
+                                                                                nao_type=nao_type)
+    
+    # If the plot_graphics flag is set to True
+    if plot_graphics:
+        # First calculate the ensemble mean NAO index
+        ensemble_mean_nao, _ = calculate_ensemble_mean(model_nao, models)
+
+        # Calculate the correlation coefficients between the observed and model data
+        r, p, _, _, _, _ = calculate_nao_correlations(obs_nao, ensemble_mean_nao, variable)
+
+        # Plot the NAO index
+        plot_nao_index(obs_nao, ensemble_mean_nao, variable, season, forecast_range, r, p, output_dir,
+                            ensemble_members_count, nao_type=nao_type)
+        
+    return obs_nao, model_nao
+
+
+# Define a function for plotting the NAO index
+def plot_nao_index(obs_nao, ensemble_mean_nao, variable, season, forecast_range, r, p, output_dir, 
+                        ensemble_members_count, experiment = "dcppA-hindcast", nao_type="default"):
+    """
+    Plots the NAO index for both the observations and model data.
+    
+    Parameters
+    ----------
+    obs_nao : xarray.Dataset
+        Observations.
+    ensemble_mean_nao : xarray.Dataset
+        Ensemble mean of the model data.
+    variable : str
+        Variable name.
+    season : str
+        Season name.
+    forecast_range : str
+        Forecast range.
+    r : float
+        Correlation coefficients between the observed and model data.
+    p : float
+        p-values for the correlation coefficients between the observed and model data.
+    output_dir : str
+        Path to the output directory.
+    ensemble_members_count : dict
+        Number of ensemble members for each model.
+    experiment : str, optional
+        Experiment name. The default is "dcppA-hindcast".
+    nao_type : str, optional
+        NAO type. The default is "default".    
+
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    # Set the font size
+    plt.rcParams.update({'font.size': 12})
+
+    # Set up the figure
+    fig = plt.figure(figsize=(10, 6))
+
+    # Set up the title
+    plot_name = f"{variable} {forecast_range} {season} {experiment} {nao_type} NAO index"
+
+    # Process the obs and the model data
+    # from Pa to hPa
+    obs_nao = obs_nao / 100
+    ensemble_mean_nao = ensemble_mean_nao / 100
+
+    # Extract the years
+    obs_years = obs_nao.time.dt.year.values
+    model_years = ensemble_mean_nao.time.dt.year.values
+
+    # If the obs years and model years are not the same
+    if len(obs_years) != len(model_years):
+        raise ValueError("Observed years and model years must be the same.")
+
+    # Plot the obs and the model data
+    plt.plot(obs_years, obs_nao, label="ERA5", color="black")
+
+    # Plot the ensemble mean
+    plt.plot(model_years, ensemble_mean_nao, label="dcppA", color="red")
+
+    # Add a horizontal line at y=0
+    plt.axhline(y=0, color="black", linestyle="--", linewidth=1)
+    # Set the ylim
+    plt.ylim(-10, 10)
+    plt.ylabel("NAO index (hPa)")
+    plt.xlabel("year")
+
+    # Set up a textbox with the season name in the top left corner
+    plt.text(0.05, 0.95, season, transform=fig.transFigure, fontsize=10, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.5))
+
+    # If the nao_type is not default
+    # then add a textbox with the nao_type in the top right corner
+    if nao_type != "default":
+        # nao type = summer nao
+        # add a textbox with the nao_type in the top right corner
+        plt.text(0.95, 0.95, nao_type, transform=fig.transFigure, fontsize=10, verticalalignment='top', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
+
+    # Set up the p value text box
+    if p < 0.01:
+        p_text = "< 0.01"
+    elif p < 0.05:
+        p_text = "< 0.05"
+    else:
+        p_text = f"= {p:.2f}"
+
+    # Extract the ensemble members count
+    no_ensemble_members = sum(ensemble_members_count.values())
+
+    # Set up the title for the plot
+    plt.title(f"ACC = {r:.2f}, p {p_text}, n = {no_ensemble_members}, years_{forecast_range}, {season}, {experiment}", fontsize=10)
+
+    # Set up the figure name
+    fig_name = f"{variable}_{forecast_range}_{season}_{experiment}_{nao_type}_NAO_index_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+
+    # Save the figure
+    plt.savefig(output_dir + "/" + fig_name, dpi=300, bbox_inches="tight")
+
+    # Show the figure
+    plt.show()
+
+# Calculate obs nao
+def calculate_obs_nao(obs_anomaly, south_grid, north_grid):
+    """
+    Calculates the North Atlantic Oscillation (NAO) index for the given
+    observations and gridboxes.
+
+    Parameters
+    ----------
+    obs_anomaly : xarray.Dataset
+        Anomaly field of the observations.
+    south_grid : dict
+        Dictionary containing the longitude and latitude values of the
+        southern gridbox.
+    north_grid : dict
+        Dictionary containing the longitude and latitude values of the
+        northern gridbox.
+
+    Returns
+    -------
+    obs_nao : xarray.DataArray
+        NAO index for the observations.
+
+    """
+
+    # Extract the lat and lon values
+    # from the gridbox dictionary
+    s_lon1, s_lon2 = south_grid["lon1"], south_grid["lon2"]
+    s_lat1, s_lat2 = south_grid["lat1"], south_grid["lat2"]
+
+    # second for the northern box
+    n_lon1, n_lon2 = north_grid["lon1"], north_grid["lon2"]
+    n_lat1, n_lat2 = north_grid["lat1"], north_grid["lat2"]
+
+    # Take the mean over the lat and lon values
+    south_grid_timeseries = obs_anomaly.sel(lat=slice(s_lat1, s_lat2), lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
+    north_grid_timeseries = obs_anomaly.sel(lat=slice(n_lat1, n_lat2), lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
+
+    # Calculate the NAO index for the observations
+    obs_nao = south_grid_timeseries - north_grid_timeseries
+
+    return obs_nao
+
+# Define a function to calculate the ensemble mean NAO index
+def calculate_ensemble_mean(model_var, models):
+    """
+    Calculates the ensemble mean NAO index for the given model data.
+    
+    Parameters
+    ----------
+    model_nao (dict): The model data containing the NAO index for each ensemble member.
+    models (list): The list of models to be plotted.
+    
+    Returns
+    -------
+    ensemble_mean_nao (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
+    """
+
+    # Initialize a list for the ensemble members
+    ensemble_members_var = []
+
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_var[model]
+
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members_var.append(member)
+
+    # Convert the list of ensemble members to a numpy array
+    ensemble_members_var = np.array(ensemble_members_var)
+
+    # Calculate the ensemble mean NAO index
+    ensemble_mean_var = np.mean(ensemble_members_var, axis=0)
+
+    # Convert the ensemble mean NAO index to an xarray DataArray
+    ensemble_mean_var = xr.DataArray(ensemble_mean_var, coords=member.coords, dims=member.dims)
+
+    return ensemble_mean_var, ensemble_members_var    
+
+# Write a function to rescale the NAO index
+# We will only consider the non-lagged ensemble index for now
+def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, lagged = False):
+    """
+    Rescales the NAO index according to Doug Smith's (2020) method.
+    
+    Parameters
+    ----------
+    obs_nao : xarray.Dataset
+        Observations.
+    model_nao : dict
+        Dictionary of model data. Sorted by model.
+        Each model contains a list of ensemble members, which are xarray datasets.
+    models : list
+        List of models to be plotted. Different models for each variable.
+    season : str
+        Season name.
+    forecast_range : str
+        Forecast range.
+    output_dir : str
+        Path to the output directory.
+    lagged : bool, optional
+        Flag to indicate whether the NAO index is lagged or not. The default is False.
+
+    Returns
+    -------
+    rescaled_model_nao : numpy.ndarray
+        Array contains the rescaled NAO index.
+    ensemble_mean_nao : numpy.ndarray
+        Ensemble mean NAO index. Not rescaled
+    ensemble_members_nao : numpy.ndarray
+        Ensemble members NAO index. Not rescaled
+    """
+
+    # First calculate the ensemble mean NAO index
+    ensemble_mean_nao, ensemble_members_nao = calculate_ensemble_mean(model_nao, models)
+
+    # Extract the years from the ensemble members
+    model_years = ensemble_mean_nao.time.dt.year.values
+    # Extract the years from the obs
+    obs_years = obs_nao.time.dt.year.values
+
+    # If the two years arrays are not equal
+    if not np.array_equal(model_years, obs_years):
+        # Print a warning and exit the program
+        print("The years for the ensemble members and the observations are not equal")
+        sys.exit()
+
+    # if the type of obs_nao is not a numpy array
+    # Then convert to a numpy array
+    if type(obs_nao) != np.ndarray:
+        print("Converting obs_nao to a numpy array")
+        obs_nao = obs_nao.values
+
+    # Create an empty numpy array to store the rescaled NAO index
+    rescaled_model_nao = np.empty((len(model_years)))
+
+    # Loop over the years and perform the rescaling (including cross-validation)
+    for i, year in enumerate(model_years):
+
+        # Compute the rescaled NAO index for this year
+        signal_adjusted_nao_index_year, _ = rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
+                                                            forecast_range, output_dir, lagged=False, omit_no_either_side=1)
+
+        # Append the rescaled NAO index to the list, along with the year
+        rescaled_model_nao[i] = signal_adjusted_nao_index_year
+
+    # Convert the list to an xarray DataArray
+    # With the same coordinates as the ensemble mean NAO index
+    rescaled_model_nao = xr.DataArray(rescaled_model_nao, coords=ensemble_mean_nao.coords, dims=ensemble_mean_nao.dims)
+
+    # If the time type is not datetime64 for the rescaled model nao
+    # Then convert the time type to datetime64
+    if type(rescaled_model_nao.time.values[0]) != np.datetime64:
+        rescaled_model_nao_time = rescaled_model_nao.time.astype('datetime64[ns]')
+
+        # Modify the time coordinate using the assign_coords() method
+        rescaled_model_nao = rescaled_model_nao.assign_coords(time=rescaled_model_nao_time)
+
+    # Return the rescaled model NAO index
+    return rescaled_model_nao, ensemble_mean_nao, ensemble_members_nao
+
+
+# Define a new function to rescalse the NAO index for each year
+def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
+                            forecast_range, output_dir, lagged=False, omit_no_either_side=1):
+    """
+    Rescales the observed and model NAO indices for a given year and season, and saves the results to disk.
+
+    Parameters
+    ----------
+    year : int
+        The year for which to rescale the NAO indices.
+    obs_nao : pandas.DataFrame
+        A DataFrame containing the observed NAO index values, with a DatetimeIndex.
+    ensemble_mean_nao : pandas.DataFrame
+        A DataFrame containing the ensemble mean NAO index values, with a DatetimeIndex.
+    ensemble_members_nao : dict
+        A dictionary containing the NAO index values for each ensemble member, with a DatetimeIndex.
+    season : str
+        The season for which to rescale the NAO indices. Must be one of 'DJF', 'MAM', 'JJA', or 'SON'.
+    forecast_range : int
+        The number of months to forecast ahead.
+    output_dir : str
+        The directory where to save the rescaled NAO indices.
+    lagged : bool, optional
+        Whether to use lagged NAO indices in the rescaling. Default is False.
+
+    Returns
+    -------
+    None
+    """
+
+    # Print the year for which the NAO indices are being rescaled
+    print(f"Rescaling NAO indices for {year}")
+
+    # Extract the model years
+    model_years = ensemble_mean_nao.time.dt.year.values
+
+    # Ensure that the type of ensemble_mean_nao and ensemble_members_nao is a an array
+    if type(ensemble_mean_nao) and type(ensemble_members_nao) != np.ndarray and type(obs_nao) != np.ndarray:
+        AssertionError("The type of ensemble_mean_nao and ensemble_members_nao and obs_nao is not a numpy array")
+        sys.exit()
+
+    # If the year is not in the ensemble members years
+    if year not in model_years:
+        # Print a warning and exit the program
+        print(f"Year {year} is not in the ensemble members years")
+        sys.exit()
+
+    # Extract the index for the year
+    year_index = np.where(model_years == year)[0]
+
+    # Extract the ensemble members for the year
+    ensemble_members_nao_year = ensemble_members_nao[:, year_index]
+
+    # Compute the ensemble mean NAO for this year
+    ensemble_mean_nao_year = ensemble_members_nao_year.mean(axis=0)
+
+    # Set up the indicies for the cross-validation
+    # In the case of the first year
+    if year == model_years[0]:
+        print("Cross-validation case for the first year")
+        print("Removing the first year and:", omit_no_either_side, "years forward")
+        # Set up the indices to use for the cross-validation
+        # Remove the first year and omit_no_either_side years forward
+        cross_validation_indices = np.arange(0, omit_no_either_side + 1)
+    # In the case of the last year
+    elif year == model_years[-1]:
+        print("Cross-validation case for the last year")
+        print("Removing the last year and:", omit_no_either_side, "years backward")
+        # Set up the indices to use for the cross-validation
+        # Remove the last year and omit_no_either_side years backward
+        cross_validation_indices = np.arange(-1, -omit_no_either_side - 2, -1)
+    # In the case of any other year
+    else:
+        # Omit the year and omit_no_either_side years forward and backward
+        print("Cross-validation case for any other year")
+        print("Removing the year and:", omit_no_either_side, "years backward")
+        # Set up the indices to use for the cross-validation
+        # Use the year index and omit_no_either_side years forward and backward
+        cross_validation_indices = np.arange(year_index - omit_no_either_side, year_index + omit_no_either_side + 1)
+    
+    # Log which years are being used for the cross-validation
+    print("Cross-validation indices:", cross_validation_indices)
+
+    # Extract the ensemble members for the cross-validation
+    # i.e. don't use the years given by the cross_validation_indices
+    ensemble_members_nao_array_cross_val = np.delete(ensemble_members_nao, cross_validation_indices, axis=1)
+    # Take the mean over the ensemble members
+    # to get the ensemble mean nao for the cross-validation
+    ensemble_mean_nao_cross_val = ensemble_members_nao_array_cross_val.mean(axis=0)
+
+    # Remove the indicies from the obs_nao
+    obs_nao_cross_val = np.delete(obs_nao, cross_validation_indices, axis=0)
+
+    # Calculate the pearson correlation coefficient between the observed and model NAO indices
+    acc_score, p_value = stats.pearsonr(obs_nao_cross_val, ensemble_mean_nao_cross_val)
+
+    # Calculate the RPS score 
+    rps_score = calculate_rps(acc_score, ensemble_members_nao_array_cross_val, obs_nao_cross_val)  
+
+    # Compute the rescaled NAO index for the year
+    signal_adjusted_nao_index = ensemble_mean_nao_year * rps_score
+
+    return signal_adjusted_nao_index, ensemble_mean_nao_year
+
+def calculate_rpc(acc_score, ensemble_members_array):
+    """
+    Calculates the RPC score. Ratio of predictable components.
+    
+    Parameters
+    ----------
+    acc_score : float
+        The ACC score.
+    ensemble_members_array : numpy.ndarray
+        The ensemble members array.
+        
+    Returns
+    -------
+    rpc_score : float
+        The RPC score.
+    """
+
+    # Calculate the ensemble mean over all members
+    ensemble_mean = np.mean(ensemble_members_array, axis=0)
+
+    # Calculate the standard deviation of the predictable signal for the forecasts (σfsig)
+    sigma_fsig = np.std(ensemble_mean)
+
+    # Calculate the total standard deviation of the forecasts (σftot)
+    sigma_ftot = np.std(ensemble_members_array)
+
+    # Calculate the RPC score
+    rpc_score = acc_score / (sigma_fsig / sigma_ftot)
+
+    return rpc_score
+
+# Calculate the RPS score - ratio of predictable signals
+def calculate_rps(acc_score, ensemble_members_array, obs_nao):
+    """
+    Calculates the RPS score. Ratio of predictable signals.
+    
+    Parameters
+    ----------
+    acc_score : float
+        The ACC score.
+    ensemble_members_array : numpy.ndarray
+        The ensemble members array.
+    obs_nao : numpy.ndarray
+        The observed NAO index.
+        
+    Returns
+    -------
+    rps_score : float
+        The RPS score.
+    """
+
+    # Calculate the ratio of predictable components (for the model)
+    rpc = calculate_rpc(acc_score, ensemble_members_array)
+
+    # Calculate the total standard deviation of the observations (σotot)
+    obs_std = np.std(obs_nao)
+
+    # Calculate the total standard deviation of the forecasts (σftot)
+    model_std = np.std(ensemble_members_array)
+
+    # Calculate the RPS score
+    rps_score = rpc * (obs_std / model_std)
+
+    return rps_score    
 
 
 # Define a function which processes the model data for spatial correlations
@@ -2883,7 +3743,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 # Plot the seasonal correlations for the raw ensemble, the lagged ensemble and the NAO-matched ensemble
 # TODO: work the bootstrapped p values into this function
 def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, variable, region, region_grid, 
-                                                    forecast_range, seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
+                                                    forecast_range, start_year, end_year, seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
                                                         azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast',
                                                             bootstrapped_pval = False, lag=4, no_subset_members=20):
     """
@@ -2897,6 +3757,8 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, var
     - region: a string with the name of the region to be plotted.
     - region_grid: a string with the name of the grid to be used for the region.
     - forecast_range: a string with the forecast range to be plotted.
+    - start_year: an integer with the start year of the forecast range.
+    - end_year: an integer with the end year of the forecast range.
     - seasons_list_obs: a list of strings with the seasons to be plotted for the observations.
     - seasons_list_mod: a list of strings with the seasons to be plotted for the models.
     - plots_dir: a string with the path to the directory where the plots will be saved.
@@ -2979,6 +3841,45 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, var
                 # Calculate the spatial correlations for the model
                 rfield, pfield, obs_lons_converted, \
                     lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable, lag=lag)
+            elif method == 'nao_matched':
+                print("method", method)
+
+                # process the psl observations for the nao index
+                obs_psl_anomaly = read_obs('psl', region, forecast_range, obs_season, 
+                                                observations_path, start_year, end_year)
+
+                # Load and process the model data for the NAO index
+                model_datasets_psl = load_data(dic.base_dir, models, 'psl', region, forecast_range, 
+                                            model_season)
+                # Process the model data
+                model_data_psl, _ = process_data(model_datasets_psl, 'psl')
+
+                # Make sure that the models have the same time period for psl
+                model_data_psl = constrain_years(model_data, dic.psl_models)
+
+                # Remove years containing NaNs from the observations and model data
+                # and align the time periods
+                obs_psl_anomaly, model_data_psl = remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl, 
+                                                                                dic.psl_models, NAO_matched=False)
+
+                # Calculate the NAO index
+                obs_nao, model_nao 
+
+
+
+
+                
+
+
+
+
+            
+
+            
+            else:
+                print("Error: method not found")
+                sys.exit()
+            
 
      
             
