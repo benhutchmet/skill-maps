@@ -1430,6 +1430,15 @@ def process_model_data_for_plot(model_data, models, lag=None):
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
+    # If the lag is not None
+    # then lag the ensemble members
+    if lag is not None:
+        # Lag the ensemble members
+        ensemble_members = lag_ensemble(ensemble_members, lag)
+
+        # Multiply the ensemble members count by the lag
+        ensemble_members_count = {k: v * lag for k, v in ensemble_members_count.items()}
+
     # #print the dimensions of the ensemble members
     # #print("ensemble members shape", np.shape(ensemble_members))
 
@@ -1765,7 +1774,10 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     """
     # try:
     # Process the model data and calculate the ensemble mean
-    ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+    if lag is None:
+        ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+    else:
+        ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models, lag=lag)
 
     # Debug the model data
     # #print("ensemble mean within spatial correlation function:", ensemble_mean)
