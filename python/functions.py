@@ -4888,7 +4888,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                 model_data_psl, _ = process_data(model_datasets_psl, 'psl')
 
                 # Make sure that the models have the same time period for psl
-                model_data_psl = constrain_years(model_data, dic.psl_models)
+                model_data_psl = constrain_years(model_data_psl, dic.psl_models)
 
                 # Remove years containing NaNs from the observations and model data
                 # and align the time periods
