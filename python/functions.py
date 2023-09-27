@@ -588,7 +588,7 @@ def calculate_annual_mean_anomalies(obs_anomalies, season):
 
         return obs_anomalies_annual
     except:
-        #print("Error shifting and calculating annual mean anomalies for observations")
+        print("Error shifting and calculating annual mean anomalies for observations")
         sys.exit()
 
 def select_forecast_range(obs_anomalies_annual, forecast_range):
@@ -1344,13 +1344,14 @@ def constrain_years(model_data, models):
 
 
 # Define a function which processes the model data for spatial correlations
-def process_model_data_for_plot(model_data, models):
+def process_model_data_for_plot(model_data, models, lag=None):
     """
     Processes the model data and calculates the ensemble mean.
 
     Parameters:
     model_data (dict): The processed model data.
     models (list): The list of models to be plotted.
+    lag (int): The lag to be plotted. Default is None.
 
     Returns:
     ensemble_mean (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
@@ -1447,6 +1448,76 @@ def process_model_data_for_plot(model_data, models):
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
 
     return ensemble_mean, lat, lon, years, ensemble_members_count
+
+
+# Create a function for lagging the ensemble
+def lag_ensemble(ensemble_members, lag):
+    """
+    Lag the ensemble members array by combining each year with the previous lag-1 years.
+    
+    Parameters:
+    ensemble_members (numpy.ndarray): The ensemble members to be lagged.
+    lag (int): The lag to be applied.
+
+    Returns:
+    lagged_ensemble (numpy.ndarray): The lagged ensemble members.
+    """
+
+    # if the type of the ensemble members is not a numpy array
+    # print an error message and exit
+    if type(ensemble_members) != np.ndarray:
+        raise ValueError("The ensemble members must be a numpy array")
+    
+    # Extract the number of ensemble members
+    m_ensemble_members = ensemble_members.shape[0]
+
+    # Extract the number of years
+    n_years = ensemble_members.shape[1]
+
+    # Extract the shape of the lat and lon dimensions
+    lat_shape = ensemble_members.shape[2]
+    lon_shape = ensemble_members.shape[3]
+
+    # Print the number of ensemble members and years
+    print("Number of ensemble members:", m_ensemble_members)
+    print("Number of years:", n_years)
+
+    # Set up the no_lagged_members
+    m_lagged_ensemble_members = m_ensemble_members * lag
+
+    # Set up an empty array for the lagged ensemble members
+    lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years, lat_shape, lon_shape))
+
+    # Loop over the ensemble members
+    for member in range(m_ensemble_members):
+        # Loop over each year
+        for year in range(n_years):
+            # If the year index is less than lag - 1
+            # Then set the lagged ensemble member to NaN
+            if year < lag - 1:
+                lagged_ensemble[member, year, :, :] = np.nan
+            # if the year index is greater than or equal to lag - 1
+            else:
+                # Loop over the lag
+                for lag_index in range(lag):
+                    # Set the lagged ensemble member
+                    # to the ensemble member
+                    # for the current year minus the lag index
+                    lagged_ensemble[member * lag + lag_index, year, :, :] = ensemble_members[member, year - lag_index, :, :]
+
+    # Remove the years which only contain NaN values
+    # Loop over the years
+    for year in range(n_years):
+        # If the year only contains NaN values
+        if np.isnan(lagged_ensemble[:, year, :, :]).all():
+            print("Year only contains NaN values:", year)
+            print("Removing year")
+            # Remove the year
+            lagged_ensemble = np.delete(lagged_ensemble, year, axis=1)
+
+    # Return the lagged ensemble
+    return lagged_ensemble
+
 
 # Define a new function
 # process_model_data_for_plot_timeseries
@@ -1677,7 +1748,7 @@ def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid,
     return ensemble_mean_nao_anoms, ensemble_members_nao_anoms, years, ensemble_members_count
 
 
-def calculate_spatial_correlations(observed_data, model_data, models, variable):
+def calculate_spatial_correlations(observed_data, model_data, models, variable, lag=None):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
     
@@ -1685,6 +1756,8 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     observed_data (xarray.core.dataset.Dataset): The processed observed data.
     model_data (dict): The processed model data.
     models (list): The list of models to be plotted.
+    variable (str): The variable to be plotted.
+    lag (int, optional): The lag to be used for the spatial correlations, by default None.
 
     Returns:
     rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
@@ -2078,6 +2151,7 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
     model_years = ensemble_mean.time.dt.year.values
 
     return observed_data, ensemble_mean, obs_years, model_years
+
 # plot the correlations and p-values
 def plot_correlations(models, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, 
                         obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, 
@@ -2793,6 +2867,109 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
     # Show the figure
     plt.show()
+
+# Plot the seasonal correlations for the raw ensemble, the lagged ensemble and the NAO-matched ensemble
+# TODO: work the bootstrapped p values into this function
+def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, variable, region, region_grid, 
+                                                    forecast_range, seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
+                                                        azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast',
+                                                            bootstrapped_pval = False, lag=4, no_subset_members=20):
+    """
+    Plots the spatial correlation coefficients and p-values for the raw ensemble, the lagged ensemble and the NAO-matched ensemble.
+    For the same variable, region and forecast range (e.g. tas global years 2-9) but with different seasons (e.g. DJFM, MAM, JJA, SON).
+    
+    Arguments:
+    - models: a list of strings with the names of the models to be plotted.
+    - observations_path: a string with the path to the observations file.
+    - variable: a string with the name of the variable to be plotted.
+    - region: a string with the name of the region to be plotted.
+    - region_grid: a string with the name of the grid to be used for the region.
+    - forecast_range: a string with the forecast range to be plotted.
+    - seasons_list_obs: a list of strings with the seasons to be plotted for the observations.
+    - seasons_list_mod: a list of strings with the seasons to be plotted for the models.
+    - plots_dir: a string with the path to the directory where the plots will be saved.
+    - obs_var_name: a string with the name of the variable in the observations file.
+    - azores_grid: a string with the name of the grid to be used for the Azores region.
+    - iceland_grid: a string with the name of the grid to be used for the Iceland region.
+    - p_sig: a float with the significance level for the p-values (default is 0.05).
+    - experiment: a string with the name of the experiment to be plotted (default is 'dcppA-hindcast').
+    - bootstrapped_pval: a boolean indicating whether to use bootstrapped p-values (default is False).
+    - lag: an integer with the number of months to lag the data (default is 4).
+    - no_subset_members: an integer with the number of members to use for the NAO-matched ensemble (default is 20).
+    """
+
+    # Create an empty list to store the processed observations
+    # for each season
+    obs_list = []
+
+    # Create empty lists to store the r and p fields
+    # for each season
+    rfield_list = []
+    pfield_list = []
+
+    # Create lists to store the obs_lons_converted and lons_converted
+    # for each season
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # Create the labels for the subplots
+    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
+
+    # Create a list of the methods to use
+    methods = ['raw', 'lagged', 'nao_matched']
+
+    # Loop over the methods
+    for method in methods:
+        # Print the method being used
+        print("method", method)
+
+        # Loop over the seasons
+        for i, obs_season in enumerate(seasons_list_obs):
+
+            # Print the season(s) being processed
+            print("obs season", obs_season)
+            model_season = seasons_list_mod[i]
+            print("mod season", model_season)
+
+            # Process the observations
+            obs = process_observations(variable, region, region_grid, forecast_range, obs_season, 
+                                        observations_path, obs_var_name)
+            
+            # if the variable is 'rsds'
+            # divide the obs data by 86400 to convert from J/m2 to W/m2
+            if variable == 'rsds':
+                obs /= 86400
+
+            # Append the processed observations to the list
+            obs_list.append(obs)
+
+            # if the method is 'raw'
+            if method == 'raw':
+                print("method", method)
+                # Load and process the model data
+                model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, model_season)
+                # Process the model data
+                model_data, model_time = process_data(model_datasets, variable)
+
+                # Calculate the spatial correlations for the model
+                rfield, pfield, obs_lons_converted, \
+                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
+            elif method == 'lagged':
+                print("method", method)
+                # Load and process the model data
+                model_datasets = load_data(dic.base_dir, models, variable, region, forecast_range, model_season)
+                # Process the model data
+                model_data, model_time = process_data(model_datasets, variable)
+
+                # Calculate the spatial correlations for the model
+                rfield, pfield, obs_lons_converted, \
+                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable, lag=lag)
+
+     
+            
 
 # Plot seasonal correlations for the wind speed at a given level
 # TODO: WRIte function for plotting wind speed correlations at a given level (850 hPa)
