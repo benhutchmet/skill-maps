@@ -3566,7 +3566,7 @@ def calculate_model_nao_anoms(model_data, models, azores_grid, iceland_grid,
     return ensemble_mean_nao_anoms, ensemble_members_nao_anoms, years, ensemble_members_count
 
 
-def calculate_spatial_correlations(observed_data, model_data, models, variable, lag=None):
+def calculate_spatial_correlations(observed_data, model_data, models, variable, lag=None, NAO_matched=False):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
     
@@ -3576,6 +3576,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     models (list): The list of models to be plotted.
     variable (str): The variable to be plotted.
     lag (int, optional): The lag to be used for the spatial correlations, by default None.
+    NAO_matched (bool, optional): Whether to use the NAO matched model data, by default False.
 
     Returns:
     rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
@@ -3583,10 +3584,26 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     """
     # try:
     # Process the model data and calculate the ensemble mean
-    if lag is None:
-        ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+    if type(model_data) == dict:
+        if lag is None:
+            ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+        else:
+            ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models, lag=lag)
     else:
-        ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models, lag=lag)
+        print("The type of model data is:", type(model_data))
+
+        # Set the ensemble mean to the model data
+        ensemble_mean = model_data
+
+        # Extract the lat and lon values
+        lat = ensemble_mean.lat.values
+        lon = ensemble_mean.lon.values
+
+        # Extract the years
+        years = ensemble_mean.time.dt.year.values
+
+        # Set the ensemble members count to 1
+        ensemble_members_count = None
 
     # Debug the model data
     # #print("ensemble mean within spatial correlation function:", ensemble_mean)
@@ -3614,18 +3631,21 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     # #print the observed and model years
     # print('observed years', obs_years)
     # print('model years', years)
+
+    # If NAO_matched is false
+    if NAO_matched == False:
     
-    # Find the years that are in both the observed and model data
-    years_in_both = np.intersect1d(obs_years, years)
+        # Find the years that are in both the observed and model data
+        years_in_both = np.intersect1d(obs_years, years)
 
-    # print('years in both', years_in_both)
+        # print('years in both', years_in_both)
 
-    # Select only the years that are in both the observed and model data
-    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
-    ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
+        # Select only the years that are in both the observed and model data
+        observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
+        ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
 
-    # Remove years with NaNs
-    observed_data, ensemble_mean, _, _ = remove_years_with_nans(observed_data, ensemble_mean, variable)
+        # Remove years with NaNs
+        observed_data, ensemble_mean, _, _ = remove_years_with_nans(observed_data, ensemble_mean, variable)
 
     # #print the ensemble mean values
     # #print("ensemble mean value after removing nans:", ensemble_mean.values)
@@ -3652,7 +3672,10 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     # variable extracted already
     # Convert both the observed and model data to numpy arrays
     observed_data_array = observed_data.values
-    ensemble_mean_array = ensemble_mean.values
+    if variable in ["tas", "sfcWind", "rsds"]:
+        ensemble_mean_array = ensemble_mean['__xarray_dataarray_variable__'].values
+    else:
+        ensemble_mean_array = ensemble_mean.values
 
     # #print the values and shapes of the observed and model data
     print("observed data shape", np.shape(observed_data_array))
@@ -4828,6 +4851,22 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                                                                         models, obs_path, region, obs_season, forecast_range,
                                                                             start_year, end_year, plots_dir, dic.save_dir,
                                                                                 lagged=False, no_subset_members=no_subset_members)
+            
+                # Set up the no_ensemble_members variables
+                no_ensemble_members = no_subset_members
+
+                # Process the observations for the NAO-matched variables
+                obs_match_var = read_obs(obs_variable, region, forecast_range, obs_season,
+                                            observations_path, start_year, end_year)
+
+                # Remove years containing NaNs from the observations and model data
+                obs_match_var, matched_var_ensemble_mean = remove_years_with_nans_nao(obs_match_var, matched_var_ensemble_mean,
+                                                                                        models, NAO_matched=True)
+
+                # Now calculate the spatial correlations
+                rfield, pfield, obs_lons_converted, \
+                lons_converted, _ = calculate_spatial_correlations(obs_match_var, matched_var_ensemble_mean, models, obs_variable, NAO_matched=True)                                                                   
+                
 
 
 
