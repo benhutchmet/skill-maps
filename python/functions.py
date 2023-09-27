@@ -4714,6 +4714,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
 # Plot the seasonal correlations for the raw ensemble, the lagged ensemble and the NAO-matched ensemble
 # TODO: work the bootstrapped p values into this function
+#TODO: get this to work for MSESS and RPC
 def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, model_variable, obs_variable, obs_path, region, region_grid, 
                                                     forecast_range, start_year, end_year, seasons_list_obs, seasons_list_mod, plots_dir, obs_var_name,
                                                         azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast',
