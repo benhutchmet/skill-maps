@@ -5103,7 +5103,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
     # Set up the fgure size and subplot parameters
     # for a 3x4 grid of subplots
-    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(14, 10), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(14, 12), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
     title = f"{model_variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
@@ -5115,8 +5115,8 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     # e.g. 0.05 for 95% significance
     sig_threshold = int((1 - p_sig) * 100)
 
-    # Set up the axes
-    axs = np.empty((len(seasons_list_obs), len(methods)), dtype=object)
+    # # Set up the axes
+    # axs = np.empty((len(methods), len(seasons_list_obs)), dtype=object)
 
     # Create a list to store the contourf objects
     cf_list = []
@@ -5129,14 +5129,17 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             # Print the season(s) being plotted
             print("plotting season", obs_season)
 
+            # Set up the index for the subplot
+            index = i * 4 + j
+
             # Extract the obs
-            obs = obs_list[j]
+            obs = obs_list[index]
 
             # Extract the r and p fields
-            rfield, pfield = rfield_list[j], pfield_list[j]
+            rfield, pfield = rfield_list[index], pfield_list[index]
 
             # Extract the obs_lons_converted and lons_converted
-            obs_lons_converted, lons_converted = obs_lons_converted_list[j], lons_converted_list[j]
+            obs_lons_converted, lons_converted = obs_lons_converted_list[index], lons_converted_list[index]
 
             # Set up the converted lons
             lons_converted = lons_converted - 180
