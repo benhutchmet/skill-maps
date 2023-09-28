@@ -1704,7 +1704,7 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
     # print("obs years shape", np.shape(obs_years))
 
     # if obs years and model years are not the same
-    if obs_years != model_years:
+    if np.array_equal(obs_years, model_years) == False:
         print("obs years and model years are not the same")
         print("Aligning the years")
 
