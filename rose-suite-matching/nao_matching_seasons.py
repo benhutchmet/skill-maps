@@ -10,7 +10,7 @@ a new netCDF file with the ensemble mean of the NAO matched data for the given v
 Usage:
 ------
 
-    $ python nao_matching_seasons.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> 
+    $ python nao_matching_seasons.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members>
 
 Parameters:
 ===========
