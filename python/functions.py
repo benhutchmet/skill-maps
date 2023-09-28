@@ -1638,6 +1638,9 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
                         print(year, "all NaN values for this year")
                 else:
                     print(year, "no NaN values for this year")
+
+        # Extract the model years
+        model_years = member.time.dt.year.values
     else:
         print("NAO_matched is True")
         print("Checking for NaN values in the xarray dataset")
@@ -4978,7 +4981,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     test_methods = ['nao_matched']
 
     # Loop over the methods
-    for method in methods:
+    for method in test_methods:
         # Print the method being used
         print("method", method)
 
