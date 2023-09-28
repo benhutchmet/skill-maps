@@ -3283,6 +3283,8 @@ def process_model_data_for_plot(model_data, models, lag=None):
         # Extract the coords from this member
         coords = member.coords
         dims = member.dims
+    else:
+        years_constrained = years
 
     # #print the dimensions of the ensemble members
     # #print("ensemble members shape", np.shape(ensemble_members))
@@ -3301,7 +3303,7 @@ def process_model_data_for_plot(model_data, models, lag=None):
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=coords, dims=dims)
 
-    return ensemble_mean, lat, lon, years, ensemble_members_count
+    return ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained
 
 
 # Create a function for lagging the ensemble
@@ -3778,9 +3780,12 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     # Process the model data and calculate the ensemble mean
     if type(model_data) == dict:
         if lag is None:
-            ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained = process_model_data_for_plot(model_data, models)
         else:
-            ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models, lag=lag)
+            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained = process_model_data_for_plot(model_data, models, lag=lag)
+
+            # Select only the constrained years for the obs
+            observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_constrained))
     else:
         print("The type of model data is:", type(model_data))
 
@@ -4961,12 +4966,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
 
     # Create a list of the methods to use
-    methods = ['raw', 'lagged', 'nao_matched']
+    #methods = ['raw', 'lagged', 'nao_matched']
 
-    #test_methods = ['nao_matched']
+    test_methods = ['lagged']
 
     # Loop over the methods
-    for method in methods:
+    for method in test_methods:
         # Print the method being used
         print("method", method)
 
