@@ -1696,6 +1696,10 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
     # Initialize a dictionary to store the constrained data
     constrained_data = {}
 
+    # print the shape of the model data
+    # print("model years shape", np.shape(model_data))
+    # print("obs years shape", np.shape(obs_years))
+
     # if obs years and model years are not the same
     if obs_years != model_years:
         print("obs years and model years are not the same")
@@ -4971,7 +4975,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     # Create a list of the methods to use
     methods = ['raw', 'lagged', 'nao_matched']
 
-    #test_methods = ['lagged']
+    test_methods = ['nao_matched']
 
     # Loop over the methods
     for method in methods:
