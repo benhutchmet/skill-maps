@@ -3256,6 +3256,9 @@ def process_model_data_for_plot(model_data, models, lag=None):
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
 
+    coords = member.coords
+    dims = member.dims
+    
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
@@ -3263,10 +3266,23 @@ def process_model_data_for_plot(model_data, models, lag=None):
     # then lag the ensemble members
     if lag is not None:
         # Lag the ensemble members
-        ensemble_members = lag_ensemble(ensemble_members, lag)
+        ensemble_members, years_to_keep = lag_ensemble(ensemble_members, lag)
 
         # Multiply the ensemble members count by the lag
         ensemble_members_count = {k: v * lag for k, v in ensemble_members_count.items()}
+
+        # Extract the years from the member
+        years = member.time.dt.year.values
+
+        # Remove the first lag - 1 years from the member
+        years_constrained = years[lag-1:]
+
+        # Extract the constrained years from this member
+        member = member.sel(time=member.time.dt.year.isin(years_constrained))
+
+        # Extract the coords from this member
+        coords = member.coords
+        dims = member.dims
 
     # #print the dimensions of the ensemble members
     # #print("ensemble members shape", np.shape(ensemble_members))
@@ -3283,7 +3299,7 @@ def process_model_data_for_plot(model_data, models, lag=None):
     # #print(ensemble_mean)
         
     # Convert ensemble_mean to an xarray DataArray
-    ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
+    ensemble_mean = xr.DataArray(ensemble_mean, coords=coords, dims=dims)
 
     return ensemble_mean, lat, lon, years, ensemble_members_count
 
@@ -3783,7 +3799,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
 
     # Debug the model data
     # #print("ensemble mean within spatial correlation function:", ensemble_mean)
-    print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
+    #print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
     
     # Extract the lat and lon values
     obs_lat = observed_data.lat.values
@@ -4945,12 +4961,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
 
     # Create a list of the methods to use
-    #methods = ['raw', 'lagged', 'nao_matched']
+    methods = ['raw', 'lagged', 'nao_matched']
 
-    test_methods = ['nao_matched']
+    #test_methods = ['nao_matched']
 
     # Loop over the methods
-    for method in test_methods:
+    for method in methods:
         # Print the method being used
         print("method", method)
 
@@ -5027,12 +5043,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                 # Perform the NAO matching for the target variable
                 matched_var_ensemble_mean = nao_matching_other_var(rescaled_nao, model_nao,
                                                                     models, model_variable, obs_variable, dic.base_dir,
-                                                                        models, obs_path, region, obs_season, forecast_range,
+                                                                        models, obs_path, region, model_season, forecast_range,
                                                                             start_year, end_year, plots_dir, dic.save_dir, lagged_years=years,
                                                                                 lagged_nao=True, no_subset_members=no_subset_members)
             
                 # Set up the no_ensemble_members variables
-                no_ensemble_members = no_subset_members
+                ensemble_members_count = no_subset_members
 
                 # Process the observations for the NAO-matched variables
                 obs_match_var = read_obs(obs_variable, region, forecast_range, obs_season,

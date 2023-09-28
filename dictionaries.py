@@ -65,7 +65,9 @@ home_dir = "/home/users/benhutch"
 season_month_map = {
     "DJF": [12, 1, 2],
     "MAM": [3, 4, 5],
+    "MAY": [3, 4, 5],
     "JJA": [6, 7, 8],
+    "ULG": [6, 7, 8],
     "JJAS": [6, 7, 8, 9],
     "SON": [9, 10, 11],
     "SOND": [9, 10, 11, 12],
