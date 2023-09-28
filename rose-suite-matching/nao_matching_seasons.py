@@ -155,6 +155,11 @@ def main():
     lag = args.lag
     no_subset_members = args.no_subset_members
 
+    # If season conttains a number, convert it to the string
+    if season in ["1", "2", "3", "4"]:
+        season = dic.season_map[season]
+        print("NAO matching for variable:", match_var, "region:", region, "season:", season, "forecast range:", forecast_range,)
+
     # Set up the models for the matching variable
     match_var_models = match_variable_models(match_var)
 
@@ -201,7 +206,7 @@ def main():
 
     # Perform the NAO matching for the target variable
     match_var_ensemble_mean = fnc.nao_matching_other_var(rescaled_nao, model_nao, match_var_models, match_var, obs_var_name,
-                                                            base_dir, match_var_models, region, model_season, forecast_range,
+                                                            base_dir, match_var_models, obs_path_match_var, region, model_season, forecast_range,
                                                                 start_year, end_year, plots_dir, save_dir, lagged_years = years,
                                                                     lagged_nao=True, no_subset_members=no_subset_members)
     

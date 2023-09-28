@@ -93,6 +93,13 @@ var_name_map = {
     "var132": "var132"
 }
 
+season_map = {
+    "1": "DJFM",
+    "2": "MAM",
+    "3": "JJA",
+    "4": "SON"
+}
+
 # Define the dimensions for the grids
 # for processing the observations
 north_atlantic_grid = {
