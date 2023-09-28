@@ -13,7 +13,7 @@
 [scheduling]
     [[dependencies]]
         graph = """
-        mergetime_regrid<model><variable><region> => process_regrid<model><variable><region><season><forecast_range><initial_year><final_year>
+        nao_matching<match_var><region><season><forecast_range><start_year><end_year><lag><no_subset_members> 
         """
 
 [runtime]
@@ -24,20 +24,11 @@
             batch system = slurm
         [[[directives]]]
             --partition = short-serial
-    [[mergetime_regrid<model><variable><region>]]
+    [[nao_matching<match_var><region><season><forecast_range><start_year><end_year><lag><no_subset_members>]]
         script = """
         module load jaspy/3.10/r20230718
         cd ${CYLC_SUITE_RUN_DIR}/
-        python regrid-merge-time.py ${CYLC_TASK_PARAM_model} ${CYLC_TASK_PARAM_variable} ${CYLC_TASK_PARAM_region}
+        python nao_matching_seasons.py ${CYLC_TASK_PARAM_match_var} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members}
         """
         [[[job]]]
             execution time limit = PT30M
-    [[process_regrid<model><variable><region><season><forecast_range><initial_year><final_year>]]
-        script = """
-        module load jaspy/3.10/r20230718
-        cd ${CYLC_SUITE_RUN_DIR}/
-        python process-regrid-data.py ${CYLC_TASK_PARAM_model} ${CYLC_TASK_PARAM_variable} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_initial_year} ${CYLC_TASK_PARAM_final_year}
-        """
-        [[[job]]]
-            execution time limit = PT60M
-        
