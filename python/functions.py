@@ -2013,6 +2013,9 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         # Save the data
         matched_var_ensemble_mean.to_netcdf(save_path)
 
+    # Open the dataset
+    matched_var_ensemble_mean = xr.open_dataset(save_path)
+
     # Return the matched_var_ensemble_mean
     return matched_var_ensemble_mean
 
@@ -5045,7 +5048,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                 rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = rescale_nao(obs_nao, model_nao, dic.psl_models,
                                                                                         obs_season, forecast_range, plots_dir, lag=lag)
 
-                # Perform the NAO matching for the target variable
+                # Perform the NAO matching for the target variableOnao
                 matched_var_ensemble_mean = nao_matching_other_var(rescaled_nao, model_nao,
                                                                     models, model_variable, obs_variable, dic.base_dir,
                                                                         models, obs_path, region, model_season, forecast_range,
