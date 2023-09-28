@@ -4978,10 +4978,10 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     # Create a list of the methods to use
     methods = ['raw', 'lagged', 'nao_matched']
 
-    test_methods = ['nao_matched']
+    #test_methods = ['nao_matched']
 
     # Loop over the methods
-    for method in test_methods:
+    for method in methods:
         # Print the method being used
         print("method", method)
 
