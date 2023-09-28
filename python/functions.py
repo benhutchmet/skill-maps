@@ -4966,12 +4966,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
 
     # Create a list of the methods to use
-    #methods = ['raw', 'lagged', 'nao_matched']
+    methods = ['raw', 'lagged', 'nao_matched']
 
-    test_methods = ['lagged']
+    #test_methods = ['lagged']
 
     # Loop over the methods
-    for method in test_methods:
+    for method in methods:
         # Print the method being used
         print("method", method)
 
@@ -5115,8 +5115,8 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     # e.g. 0.05 for 95% significance
     sig_threshold = int((1 - p_sig) * 100)
 
-    # Flatten the axs array
-    axs = axs.flatten()
+    # Set up the axes
+    axs = np.empty((len(seasons_list_obs), len(methods)), dtype=object)
 
     # Create a list to store the contourf objects
     cf_list = []
@@ -5146,7 +5146,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             lons = lons_converted
 
             # Set up the axes
-            ax = axs[i * 4 + j]
+            ax = axs[j, i]
 
             # Add coastlines
             ax.coastlines()
