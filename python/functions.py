@@ -3779,7 +3779,7 @@ def calculate_model_nao_anoms_matching(model_data, models, azores_grid, iceland_
 
     return ensemble_members_nao_anoms, years, ensemble_members_count
 
-def calculate_spatial_correlations(observed_data, model_data, models, variable, lag=None, NAO_matched=False):
+def calculate_field_stats(observed_data, model_data, models, variable, lag=None, NAO_matched=False, measure='acc'):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
     
@@ -3790,6 +3790,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
     variable (str): The variable to be plotted.
     lag (int, optional): The lag to be used for the spatial correlations, by default None.
     NAO_matched (bool, optional): Whether to use the NAO matched model data, by default False.
+    measure (str, optional): The measure to be used for the spatial correlations, by default 'acc'.
 
     Returns:
     rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
@@ -3912,13 +3913,23 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable, 
             print("model data shape after removing vertical dimension", np.shape(ensemble_mean_array))
             print("observed data shape", np.shape(observed_data_array))
 
-    # Calculate the correlations between the observed and model data
-    rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
+    if measure == 'acc':
+        # Calculate the correlations between the observed and model data
+        rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
 
-    return rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count
+        return rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count
+    elif measure == 'rmse':
+        # TODO: define a new function called calculate_rmse
+        # Calculate the RMSE between the observed and model data
+        rmse, rmse_pfield = calculate_rmse()
+  
+        return rmse, rmse_pfield, obs_lons_converted, lons_converted, ensemble_members_count
+    elif measure == 'rpc'
+        #TODO: define a new function called calculate_rpc_field
+        # Calculate the rpc between the observed and model data
+        rpc, rpc_pfield = calculate_rpc_field()
 
-    # except Exception as e:
-    #     #print(f"An error occurred when calculating spatial correlations: {e}")
+        return rpc, rcp_pfield, obs_lons_converted, lons_converted, ensemble_members_count
 
 
 # TODO: define a new function called calculate_correlations_timeseries
@@ -4496,7 +4507,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
         model = [model]
     
         # Calculate the spatial correlations for the model
-        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs,
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_field_stats(obs,
                                                                                         variable_data, model, variable)
 
         # Set up the converted lons
@@ -4737,7 +4748,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
             obs /= 86400
 
         # Calculate the spatial correlations for the model
-        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variable)
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_field_stats(obs, model_data, models, variable)
 
         # Append the processed observations to the list
         obs_list.append(obs)
@@ -4934,7 +4945,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, model_variable, obs_variable, obs_path, region, region_grid, 
                                                     forecast_range, start_year, end_year, seasons_list_obs, seasons_list_mod, plots_dir, save_dir, obs_var_name,
                                                         azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast',
-                                                            bootstrapped_pval = False, lag=4, no_subset_members=20):
+                                                            bootstrapped_pval = False, lag=4, no_subset_members=20, measure='acc'):
     """
     Plots the spatial correlation coefficients and p-values for the raw ensemble, the lagged ensemble and the NAO-matched ensemble.
     For the same variable, region and forecast range (e.g. tas global years 2-9) but with different seasons (e.g. DJFM, MAM, JJA, SON).
@@ -4962,6 +4973,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     - bootstrapped_pval: a boolean indicating whether to use bootstrapped p-values (default is False).
     - lag: an integer with the number of months to lag the data (default is 4).
     - no_subset_members: an integer with the number of members to use for the NAO-matched ensemble (default is 20).
+    - measure: a string with the name of the measure to be plotted (default is 'correlation').
     """
 
     # Create an empty list to store the processed observations
@@ -5024,7 +5036,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
                 # Calculate the spatial correlations for the model
                 rfield, pfield, obs_lons_converted, \
-                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, model_variable)
+                    lons_converted, ensemble_members_count = calculate_field_stats(obs, model_data, models, model_variable, measure=measure)
             elif method == 'lagged':
                 print("method", method)
                 # Load and process the model data
@@ -5034,7 +5046,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
                 # Calculate the spatial correlations for the model
                 rfield, pfield, obs_lons_converted, \
-                    lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, obs_variable, lag=lag)
+                    lons_converted, ensemble_members_count = calculate_field_stats(obs, model_data, models, obs_variable, lag=lag, measure=measure)
             elif method == 'nao_matched':
                 print("method", method)
 
@@ -5084,8 +5096,8 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
                 # Now calculate the spatial correlations
                 rfield, pfield, obs_lons_converted, \
-                lons_converted, _ = calculate_spatial_correlations(obs_match_var, matched_var_ensemble_mean, models, 
-                                                                    obs_variable, lag=lag, NAO_matched=True)
+                lons_converted, _ = calculate_field_stats(obs_match_var, matched_var_ensemble_mean, models, 
+                                                                    obs_variable, lag=lag, NAO_matched=True, measure=measure)
                 
             else:
                 print("Error: method not found")
@@ -5353,7 +5365,7 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
         windspeed_var_name = "Wind"
 
         # Calculate the spatial correlations for the season
-        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data_ws, shared_models, windspeed_var_name)
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_field_stats(obs, model_data_ws, shared_models, windspeed_var_name)
 
         # Append the processed observations to the list
         obs_list.append(obs)
@@ -6252,7 +6264,7 @@ def plot_variable_correlations(models_list, observations_path, variables_list, r
             model_data, model_time = process_data(model_datasets, variables_list[i])
 
         # Calculate the spatial correlations for the model
-        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_spatial_correlations(obs, model_data, models, variables_list[i])
+        rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count = calculate_field_stats(obs, model_data, models, variables_list[i])
 
         # Append the processed observations to the list
         obs_list.append(obs)
@@ -6457,7 +6469,7 @@ def main():
     obs = process_observations(args.variable, args.region, dic.north_atlantic_grid, args.forecast_range, args.season, obs_path, obs_var_name)
 
     # Call the function to calculate the ACC
-    rfield, pfield, obs_lons_converted, lons_converted = calculate_spatial_correlations(obs, variable_data, args.model)
+    rfield, pfield, obs_lons_converted, lons_converted = calculate_field_stats(obs, variable_data, args.model)
 
     # Call the function to plot the ACC
     plot_correlations(args.model, rfield, pfield, obs, args.variable, args.region, args.season, args.forecast_range, dic.plots_dir, obs_lons_converted, lons_converted, dic.azores_grid, dic.iceland_grid)
