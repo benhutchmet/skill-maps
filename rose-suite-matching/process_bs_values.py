@@ -10,7 +10,7 @@ Creates and saves a file containing these values.
 Usage:
 ------
 
-    $ python process_bs_values.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members>
+    $ python process_bs_values.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members> <method>
 
 Parameters:
 ===========
@@ -31,6 +31,8 @@ Parameters:
         The lag to perform the matching for. Must be a lag in the input files.
     no_subset_members: int
         The number of ensemble members to subset to. Must be a number in the input files.
+    method: str
+        The method to use for the bootstrapping. Must be a method in the input files.
 
 Output:
 =======
@@ -79,3 +81,47 @@ import functions as fnc
 sys.path.append('/home/users/benhutch/skill-maps-differences')
 import functions as fnc_bs
 
+
+# Define the main function
+def main():
+    """
+    Main function which parses the command line arguments and calls the functions to perform the bootstrapping.
+    """
+
+    # Set up any hardcoded variables
+    base_dir = dic.base_dir
+    plots_dir = dic.plots_dir
+    save_dir = dic.save_dir
+    region_grid = dic.gridspec_global
+    obs_path = dic.obs
+
+    # Extract the command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('match_var', type=str, help='The variable to perform the matching for.')
+    parser.add_argument('region', type=str, help='The region to perform the matching for.')
+    parser.add_argument('season', type=str, help='The season to perform the matching for.')
+    parser.add_argument('forecast_range', type=str, help='The forecast range to perform the matching for.')
+    parser.add_argument('start_year', type=str, help='The start year to perform the matching for.')
+    parser.add_argument('end_year', type=str, help='The end year to perform the matching for.')
+    parser.add_argument('lag', type=int, help='The lag to perform the matching for.')
+    parser.add_argument('no_subset_members', type=int, help='The number of ensemble members to subset to.')
+    parser.add_argument('method', type=str, help='The method to use for the bootstrapping.')
+    args = parser.parse_args()
+
+    # Extract the command line arguments
+    match_var = args.match_var
+    region = args.region
+    season = args.season
+    forecast_range = args.forecast_range
+    start_year = args.start_year
+    end_year = args.end_year
+    lag = args.lag
+    no_subset_members = args.no_subset_members
+    method = args.method
+
+    # get the obs var name from the dictionary
+    obs_var_name = dic.var_name_map[match_var]
+
+    # Process the observed data
+    obs = fnc.process_observations(match_var, region, region_grid, forecast_range, season, obs_path, obs_var_name)
+    
