@@ -1505,6 +1505,13 @@ def constrain_years(model_data, models):
             # # #print("model name:", model)
             # print("years len:", len(years), "for model:", model)
 
+            # If the years has duplicate values
+            if len(years) != len(set(years)):
+                # Raise a value error
+                print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
+                # continue with the loop
+                continue
+
             # if len years is less than 10
             # print the model name, member name, and len years
             if len(years) < 10:
