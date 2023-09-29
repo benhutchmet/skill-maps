@@ -7,8 +7,8 @@
         forecast_range="2-9"
         start_year="1960"
         end_year="2022"
-        lag=4
-        no_subset_members=20
+        lag="4"
+        no_subset_members="20"
 
 [scheduling]
     [[dependencies]]

@@ -84,7 +84,9 @@ obs_ws_var_names = ["ua", "va", "var131", "var132"]
 var_name_map = {
     "psl": "msl",
     "tas": "t2m",
+    "t2m": "t2m",
     "sfcWind": "si10",
+    "si10": "si10",
     "rsds": "ssrd",
     "ssrd": "ssrd",
     "tos": "sst",
