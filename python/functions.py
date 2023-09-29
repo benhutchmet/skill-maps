@@ -2026,9 +2026,9 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             # Now we want to calculate the ensemble mean for the matched variable for this year
             matched_var_ensemble_mean, matched_var_ensemble_members = calculate_matched_var_ensemble_mean(matched_var_members, year)
 
-            # Extract the member_coords from matched_var_ensemble_members
-            member_coords = matched_var_ensemble_members.coords
-            member_dims = matched_var_ensemble_members.dims
+            # # Extract the member_coords from matched_var_ensemble_members
+            # member_coords = matched_var_ensemble_members.coords
+            #member_dims = matched_var_ensemble_members.dims
 
             # Squeeze the matched_var_ensemble_members array to remove the single dimension of year
             matched_var_ensemble_members = np.squeeze(matched_var_ensemble_members)
@@ -2040,10 +2040,23 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         # Convert the matched_var_ensemble_mean_array to an xarray DataArray
         matched_var_ensemble_mean = xr.DataArray(matched_var_ensemble_mean_array, coords=coords, dims=dims)
 
-        # Ensure that member_coords has dimension len(years) for the year dimension
-        member_coords['year'] = years
-        # Change the order of member dims, so that member_dims=['year', 'member', 'lat', 'lon']
-        member_dims = ['year', 'member', 'lat', 'lon']
+        # # Ensure that member_coords has dimension len(years) for the year dimension
+        # member_coords = matched_var_ensemble_members.coords
+        # # add a new coordinate for the year dimension
+        # member_coords['year'] = years
+        # # Change the order of member dims, so that member_dims=['year', 'member', 'lat', 'lon']
+        # member_dims = ['year', 'member', 'lat', 'lon']
+
+        # Set up the member coords
+        member_coords = {
+            'time': years,
+            'member': matched_var_ensemble_members.member.values,
+            'lat': matched_var_ensemble_members.lat.values,
+            'lon': matched_var_ensemble_members.lon.values
+        }
+
+        # Set up the member dims
+        member_dims = ('time', 'member', 'lat', 'lon')
 
         # Convert the matched_var_ensemble_members_array to an xarray DataArray
         matched_var_ensemble_members = xr.DataArray(matched_var_ensemble_members_array, coords=member_coords, dims=member_dims)
@@ -2057,8 +2070,11 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
     # Open the dataset
     matched_var_ensemble_mean = xr.open_dataset(save_path_mean)
 
+    # Open the dataset
+    matched_var_ensemble_members = xr.open_dataset(save_path_members)
+
     # Return the matched_var_ensemble_mean
-    return matched_var_ensemble_mean
+    return matched_var_ensemble_mean, matched_var_ensemble_members
 
 
 # Define a function which will make sure that the model_nao and the match_var_model_anomalies
