@@ -108,7 +108,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
         # exit the program
         if len(files) == 0:
             print("No files found for " + model)
-            sys.exit()
+            raise AttributeError("No files found for " + model)
         
         # #print the files to the screen.
         #print("Files for " + model + ":", files)
@@ -1606,7 +1606,9 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
             # If the years has duplicate values
             if len(model_years) != len(set(model_years)):
                 # Raise a value error
-                raise ValueError("The models years has duplicate values for model " + model + "member " + member)
+                print("The models years has duplicate values for model " + model + "member " + member)
+                # continue with the loop
+                continue
 
             # Only if there are no NaN values in the model data
             # Will we loop over the years
