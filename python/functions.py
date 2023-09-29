@@ -3918,11 +3918,11 @@ def calculate_field_stats(observed_data, model_data, models, variable, lag=None,
         rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
 
         return rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count
-    elif measure == 'rmse':
+    elif measure == 'msss':
         # TODO: define a new function called calculate_rmse
         # Calculate the RMSE between the observed and model data
-        rmse, rmse_pfield = calculate_rmse()
-  
+        rmse, rmse_pfield = calculate_msss(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
+        
         return rmse, rmse_pfield, obs_lons_converted, lons_converted, ensemble_members_count
     elif measure == 'rpc'
         #TODO: define a new function called calculate_rpc_field
@@ -4938,6 +4938,83 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
     # Show the figure
     plt.show()
+
+
+# Define a new function for calculating the rmse
+def calculate_msss(obs, model_data, obs_lat, obs_lon):
+    """
+    Calculates the mean squared skill score for the model data.
+    """
+
+    # Check that the shapes of the time dimensions align
+    if np.shape(obs)[0] != np.shape(model_data)[0]:
+        raise ValueError(f"Time dimensions do not align: obs = {np.shape(obs)[0]}, model = {np.shape(model_data)[0]}")
+    
+    # Initialise empty arrays for the MSSS and the significance
+    msss_field = np.empty([len(obs_lat), len(obs_lon)])
+    p_field = np.empty([len(obs_lat), len(obs_lon)])
+
+    # Loop over the lats
+    for y in range(len(obs_lat)):
+        for x in range(len(obs_lon)):
+            # Extract the obs and model data for this lat/lon
+            obs_point = obs[:, y, x]
+            model_point = model_data[:, y, x]
+
+            # If all of the obs and model data are nan
+            if np.isnan(obs_point).all() and np.isnan(model_point).all():
+                # Set the MSSS and p value to nan
+                msss_field[y, x] = np.nan
+                p_field[y, x] = np.nan
+                # Skip to the next lat/lon
+                continue
+
+            # If some of the values are nan
+            if np.isnan(obs_point).any() or np.isnan(model_point).any():
+                # print("Warning: some values are nan")
+                # Set the MSSS and p value to nan
+                msss_field[y, x] = np.nan
+                p_field[y, x] = np.nan
+                # Skip to the next lat/lon
+                continue
+
+            # Calculate the mean of the obs
+            obs_point_mean = np.mean(obs_point)
+
+            # Calculate the numerator
+            # Sum over the time dimension
+            # of the squared difference between the obs and model
+            numerator = np.sum((obs_point - model_point)**2)
+
+            # Calculate the denominator
+            # Sum over the time dimension
+            # of the squared difference between the obs and the obs mean
+            denominator = np.sum((obs_point - obs_point_mean)**2)
+
+            # Calculate the MSSS
+            # and store in the array
+            msss_field[y, x] = 1 - (numerator / denominator)
+
+            # FIXME: Do this with bootstrapping instead
+            # Calculate the p value
+            # where MSSS is significantly different from zero, to the 95% level
+            # using a two-tailed t-test
+            # Calculate the number of degrees of freedom
+            # equal to the number of years minus 1
+            dof = len(obs_point) - 1
+            # Calculate the t-statistic
+            # equal to the MSSS divided by the square root of the MSSS divided by the degrees of freedom
+            t_stat = msss_field[y, x] / np.sqrt(msss_field[y, x] / dof)
+
+            # Calculate the p value
+            # equal to 1 minus the cdf of the t-statistic
+            # multiplied by 2 to make it a two-tailed test
+            p_field[y, x] = 1 - stats.t.cdf(t_stat, dof) * 2
+
+    # Return the MSSS and p value
+    return msss_field, p_field            
+
+
 
 # Plot the seasonal correlations for the raw ensemble, the lagged ensemble and the NAO-matched ensemble
 # TODO: work the bootstrapped p values into this function
