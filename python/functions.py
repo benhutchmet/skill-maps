@@ -1916,18 +1916,21 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         os.makedirs(save_dir)
 
     # Set up the filename
-    filename = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_mean.nc"
+    filename_mean = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_mean.nc"
+    filename_members = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_members.nc"
 
     # Set up the path to save the data
-    save_path = f"{save_dir}/{filename}"
+    save_path_mean = f"{save_dir}/{filename_mean}"
+    save_path_members = f"{save_dir}/{filename_members}"
 
     # If the file already exists
-    if os.path.exists(save_path):
+    if os.path.exists(save_path_mean) and os.path.exists(save_path_members):
         # Print a notification
-        print(f"The file {filename} already exists")
-        print("Loading the file")
+        print(f"The files {filename_mean} and {filename_members} already exist")
+        print("Loading the files")
         # Load the file
-        matched_var_ensemble_mean = xr.open_dataset(save_path)
+        matched_var_ensemble_mean = xr.open_dataset(save_path_mean)
+        matched_var_ensemble_members = xr.open_dataset(save_path_members)
     else:
         # Print the variable which is being matched
         print(f"Performing NAO matching for {match_variable_model}")
@@ -1991,6 +1994,9 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         # Set up an array to fill the matched variable ensemble mean
         matched_var_ensemble_mean_array = np.empty((len(years), len(lats), len(lons)))
 
+        # Set up an array to fill the matched variable ensemble members
+        matched_var_ensemble_members_array = np.empty((len(years), no_subset_members, len(lats), len(lons)))
+
         # Extract the coords for the first years=years of the match_var_model_anomalies_constrained
         # Select the years from the match_var_model_anomalies_constrained
         # Select only the data for the years in the 'years' array
@@ -2018,19 +2024,26 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             matched_var_members_array = np.empty((len(matched_var_members)))
 
             # Now we want to calculate the ensemble mean for the matched variable for this year
-            matched_var_ensemble_mean = calculate_matched_var_ensemble_mean(matched_var_members, year)
+            matched_var_ensemble_mean, matched_var_ensemble_members = calculate_matched_var_ensemble_mean(matched_var_members, year)
 
             # Append the matched_var_ensemble_mean to the array
             matched_var_ensemble_mean_array[i] = matched_var_ensemble_mean
+            matched_var_ensemble_members_array[i] = matched_var_ensemble_members
 
         # Convert the matched_var_ensemble_mean_array to an xarray DataArray
         matched_var_ensemble_mean = xr.DataArray(matched_var_ensemble_mean_array, coords=coords, dims=dims)
 
+        # Convert the matched_var_ensemble_members_array to an xarray DataArray
+        matched_var_ensemble_members = xr.DataArray(matched_var_ensemble_members_array, coords=coords, dims=dims)
+
         # Save the data
-        matched_var_ensemble_mean.to_netcdf(save_path)
+        matched_var_ensemble_mean.to_netcdf(save_path_mean)
+
+        # Save the data
+        matched_var_ensemble_members.to_netcdf(save_path_members)
 
     # Open the dataset
-    matched_var_ensemble_mean = xr.open_dataset(save_path)
+    matched_var_ensemble_mean = xr.open_dataset(save_path_mean)
 
     # Return the matched_var_ensemble_mean
     return matched_var_ensemble_mean
@@ -2307,8 +2320,9 @@ def calculate_matched_var_ensemble_mean(matched_var_members, year):
     coords = matched_var_members[0].coords
     dims = matched_var_members[0].dims
     matched_var_ensemble_mean = xr.DataArray(matched_var_ensemble_mean, coords=coords, dims=dims)
+    matched_var_members = xr.DataArray(matched_var_members, coords=coords, dims=dims)
 
-    return matched_var_ensemble_mean
+    return matched_var_ensemble_mean, matched_var_members
 
 # Define a function which will extract the right model members for the matched variable
 def extract_matched_var_members(year, match_var_model_anomalies_constrained, smallest_diff):

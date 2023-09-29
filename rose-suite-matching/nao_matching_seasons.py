@@ -52,7 +52,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
-from _datetime import datetime
+from datetime import datetime
 import scipy.stats as stats
 import matplotlib.animation as animation
 from matplotlib import rcParams
