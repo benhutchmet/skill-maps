@@ -3927,7 +3927,7 @@ def calculate_field_stats(observed_data, model_data, models, variable, lag=None,
         # Set up the variable names
         stat_field = rmse
         pfield = rmse_pfield
-    elif measure == 'rpc'
+    elif measure == 'rpc':
         # Calculate the rpc between the observed and model data
         rpc, rpc_pfield = calculate_rpc_field(observed_data_array, ensemble_mean_array, ensemble_members,
                                                 obs_lat, obs_lon)
@@ -5171,12 +5171,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
 
     # Create a list of the methods to use
-    methods = ['raw', 'lagged', 'nao_matched']
+    #methods = ['raw', 'lagged', 'nao_matched']
 
-    #test_methods = ['nao_matched']
+    test_methods = ['raw']
 
     # Loop over the methods
-    for method in methods:
+    for method in test_methods:
         # Print the method being used
         print("method", method)
 
@@ -5327,7 +5327,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     cf_list = []
 
     # Loop over the methods
-    for i, method in enumerate(methods):
+    for i, method in enumerate(test_methods):
         # Loop over the seasons
         for j, obs_season in enumerate(seasons_list_obs):
 
