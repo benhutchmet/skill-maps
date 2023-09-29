@@ -10,7 +10,8 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "args": ["rsds", "global", "2", "2-9", "1960", "2022", "4", "20"]
         }
     ]
 }

@@ -66,11 +66,11 @@ import iris.coord_categorisation as coord_cat
 import iris.plot as iplt
 import scipy
 import pdb
-import iris.quickplot as qplt
+# import iris.quickplot as qplt
 
 # Import CDO
 from cdo import *
-cdo = Cdo()
+# cdo = Cdo()
 
 # Import the dictionaries and functions
 sys.path.append('/home/users/benhutch/skill-maps')
@@ -205,7 +205,7 @@ def main():
 
 
     # Perform the NAO matching for the target variable
-    match_var_ensemble_mean = fnc.nao_matching_other_var(rescaled_nao, model_nao, match_var_models, match_var, obs_var_name,
+    match_var_ensemble_mean = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
                                                             base_dir, match_var_models, obs_path_match_var, region, model_season, forecast_range,
                                                                 start_year, end_year, plots_dir, save_dir, lagged_years = years,
                                                                     lagged_nao=True, no_subset_members=no_subset_members)

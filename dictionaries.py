@@ -86,6 +86,7 @@ var_name_map = {
     "tas": "t2m",
     "sfcWind": "si10",
     "rsds": "ssrd",
+    "ssrd": "ssrd",
     "tos": "sst",
     "ua": "var131",
     "va": "var132",
