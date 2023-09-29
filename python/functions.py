@@ -2033,11 +2033,15 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             matched_var_ensemble_mean_array[i] = matched_var_ensemble_mean
             matched_var_ensemble_members_array[i] = matched_var_ensemble_members
 
+        # Extract the member_coords from matched_var_ensemble_members
+        member_coords = matched_var_ensemble_members.coords
+        member_dims = matched_var_ensemble_members.dims
+
         # Convert the matched_var_ensemble_mean_array to an xarray DataArray
         matched_var_ensemble_mean = xr.DataArray(matched_var_ensemble_mean_array, coords=coords, dims=dims)
 
         # Convert the matched_var_ensemble_members_array to an xarray DataArray
-        matched_var_ensemble_members = xr.DataArray(matched_var_ensemble_members_array, coords=coords, dims=dims)
+        matched_var_ensemble_members = xr.DataArray(matched_var_ensemble_members_array, coords=member_coords, dims=member_dims)
 
         # Save the data
         matched_var_ensemble_mean.to_netcdf(save_path_mean)
