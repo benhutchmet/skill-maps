@@ -1606,7 +1606,7 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
             # If the years has duplicate values
             if len(model_years) != len(set(model_years)):
                 # Raise a value error
-                print("The models years has duplicate values for model " + model + "member " + member)
+                print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
                 # continue with the loop
                 continue
 
