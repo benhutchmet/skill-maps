@@ -173,9 +173,17 @@ def main():
     obs_psl_anomaly = fnc.read_obs(psl_var, region, forecast_range, season,
                                     obs_path_psl, start_year, end_year)
     
+    # Set up the model season
+    if season == "MAM":
+        model_season = "MAY"
+    elif season == "JJA":
+        model_season = "ULG"
+    else:
+        model_season = season
+    
     # Load and process the model data for the nao index
     model_datasets_psl = fnc.load_data(base_dir, psl_models, psl_var, 
-                                        region, forecast_range, season)
+                                        region, forecast_range, model_season)
     # Process the model data
     model_data_psl, _ = fnc.process_data(model_datasets_psl, psl_var)
 
@@ -194,15 +202,6 @@ def main():
     # Perform the lagging of the ensemble and rescale the NAO index
     rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = fnc.rescale_nao(obs_nao, model_nao, psl_models,
                                                                                     season, forecast_range, plots_dir, lag=lag)
-    
-    # Set up the model season
-    if season == "MAM":
-        model_season = "MAY"
-    elif season == "JJA":
-        model_season = "ULG"
-    else:
-        model_season = season
-
 
     # Perform the NAO matching for the target variable
     match_var_ensemble_mean = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
