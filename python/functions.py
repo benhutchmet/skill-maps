@@ -2437,24 +2437,24 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
         model_nao_year = member.sel(time=f"{year}")
 
         # Print the model and member name
-        print("Model:", member.attrs["source_id"])
-        print("Member:", member.attrs["variant_label"])
+        # print("Model:", member.attrs["source_id"])
+        # print("Member:", member.attrs["variant_label"])
 
-        # print the values of the rescaled NAO index and the model NAO index
-        print("rescaled NAO index", rescaled_model_nao_year.values)
-        print("model NAO index", model_nao_year.values)
+        # # print the values of the rescaled NAO index and the model NAO index
+        # print("rescaled NAO index", rescaled_model_nao_year.values)
+        # print("model NAO index", model_nao_year.values)
 
-        # print the types of the values of the rescaled NAO index and the model NAO index
-        print("rescaled NAO index type", type(rescaled_model_nao_year.values))
-        print("model NAO index type", type(model_nao_year.values))
+        # # print the types of the values of the rescaled NAO index and the model NAO index
+        # print("rescaled NAO index type", type(rescaled_model_nao_year.values))
+        # print("model NAO index type", type(model_nao_year.values))
 
-        # Print the dimensions of the rescaled NAO index and the model NAO index
-        print("rescaled NAO index dimensions", rescaled_model_nao_year.dims)
-        print("model NAO index dimensions", model_nao_year.dims)
+        # # Print the dimensions of the rescaled NAO index and the model NAO index
+        # print("rescaled NAO index dimensions", rescaled_model_nao_year.dims)
+        # print("model NAO index dimensions", model_nao_year.dims)
 
-        # Print the coordinates of the rescaled NAO index and the model NAO index
-        print("rescaled NAO index coordinates", rescaled_model_nao_year.coords)
-        print("model NAO index coordinates", model_nao_year.coords)
+        # # Print the coordinates of the rescaled NAO index and the model NAO index
+        # print("rescaled NAO index coordinates", rescaled_model_nao_year.coords)
+        # print("model NAO index coordinates", model_nao_year.coords)
 
         # Make sure that rescaled model nao and model nao have the same dimensions
         if rescaled_model_nao_year.dims != model_nao_year.dims:
@@ -2488,17 +2488,17 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
         #     # And we want to assign this value to the same time as the rescaled model nao
         #     model_nao_index = model_nao_index.assign(time=model_nao_year_time + pd.Timedelta(days=time_diff), model_nao_index = model_nao_index_value)
 
-        # print the coordinates of the rescaled NAO index and the model NAO index
-        print("rescaled NAO index coordinates", rescaled_model_nao_year.coords)
-        print("model NAO index coordinates", model_nao_year.coords)
+        # # print the coordinates of the rescaled NAO index and the model NAO index
+        # print("rescaled NAO index coordinates", rescaled_model_nao_year.coords)
+        # print("model NAO index coordinates", model_nao_year.coords)
 
         # Calculate the annual mean for the rescaled NAO index and the model NAO index
         rescaled_model_nao_year_ann_mean = rescaled_model_nao_year.groupby("time.year").mean()
         model_nao_year_ann_mean = model_nao_year.groupby("time.year").mean()
 
-        # print the coordinates of the rescaled NAO index and the model NAO index
-        print("rescaled NAO index coordinates", rescaled_model_nao_year_ann_mean.coords)
-        print("model NAO index coordinates", model_nao_year_ann_mean.coords)
+        # # print the coordinates of the rescaled NAO index and the model NAO index
+        # print("rescaled NAO index coordinates", rescaled_model_nao_year_ann_mean.coords)
+        # print("model NAO index coordinates", model_nao_year_ann_mean.coords)
 
         # Calculate the difference between the rescaled NAO index and the model NAO index
         nao_diff = np.abs(rescaled_model_nao_year_ann_mean - model_nao_year_ann_mean)
@@ -2521,26 +2521,26 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     # Sort the list of differences
     smallest_diff.sort()
 
-    # Logging the smallest difference
-    for i, member in enumerate(smallest_diff):
-        print("Smallest difference member full ensemble:", i+1)
-        # print the model name and the member name
-        print("Model:", member.attrs["source_id"])
-        print("Member:", member.attrs["variant_label"])
-        # Print the value of the difference
-        print("Difference:", member.values)
+    # # Logging the smallest difference
+    # for i, member in enumerate(smallest_diff):
+    #     print("Smallest difference member full ensemble:", i+1)
+    #     # print the model name and the member name
+    #     print("Model:", member.attrs["source_id"])
+    #     print("Member:", member.attrs["variant_label"])
+    #     # Print the value of the difference
+    #     print("Difference:", member.values)
 
     # Select only the first no_subset_members members
     smallest_diff = smallest_diff[:no_subset_members]
 
     # Loop over the members with the smallest differences
-    for i, member in enumerate(smallest_diff):
-        print("Smallest difference member:", i+1)
-        # print the model name and the member name
-        print("Model:", member.attrs["source_id"])
-        print("Member:", member.attrs["variant_label"])
-        # Print the value of the difference
-        print("Difference:", member.values)
+    # for i, member in enumerate(smallest_diff):
+    #     print("Smallest difference member:", i+1)
+    #     # print the model name and the member name
+    #     print("Model:", member.attrs["source_id"])
+    #     print("Member:", member.attrs["variant_label"])
+    #     # Print the value of the difference
+    #     print("Difference:", member.values)
 
     return smallest_diff
 
@@ -5171,12 +5171,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
 
     # Create a list of the methods to use
-    #methods = ['raw', 'lagged', 'nao_matched']
+    methods = ['raw', 'lagged', 'nao_matched']
 
     test_methods = ['raw']
 
     # Loop over the methods
-    for method in test_methods:
+    for method in methods:
         # Print the method being used
         print("method", method)
 
@@ -5327,7 +5327,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     cf_list = []
 
     # Loop over the methods
-    for i, method in enumerate(test_methods):
+    for i, method in enumerate(methods):
         # Loop over the seasons
         for j, obs_season in enumerate(seasons_list_obs):
 
@@ -5369,7 +5369,15 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             # Contour levels for p-values
             clevs_p = np.arange(0, 1.1, 0.1)
             # Plot the filled contours
-            cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+            if measure == 'acc':
+                cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+            elif measure == 'msss':
+                cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj, extend='both')
+            elif measure == 'rpc':
+                clevs = np.arange(0, 3.1, 0.2)
+                cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj, extend='max')
+            else:
+                raise ValueError(f"measure {measure} not recognised when plotting statistics")
 
             # If the variables is 'tas'
             # then we want to invert the stippling
