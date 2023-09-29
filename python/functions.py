@@ -3322,7 +3322,7 @@ def process_model_data_for_plot(model_data, models, lag=None):
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=coords, dims=dims)
 
-    return ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained
+    return ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained, ensemble_members
 
 
 # Create a function for lagging the ensemble
@@ -3800,9 +3800,9 @@ def calculate_field_stats(observed_data, model_data, models, variable, lag=None,
     # Process the model data and calculate the ensemble mean
     if type(model_data) == dict:
         if lag is None:
-            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained = process_model_data_for_plot(model_data, models)
+            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained, ensemble_members = process_model_data_for_plot(model_data, models)
         else:
-            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained = process_model_data_for_plot(model_data, models, lag=lag)
+            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained, ensemble_members = process_model_data_for_plot(model_data, models, lag=lag)
 
             # Select only the constrained years for the obs
             observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_constrained))
@@ -3916,20 +3916,28 @@ def calculate_field_stats(observed_data, model_data, models, variable, lag=None,
     if measure == 'acc':
         # Calculate the correlations between the observed and model data
         rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
-
-        return rfield, pfield, obs_lons_converted, lons_converted, ensemble_members_count
+    
+        # Set up the variable names
+        stat_field = rfield
+        pfield = pfield
     elif measure == 'msss':
-        # TODO: define a new function called calculate_rmse
         # Calculate the RMSE between the observed and model data
         rmse, rmse_pfield = calculate_msss(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
-        
-        return rmse, rmse_pfield, obs_lons_converted, lons_converted, ensemble_members_count
+    
+        # Set up the variable names
+        stat_field = rmse
+        pfield = rmse_pfield
     elif measure == 'rpc'
-        #TODO: define a new function called calculate_rpc_field
         # Calculate the rpc between the observed and model data
-        rpc, rpc_pfield = calculate_rpc_field()
+        rpc, rpc_pfield = calculate_rpc_field(observed_data_array, ensemble_mean_array, ensemble_members,
+                                                obs_lat, obs_lon)
+        # Set up the variable names
+        stat_field = rpc
+        pfield = rpc_pfield
+    else:
+        raise ValueError("Invalid measure")   
 
-        return rpc, rcp_pfield, obs_lons_converted, lons_converted, ensemble_members_count
+    return stat_field, pfield, obs_lons_converted, lons_converted, ensemble_members_count
 
 
 # TODO: define a new function called calculate_correlations_timeseries
@@ -4940,6 +4948,95 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
     plt.show()
 
 
+# Now define a function which will calculate the RPC scores
+def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon):
+    """
+    Calculates the RPC scores for the model data.
+    """
+
+    # Check that the shapes of the time dimensions align
+    if np.shape(obs)[0] != np.shape(model_mean)[0]:
+        raise ValueError(f"Time dimensions do not align: obs = {np.shape(obs)[0]}, model = {np.shape(model_mean)[0]}")
+
+    # Initialise empty arrays for the RPC and the significance
+    rpc_field = np.empty([len(obs_lat), len(obs_lon)])
+    p_field = np.empty([len(obs_lat), len(obs_lon)])
+
+    # Loop over the lats
+    for y in range(len(obs_lat)):
+        for x in range(len(obs_lon)):
+            # Set up the obs and model data for this lat/lon
+            obs_point = obs[:, y, x]
+            model_mean_point = model_mean[:, y, x]
+            model_members_point = model_members[:, :, y, x]
+
+            # If all of the values in the obs and model data are NaN
+            if np.isnan(obs_point).all() or np.isnan(model_mean_point).all():
+                # #print a warning
+                # print("Warning: All NaN values detected in the data.")
+                # print("Skipping this grid point.")
+                # print("")
+
+                # Set the RPC and p value to NaN
+                rpc_field[y, x] = np.nan
+                p_field[y, x] = np.nan
+
+                # Skip to the next lat/lon
+                continue
+
+            # If some of the values in the obs and model data are NaN
+            if np.isnan(obs_point).any() or np.isnan(model_mean_point).any():
+                # #print a warning
+                # print("Warning: Some NaN values detected in the data.")
+                # print("Skipping this grid point.")
+                # print("")
+
+                # Set the RPC and p value to NaN
+                rpc_field[y, x] = np.nan
+                p_field[y, x] = np.nan
+
+                # Skip to the next lat/lon
+                continue
+
+            # Calculate the ACC
+            acc, _ = stats.pearsonr(obs_point, model_mean_point)
+
+            # Calculate the standard deviation of the predictable signal for the forecasts
+            sigma_fsig = np.std(model_mean_point)
+
+            # Calculate the total standard deviation of the forecasts
+            sigma_ftot = np.std(model_members_point)
+
+            # Calculate the rpc score
+            rpc = acc / (sigma_fsig / sigma_ftot)
+
+            # APpend the rpc score to the array
+            rpc_field[y, x] = rpc
+
+            # FIXME: Bootstrap this instead
+            # Calculate the p value
+            # Where rpc values are significantly greater than 1
+            # using a two-tailed t-test
+            # Calculate the number of degrees of freedom
+            # equal to the number of years minus 1
+            dof = len(obs_point) - 1
+
+            # Calculate the t-statistic
+            # equal to the rpc divided by the square root of the rpc divided by the degrees of freedom
+            t_stat = rpc / np.sqrt(rpc / dof)
+
+            # Calculate the p value
+            # equal to 1 minus the cdf of the t-statistic
+            # multiplied by 2 to make it a two-tailed test
+            p_field[y, x] = 1 - stats.t.cdf(t_stat, dof) * 2
+
+    # Return the RPC and p value
+    return rpc_field, p_field
+
+
+
+
+
 # Define a new function for calculating the rmse
 def calculate_msss(obs, model_data, obs_lat, obs_lon):
     """
@@ -5214,7 +5311,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(14, 12), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
 
     # Set up the title for the figure
-    title = f"{model_variable} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+    title = f"{model_variable} {region} {forecast_range} {experiment} {measure} coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
 
     # Set up the supertitle for the figure
     fig.suptitle(title, fontsize=10, y=0.90)
@@ -5306,7 +5403,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     cbar.set_label('correlation coefficients')
 
     # Set up the path for saving the figure
-    fig_name = f"{model_variable}_{region}_{forecast_range}_{experiment}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{model_variable}_{region}_{forecast_range}_{experiment}_{measure}_sig-{p_sig}_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
