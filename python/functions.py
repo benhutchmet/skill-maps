@@ -2026,6 +2026,9 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             # Now we want to calculate the ensemble mean for the matched variable for this year
             matched_var_ensemble_mean, matched_var_ensemble_members = calculate_matched_var_ensemble_mean(matched_var_members, year)
 
+            # Squeeze the matched_var_ensemble_members array to remove the single dimension of year
+            matched_var_ensemble_members = np.squeeze(matched_var_ensemble_members)
+
             # Append the matched_var_ensemble_mean to the array
             matched_var_ensemble_mean_array[i] = matched_var_ensemble_mean
             matched_var_ensemble_members_array[i] = matched_var_ensemble_members
@@ -2320,7 +2323,6 @@ def calculate_matched_var_ensemble_mean(matched_var_members, year):
     coords = matched_var_members[0].coords
     dims = matched_var_members[0].dims
     matched_var_ensemble_mean = xr.DataArray(matched_var_ensemble_mean, coords=coords, dims=dims)
-    matched_var_members = xr.DataArray(matched_var_members, coords=coords, dims=dims)
 
     return matched_var_ensemble_mean, matched_var_members
 

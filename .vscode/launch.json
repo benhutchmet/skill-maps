@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["rsds", "global", "4", "2-9", "1960", "2022", "4", "20"]
+            "args": ["rsds", "global", "4", "2-9", "1960", "1980", "4", "20"]
         }
     ]
 }
