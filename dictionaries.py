@@ -218,6 +218,7 @@ uk_s_box = {
 sfcWind_models_numbers = [1, 2, 3, 5, 8, 9, 10, 11]
 no_sfcWind_models = 8
 sfcWind_models = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "HadGEM3-GC31-MM", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5"]
+sfcWind_models_noMIROC = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "HadGEM3-GC31-MM", "FGOALS-f3-L", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5"]
 
 rsds_models_numbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]
 no_rsds_models = 11

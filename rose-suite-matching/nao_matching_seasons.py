@@ -90,7 +90,7 @@ def match_variable_models(match_var):
     if match_var in ["tas", "t2m"]:
         match_var_models = dic.tas_models
     elif match_var in ["sfcWind", "si10"]:
-        match_var_models = dic.sfcWind_models
+        match_var_models = dic.sfcWind_models_noMIROC
     elif match_var in ["rsds", "ssrd"]:
         match_var_models = dic.rsds_models_noCMCC
     else:
