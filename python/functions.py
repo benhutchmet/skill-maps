@@ -1973,7 +1973,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
 
         # Remove years containing NaN values from the obs and model data
         # and align the time periods
-        match_var_obs_anomalies, match_var_model_anomalies = remove_years_with_nans_nao(match_var_obs_anomalies,
+        match_var_obs_anomalies, match_var_model_anomalies, _ = remove_years_with_nans_nao(match_var_obs_anomalies,
                                                                                         match_var_model_anomalies,
                                                                                             match_var_models)
 
@@ -4854,22 +4854,6 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     if observed_data.shape != model_data_shape.shape:
         raise ValueError("Observed data and model data must have the same shape.")
     
-    # Now we want to create empty arrays for the bootstrapped p-values
-    # and the bootstrapped correlation coefficients
-    # in model_data
-    # the first dimension is the ensemble members
-    # the second dimension is the time
-    # the third dimension is the lat
-    # the fourth dimension is the lon
-    # so we will first resample the years in the time dimension
-    # and then resample the ensemble members
-    # and then calculate the ensemble mean
-    # and then calculate the correlation coefficient
-    # and then append the correlation coefficient to the array
-    # and then append the p-value to the array
-    # and then repeat this process 1000 times
-    # so we will have 1000 correlation coefficients and p-values
-    # for each grid point
     # create an empty array for the p-values
     # dim = (1000, lat, lon)
     pfield_dist = np.empty([n_bootstraps, len(observed_data[0, :, 0]), len(observed_data[0, 0, :])])
@@ -4889,17 +4873,30 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
 
     # Extract the number of validation years
     # this is the second dimension of the model data
-    n_validation_years = len(model_data[0, :, 0, 0])
+    if matched_var_ensemble_members is None and ensemble_mean is None:
+        n_validation_years = len(ensemble_members[0, :, 0, 0])
 
-    # Extract the number of ensemble members
-    # this is the first dimension of the model data
-    m_ensemble_members = len(model_data[:, 0, 0, 0])
+        # Extract the number of ensemble members
+        # this is the first dimension of the model data
+        m_ensemble_members = len(ensemble_members[:, 0, 0, 0])
+    else:
+        n_validation_years = len(ensemble_members[:, 0, 0, 0])
+
+        # Extract the number of ensemble members
+        # this is the first dimension of the model data (should be 20)
+        m_ensemble_members = len(ensemble_members[0, :, 0, 0])
 
     # set up the block size for the autocorrelation
     block_size = 5 # years
 
     # Save the original model data
     model_data_original = model_data.copy()
+
+    # print the number of validation years
+    print("number of validation years", n_validation_years)
+
+    # print the number of ensemble members
+    print("number of ensemble members", m_ensemble_members)
 
     # First we want to loop over the bootstraps
     for i in range(n_bootstraps):
@@ -4932,13 +4929,22 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         mask = np.zeros(n_validation_years, dtype=bool)
         mask[block_indices] = True
 
-        # Apply the mask to select the corresponding block of data for the model data
-        n_mask_model_data = model_data[:, mask, :, :]
+        if matched_var_ensemble_members is None and ensemble_mean is None:
+            # Apply the mask to select the corresponding block of data for the model data
+            n_mask_model_data = model_data[:, mask, :, :]
+        else:
+            # Apply the mask to the nao matched model data
+            n_mask_model_data = ensemble_members[mask, :, :, :]
+            
         # Apply the mask to select the corresponding block of data for the observed data
         n_mask_observed_data = observed_data[mask, :, :]
 
-        # Next, for each case, randomly select M ensemble members with replacement.
-        ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
+        if matched_var_ensemble_members is None and ensemble_mean is None:
+            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True, axis=0)
+        else:
+            # Next, for each case, randomly select M ensemble members with replacement.
+            # Axis 1 for the NAO matched model data is the ensemble members
+            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True, axis=1)
 
         # # Print the dimensions of the ensemble resampled
         # print("ensemble resampled shape", np.shape(ensemble_resampled))
@@ -4950,8 +4956,12 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # else:
         #     print("Ensemble has not been resampled")
 
-        # Calculate the ensemble mean for each case
-        ensemble_mean = np.mean(ensemble_resampled, axis=0)
+        if matched_var_ensemble_members is None and ensemble_mean is None:
+            # Calculate the ensemble mean for each case
+            ensemble_mean = np.mean(ensemble_resampled, axis=0)
+        else:
+            # Calculate the ensemble mean for each case
+            ensemble_mean = np.mean(ensemble_resampled, axis=1)
 
         # # Print the dimensions of the ensemble mean
         # print("ensemble mean shape", np.shape(ensemble_mean))

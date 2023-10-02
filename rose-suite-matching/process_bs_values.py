@@ -155,4 +155,7 @@ def main():
     model_datasets = fnc.load_data(base_dir, match_var_models, match_var, region, forecast_range, model_season)
     # Process the model data
     model_data, _ = fnc.process_data(model_datasets, match_var)
+
+    # Call the bootstrapping function
+    bootstrapped_pfield = fnc_bs.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=1000)
     

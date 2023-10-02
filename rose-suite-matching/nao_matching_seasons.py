@@ -192,7 +192,7 @@ def main():
 
     # Remove years containing Nan values from the obs and model data
     # Psl has not been NAO matched in this case
-    obs_psl_anomaly, model_data_psl = fnc.remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl,
+    obs_psl_anomaly, model_data_psl, _ = fnc.remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl,
                                                                         psl_models, NAO_matched=False)
     
     # Calculate the NAO index for the obs and model NAO
@@ -204,7 +204,7 @@ def main():
                                                                                     season, forecast_range, plots_dir, lag=lag)
 
     # Perform the NAO matching for the target variable
-    match_var_ensemble_mean = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
+    match_var_ensemble_mean, _  = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
                                                             base_dir, match_var_models, obs_path_match_var, region, model_season, forecast_range,
                                                                 start_year, end_year, plots_dir, save_dir, lagged_years = years,
                                                                     lagged_nao=True, no_subset_members=no_subset_members)
