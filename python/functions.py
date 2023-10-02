@@ -5032,7 +5032,7 @@ def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon):
     rpc_field = np.empty([len(obs_lat), len(obs_lon)])
     p_field = np.empty([len(obs_lat), len(obs_lon)])
 
-    if model_members is not None:
+    if model_members is not None and '__xarray_dataarray_variable__' in model_members.data_vars:
         # Extract the values from the model members
         model_members = model_members['__xarray_dataarray_variable__'].values
 
