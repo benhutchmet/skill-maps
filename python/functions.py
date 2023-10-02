@@ -4733,6 +4733,290 @@ def choose_obs_var_name(args):
         sys.exit()
     return obs_var_name
 
+
+
+def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, variable, n_bootstraps=1000, experiment=None, lag=None, matched_var_ensemble_members=None, ensemble_mean=None):
+    """
+    The method involves creating 1,000 bootstrapped hindcasts from a finite ensemble size and a finite number of validation years. 
+    The steps involved in creating the bootstrapped hindcasts are as follows:
+
+    1) Randomly select N cases (validation years) with replacement. 
+        To take autocorrelation into account, this is done in blocks of five consecutive years.
+    2) For each case, randomly select M ensemble members with replacement. 
+        Compute the ensemble mean from these M samples.
+    3) Compute the evaluation metrics (ACC, MSSS, RPC, and skill difference) with 
+        the resultant ensemble mean prediction.
+    4) Repeat steps 1-3 1,000 times to create a sample distribution of the 
+        evaluation metrics.
+    
+    For the ACC and MSSS, the p-value is defined as the ratio of negative values from the 
+        bootstrapped sample distribution on the basis of a one-tailed test of the hypothesis 
+            that the prediction skill is greater than 0. 
+
+    Arguments:
+        observed_data (xarray.core.dataset.Dataset): The processed observed data.
+        model_data (dict): The processed model data.
+        models (list): The list of models to be plotted.
+        variable (str): The variable name.
+        n_bootstraps (int): The number of bootstraps to perform. Default is 1000.
+
+    Returns:
+        rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
+        pfield (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data. Bootstrapped.
+    """
+
+    # Process the model data into an array
+    if type(model_data) == dict:
+        print("the type of model data is a dictionary")
+        if lag is None:
+            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained, ensemble_members = process_model_data_for_plot(model_data, models)
+        else:
+            print("Applying lag")
+            ensemble_mean, lat, lon, years, ensemble_members_count, years_constrained, ensemble_members = process_model_data_for_plot(model_data, models, lag=lag)
+
+            # Select only the constrained years for the obs
+            observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_constrained))
+    else:
+        print("the type of model data is: ", type(model_data))
+        if type(matched_var_ensemble_members) == None and type(ensemble_mean) == None:
+            raise AttributeError("matched_var_ensemble_members and ensemble_mean must be specified if model_data is not a dictionary")
+
+        # Set the ensemble members as the matched_var_ensemble_members
+        ensemble_members = matched_var_ensemble_members
+
+        # Extract the lat and lon values
+        lat = ensemble_mean.lat.values
+        lon = ensemble_mean.lon.values
+
+        # Extract the years
+        years = ensemble_mean.time.dt.year.values
+
+        # Set the ensemble members count to None
+        ensemble_members_count = None
+
+    # if observed data is not a numpy array
+    if type(observed_data) != np.ndarray:
+        print("observed data is not a numpy array")
+        # convert observed data to a numpy array
+        observed_data = observed_data.values
+        # if the experiment is dcppA-hindcast
+
+        # # constrain the years to the years that are in both the observed and model data
+        # observed_data = observed_data[3:, :, :]
+
+    # # Print the types of the observed and model data
+    # print("observed data type", type(observed_data))
+    # print("model data type", type(model_data))
+
+    # Print the shapes of the observed and model data
+    print("observed data shape", np.shape(observed_data))
+    print("model data shape", np.shape(ensemble_members))
+
+    # print the values of the observed and model data
+    # print("observed data", observed_data)
+    # print("model data", model_data)
+    
+    # Check that the observed and model data have the same type
+    if type(observed_data) != type(ensemble_members):
+        raise ValueError("Observed data and model data must have the same type.")
+    
+
+    # Print the years extracted from the observed and model data
+    print("observed years", obs_years)
+    print("model years", model_years)
+
+    # Print the values of each to check
+    print("observed data year constrained", np.shape(observed_data))
+    print("model data year constrained", np.shape(ensemble_members))
+
+    # Now we want to check that there are no NaNs in the observed and model data
+    if np.isnan(observed_data).any():
+        raise ValueError("Observed data contains NaNs.")
+    
+    if np.isnan(ensemble_members).any():
+        raise ValueError("Model data contains NaNs.")
+    
+    if matched_var_ensemble_members is None and ensemble_mean is None:
+        # Now we want to check that the observed and model data have the same shape
+        # for all dimensions of the observed data
+        # and the final 3 dimensions of the model data
+        model_data_shape = ensemble_members[0, :, :, :]
+    else:
+        model_data_shape = ensemble_members[:, 0, :, :]
+
+    # for brevity set up the lats and lons
+    lats = observed_data[0, :, 0]
+    lons = observed_data[0, 0, :]
+
+    print("observed data shape", np.shape(observed_data))
+    print("model data shape", np.shape(model_data_shape))
+    # if the shapes are not the same
+    if observed_data.shape != model_data_shape.shape:
+        raise ValueError("Observed data and model data must have the same shape.")
+    
+    # Now we want to create empty arrays for the bootstrapped p-values
+    # and the bootstrapped correlation coefficients
+    # in model_data
+    # the first dimension is the ensemble members
+    # the second dimension is the time
+    # the third dimension is the lat
+    # the fourth dimension is the lon
+    # so we will first resample the years in the time dimension
+    # and then resample the ensemble members
+    # and then calculate the ensemble mean
+    # and then calculate the correlation coefficient
+    # and then append the correlation coefficient to the array
+    # and then append the p-value to the array
+    # and then repeat this process 1000 times
+    # so we will have 1000 correlation coefficients and p-values
+    # for each grid point
+    # create an empty array for the p-values
+    # dim = (1000, lat, lon)
+    pfield_dist = np.empty([n_bootstraps, len(observed_data[0, :, 0]), len(observed_data[0, 0, :])])
+    # create an empty array for the correlation coefficients
+    rfield_dist = np.empty([n_bootstraps, len(observed_data[0, :, 0]), len(observed_data[0, 0, :])])
+
+    # Print the shapes of the pfield and rfield arrays
+    print("pfield array shape", np.shape(pfield_dist))
+    print("rfield array shape", np.shape(rfield_dist))
+
+    # Print the types of the pfield and rfield arrays
+    print("pfield array type", type(pfield_dist))
+    print("rfield array type", type(rfield_dist))
+
+    # # Take the time mean of the observed data
+    # observed_data_tm = np.mean(observed_data, axis=0)
+
+    # Extract the number of validation years
+    # this is the second dimension of the model data
+    n_validation_years = len(model_data[0, :, 0, 0])
+
+    # Extract the number of ensemble members
+    # this is the first dimension of the model data
+    m_ensemble_members = len(model_data[:, 0, 0, 0])
+
+    # set up the block size for the autocorrelation
+    block_size = 5 # years
+
+    # Save the original model data
+    model_data_original = model_data.copy()
+
+    # First we want to loop over the bootstraps
+    for i in range(n_bootstraps):
+        # Randomly select N cases (validation years) with replacement.
+        # To take autocorrelation into account, this is done in blocks of five consecutive years.
+        # Create 
+
+        # print the number bootstrap
+        print("bootstrap number", i)
+
+        # Randomly select block start indices
+        block_starts = resample(range(0, n_validation_years - block_size + 1, block_size), n_samples=n_validation_years//block_size, replace=True)
+
+        # Create indices for the entire blocks
+        block_indices = []
+        for start in block_starts:
+            block_indices.extend(range(start, start + block_size))
+
+        # Ensure we have exactly N indices (with replacement)
+        if len(block_indices) < n_validation_years:
+            block_indices.extend(resample(block_indices, n_samples=n_validation_years-len(block_indices), replace=True))
+
+        # # Print the block indices shape
+        # print("block indices shape", np.shape(block_indices))
+
+        # # Print the block indices
+        # print("block indices", block_indices)
+
+        # Create a mask for the selected block indices
+        mask = np.zeros(n_validation_years, dtype=bool)
+        mask[block_indices] = True
+
+        # Apply the mask to select the corresponding block of data for the model data
+        n_mask_model_data = model_data[:, mask, :, :]
+        # Apply the mask to select the corresponding block of data for the observed data
+        n_mask_observed_data = observed_data[mask, :, :]
+
+        # Next, for each case, randomly select M ensemble members with replacement.
+        ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
+
+        # # Print the dimensions of the ensemble resampled
+        # print("ensemble resampled shape", np.shape(ensemble_resampled))
+        # print("model data original shape masked", np.shape(model_data_original[:, mask, :, :]))
+
+        # # Check if ensemble_resampled is different from model_data
+        # if not np.array_equal(ensemble_resampled, model_data_original[:, mask, :, :]):
+        #     print("Ensemble has been resampled")
+        # else:
+        #     print("Ensemble has not been resampled")
+
+        # Calculate the ensemble mean for each case
+        ensemble_mean = np.mean(ensemble_resampled, axis=0)
+
+        # # Print the dimensions of the ensemble mean
+        # print("ensemble mean shape", np.shape(ensemble_mean))
+        # print("observed data shape", np.shape(n_mask_observed_data))
+
+        # Calculate the correlation coefficient and p-value for each case
+        # First create empty arrays for the correlation coefficients and p-values
+        # Now set up the empty arrays for rfield and pfield
+        rfield = np.empty([len(lats), len(lons)])
+        pfield = np.empty([len(lats), len(lons)])
+        # now loop over the lats and lons
+        for y in range(len(lats)):
+            for x in range(len(lons)):
+                # set up the obs and model data
+                obs = n_mask_observed_data[:, y, x]
+                mod = ensemble_mean[:, y, x]
+
+                # Calculate the correlation coefficient and p-value
+                r, p = stats.pearsonr(obs, mod)
+
+                # # If the correlation coefficient is negative, set the p-value to NaN
+                # if r < 0:
+                #     p = np.nan
+
+                # Append the correlation coefficient and p-value to the arrays
+                rfield[y, x], pfield[y, x] = r, p
+    
+        # append the correlation coefficients and p-values to the arrays
+        rfield_dist[i, :, :] = rfield
+        pfield_dist[i, :, :] = pfield
+
+    # Print the shapes of the pfield and rfield arrays
+    print("pfield array shape", np.shape(pfield_dist))
+    print("rfield array shape", np.shape(rfield_dist))
+
+    # Print the types of the pfield and rfield arrays
+    print("pfield array type", type(pfield_dist))
+    print("rfield array type", type(rfield_dist))
+
+    # Now we want to obtain the p-values for the correlations
+    # first create an empty array for the p-values
+    pfield_bootstrap = np.empty([len(lats), len(lons)])
+
+    # Now loop over the lats and lons
+    for y in range(len(lats)):
+        # print("y", y)
+        for x in range(len(lons)):
+            # print("x", x)
+            # # print the shape of the rfield_dist array
+            # print("rfield_dist shape", np.shape(rfield_dist))
+            # set up the rfield_dist and pfield_dist
+            rfield_sample = rfield_dist[:, y, x]
+
+            # Calculate the p-value
+            pfield_bootstrap[y, x] = np.sum(rfield_sample < 0) / n_bootstraps
+
+    # Print the shape of the pfield_bootstrap array
+    print("pfield_bootstrap shape", np.shape(pfield_bootstrap))
+
+    # Print the type of the pfield_bootstrap array
+    print("pfield_bootstrap type", type(pfield_bootstrap))
+
+    # Return the p-values
+    return pfield_bootstrap
+
 # Write a new function which will plot a series of subplots
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
@@ -5466,7 +5750,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             elif measure == 'msss':
                 cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj, extend='both')
             elif measure == 'rpc':
-                clevs = np.arange(0, 2.1, 0.4)
+                clevs = np.arange(0, 2.1, 0.1)
                 cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj, extend='max')
             else:
                 raise ValueError(f"measure {measure} not recognised when plotting statistics")
