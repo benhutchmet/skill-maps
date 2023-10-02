@@ -25,6 +25,7 @@ import scipy.stats as stats
 import matplotlib.animation as animation
 from matplotlib import rcParams
 from PIL import Image
+from sklearn import resample
 
 import matplotlib.cm as mpl_cm
 import matplotlib
@@ -4821,9 +4822,9 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         raise ValueError("Observed data and model data must have the same type.")
     
 
-    # Print the years extracted from the observed and model data
-    print("observed years", obs_years)
-    print("model years", model_years)
+    # # Print the years extracted from the observed and model data
+    # print("observed years", obs_years)
+    # print("model years", model_years)
 
     # Print the values of each to check
     print("observed data year constrained", np.shape(observed_data))
@@ -5019,15 +5020,15 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         for y in range(len(lats)):
             for x in range(len(lons)):
                 # Calculate the 2.5% and 97.5% percentiles of the bootstrapped sample distribution
-                pct_2p5, pct_97p5 = np.percentile(rpc_bootstrap, [2.5, 97.5])
+                pct_2p5, pct_97p5 = np.percentile(rfield_dist, [2.5, 97.5])
 
                 # Check if the percentiles cross 1
                 if pct_2p5 > 1 or pct_97p5 < 1:
                     # If the percentiles do not cross 1, the RPC is significantly different from 1
-                    p_field_bootstrap[y, x] = 1
+                    pfield_bootstrap[y, x] = 1
                 else:
                     # If the percentiles cross 1, the RPC is not significantly different from 1
-                    p_field_bootstrap[y, x] = 0
+                    pfield_bootstrap[y, x] = 0
 
     # Print the shape of the pfield_bootstrap array
     print("pfield_bootstrap shape", np.shape(pfield_bootstrap))

@@ -178,8 +178,8 @@ def main():
                                                                 ensemble_mean=None, measure=measure)
     elif method == "nao_matched":
         # process the psl observations for the nao index
-            obs_psl_anomaly = fnc.read_obs('psl', region, forecast_range, obs_season, 
-                                            observations_path, start_year, end_year)
+            obs_psl_anomaly = fnc.read_obs('psl', region, forecast_range, season, 
+                                            dic.obs, start_year, end_year)
 
             # Load and process the model data for the NAO index
             model_datasets_psl = fnc.load_data(dic.base_dir, dic.psl_models, 'psl', region, forecast_range, 
@@ -197,16 +197,16 @@ def main():
 
             # Calculate the lagged NAO index
             obs_nao, model_nao = fnc.calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, dic.psl_models,
-                                                                'psl', obs_season, forecast_range, plots_dir)                                                    
+                                                                'psl', season, forecast_range, plots_dir)                                                    
             
             # Rescale the NAO index
             rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = fnc.rescale_nao(obs_nao, model_nao, dic.psl_models,
-                                                                                    obs_season, forecast_range, plots_dir, lag=lag)
+                                                                                    season, forecast_range, plots_dir, lag=lag)
 
             # Perform the NAO matching for the target variableOnao
             matched_var_ensemble_mean, matched_var_ensemble_members = fnc.nao_matching_other_var(rescaled_nao, model_nao,
-                                                                models, model_variable, obs_variable, dic.base_dir,
-                                                                    models, obs_path, region, model_season, forecast_range,
+                                                                match_var_models, match_var, match_var, dic.base_dir,
+                                                                    match_var_models, obs_path, region, model_season, forecast_range,
                                                                         start_year, end_year, plots_dir, dic.save_dir, lagged_years=years,
                                                                             lagged_nao=True, no_subset_members=no_subset_members)        
 
