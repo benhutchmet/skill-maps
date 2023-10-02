@@ -5471,18 +5471,19 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             else:
                 raise ValueError(f"measure {measure} not recognised when plotting statistics")
 
-            # If the variables is 'tas'
-            # then we want to invert the stippling
-            # so that stippling is plotted where there is no significant correlation
-            if model_variable == 'tas':
-                # replace values in pfield that are less than 0.05 with nan
-                pfield[pfield < p_sig] = np.nan
-            else:
-                # replace values in pfield that are greater than 0.05 with nan
-                pfield[pfield > p_sig] = np.nan
+            # FIXME: No p-values until bootstrap is done
+            # # If the variables is 'tas'
+            # # then we want to invert the stippling
+            # # so that stippling is plotted where there is no significant correlation
+            # if model_variable == 'tas':
+            #     # replace values in pfield that are less than 0.05 with nan
+            #     pfield[pfield < p_sig] = np.nan
+            # else:
+            #     # replace values in pfield that are greater than 0.05 with nan
+            #     pfield[pfield > p_sig] = np.nan
 
-            # Add stippling where rfield is significantly different from zero
-            ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+            # # Add stippling where rfield is significantly different from zero
+            # ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
 
             # Add a textbox with the season name
             ax.text(0.05, 0.95, obs_season, transform=ax.transAxes, fontsize=6, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
