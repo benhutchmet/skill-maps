@@ -5078,6 +5078,12 @@ def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon):
             # Calculate the total standard deviation of the forecasts
             sigma_ftot = np.std(model_members_point)
 
+            # Where acc is negative, set rpc field to nan
+            if acc < 0:
+                rpc_field[y, x] = np.nan
+                p_field[y, x] = np.nan
+                continue
+
             # Calculate the rpc score
             rpc = acc / (sigma_fsig / sigma_ftot)
 
