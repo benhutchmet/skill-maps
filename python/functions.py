@@ -5303,7 +5303,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
                 # Remove years containing NaNs from the observations and model data
                 # and align the time periods
-                obs_psl_anomaly, model_data_psl = remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl, 
+                obs_psl_anomaly, model_data_psl, _ = remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl, 
                                                                                 dic.psl_models, NAO_matched=False)
 
                 # Calculate the lagged NAO index
