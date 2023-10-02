@@ -1666,7 +1666,7 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
             print("Aligining the years for the matched var ensemble members")
 
             # Extract the years
-            members_model_years = matched_var_ensemble_members.time.dt.year.values
+            members_model_years = matched_var_ensemble_members.time.values
 
             # If the years has duplicate values
             if len(members_model_years) != len(set(members_model_years)):
@@ -5329,7 +5329,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                                             observations_path, start_year, end_year)
 
                 # Remove years containing NaNs from the observations and model data
-                obs_match_var, matched_var_ensemble_mean = remove_years_with_nans_nao(obs_match_var, matched_var_ensemble_mean,
+                obs_match_var, matched_var_ensemble_mean, matched_var_ensemble_members = remove_years_with_nans_nao(obs_match_var, matched_var_ensemble_mean,
                                                                                         models, NAO_matched=True, matched_var_ensemble_members=matched_var_ensemble_members)
 
                 # Now calculate the spatial correlations
