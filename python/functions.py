@@ -505,7 +505,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
     # Load the regridded and selected region dataset
     # for the provided variable
     # check whether the variable name is valid
-    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos", "ua", "va", "var131", "var132"]:
+    if obs_var_name not in ["psl", "tas", "t2m", "sfcWind", "rsds", "tos", "ua", "va", "var131", "var132"]:
         print("Invalid variable name")
         sys.exit()
 
@@ -513,6 +513,8 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
     if obs_var_name == "psl":
         obs_var_name = "msl"
     elif obs_var_name == "tas":
+        obs_var_name = "t2m"
+    elif obs_var_name == "t2m":
         obs_var_name = "t2m"
     elif obs_var_name == "sfcWind":
         obs_var_name = "si10"

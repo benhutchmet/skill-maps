@@ -140,9 +140,10 @@ def main():
 
     # get the obs var name from the dictionary
     obs_var_name = dic.var_name_map[match_var]
+    print("obs_var_name:", obs_var_name)
 
     # Get the models for the matching variable
-    match_var_models = dic.match_var_models[match_var]
+    match_var_models = nms_fnc.match_variable_models(match_var)
 
     # Process the observed data
     obs = fnc.process_observations(match_var, region, region_grid, forecast_range, season, obs_path, obs_var_name)
