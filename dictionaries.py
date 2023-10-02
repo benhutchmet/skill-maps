@@ -83,6 +83,7 @@ obs_ws_var_names = ["ua", "va", "var131", "var132"]
 # Define a dictionary to map the variable names to their corresponding names in the obs dataset
 var_name_map = {
     "psl": "msl",
+    "msl": "msl",
     "tas": "t2m",
     "t2m": "t2m",
     "sfcWind": "si10",
