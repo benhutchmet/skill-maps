@@ -77,6 +77,10 @@ import dictionaries as dic
 sys.path.append('/home/users/benhutch/skill-maps/python')
 import functions as fnc
 
+# import functions from the other script
+sys.path.append('/home/users/benhutch/skill-maps/rose-suite-matching')
+import nao_matching_seasons as nms_fnc
+
 # Import the bootstrapping functions
 sys.path.append('/home/users/benhutch/skill-maps-differences')
 import functions as fnc_bs
@@ -119,9 +123,36 @@ def main():
     no_subset_members = args.no_subset_members
     method = args.method
 
+    # If season conttains a number, convert it to the string
+    if season in ["1", "2", "3", "4"]:
+        season = dic.season_map[season]
+        print("NAO matching for variable:", match_var, "region:", region, "season:", season, "forecast range:", forecast_range,)
+
+    # Set up the models
+    match_var_models = nms_fnc.match_variable_models(match_var)
+
+    # Set up the observations path for the matching variable
+    obs_path_match_var = nms_fnc.obs_path(match_var)
+
     # get the obs var name from the dictionary
     obs_var_name = dic.var_name_map[match_var]
 
+    # Get the models for the matching variable
+    match_var_models = dic.match_var_models[match_var]
+
     # Process the observed data
     obs = fnc.process_observations(match_var, region, region_grid, forecast_range, season, obs_path, obs_var_name)
+
+    # Set up the model season
+    if season == "MAM":
+        model_season = "MAY"
+    elif season == "JJA":
+        model_season = "ULG"
+    else:
+        model_season = season
+
+    # Load and process the model data
+    model_datasets = fnc.load_data(base_dir, match_var_models, match_var, region, forecast_range, model_season)
+    # Process the model data
+    model_data, _ = fnc.process_data(model_datasets, match_var)
     

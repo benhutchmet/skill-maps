@@ -5466,7 +5466,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             elif measure == 'msss':
                 cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj, extend='both')
             elif measure == 'rpc':
-                clevs = np.arange(0, 2.9, 0.2)
+                clevs = np.arange(0, 2.1, 0.4)
                 cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj, extend='max')
             else:
                 raise ValueError(f"measure {measure} not recognised when plotting statistics")
