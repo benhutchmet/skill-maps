@@ -1515,6 +1515,13 @@ def constrain_years(model_data, models):
                 # continue with the loop
                 continue
 
+            # If there is a gap of more than 1 year in the years
+            # then raise a value error
+            if np.any(np.diff(years) > 1):
+                print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
+                # continue with the loop
+                continue
+
             # if len years is less than 10
             # print the model name, member name, and len years
             if len(years) < 10:

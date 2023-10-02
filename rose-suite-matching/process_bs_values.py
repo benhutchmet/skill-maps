@@ -163,6 +163,13 @@ def main():
         # Process the model data
         model_data, _ = fnc.process_data(model_datasets, match_var)
 
+        # Make sure that the models have the same time period
+        model_data = fnc.constrain_years(model_data, match_var_models)
+
+        # Remove years containing NaNs from the observations and model data
+        obs, model_data, _ = fnc.remove_years_with_nans_nao(obs, model_data, match_var_models,
+                                                            NAO_matched=False)
+
         # Call the bootstrapping function
         bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=10,
                                                                 experiment=None, lag=None, matched_var_ensemble_members=None,
@@ -172,6 +179,13 @@ def main():
         model_datasets = fnc.load_data(base_dir, match_var_models, match_var, region, forecast_range, model_season)
         # Process the model data
         model_data, _ = fnc.process_data(model_datasets, match_var)
+
+        # Make sure that the models have the same time period
+        model_data = fnc.constrain_years(model_data, match_var_models)
+
+        # Remove years containing NaNs from the observations and model data
+        obs, model_data, _ = fnc.remove_years_with_nans_nao(obs, model_data, match_var_models,
+                                                            NAO_matched=False)
 
         # Call the bootstrapping function
         bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=10,  
