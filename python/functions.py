@@ -5026,6 +5026,12 @@ def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon):
     rpc_field = np.empty([len(obs_lat), len(obs_lon)])
     p_field = np.empty([len(obs_lat), len(obs_lon)])
 
+    # Extract the values from the model members
+    model_members = model_members.values
+
+    # Print the shape of the model members
+    print("model members shape", np.shape(model_members))
+
     # Loop over the lats
     for y in range(len(obs_lat)):
         for x in range(len(obs_lon)):
