@@ -4735,7 +4735,7 @@ def choose_obs_var_name(args):
 
 
 
-def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, variable, n_bootstraps=1000, experiment=None, lag=None, matched_var_ensemble_members=None, ensemble_mean=None):
+def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, variable, n_bootstraps=1000, experiment=None, lag=None, matched_var_ensemble_members=None, ensemble_mean=None, measure=None):
     """
     The method involves creating 1,000 bootstrapped hindcasts from a finite ensemble size and a finite number of validation years. 
     The steps involved in creating the bootstrapped hindcasts are as follows:
@@ -4782,7 +4782,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
             raise AttributeError("matched_var_ensemble_members and ensemble_mean must be specified if model_data is not a dictionary")
 
         # Set the ensemble members as the matched_var_ensemble_members
-        ensemble_members = matched_var_ensemble_members
+        ensemble_members = matched_var_ensemble_members['__xarray_dataarray_variable__'].values
 
         # Extract the lat and lon values
         lat = ensemble_mean.lat.values
@@ -4963,60 +4963,71 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
             # Calculate the ensemble mean for each case
             ensemble_mean = np.mean(ensemble_resampled, axis=1)
 
-        # # Print the dimensions of the ensemble mean
-        # print("ensemble mean shape", np.shape(ensemble_mean))
-        # print("observed data shape", np.shape(n_mask_observed_data))
 
-        # Calculate the correlation coefficient and p-value for each case
-        # First create empty arrays for the correlation coefficients and p-values
-        # Now set up the empty arrays for rfield and pfield
-        rfield = np.empty([len(lats), len(lons)])
-        pfield = np.empty([len(lats), len(lons)])
-        # now loop over the lats and lons
-        for y in range(len(lats)):
-            for x in range(len(lons)):
-                # set up the obs and model data
-                obs = n_mask_observed_data[:, y, x]
-                mod = ensemble_mean[:, y, x]
+        # if the measure is acc
+        if measure == 'acc':
+            # Call the function to get the r and p fields
+            rfield, _ = calculate_correlations(n_mask_observed_data, ensemble_mean, lats, lons)
+        # if the measure is msss
+        elif measure == 'msss':
+            msss_field, _ = calculate_msss(n_mask_observed_data, ensemble_mean, lats, lons)
 
-                # Calculate the correlation coefficient and p-value
-                r, p = stats.pearsonr(obs, mod)
+            # Set the rfield to the msss_field
+            rfield = msss_field
+        elif measure == 'rpc':
+            rpc_field, _ = calculate_rpc_field(n_mask_observed_data, ensemble_mean, ensemble_resampled, 
+                                                    lats, lons, nao_matched=False)
 
-                # # If the correlation coefficient is negative, set the p-value to NaN
-                # if r < 0:
-                #     p = np.nan
+            # Set the rfield to the rpc_field
+            rfield = rpc_field                                        
+        else:
+            print("Error: measure not found")
 
-                # Append the correlation coefficient and p-value to the arrays
-                rfield[y, x], pfield[y, x] = r, p
-    
         # append the correlation coefficients and p-values to the arrays
         rfield_dist[i, :, :] = rfield
-        pfield_dist[i, :, :] = pfield
 
     # Print the shapes of the pfield and rfield arrays
-    print("pfield array shape", np.shape(pfield_dist))
     print("rfield array shape", np.shape(rfield_dist))
 
     # Print the types of the pfield and rfield arrays
-    print("pfield array type", type(pfield_dist))
     print("rfield array type", type(rfield_dist))
+
 
     # Now we want to obtain the p-values for the correlations
     # first create an empty array for the p-values
     pfield_bootstrap = np.empty([len(lats), len(lons)])
 
-    # Now loop over the lats and lons
-    for y in range(len(lats)):
-        # print("y", y)
-        for x in range(len(lons)):
-            # print("x", x)
-            # # print the shape of the rfield_dist array
-            # print("rfield_dist shape", np.shape(rfield_dist))
-            # set up the rfield_dist and pfield_dist
-            rfield_sample = rfield_dist[:, y, x]
+    # if the measure is ACC or MSSS
+    # we want to obtain the p-value from the ratio of negative values from the bootstrapped
+    # sample distribution on the basis of a one-tailed test of the hypothesis that the prediction skill is greater than 0.
+    if measure == 'acc' or measure == 'msss':
 
-            # Calculate the p-value
-            pfield_bootstrap[y, x] = np.sum(rfield_sample < 0) / n_bootstraps
+        # Now loop over the lats and lons
+        for y in range(len(lats)):
+            # print("y", y)
+            for x in range(len(lons)):
+                # print("x", x)
+                # # print the shape of the rfield_dist array
+                # print("rfield_dist shape", np.shape(rfield_dist))
+                # set up the rfield_dist and pfield_dist
+                rfield_sample = rfield_dist[:, y, x]
+
+                # Calculate the p-value
+                pfield_bootstrap[y, x] = np.sum(rfield_sample < 0) / n_bootstraps
+    elif measure == 'rpc':
+        # Now loop over the lats and lons
+        for y in range(len(lats)):
+            for x in range(len(lons)):
+                # Calculate the 2.5% and 97.5% percentiles of the bootstrapped sample distribution
+                pct_2p5, pct_97p5 = np.percentile(rpc_bootstrap, [2.5, 97.5])
+
+                # Check if the percentiles cross 1
+                if pct_2p5 > 1 or pct_97p5 < 1:
+                    # If the percentiles do not cross 1, the RPC is significantly different from 1
+                    p_field_bootstrap[y, x] = 1
+                else:
+                    # If the percentiles cross 1, the RPC is not significantly different from 1
+                    p_field_bootstrap[y, x] = 0
 
     # Print the shape of the pfield_bootstrap array
     print("pfield_bootstrap shape", np.shape(pfield_bootstrap))
