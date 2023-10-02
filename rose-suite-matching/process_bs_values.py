@@ -232,4 +232,5 @@ def main():
     # Save the bootstrapped values
     np.save(os.path.join(save_path, filename), bs_pfield)
                                                                 
-    
+if __name__ == "__main__":
+    main()

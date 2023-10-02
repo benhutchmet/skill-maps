@@ -25,7 +25,7 @@ import scipy.stats as stats
 import matplotlib.animation as animation
 from matplotlib import rcParams
 from PIL import Image
-from sklearn import resample
+from sklearn.utils import resample
 
 import matplotlib.cm as mpl_cm
 import matplotlib
