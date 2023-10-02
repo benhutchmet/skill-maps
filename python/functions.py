@@ -1572,7 +1572,7 @@ def constrain_years(model_data, models):
 
 
 # checking for Nans in observed data
-def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=False):
+def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=False, matched_var_ensemble_members=None):
     """
     Removes years from the observed data that contain NaN values.
 
@@ -1581,6 +1581,8 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
         model_data (dict): The model data.
         models (list): The list of models to be plotted.
         variable (str): the variable name.
+        NAO_matched (bool): Whether or not the data has been matched to the NAO index.
+        matched_var_ensemble_members (list): The list of ensemble members that have been matched to the NAO index. Defaults to None.
 
     Returns:
         xarray.Dataset: The observed data with years containing NaN values removed.
@@ -1654,9 +1656,29 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
         print("NAO_matched is True")
         print("Checking for NaN values in the xarray dataset")
 
+        # if matched_var_ensemble_members is not None:
         # if there are any NaN values in the xarray dataset
         # Extract the years from the xarray dataset
         model_years = model_data.time.dt.year.values
+        
+        
+        if matched_var_ensemble_members is not None:
+            print("Aligining the years for the matched var ensemble members")
+
+            # Extract the years
+            members_model_years = matched_var_ensemble_members.time.dt.year.values
+
+            # If the years has duplicate values
+            if len(members_model_years) != len(set(members_model_years)):
+                # Raise a value error
+                raise ValueError("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
+
+            # Find the years that are in all of the models
+            if np.array_equal(model_years, members_model_years) == False:
+                print("The model years and the matched var ensemble members years are not the same")
+                print("Model years:", model_years)
+                print("Matched var ensemble members years:", members_model_years)
+                raise ValueError("The model years and the matched var ensemble members years are not the same")
 
         # Loop over the years
         for year in model_years:
@@ -1748,7 +1770,7 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
             # Select only those years from the model data
             constrained_data = model_data.sel(time=model_data.time.dt.year.isin(years_in_both))
 
-    return observed_data, constrained_data
+    return observed_data, constrained_data, matched_var_ensemble_members
 
 # Define a new function to rescalse the NAO index for each year
 def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
@@ -3820,7 +3842,8 @@ def calculate_model_nao_anoms_matching(model_data, models, azores_grid, iceland_
 
     return ensemble_members_nao_anoms, years, ensemble_members_count
 
-def calculate_field_stats(observed_data, model_data, models, variable, lag=None, NAO_matched=False, measure='acc'):
+def calculate_field_stats(observed_data, model_data, models, variable, 
+                            lag=None, NAO_matched=False, measure='acc', matched_var_ensemble_members=None):
     """
     Ensures that the observed and model data have the same dimensions, format and shape. Before calculating the spatial correlations between the two datasets.
     
@@ -3970,7 +3993,7 @@ def calculate_field_stats(observed_data, model_data, models, variable, lag=None,
         pfield = rmse_pfield
     elif measure == 'rpc':
         # Calculate the rpc between the observed and model data
-        rpc, rpc_pfield = calculate_rpc_field(observed_data_array, ensemble_mean_array, ensemble_members,
+        rpc, rpc_pfield = calculate_rpc_field(observed_data_array, ensemble_mean_array, matched_var_ensemble_members,
                                                 obs_lat, obs_lon)
         # Set up the variable names
         stat_field = rpc
@@ -5292,7 +5315,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
                                                                                         obs_season, forecast_range, plots_dir, lag=lag)
 
                 # Perform the NAO matching for the target variableOnao
-                matched_var_ensemble_mean = nao_matching_other_var(rescaled_nao, model_nao,
+                matched_var_ensemble_mean, matched_var_ensemble_members = nao_matching_other_var(rescaled_nao, model_nao,
                                                                     models, model_variable, obs_variable, dic.base_dir,
                                                                         models, obs_path, region, model_season, forecast_range,
                                                                             start_year, end_year, plots_dir, dic.save_dir, lagged_years=years,
@@ -5307,12 +5330,14 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
                 # Remove years containing NaNs from the observations and model data
                 obs_match_var, matched_var_ensemble_mean = remove_years_with_nans_nao(obs_match_var, matched_var_ensemble_mean,
-                                                                                        models, NAO_matched=True)
+                                                                                        models, NAO_matched=True, matched_var_ensemble_members=matched_var_ensemble_members)
 
                 # Now calculate the spatial correlations
+                # TODO: include matched var ensemble members here
                 rfield, pfield, obs_lons_converted, \
                 lons_converted, _ = calculate_field_stats(obs_match_var, matched_var_ensemble_mean, models, 
-                                                                    obs_variable, lag=lag, NAO_matched=True, measure=measure)
+                                                                    obs_variable, lag=lag, NAO_matched=True, 
+                                                                        measure=measure, matched_var_ensemble_members=matched_var_ensemble_members)
                 
             else:
                 print("Error: method not found")
