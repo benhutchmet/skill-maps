@@ -3995,12 +3995,18 @@ def calculate_field_stats(observed_data, model_data, models, variable,
         # Set up the ensemble members to be used
         if matched_var_ensemble_members is not None:
             ensemble_members = matched_var_ensemble_members
+
+            # calculate the rpc field for the matched members
+            rpc, rpc_pfield = calculate_rpc_field(observed_data_array, ensemble_mean_array, ensemble_members,
+                                                obs_lat, obs_lon, nao_matched=True)
         else:
             ensemble_members = ensemble_members
-    
-        # Calculate the rpc between the observed and model data
-        rpc, rpc_pfield = calculate_rpc_field(observed_data_array, ensemble_mean_array, ensemble_members,
-                                                obs_lat, obs_lon)
+
+            # Calculate the rpc between the observed and model data
+            # in the non-nao matched case
+            rpc, rpc_pfield = calculate_rpc_field(observed_data_array, ensemble_mean_array, ensemble_members,
+                                                    obs_lat, obs_lon, nao_matched=False)
+
         # Set up the variable names
         stat_field = rpc
         pfield = rpc_pfield
@@ -5019,7 +5025,7 @@ def plot_seasonal_correlations(models, observations_path, variable, region, regi
 
 
 # Now define a function which will calculate the RPC scores
-def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon):
+def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon, nao_matched=False):
     """
     Calculates the RPC scores for the model data.
     """
@@ -5032,7 +5038,8 @@ def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon):
     rpc_field = np.empty([len(obs_lat), len(obs_lon)])
     p_field = np.empty([len(obs_lat), len(obs_lon)])
 
-    if model_members is not None and '__xarray_dataarray_variable__' in model_members.data_vars:
+    # if nao_matched is true
+    if nao_matched:
         # Extract the values from the model members
         model_members = model_members['__xarray_dataarray_variable__'].values
 
