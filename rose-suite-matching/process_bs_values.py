@@ -240,6 +240,9 @@ def main():
 
     # Save the bootstrapped values
     save_path = os.path.join(save_dir, match_var, region, season, forecast_range, start_year, end_year, str(lag), str(no_subset_members), method, measure)
+    # if the save path does not already exist, create it
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     print("Saving bootstrapped values to:", save_path)
     # form the filename
     filename = "bootrapped_values" + region + "_" + season + "_" + forecast_range + "_" + start_year + "_" + end_year + "_" + str(lag) + "_" + str(no_subset_members) + "_" + method + "_" + measure + ".npy"
