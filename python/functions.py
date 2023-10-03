@@ -3325,6 +3325,13 @@ def process_model_data_for_plot(model_data, models, lag=None):
                 print("Duplicate years in ensemble member")
                 continue
 
+            # If the difference between the years is not 1
+            # Then we will skip over this ensemble member
+            # and not append it to the list of ensemble members
+            if np.diff(years).all() != 1:
+                print("Non-consecutive years in ensemble member, model:", model, "member:", member)
+                continue
+
             # Print the type of the calendar
             # print(model, "calendar type:", member.time)
             # print("calendar type:", type(member.time))
@@ -3383,6 +3390,10 @@ def process_model_data_for_plot(model_data, models, lag=None):
 
     # #print the ensemble members count
     print("ensemble members count", ensemble_members_count)
+
+    # Print the type of ensemble members
+    print("type of ensemble members", type(ensemble_members))
+    print("shape of ensemble members", np.shape(ensemble_members))
 
     # Take the equally weighted ensemble mean
     ensemble_mean = ensemble_members.mean(axis=0)
