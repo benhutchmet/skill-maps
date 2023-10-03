@@ -5392,6 +5392,10 @@ def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon, nao_ma
             model_mean_point = model_mean[:, y, x]
             model_members_point = model_members[:, :, y, x]
 
+            # Swap round the axes of the model members
+            # BUG: What if axis have been swapped already? for bootstrapping
+            model_members_point = np.swapaxes(model_members_point, 0, 1)
+
             # If all of the values in the obs and model data are NaN
             if np.isnan(obs_point).all() or np.isnan(model_mean_point).all():
                 # #print a warning
@@ -5427,7 +5431,7 @@ def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon, nao_ma
             sigma_fsig = np.std(model_mean_point)
 
             # Calculate the total standard deviation of the forecasts
-            sigma_ftot = np.std(model_members_point)
+            sigma_ftot = np.nanstd(model_members_point)
 
             # Where acc is negative, set rpc field to nan
             if acc < 0:
@@ -5626,6 +5630,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             # if the variable is 'rsds'
             # divide the obs data by 86400 to convert from J/m2 to W/m2
             if obs_variable == 'rsds':
+                print("converting obs to W/m2")
                 obs /= 86400
 
             # Append the processed observations to the list

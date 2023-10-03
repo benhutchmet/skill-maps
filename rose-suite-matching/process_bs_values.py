@@ -148,6 +148,13 @@ def main():
     # Process the observed data
     obs = fnc.process_observations(match_var, region, region_grid, forecast_range, season, obs_path, obs_var_name)
 
+    # if the variable is 'rsds'
+    # divide the obs data by 86400 to convert from J/m2 to W/m2
+    if match_var in ['rsds', 'ssrd']:
+        print("converting obs to W/m2")
+        obs /= 86400
+
+
     # Set up the model season
     if season == "MAM":
         model_season = "MAY"
