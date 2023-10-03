@@ -4946,17 +4946,13 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
             # Apply the mask to the nao matched model data
             n_mask_model_data = ensemble_members[mask, :, :, :]
 
-            # Rearrange the axes
+            # Rearrange the axes, so that the mask axes is on the first axis
+            n_mask_model_data = np.swapaxes(n_mask_model_data, 0, 1)
             
         # Apply the mask to select the corresponding block of data for the observed data
         n_mask_observed_data = observed_data[mask, :, :]
 
-        if matched_var_ensemble_members is None:
-            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
-        else:
-            # Next, for each case, randomly select M ensemble members with replacement.
-            # Axis 1 for the NAO matched model data is the ensemble members
-            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
+        ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
 
         # # Print the dimensions of the ensemble resampled
         # print("ensemble resampled shape", np.shape(ensemble_resampled))
