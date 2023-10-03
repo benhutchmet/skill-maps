@@ -5604,12 +5604,12 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     test_season = ['DJFM']
 
     # Loop over the methods
-    for method in test_methods:
+    for method in methods:
         # Print the method being used
         print("method", method)
 
         # Loop over the seasons
-        for i, obs_season in enumerate(test_season):
+        for i, obs_season in enumerate(seasons_list_obs):
 
             # Print the season(s) being processed
             print("obs season", obs_season)
@@ -5759,9 +5759,9 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     cf_list = []
 
     # Loop over the methods
-    for i, method in enumerate(test_methods):
+    for i, method in enumerate(methods):
         # Loop over the seasons
-        for j, obs_season in enumerate(test_season):
+        for j, obs_season in enumerate(seasons_list_obs):
 
             # Print the season(s) being plotted
             print("plotting season", obs_season)
@@ -5839,15 +5839,15 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
 
             # Add a textbox with the season name
-            ax.text(0.05, 0.95, obs_season, transform=ax.transAxes, fontsize=6, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+            ax.text(0.05, 0.95, obs_season, transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
 
             # Add a textbox with the method name
             # in the top right
-            ax.text(0.95, 0.95, method, transform=ax.transAxes, fontsize=6, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+            ax.text(0.95, 0.95, method, transform=ax.transAxes, fontsize=8, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
             # Add a textbox with the figure letter
             fig_letter = ax_labels[i * 4 + j]
-            ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=6, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+            ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
 
             # Add the contourf object to the list
             cf_list.append(cf)
