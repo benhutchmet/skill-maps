@@ -4846,7 +4846,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     if np.isnan(ensemble_members).any():
         raise ValueError("Model data contains NaNs.")
     
-    if matched_var_ensemble_members is None and ensemble_mean is None:
+    if matched_var_ensemble_members is None:
         # Now we want to check that the observed and model data have the same shape
         # for all dimensions of the observed data
         # and the final 3 dimensions of the model data
@@ -4883,7 +4883,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
 
     # Extract the number of validation years
     # this is the second dimension of the model data
-    if matched_var_ensemble_members is None and ensemble_mean is None:
+    if matched_var_ensemble_members is None:
         n_validation_years = len(ensemble_members[0, :, 0, 0])
 
         # Extract the number of ensemble members
@@ -4939,22 +4939,24 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         mask = np.zeros(n_validation_years, dtype=bool)
         mask[block_indices] = True
 
-        if matched_var_ensemble_members is None and ensemble_mean is None:
+        if matched_var_ensemble_members is None:
             # Apply the mask to select the corresponding block of data for the model data
-            n_mask_model_data = model_data[:, mask, :, :]
+            n_mask_model_data = ensemble_members[:, mask, :, :]
         else:
             # Apply the mask to the nao matched model data
             n_mask_model_data = ensemble_members[mask, :, :, :]
+
+            # Rearrange the axes
             
         # Apply the mask to select the corresponding block of data for the observed data
         n_mask_observed_data = observed_data[mask, :, :]
 
-        if matched_var_ensemble_members is None and ensemble_mean is None:
-            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True, axis=0)
+        if matched_var_ensemble_members is None:
+            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
         else:
             # Next, for each case, randomly select M ensemble members with replacement.
             # Axis 1 for the NAO matched model data is the ensemble members
-            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True, axis=1)
+            ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
 
         # # Print the dimensions of the ensemble resampled
         # print("ensemble resampled shape", np.shape(ensemble_resampled))
@@ -4966,7 +4968,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # else:
         #     print("Ensemble has not been resampled")
 
-        if matched_var_ensemble_members is None and ensemble_mean is None:
+        if matched_var_ensemble_members is None:
             # Calculate the ensemble mean for each case
             ensemble_mean = np.mean(ensemble_resampled, axis=0)
         else:
