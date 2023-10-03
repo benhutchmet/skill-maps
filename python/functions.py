@@ -4823,12 +4823,12 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # Set the ensemble members as the matched_var_ensemble_members
         ensemble_members = matched_var_ensemble_members['__xarray_dataarray_variable__'].values
 
-        # Extract the lat and lon values
-        lat = ensemble_mean.lat.values
-        lon = ensemble_mean.lon.values
+        # # Extract the lat and lon values
+        # lat = ensemble_mean.lat.values
+        # lon = ensemble_mean.lon.values
 
-        # Extract the years
-        years = ensemble_mean.time.dt.year.values
+        # # Extract the years
+        # years = ensemble_mean.time.dt.year.values
 
         # Set the ensemble members count to None
         ensemble_members_count = None
@@ -4919,11 +4919,17 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # this is the first dimension of the model data
         m_ensemble_members = len(ensemble_members[:, 0, 0, 0])
     else:
-        n_validation_years = len(ensemble_members[:, 0, 0, 0])
+        # Swap the axes of the matched_var_ensemble_members
+        # so that the ensemble members axis is the first axis
+        matched_var_ensemble_members = np.swapaxes(matched_var_ensemble_members, 0, 1)
+
+        # Extract the number of validation years
+        # this is the second dimension of the model data
+        n_validation_years = len(matched_var_ensemble_members[0, :, 0, 0])
 
         # Extract the number of ensemble members
-        # this is the first dimension of the model data (should be 20)
-        m_ensemble_members = len(ensemble_members[0, :, 0, 0])
+        # this is the first dimension of the model data
+        m_ensemble_members = len(matched_var_ensemble_members[:, 0, 0, 0])
 
     # set up the block size for the autocorrelation
     block_size = 5 # years
@@ -4943,8 +4949,8 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # To take autocorrelation into account, this is done in blocks of five consecutive years.
         # Create 
 
-        # print the number bootstrap
-        print("bootstrap number", i)
+        # # print the number bootstrap
+        # print("bootstrap number", i)
 
         # Randomly select block start indices
         block_starts = resample(range(0, n_validation_years - block_size + 1, block_size), n_samples=n_validation_years//block_size, replace=True)
@@ -4958,26 +4964,13 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         if len(block_indices) < n_validation_years:
             block_indices.extend(resample(block_indices, n_samples=n_validation_years-len(block_indices), replace=True))
 
-        # # Print the block indices shape
-        # print("block indices shape", np.shape(block_indices))
-
-        # # Print the block indices
-        # print("block indices", block_indices)
-
         # Create a mask for the selected block indices
         mask = np.zeros(n_validation_years, dtype=bool)
         mask[block_indices] = True
 
-        if matched_var_ensemble_members is None:
-            # Apply the mask to select the corresponding block of data for the model data
-            n_mask_model_data = ensemble_members[:, mask, :, :]
-        else:
-            # Apply the mask to the nao matched model data
-            n_mask_model_data = ensemble_members[mask, :, :, :]
+        # Apply the mask to select the corresponding block of data for the model data
+        n_mask_model_data = ensemble_members[:, mask, :, :]                
 
-            # Rearrange the axes, so that the mask axes is on the first axis
-            n_mask_model_data = np.swapaxes(n_mask_model_data, 0, 1)
-            
         # Apply the mask to select the corresponding block of data for the observed data
         n_mask_observed_data = observed_data[mask, :, :]
 
