@@ -5385,9 +5385,9 @@ def calculate_rpc_field(obs, model_mean, model_members, obs_lat, obs_lon, nao_ma
             model_mean_point = model_mean[:, y, x]
             model_members_point = model_members[:, :, y, x]
 
-            # Swap round the axes of the model members
-            # BUG: What if axis have been swapped already? for bootstrapping
-            model_members_point = np.swapaxes(model_members_point, 0, 1)
+            # # Swap round the axes of the model members
+            # # BUG: What if axis have been swapped already? for bootstrapping
+            # model_members_point = np.swapaxes(model_members_point, 0, 1)
 
             # If all of the values in the obs and model data are NaN
             if np.isnan(obs_point).all() or np.isnan(model_mean_point).all():
