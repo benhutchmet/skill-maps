@@ -5607,7 +5607,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
     test_methods = ['nao_matched']
 
-    test_season = ['SON']
+    test_season = ['DJFM']
 
     # Loop over the methods
     for method in test_methods:
