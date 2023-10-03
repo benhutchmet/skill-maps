@@ -5606,7 +5606,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     test_season = ['SON']
 
     # Loop over the methods
-    for method in methods:
+    for method in test_methods:
         # Print the method being used
         print("method", method)
 
