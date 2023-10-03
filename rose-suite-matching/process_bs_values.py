@@ -100,6 +100,7 @@ def main():
     save_dir = dic.save_dir
     region_grid = dic.gridspec_global
     obs_path = dic.obs
+    no_bootstraps = 10
 
     # Extract the command line arguments
     parser = argparse.ArgumentParser()
@@ -178,7 +179,7 @@ def main():
                                                             NAO_matched=False)
 
         # Call the bootstrapping function
-        bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=10,
+        bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=no_bootstraps,
                                                                 experiment=None, lag=None, matched_var_ensemble_members=None,
                                                                 ensemble_mean=None, measure=measure)
     elif method == 'lagged':
@@ -195,7 +196,7 @@ def main():
                                                             NAO_matched=False)
 
         # Call the bootstrapping function
-        bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=10,  
+        bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=no_bootstraps,  
                                                                 experiment=None, lag=lag, matched_var_ensemble_members=None,
                                                                 ensemble_mean=None, measure=measure)
     elif method == "nao_matched":
@@ -238,7 +239,7 @@ def main():
                                                                                                         matched_var_ensemble_members=matched_var_ensemble_members)
 
             # Call the bootstrapping function
-            bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, matched_var_ensemble_mean, match_var_models, match_var, n_bootstraps=10,
+            bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, matched_var_ensemble_mean, match_var_models, match_var, n_bootstraps=no_bootstraps,
                                                                     experiment=None, lag=None, matched_var_ensemble_members=matched_var_ensemble_members,
                                                                     ensemble_mean=ensemble_mean_nao, measure=measure)
     else:

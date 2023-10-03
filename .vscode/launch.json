@@ -21,7 +21,7 @@
             "program": "${workspaceFolder}/rose-suite-matching/process_bs_values.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["tas", "global", "1", "2-9", "1960", "2010", "4", "20", "lagged", "acc"]
+            "args": ["tas", "global", "1", "2-9", "1960", "2022", "4", "20", "nao_matched", "acc"]
         }
     ]
 }
