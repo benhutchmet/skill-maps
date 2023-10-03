@@ -5613,8 +5613,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
             # Print the season(s) being processed
             print("obs season", obs_season)
-            # model_season = seasons_list_mod[i]
-            model_season = obs_season
+            model_season = seasons_list_mod[i]
             print("mod season", model_season)
 
             # Process the observations
