@@ -1560,6 +1560,20 @@ def constrain_years(model_data, models):
             # #print the years extracted from the model
             # #print('model years', years)
             # #print('model years shape', np.shape(years))
+
+            # If the years has duplicate values
+            if len(years) != len(set(years)):
+                # Raise a value error
+                print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
+                # continue with the loop
+                continue
+
+            # If there is a gap of more than 1 year in the years
+            # then raise a value error
+            if np.any(np.diff(years) > 1):
+                print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
+                # continue with the loop
+                continue
             
             # Find the years that are in both the model data and the common years
             years_in_both = np.intersect1d(years, common_years)
@@ -3261,7 +3275,11 @@ def calculate_rps(acc_score, ensemble_members_array, obs_nao):
     # Calculate the RPS score
     rps_score = rpc * (obs_std / model_std)
 
-    return rps_score    
+    return rps_score
+
+
+# Function to ensure that the years contrained are consistent across the models
+#     
 
 
 # Define a function which processes the model data for spatial correlations
