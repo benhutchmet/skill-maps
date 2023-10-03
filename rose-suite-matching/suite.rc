@@ -9,11 +9,13 @@
         end_year="2022"
         lag="4"
         no_subset_members="20"
+        method="raw"
+        measure="acc"
 
 [scheduling]
     [[dependencies]]
         graph = """
-        nao_matching<match_var><region><season><forecast_range><start_year><end_year><lag><no_subset_members> 
+        process_bootstrap
         """
 
 [runtime]

@@ -4993,13 +4993,8 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # else:
         #     print("Ensemble has not been resampled")
 
-        if matched_var_ensemble_members is None:
-            # Calculate the ensemble mean for each case
-            ensemble_mean = np.mean(ensemble_resampled, axis=0)
-        else:
-            # Calculate the ensemble mean for each case
-            ensemble_mean = np.mean(ensemble_resampled, axis=1)
-
+        # Calculate the ensemble mean
+        ensemble_mean = np.mean(ensemble_resampled, axis=0)
 
         # if the measure is acc
         if measure == 'acc':
@@ -5038,7 +5033,6 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # we want to obtain the p-value from the ratio of negative values from the bootstrapped
     # sample distribution on the basis of a one-tailed test of the hypothesis that the prediction skill is greater than 0.
     if measure == 'acc' or measure == 'msss':
-
         # Now loop over the lats and lons
         for y in range(len(lats)):
             # print("y", y)
@@ -5065,6 +5059,8 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
                 else:
                     # If the percentiles cross 1, the RPC is not significantly different from 1
                     pfield_bootstrap[y, x] = 0
+    else:
+        print("Error: measure not found")
 
     # Print the shape of the pfield_bootstrap array
     print("pfield_bootstrap shape", np.shape(pfield_bootstrap))
@@ -5607,17 +5603,20 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
     test_methods = ['nao_matched']
 
+    test_season = 'SON'
+
     # Loop over the methods
     for method in methods:
         # Print the method being used
         print("method", method)
 
         # Loop over the seasons
-        for i, obs_season in enumerate(seasons_list_obs):
+        for i, obs_season in enumerate(test_season):
 
             # Print the season(s) being processed
             print("obs season", obs_season)
-            model_season = seasons_list_mod[i]
+            # model_season = seasons_list_mod[i]
+            model_season = obs_season
             print("mod season", model_season)
 
             # Process the observations
@@ -5761,9 +5760,9 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     cf_list = []
 
     # Loop over the methods
-    for i, method in enumerate(methods):
+    for i, method in enumerate(test_methods):
         # Loop over the seasons
-        for j, obs_season in enumerate(seasons_list_obs):
+        for j, obs_season in enumerate(test_season):
 
             # Print the season(s) being plotted
             print("plotting season", obs_season)
