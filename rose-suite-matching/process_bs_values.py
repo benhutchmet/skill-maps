@@ -174,7 +174,7 @@ def main():
         bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=10,
                                                                 experiment=None, lag=None, matched_var_ensemble_members=None,
                                                                 ensemble_mean=None, measure=measure)
-    if method == 'lagged':
+    elif method == 'lagged':
         # Load and process the model data
         model_datasets = fnc.load_data(base_dir, match_var_models, match_var, region, forecast_range, model_season)
         # Process the model data
