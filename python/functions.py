@@ -5544,7 +5544,7 @@ def calculate_msss(obs, model_data, obs_lat, obs_lon):
 def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, model_variable, obs_variable, obs_path, region, region_grid, 
                                                     forecast_range, start_year, end_year, seasons_list_obs, seasons_list_mod, plots_dir, save_dir, obs_var_name,
                                                         azores_grid, iceland_grid, p_sig = 0.05, experiment = 'dcppA-hindcast',
-                                                            bootstrapped_pval = False, lag=4, no_subset_members=20, measure='acc'):
+                                                            bootstrapped_pval = False, lag=4, no_subset_members=20, measure='acc', north_atlantic=False):
     """
     Plots the spatial correlation coefficients and p-values for the raw ensemble, the lagged ensemble and the NAO-matched ensemble.
     For the same variable, region and forecast range (e.g. tas global years 2-9) but with different seasons (e.g. DJFM, MAM, JJA, SON).
@@ -5573,6 +5573,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     - lag: an integer with the number of months to lag the data (default is 4).
     - no_subset_members: an integer with the number of members to use for the NAO-matched ensemble (default is 20).
     - measure: a string with the name of the measure to be plotted (default is 'correlation').
+    - north_atlantic: a boolean indicating whether to plot the North Atlantic region (default is False).
     """
 
     # Create an empty list to store the processed observations
@@ -5794,6 +5795,17 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
             ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
 
+            # If the north_atlantic flag is true
+            if north_atlantic:
+                # Constrain the lats and lons to the North Atlantic region
+                lats = lats[35:]
+                lons = lons[40:100]
+
+                # Constrain the rfield and pfield to the North Atlantic region
+                rfield = rfield[35:, 40:100]
+                pfield = pfield[35:, 40:100]
+
+
             # Add filled contours
             # Contour levels
             clevs = np.arange(-1, 1.1, 0.1)
@@ -5802,6 +5814,16 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             # Plot the filled contours
             if measure == 'acc':
                 cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+                if model_variable == 'tas':
+                    # replace values in pfield that are less than 0.05 with nan
+                    pfield[pfield < p_sig] = np.nan
+                else:
+                    # replace values in pfield that are greater than 0.05 with nan
+                    pfield[pfield > p_sig] = np.nan
+
+                # Add stippling where rfield is significantly different from zero
+                ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
             elif measure == 'msss':
                 cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj, extend='both')
             elif measure == 'rpc':
@@ -5814,15 +5836,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
             # # If the variables is 'tas'
             # # then we want to invert the stippling
             # # so that stippling is plotted where there is no significant correlation
-            # if model_variable == 'tas':
-            #     # replace values in pfield that are less than 0.05 with nan
-            #     pfield[pfield < p_sig] = np.nan
-            # else:
-            #     # replace values in pfield that are greater than 0.05 with nan
-            #     pfield[pfield > p_sig] = np.nan
 
-            # # Add stippling where rfield is significantly different from zero
-            # ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
 
             # Add a textbox with the season name
             ax.text(0.05, 0.95, obs_season, transform=ax.transAxes, fontsize=6, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
