@@ -85,7 +85,7 @@ def match_variable_models(match_var):
     """
     Matches up the matching variable to its models.
     """
-
+    print("match_var:", match_var)
     # Case statement for the matching variable
     if match_var in ["tas", "t2m"]:
         match_var_models = dic.tas_models
@@ -109,7 +109,7 @@ def obs_path(match_var):
     """
 
     # Case statement for the matching variable
-    if match_var in ["tas", "t2m", "sfcWind", "si10", "rsds", "ssrd"]:
+    if match_var in ["tas", "t2m", "sfcWind", "si10", "rsds", "ssrd", "psl", "msl"]:
         obs_path = dic.obs
     else:
         print("The variable is not supported for NAO matching.")
