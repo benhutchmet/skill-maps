@@ -5506,7 +5506,7 @@ def calculate_msss(obs, model_data, obs_lat, obs_lon):
             # Calculate the numerator
             # Sum over the time dimension
             # of the squared difference between the obs and model
-            numerator = np.sum((obs_point - model_point)**2)
+            numerator = np.sum((model_point - obs_point)**2)
 
             # Calculate the denominator
             # Sum over the time dimension
