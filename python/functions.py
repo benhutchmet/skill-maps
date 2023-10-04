@@ -2516,7 +2516,7 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     rescaled_model_nao_year = rescaled_model_nao.sel(time=f"{year}")
 
     # Form the list of ensemble members
-    ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models)
+    ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models, lagged=True)
 
     # Loop over the ensemble members
     for member in ensemble_members_list:
