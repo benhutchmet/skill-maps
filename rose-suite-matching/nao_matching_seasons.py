@@ -93,6 +93,8 @@ def match_variable_models(match_var):
         match_var_models = dic.sfcWind_models_noMIROC
     elif match_var in ["rsds", "ssrd"]:
         match_var_models = dic.rsds_models_noCMCC
+    elif match_var in ["psl", "msl" ]:
+        match_var_models = dic.models
     else:
         print("The variable is not supported for NAO matching.")
         sys.exit()

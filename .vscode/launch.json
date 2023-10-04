@@ -6,13 +6,13 @@
     "configurations": [
 
         {
-            "name": "Python: Current File",
+            "name": "Python: Debug NAO matching file",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "${workspaceFolder}/rose-suite-matching/nao_matching_seasons.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["sfcWind", "global", "1", "2-9", "1960", "2010", "4", "20"]
+            "args": ["psl", "global", "1", "2-9", "1960", "1980", "4", "20"]
         },
         {
             "name": "Python: Debug Bootstrap file",
