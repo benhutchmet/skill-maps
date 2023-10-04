@@ -1907,7 +1907,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
                                 start_year, end_year, output_dir, save_dir, lagged_years=None, lagged_nao=False, 
                                     no_subset_members=20, level = None):
     """
-    Performs the NAO matching for the given variable. E.g. T2M.
+    Performs the NAO matching for the given variable. E.g. T2M. By default will select from the lagged ensemble members.
 
     Parameters
     ----------
@@ -2632,7 +2632,7 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     return smallest_diff
 
 # Define a new function to form the list of ensemble members
-def form_ensemble_members_list(model_nao, models):
+def form_ensemble_members_list(model_nao, models, lagging=False, lag=None):
     """
     Forms a list of ensemble members, not a dictionary with model keys.
     Each xarray object should have the associated metadata stored in attributes.
@@ -2644,7 +2644,10 @@ def form_ensemble_members_list(model_nao, models):
         Each model contains a list of ensemble members, which are xarray datasets containing the NAO index.
     models : list
         List of models to be plotted. Different models for each variable.
-    
+    lagging : bool, optional
+        Flag to indicate whether to lag the ensemble members. The default is False.
+    lag : int, optional
+        The value of the lag. The default is None.
     
     Returns
     -------
@@ -2686,6 +2689,31 @@ def form_ensemble_members_list(model_nao, models):
             if len(years) != len(set(years)):
                 raise ValueError("Duplicate years in the member")
             
+            # Check that the difference between the years is 1
+            if not np.all(np.diff(years) == 1):
+                print("The years are not consecutive for model:", model, "member:", member.attrs["variant_label"])
+                continue
+            
+            # if the lagging flag is set to True
+            if lagging:
+                print("Lagging the ensemble members")
+                # if lag is None, raise an error
+                if lag is None:
+                    raise ValueError("Trying to perform lagging, but the lag is None")
+
+                # Loop over the lag indices
+                for i in range(lag):
+                    print("Applying lagging for ensemble member:", member.attrs["variant_label"], "for model:", model)
+                    print("Lag:", i)
+                    # Shift the time series forward by the lag
+                    member = member.shift(time=i)
+
+                    # Assign a new attribute to the member
+                    member.attrs["lag"] = i
+
+                    # Append the member to the ensemble_members_list
+                    ensemble_members_list.append(member)
+
             # Add the member to the ensemble_members_list
             ensemble_members_list.append(member)
 
