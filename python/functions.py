@@ -2061,7 +2061,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             # Extract the members with the closest NAO index to the rescaled NAO index
             # for the given year
             smallest_diff = calculate_closest_members(year, rescaled_model_nao, model_nao_constrained, models_in_both, 
-                                                        season, forecast_range, output_dir, lagged=False,
+                                                        season, forecast_range, output_dir, lagged=True,
                                                             no_subset_members=no_subset_members)  
 
             # Using the closest NAO index members, extract the same members
@@ -2518,10 +2518,10 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
 
     if lagged == True:
         # Form the list of ensemble members
-        ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models, lagged=True, lag=4)
+        _, ensemble_members_count, ensemble_members_list = form_ensemble_members_list(model_nao, models, lagged=True, lag=4)
     else:
         # Form the list of ensemble members
-        ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models, lagged=False)
+        ensemble_members_list, ensemble_members_count, _ = form_ensemble_members_list(model_nao, models, lagged=False)
 
 
     # Loop over the ensemble members
@@ -2664,6 +2664,9 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
     # Initialize a list to store the ensemble members
     ensemble_members_list = []
 
+    # Form the list to store the lagged ensemble members
+    lagged_ensemble_members_list = []
+
     # Initialize a dictionary to store the number of ensemble members for each model
     ensemble_members_count = {}
 
@@ -2712,13 +2715,13 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
                     print("Applying lagging for ensemble member:", member.attrs["variant_label"], "for model:", model)
                     print("Lag:", i)
                     # Shift the time series forward by the lag
-                    member = member.shift(time=i)
+                    shited_member = member.shift(time=i)
 
                     # Assign a new attribute to the member
-                    member.attrs["lag"] = i
+                    shifted_member.attrs["lag"] = i
 
                     # Append the member to the ensemble_members_list
-                    ensemble_members_list.append(member)
+                    lagged_ensemble_members_list.append(shifted_member)
 
             # Add the member to the ensemble_members_list
             ensemble_members_list.append(member)
@@ -2726,7 +2729,7 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
             # Add one to the ensemble_members_count dictionary
             ensemble_members_count[model] += 1
 
-    return ensemble_members_list, ensemble_members_count
+    return ensemble_members_list, ensemble_members_count, lagged_ensemble_members_list
 
 # Write a function to calculate the NAO index
 # For both the obs and model data

@@ -4,7 +4,24 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "psl",
+                "global",
+                "1",
+                "2-9",
+                "1960",
+                "1980",
+                "4",
+                "20"
+            ]
+        },
         {
             "name": "Python: Debug NAO matching file",
             "type": "python",
@@ -12,7 +29,16 @@
             "program": "${workspaceFolder}/rose-suite-matching/nao_matching_seasons.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["psl", "global", "1", "2-9", "1960", "1980", "4", "20"]
+            "args": [
+                "psl",
+                "global",
+                "1",
+                "2-9",
+                "1960",
+                "1980",
+                "4",
+                "20"
+            ]
         },
         {
             "name": "Python: Debug Bootstrap file",
@@ -21,7 +47,18 @@
             "program": "${workspaceFolder}/rose-suite-matching/process_bs_values.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["tas", "global", "1", "2-9", "1960", "2022", "4", "20", "lagged", "acc"]
+            "args": [
+                "tas",
+                "global",
+                "1",
+                "2-9",
+                "1960",
+                "2022",
+                "4",
+                "20",
+                "lagged",
+                "acc"
+            ]
         }
     ]
 }
