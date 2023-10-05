@@ -2461,7 +2461,7 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
     for member in match_var_model_anomalies_constrained:
         # Check if the model and variant label pair is in the model_variant_pairs
         if lagged == True:
-            if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pairs:
+            if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pair:
                 print("Appending member:", member.attrs["variant_label"], "from model:", member.attrs["source_id"], "with lag:", member.attrs["lag"])
                 
                 # Select the data for the year
@@ -2470,7 +2470,7 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
                 # Append the member to the matched_var_members
                 matched_var_members.append(member)
         else:
-            if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pairs:
+            if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pair:
                 print("Appending member:", member.attrs["variant_label"]
                         , "from model:", member.attrs["source_id"])
                 
