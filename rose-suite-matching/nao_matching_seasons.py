@@ -214,7 +214,8 @@ def main():
     match_var_ensemble_mean, _  = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
                                                             base_dir, match_var_models, obs_path_match_var, region, model_season, forecast_range,
                                                                 start_year, end_year, plots_dir, save_dir, lagged_years = years,
-                                                                    lagged_nao=True, no_subset_members=no_subset_members)
+                                                                    lagged_nao=True, no_subset_members=no_subset_members, level=None,
+                                                                        ensemble_mean_nao=ensemble_mean_nao)
     
 
 if __name__ == '__main__':

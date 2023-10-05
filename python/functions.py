@@ -1906,7 +1906,7 @@ def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, 
 def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_variable_model, match_variable_obs, match_var_base_dir,
                             match_var_models, match_var_obs_path, region, season, forecast_range, 
                                 start_year, end_year, output_dir, save_dir, lagged_years=None, lagged_nao=False, 
-                                    no_subset_members=20, level = None):
+                                    no_subset_members=20, level = None, ensemble_mean_nao=None):
     """
     Performs the NAO matching for the given variable. E.g. T2M. By default will select from the lagged ensemble members.
 
@@ -2018,35 +2018,42 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         model_nao_years = model_nao_constrained[psl_models[0]][0].time.dt.year.values
         match_var_model_years = match_var_model_anomalies_constrained[0].time.dt.year.values
 
-        # If the years are not equal
-        if not np.array_equal(rescaled_model_years, model_nao_years) or not np.array_equal(rescaled_model_years, match_var_model_years):
-            # Print a warning and exit the program
-            print("The years for the rescaled model NAO, the model NAO and the matched variable model anomalies are not equal")
+        # # If the years are not equal
+        # if not np.array_equal(rescaled_model_years, model_nao_years) or not np.array_equal(rescaled_model_years, match_var_model_years):
+        #     # Print a warning and exit the program
+        #     print("The years for the rescaled model NAO, the model NAO and the matched variable model anomalies are not equal")
             
-            # Extract the years which are in the rescaled model nao and the model nao
-            # Constrain the rescaled NAO and the model NAO constrained to the same years as match var model years
-            model_nao_constrained, match_var_model_anomalies_constrained, years_in_both \
-                                = constrain_years_psl_match_var(model_nao_constrained, model_nao_years, models_in_both,
-                                                                    match_var_model_anomalies_constrained, match_var_model_years, models_in_both)
-            # Set rescalled_model_nao to the years_in_both
-            rescaled_model_years = years_in_both
+        #     # Extract the years which are in the rescaled model nao and the model nao
+        #     # Constrain the rescaled NAO and the model NAO constrained to the same years as match var model years
+        #     model_nao_constrained, match_var_model_anomalies_constrained, years_in_both \
+        #                         = constrain_years_psl_match_var(model_nao_constrained, model_nao_years, models_in_both,
+        #                                                             match_var_model_anomalies_constrained, match_var_model_years, models_in_both)
+        #     # Set rescalled_model_nao to the years_in_both
+        #     rescaled_model_years = years_in_both
 
         # Set up the years to loop over
         years = rescaled_model_years
 
         # if lagged_nao is True
         if lagged_nao == True:
-            years = lagged_years
+            # lagged years is just the years skipping the first 0, 1 and 2 values
+            lagged_years = years[3:]
 
         # Set up the lats and lons for the array
         lats = match_var_model_anomalies_constrained[0].lat.values
         lons = match_var_model_anomalies_constrained[0].lon.values
 
-        # Set up an array to fill the matched variable ensemble mean
-        matched_var_ensemble_mean_array = np.empty((len(years), len(lats), len(lons)))
+        if lagged_nao == True:
+            macthed_var_ensemble_mean_array = np.empty((len(lagged_years), len(lats), len(lons)))
 
-        # Set up an array to fill the matched variable ensemble members
-        matched_var_ensemble_members_array = np.empty((len(years), no_subset_members, len(lats), len(lons)))
+            # Set up an array to fill the matched variable ensemble members
+            matched_var_ensemble_members_array = np.empty((len(lagged_years), no_subset_members, len(lats), len(lons)))
+        else:
+            # Set up an array to fill the matched variable ensemble mean
+            matched_var_ensemble_mean_array = np.empty((len(years), len(lats), len(lons)))
+
+            # Set up an array to fill the matched variable ensemble members
+            matched_var_ensemble_members_array = np.empty((len(years), no_subset_members, len(lats), len(lons)))
 
         # Extract the coords for the first years=years of the match_var_model_anomalies_constrained
         # Select the years from the match_var_model_anomalies_constrained
