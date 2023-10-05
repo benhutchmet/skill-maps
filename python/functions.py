@@ -2464,7 +2464,7 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
 
 # Calculate the members which have the closest NAO index to the rescaled NAO index
 def calculate_closest_members(year, rescaled_model_nao, model_nao, models, season, forecast_range, 
-                                output_dir, lagged=False, no_subset_members=20):
+                                output_dir, lagged=True, no_subset_members=20):
     """
     Calculates the ensemble members (within model_nao) which have the closest NAO index to the rescaled NAO index.
 
@@ -2516,8 +2516,13 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     # Extract the data for the year for the rescaled NAO index
     rescaled_model_nao_year = rescaled_model_nao.sel(time=f"{year}")
 
-    # Form the list of ensemble members
-    ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models, lagged=True)
+    if lagged == True:
+        # Form the list of ensemble members
+        ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models, lagged=True, lag=4)
+    else:
+        # Form the list of ensemble members
+        ensemble_members_list, ensemble_members_count = form_ensemble_members_list(model_nao, models, lagged=False)
+
 
     # Loop over the ensemble members
     for member in ensemble_members_list:
@@ -2633,7 +2638,7 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     return smallest_diff
 
 # Define a new function to form the list of ensemble members
-def form_ensemble_members_list(model_nao, models, lagging=False, lag=None):
+def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
     """
     Forms a list of ensemble members, not a dictionary with model keys.
     Each xarray object should have the associated metadata stored in attributes.
@@ -2696,7 +2701,7 @@ def form_ensemble_members_list(model_nao, models, lagging=False, lag=None):
                 continue
             
             # if the lagging flag is set to True
-            if lagging:
+            if lagged == True:
                 print("Lagging the ensemble members")
                 # if lag is None, raise an error
                 if lag is None:
