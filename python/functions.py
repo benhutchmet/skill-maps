@@ -2456,37 +2456,29 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
             smallest_diff_models_dict[model_name].add(model_variant_pair)
         else:
             smallest_diff_models_dict[model_name] = {model_variant_pair}
-    
-    # Loop over the models in the smallest_diff
-    for model in smallest_diff_models:
-        # Extract the pair from the dictionary
-        model_variant_pairs = smallest_diff_models_dict[model]
 
-        # extract the model data for the model
-        model_data = match_var_model_anomalies_constrained[model]
+    # Loop over the members in the model_data
+    for member in match_var_model_anomalies_constrained:
+        # Check if the model and variant label pair is in the model_variant_pairs
+        if lagged == True:
+            if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pairs:
+                print("Appending member:", member.attrs["variant_label"], "from model:", member.attrs["source_id"], "with lag:", member.attrs["lag"])
+                
+                # Select the data for the year
+                member = member.sel(time=f"{year}")
 
-        # Loop over the members in the model_data
-        for member in model_data:
-            # Check if the model and variant label pair is in the model_variant_pairs
-            if lagged == True:
-                if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pairs:
-                    print("Appending member:", member.attrs["variant_label"], "from model:", member.attrs["source_id"], "with lag:", member.attrs["lag"])
-                    
-                    # Select the data for the year
-                    member = member.sel(time=f"{year}")
+                # Append the member to the matched_var_members
+                matched_var_members.append(member)
+        else:
+            if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pairs:
+                print("Appending member:", member.attrs["variant_label"]
+                        , "from model:", member.attrs["source_id"])
+                
+                # Select the data for the year
+                member = member.sel(time=f"{year}")
 
-                    # Append the member to the matched_var_members
-                    matched_var_members.append(member)
-            else:
-                if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pairs:
-                    print("Appending member:", member.attrs["variant_label"]
-                            , "from model:", member.attrs["source_id"])
-                    
-                    # Select the data for the year
-                    member = member.sel(time=f"{year}")
-
-                    # Append the member to the matched_var_members
-                    matched_var_members.append(member)
+                # Append the member to the matched_var_members
+                matched_var_members.append(member)
     # return the matched_var_members
     return matched_var_members
 
