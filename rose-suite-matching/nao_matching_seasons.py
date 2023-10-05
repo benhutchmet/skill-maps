@@ -129,7 +129,7 @@ def main():
 
     # Set up the hardcoded variables
     psl_var = "psl"
-    psl_models = test_models
+    psl_models = dic.models
     obs_path_psl = dic.obs
     base_dir = dic.base_dir
     plots_dir = dic.plots_dir
@@ -167,8 +167,8 @@ def main():
     # Set up the models for the matching variable
     match_var_models = match_variable_models(match_var)
 
-    # Override this for testing
-    match_var_models = test_models
+    # # Override this for testing
+    # match_var_models = test_models
 
     # Set up the observations path for the matching variable
     obs_path_match_var = obs_path(match_var)
