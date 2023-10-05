@@ -2066,7 +2066,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
 
             # Using the closest NAO index members, extract the same members
             # for the matched variable
-            matched_var_members = extract_matched_var_members(year, match_var_model_anomalies_constrained, smallest_diff)
+            matched_var_members = extract_matched_var_members(year, match_var_model_anomalies_constrained, smallest_diff, lagged=True)
             
             matched_var_members_array = np.empty((len(matched_var_members)))
 
@@ -2399,7 +2399,7 @@ def calculate_matched_var_ensemble_mean(matched_var_members, year):
     return matched_var_ensemble_mean, matched_var_members
 
 # Define a function which will extract the right model members for the matched variable
-def extract_matched_var_members(year, match_var_model_anomalies_constrained, smallest_diff):
+def extract_matched_var_members(year, match_var_model_anomalies_constrained, smallest_diff, lagged=True):
     """
     Extracts the right model members for the matched variable.
     These members have the correct magnitude of the NAO index.
@@ -2427,8 +2427,16 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
         # Extract the associated variant label
         variant_label = member.attrs["variant_label"]
 
-        # Append this pair to the dictionary
-        model_variant_pair = (model_name, variant_label)
+        # If laggd is True
+        if lagged == True:
+            # Extract the lag
+            lag = member.attrs["lag"]
+            
+            # Set up the model variant list
+            model_variant_pair = (model_name, variant_label, lag)
+        else:
+            # Append this pair to the dictionary
+            model_variant_pair = (model_name, variant_label)
 
         print("model_variant_pair", model_variant_pair)
 
@@ -2449,16 +2457,26 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
         # Loop over the members in the model_data
         for member in model_data:
             # Check if the model and variant label pair is in the model_variant_pairs
-            if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pairs:
-                print("Appending member:", member.attrs["variant_label"]
-                        , "from model:", member.attrs["source_id"])
-                
-                # Select the data for the year
-                member = member.sel(time=f"{year}")
+            if lagged == True:
+                if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pairs:
+                    print("Appending member:", member.attrs["variant_label"]
+                            , "from model:", member.attrs["source_id"] "with lag:", member.attrs["lag"])
+                    
+                    # Select the data for the year
+                    member = member.sel(time=f"{year}")
 
-                # Append the member to the matched_var_members
-                matched_var_members.append(member)
+                    # Append the member to the matched_var_members
+                    matched_var_members.append(member)
+            else:
+                if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pairs:
+                    print("Appending member:", member.attrs["variant_label"]
+                            , "from model:", member.attrs["source_id"])
+                    
+                    # Select the data for the year
+                    member = member.sel(time=f"{year}")
 
+                    # Append the member to the matched_var_members
+                    matched_var_members.append(member)
     # return the matched_var_members
     return matched_var_members
 
