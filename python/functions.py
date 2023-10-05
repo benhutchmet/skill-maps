@@ -1573,6 +1573,17 @@ def constrain_years(model_data, models):
             # then raise a value error
             if np.any(np.diff(years) > 1):
                 print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
+                # print the values of the years where the gap is greater than 1
+                # Convert the tuple returned by np.where() to a NumPy array
+                indices = np.array(np.where(np.diff(years) > 1))
+
+                # Subtract 2 from the indices to adjust for the gap
+                adjusted_indices = indices - 2
+
+                print("adjusted indices:", adjusted_indices[0][0])
+
+                # Print the years where the gap is greater than 1, using the adjusted indices
+                print("years where gap is greater than 1:", years[adjusted_indices[0][0]:])
                 # continue with the loop
                 continue
             
@@ -3458,6 +3469,8 @@ def process_model_data_for_plot(model_data, models, lag=None):
         # Set up the constrained years
         years_constrained = years[lag - 1:]
 
+        lagged_ensemble_members_constrained = []
+
         # Remove the first lag - 1 years from each member
         for member in lagged_ensemble_members:
             # Extract the years
@@ -3470,8 +3483,11 @@ def process_model_data_for_plot(model_data, models, lag=None):
             coords = member.coords
             dims = member.dims
 
+            # Append the member to the list of lagged ensemble members
+            lagged_ensemble_members_constrained.append(member)
+
         # Set the ensemble members to the lagged ensemble members
-        ensemble_members = lagged_ensemble_members    
+        ensemble_members = lagged_ensemble_members_constrained    
     else:
         years_constrained = years
 
@@ -3492,10 +3508,14 @@ def process_model_data_for_plot(model_data, models, lag=None):
     ensemble_mean = ensemble_members.mean(axis=0)
 
     # #print the dimensions of the ensemble mean
-    # #print(np.shape(ensemble_mean))
+    print(np.shape(ensemble_mean))
     # #print(type(ensemble_mean))
-    # #print(ensemble_mean)
-        
+    print(ensemble_mean)
+
+    # print the dims
+    print("dims", dims)
+    print("coords", coords)
+
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=coords, dims=dims)
 

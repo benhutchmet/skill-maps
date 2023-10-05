@@ -12,14 +12,16 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "psl",
+                "tas",
                 "global",
                 "1",
                 "2-9",
                 "1960",
-                "1980",
+                "2022",
                 "4",
-                "20"
+                "20",
+                "lagged",
+                "acc"
             ]
         },
         {
