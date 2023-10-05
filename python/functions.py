@@ -5250,16 +5250,114 @@ def forecast_stats(obs, forecast1, forecast2):
 
     # Set up the number of times from the obs
     # the size of the first dimension of the obs
-    n_times = np.shape(obs)[0]
+    n_times = obs.shape[0]
+
+    # Set up the number of lats and lons
+    n_lats = obs.shape[1]
+    n_lons = obs.shape[2]
 
     # Extract the number of ensemble members for the first forecast
-    nens1 = np.shape(forecast1)[0]
+    nens1 = forecast1.shape[0]
 
     # Extract the number of ensemble members for the second forecast
     # also divide this into two halves
     # nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
 
     # Set up the number of bootstraps
+    nboot = 1000
+
+    # Set up the shapes of the arrays to be filled
+    r_partial_boot = np.zeros([nboot, n_lats, n_lons]) ; r_partial_bias_boot = np.zeros([nboot, n_lats, n_lons])
+
+    r1o_boot = np.zeros([nboot, n_lats, n_lons]) ; r2o_boot = np.zeros([nboot, n_lats, n_lons]) ; r12_boot = np.zeros([nboot, n_lats, n_lons])
+
+    rdiff_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc1_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc2_boot = np.zeros([nboot, n_lats, n_lons])
+
+    r_ens_10_boot = np.zeros([nboot, n_lats, n_lons]) ; msss1_boot = np.zeros([nboot, n_lats, n_lons])
+
+    # Set up the block length for the block bootstrap
+    block_length = 5
+
+    # Set up the number of blocks to be used
+    n_blocks = int(n_times/block_length)
+
+    # if the nblocks * block_length is less than n_times
+    # add one to the number of blocks
+    if n_blocks * block_length < n_times:
+        n_blocks += 1
+
+    # set up the indexes
+    # for the time - time needs to be the same for all forecasts and obs
+    index_time = range(n_times-block_length+1)
+
+    # For the members
+    index_ens1 = range(nens1) ; index_ens2 = range(nens2)
+
+    # Loop over the bootstraps
+    for iboot in range(nboot):
+
+        # Select ensemble members and the starting indicies for the blocks
+        # for the first forecast just use the raw data
+        if(iboot == 0):
+            index_ens1_this = index_ens1
+
+            index_ens2_this = index_ens2
+
+            index_time_this = range(0, n_times, block_length) # normal order of time
+
+        else: # pick random samples
+            # Create an array containing random indices
+
+            index_ens1_this = np.array([random.choice(index_ens1) for _ in index_ens1])
+
+            index_ens2_this = np.array([random.choice(index_ens2) for _ in index_ens2])
+
+            # Create an array containing random indices for the blocks
+            index_time_this = np.array([random.choice(index_time) for _ in range(n_blocks)])
+        
+        # Create am empty array to store the observations
+        obs_boot = np.zeros([n_times, n_lats, n_lons])
+
+        # Create an empty array to store the first forecast
+        fcst1_boot = np.zeros([nens1, n_times, n_lats, n_lons]) ; fcst2_boot = np.zeros([nens2, n_times, n_lats, n_lons])
+
+        # Create an empty array for the 10 member forecast
+        fcst10_boot = np.zeros([10, n_times, n_lats, n_lons])
+
+        # Loop over the blocks
+        # First set the time to 0
+        itime = 0
+
+        for ithis in index_time_this:
+
+            # Set up the individual block index
+            index_block = range(ithis, ithis+block_length)
+
+            # If the block index is greater than the number of times, then reduce the block index
+            index_block[(index_block > n_times-1)] = index_block[(index_block > n_times-1)] - n_times
+
+            # Select a subset of indices for the block
+            index_block = index_block[:min(block_length, n_times-ithis)]
+
+            # Loop over the block indices
+            for iblock in index_block:
+                    
+                    # Extract the observations for the block
+                    obs_boot[itime, :, :] = obs[iblock, :, :]
+    
+                    # Extract the first forecast for the block and random ensemble members
+                    fcst1_boot[:, itime, :, :] = forecast1[index_ens1_this, iblock, :, :]
+    
+                    # Extract the second forecast for the block and random ensemble members
+                    fcst2_boot[:, itime, :, :] = forecast2[index_ens2_this, iblock, :, :]
+    
+                    # Extract the 10 member forecast for the block and random ensemble members
+                    fcst10_boot[:, itime, :, :] = forecast1[index_ens1_this[0:10], iblock, :, :]
+    
+                    # Increment the time
+                    itime += 1
+
+        # Process the stats
 
 # Write a new function which will plot a series of subplots
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
