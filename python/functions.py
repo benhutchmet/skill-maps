@@ -2008,11 +2008,15 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         models_in_both = constrain_models_members(model_nao, psl_models, 
                                                     match_var_model_anomalies, match_var_models)
         
+        # Now we want to ensure that the match var model data is lagged
+        _, _, match_var_model_anomalies_constrained = form_ensemble_members_list(match_var_model_anomalies_constrained,
+                                                                            match_var_models, lagged=True, lag=4)
+
         # Make sure that the years for rescaled_model_nao and model_nao 
         # and match_var_model_anomalies_constrained are the same
         rescaled_model_years = rescaled_model_nao.time.dt.year.values
         model_nao_years = model_nao_constrained[psl_models[0]][0].time.dt.year.values
-        match_var_model_years = match_var_model_anomalies_constrained[match_var_models[0]][0].time.dt.year.values
+        match_var_model_years = match_var_model_anomalies_constrained[0].time.dt.year.values
 
         # If the years are not equal
         if not np.array_equal(rescaled_model_years, model_nao_years) or not np.array_equal(rescaled_model_years, match_var_model_years):
@@ -2035,8 +2039,8 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             years = lagged_years
 
         # Set up the lats and lons for the array
-        lats = match_var_model_anomalies_constrained[match_var_models[0]][0].lat.values
-        lons = match_var_model_anomalies_constrained[match_var_models[0]][0].lon.values
+        lats = match_var_model_anomalies_constrained[0].lat.values
+        lons = match_var_model_anomalies_constrained[0].lon.values
 
         # Set up an array to fill the matched variable ensemble mean
         matched_var_ensemble_mean_array = np.empty((len(years), len(lats), len(lons)))
@@ -2047,7 +2051,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         # Extract the coords for the first years=years of the match_var_model_anomalies_constrained
         # Select the years from the match_var_model_anomalies_constrained
         # Select only the data for the years in the 'years' array
-        match_var_model_anomalies_constrained_years = match_var_model_anomalies_constrained[match_var_models[0]][0].sel(time=match_var_model_anomalies_constrained[match_var_models[0]][0].time.dt.year.isin(years))
+        match_var_model_anomalies_constrained_years = match_var_model_anomalies_constrained[0].sel(time=match_var_model_anomalies_constrained[0].time.dt.year.isin(years))
         # Extract the coords for the first years=years of the model_nao_constrained
         coords = match_var_model_anomalies_constrained_years.coords
         dims = match_var_model_anomalies_constrained_years.dims
@@ -2459,8 +2463,7 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
             # Check if the model and variant label pair is in the model_variant_pairs
             if lagged == True:
                 if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pairs:
-                    print("Appending member:", member.attrs["variant_label"]
-                            , "from model:", member.attrs["source_id"] "with lag:", member.attrs["lag"])
+                    print("Appending member:", member.attrs["variant_label"], "from model:", member.attrs["source_id"], "with lag:", member.attrs["lag"])
                     
                     # Select the data for the year
                     member = member.sel(time=f"{year}")
