@@ -5159,6 +5159,108 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # Return the p-values
     return pfield_bootstrap
 
+
+def forecast_stats(obs, forecast1, forecast2):
+
+    """
+    Assess and compares two forecasts, using a block bootstrap for uncertanties.
+    
+    Based on Doug Smith's 'fcsts_assess' function.
+    
+    Inputs:
+    
+        obs
+            timeseries of observations
+        forecast1[member, time]
+            forecast1 ensemble
+        forecast2[member, time]
+            forecast2 ensemble
+            
+    Outputs:
+
+        corr1: correlation between forecast1 ensemble mean and observations
+
+        corr1_min, corr1_max, corr1_p: 5% to 95% uncertainties and p value
+
+        corr2: correlation between forecast2 ensemble mean and observations
+
+        corr2_min, corr2_max, corr2_p: 5% to 95% uncertainties and p value
+
+        corr10 correlation between forecast1 ensemble mean and observations for 10 ensemble members
+
+        corr10_min, corr10_max, corr10_p: 5% to 95% uncertainties and p value
+
+        msss1: mean squared skill score between forecast1 ensemble mean and observations
+
+        msss1_min, msss1_max, msss1_p: 5% to 95% uncertainties and p value
+
+        rpc1: ratio of predictable components for forecast1
+
+        rpc1_min, rpc1_max, rpc1_p: 5% to 95% uncertainties and p value
+
+        rpc2: ratio of predictable components for forecast2
+
+        rpc2_min, rpc2_max, rpc2_p: 5% to 95% uncertainties and p value
+
+        corr_diff: corr1 - corr2
+
+        corr_diff_min, corr_diff_max, corr_diff_p: 5% to 95% uncertainties and p value
+
+        partial_r: partial correlation between obs and forecast1 ensemble mean, after removing
+                    influence of forecast2 ensemble mean.
+
+        partial_r_min, partial_r_max, partial_r_p: 5% to 95% uncertainties and p value
+
+        partial_r_bias: bias in partial correlation
+
+        obs_resid: residual after regressing out forecast2 ensemble mean from observations
+
+        forecast1_em_resid: residual after regressing out forecast2 ensemble mean from forecast1 ensemble mean
+
+    """
+
+    # Set up the dictionary for the outputs
+    # missing data indicator
+    mdi = -9999.0
+
+    # Set up the dictionary for the outputs
+    forecasts_stats = {
+        
+        'corr1':mdi, 'corr1_min':mdi, 'corr1_max':mdi, 'corr1_p':mdi,
+
+        'corr2':mdi, 'corr2_min':mdi, 'corr2_max':mdi, 'corr2_p':mdi,
+
+        'corr10':mdi, 'corr10_min':mdi, 'corr10_max':mdi, 'corr10_p':mdi,
+
+        'msss1':mdi, 'msss1_min':mdi, 'msss1_max':mdi, 'msss1_p':mdi,
+
+        'corr12':mdi, 'corr12_min':mdi, 'corr12_max':mdi, 'corr12_p':mdi,
+
+        'rpc1':mdi, 'rpc1_min':mdi, 'rpc1_max':mdi, 'rpc1_p':mdi,
+
+        'rpc2':mdi, 'rpc2_min':mdi, 'rpc2_max':mdi, 'rpc2_p':mdi,
+
+        'corr_diff':mdi, 'corr_diff_min':mdi, 'corr_diff_max':mdi, 'corr_diff_p':mdi,
+
+        'partialr':mdi, 'partialr_min':mdi, 'partialr_max':mdi, 'partialr_p':mdi, 'partialr_bias':mdi,
+
+        'obs_resid':[], 'fcst1_em_resid':[]
+
+    }
+
+    # Set up the number of times from the obs
+    # the size of the first dimension of the obs
+    n_times = np.shape(obs)[0]
+
+    # Extract the number of ensemble members for the first forecast
+    nens1 = np.shape(forecast1)[0]
+
+    # Extract the number of ensemble members for the second forecast
+    # also divide this into two halves
+    # nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
+
+    # Set up the number of bootstraps
+
 # Write a new function which will plot a series of subplots
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
