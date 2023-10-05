@@ -9,8 +9,6 @@
         end_year="2022"
         lag="4"
         no_subset_members="20"
-        method="lagged"
-        measure="acc"
 
 [scheduling]
     [[dependencies]]
