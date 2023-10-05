@@ -2430,6 +2430,10 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
 
     # Create a dictionary to store the models and their members contained within the smallest_diff
     smallest_diff_models_dict = {}
+
+    # Set up the model variant pairs as a set of tuples
+    model_variant_pairs = set()
+
     # Loop over the members in the smallest_diff
     for member in smallest_diff:
         # Extract the model name
@@ -2444,24 +2448,18 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
             lag = member.attrs["lag"]
             
             # Set up the model variant list
-            model_variant_pair = (model_name, variant_label, lag)
+            model_variant_pairs.add((model_name, variant_label, lag))
         else:
             # Append this pair to the dictionary
-            model_variant_pair = (model_name, variant_label)
+            model_variant_pairs.add((model_name, variant_label))
 
-        print("model_variant_pair", model_variant_pair)
-
-        # Add the model and variant label pair to the dictionary
-        if model_name in smallest_diff_models_dict:
-            smallest_diff_models_dict[model_name].add(model_variant_pair)
-        else:
-            smallest_diff_models_dict[model_name] = {model_variant_pair}
+        print("model_variant_pairs", model_variant_pairs)
 
     # Loop over the members in the model_data
     for member in match_var_model_anomalies_constrained:
         # Check if the model and variant label pair is in the model_variant_pairs
         if lagged == True:
-            if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pair:
+            if (member.attrs['source_id'], member.attrs['variant_label'], member.attrs['lag']) in model_variant_pairs:
                 print("Appending member:", member.attrs["variant_label"], "from model:", member.attrs["source_id"], "with lag:", member.attrs["lag"])
                 
                 # Select the data for the year
@@ -2470,7 +2468,7 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
                 # Append the member to the matched_var_members
                 matched_var_members.append(member)
         else:
-            if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pair:
+            if (member.attrs["source_id"], member.attrs["variant_label"]) in model_variant_pairs:
                 print("Appending member:", member.attrs["variant_label"]
                         , "from model:", member.attrs["source_id"])
                 
@@ -2479,6 +2477,9 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
 
                 # Append the member to the matched_var_members
                 matched_var_members.append(member)
+        # continue
+
+            
     # return the matched_var_members
     return matched_var_members
 
