@@ -3434,35 +3434,51 @@ def process_model_data_for_plot(model_data, models, lag=None):
     coords = member.coords
     dims = member.dims
     
-    # Convert the list of all ensemble members to a numpy array
-    ensemble_members = np.array(ensemble_members)
-
     # If the lag is not None
     # then lag the ensemble members
     if lag is not None:
-        # Lag the ensemble members
-        ensemble_members, years_to_keep = lag_ensemble(ensemble_members, lag)
+        # Set up a list for the lagged ensemble members
+        lagged_ensemble_members = []
+        # If lag is not an int, raise a value error
+        if type(lag) != int:
+            raise ValueError("The lag must be an integer")
+        # Loop over the ensemble members
+        for member in ensemble_members:
+            # Loop over the lag
+            for lag_index in range(lag):
+                # Shift the time series for each member forward by the lag index
+                shifted_member = member.shift(time=lag_index)
 
-        # Multiply the ensemble members count by the lag
-        ensemble_members_count = {k: v * lag for k, v in ensemble_members_count.items()}
+                # Assign a new attribute to the shifted member
+                shifted_member.attrs["lag"] = lag_index
 
-        # Extract the years from the member
-        years = member.time.dt.year.values
+                # Append the shifted member to the list of lagged ensemble members
+                lagged_ensemble_members.append(shifted_member)
+        # Set up the constrained years
+        years_constrained = years[lag - 1:]
 
-        # Remove the first lag - 1 years from the member
-        years_constrained = years[lag-1:]
+        # Remove the first lag - 1 years from each member
+        for member in lagged_ensemble_members:
+            # Extract the years
+            years = member.time.dt.year.values
 
-        # Extract the constrained years from this member
-        member = member.sel(time=member.time.dt.year.isin(years_constrained))
+            # Extract the constrained years from the member
+            member = member.sel(time=member.time.dt.year.isin(years_constrained))
 
-        # Extract the coords from this member
-        coords = member.coords
-        dims = member.dims
+            # Extract the coords from the member
+            coords = member.coords
+            dims = member.dims
+
+        # Set the ensemble members to the lagged ensemble members
+        ensemble_members = lagged_ensemble_members    
     else:
         years_constrained = years
 
     # #print the dimensions of the ensemble members
     # #print("ensemble members shape", np.shape(ensemble_members))
+
+    # Convert the list of ensemble members to a numpy array
+    ensemble_members = np.array(ensemble_members)
 
     # #print the ensemble members count
     print("ensemble members count", ensemble_members_count)
