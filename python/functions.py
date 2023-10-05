@@ -3446,6 +3446,7 @@ def process_model_data_for_plot(model_data, models, lag=None):
         for member in ensemble_members:
             # Loop over the lag
             for lag_index in range(lag):
+                print("Shifting model:", member.attrs["source_id"], "member:", member.attrs["variant_label"], "and applying lag:", lag_index)
                 # Shift the time series for each member forward by the lag index
                 shifted_member = member.shift(time=lag_index)
 
