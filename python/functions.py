@@ -1517,6 +1517,7 @@ def constrain_years(model_data, models):
 
             # If there is a gap of more than 1 year in the years
             # then raise a value error
+            # Check whats going on with Canesm5
             if np.any(np.diff(years) > 1):
                 print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
                 # continue with the loop
