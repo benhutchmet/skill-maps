@@ -5,3 +5,4 @@ python/.ipynb_checkpoints/*.py
 python/.ipynb_checkpoints/*.ipynb
 python/__pycache__/*.pyc
 __pycache__/*.pyc
+rose-suite-matching/.ipynb_checkpoints/*
