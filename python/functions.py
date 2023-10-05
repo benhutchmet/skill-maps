@@ -2043,17 +2043,11 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         lats = match_var_model_anomalies_constrained[0].lat.values
         lons = match_var_model_anomalies_constrained[0].lon.values
 
-        if lagged_nao == True:
-            macthed_var_ensemble_mean_array = np.empty((len(lagged_years), len(lats), len(lons)))
+        # Set up the empty arrays to be filled
+        matched_var_ensemble_mean_array = np.empty((len(years), len(lats), len(lons)))
 
-            # Set up an array to fill the matched variable ensemble members
-            matched_var_ensemble_members_array = np.empty((len(lagged_years), no_subset_members, len(lats), len(lons)))
-        else:
-            # Set up an array to fill the matched variable ensemble mean
-            matched_var_ensemble_mean_array = np.empty((len(years), len(lats), len(lons)))
-
-            # Set up an array to fill the matched variable ensemble members
-            matched_var_ensemble_members_array = np.empty((len(years), no_subset_members, len(lats), len(lons)))
+        # Set up an array to fill the matched variable ensemble members
+        matched_var_ensemble_members_array = np.empty((len(years), no_subset_members, len(lats), len(lons)))
 
         # Extract the coords for the first years=years of the match_var_model_anomalies_constrained
         # Select the years from the match_var_model_anomalies_constrained
@@ -2453,7 +2447,7 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
             # Append this pair to the dictionary
             model_variant_pairs.add((model_name, variant_label))
 
-        print("model_variant_pairs", model_variant_pairs)
+    print("model_variant_pairs", model_variant_pairs)
 
     # Loop over the members in the model_data
     for member in match_var_model_anomalies_constrained:
