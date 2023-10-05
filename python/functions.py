@@ -2715,7 +2715,7 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
                     print("Applying lagging for ensemble member:", member.attrs["variant_label"], "for model:", model)
                     print("Lag:", i)
                     # Shift the time series forward by the lag
-                    shited_member = member.shift(time=i)
+                    shifted_member = member.shift(time=i)
 
                     # Assign a new attribute to the member
                     shifted_member.attrs["lag"] = i
