@@ -152,6 +152,7 @@ def fcsts_assess(obs, fcst1, fcst2, do_detrend = False):
 
         else: # random samples
 
+            # create an array containing random indices
             ind_ens1_this = np.array([random.choice(index_ens1) for _ in index_ens1])
 
             ind_ens2_this = np.array([random.choice(index_ens2) for _ in index_ens2])

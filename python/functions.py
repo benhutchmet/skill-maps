@@ -26,6 +26,7 @@ import matplotlib.animation as animation
 from matplotlib import rcParams
 from PIL import Image
 from sklearn.utils import resample
+from scipy.stats import pearsonr
 
 import matplotlib.cm as mpl_cm
 import matplotlib
@@ -5271,6 +5272,8 @@ def forecast_stats(obs, forecast1, forecast2):
 
     r1o_boot = np.zeros([nboot, n_lats, n_lons]) ; r2o_boot = np.zeros([nboot, n_lats, n_lons]) ; r12_boot = np.zeros([nboot, n_lats, n_lons])
 
+    sig_f1 = np.zeros([n_lats, n_lons]) ; sig_f2 = np.zeros([n_lats, n_lons])
+
     rdiff_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc1_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc2_boot = np.zeros([nboot, n_lats, n_lons])
 
     r_ens_10_boot = np.zeros([nboot, n_lats, n_lons]) ; msss1_boot = np.zeros([nboot, n_lats, n_lons])
@@ -5358,6 +5361,80 @@ def forecast_stats(obs, forecast1, forecast2):
                     itime += 1
 
         # Process the stats
+        obs = obs_boot
+
+        # Get the ensemble mean forecast
+        f1 = np.mean(fcst1_boot, axis=0) ; f2 = np.mean(fcst2_boot, axis=0)
+
+        # Get the 10 member ensemble mean forecast
+        f10 = np.mean(fcst10_boot, axis=0)
+
+        # Loop over the gridpoints to calculate the correlations
+        for lat in range(n_lats):
+            for lon in range(n_lons):
+                # Extract the forecasts and obs
+                f1 = f1[:, lat, lon] ; f2 = f2[:, lat, lon]
+                f10 = f10[:, lat, lon] 
+                o = obs[:, lat, lon]
+                
+                # Perform the correlations
+                r12, _ = pearsonr(f1, f2) ; r1o, _ = pearsonr(f1, o) ; r2o, _ = pearsonr(f2, o)
+                r_ens_10_boot[iboot, lat, lon], _ = pearsonr(f10, o)
+
+                # Assign values to bootstrap arrays
+                r1o_boot[iboot, lat, lon] = r1o ; r2o_boot[iboot, lat, lon] = r2o ; r12_boot[iboot, lat, lon] = r12
+
+                # Difference in correlations
+                rdiff_boot[iboot, lat, lon] = r1o - r2o
+
+                # Calculate the mean squared skill score
+                msss1_boot[iboot, lat, lon] = msss(o, f1)
+
+                # Calculate the variance of th noise for forecast1
+                # var_noise_f1 = np.var(fcst1_boot[:, :, lat, lon] - f1, axis=0)
+
+                # Calculate the standard deviations of the forecasts1 and 2
+                sig_f1[lat, lon] = np.std(f1) ; sig_f2[lat, lon] = np.std(f2)
+
+                # Calculate the RPC scores
+                rpc1_boot[iboot, lat, lon] = r1o / (sig_f1[lat, lon] / np.std(fcst1_boot[:, :, lat, lon], axis=0))
+
+                rpc2_boot[iboot, lat, lon] = r2o / (sig_f2[lat, lon] / np.std(fcst2_boot[:, :, lat, lon], axis=0))
+
+                
+
+
+
+# Define a function which will calculate the mean squared skill score
+def msss(obs, forecast):
+    """
+    
+    Calculate the mean squared skill score. Given the observations and forecast.
+
+    Inputs:
+        obs[time] = time series of observations
+        forecast[time] = time series of forecast
+
+    Outputs:
+        msss = mean squared skill score
+
+    """
+
+    # Extract the number of times
+    n_times = len(obs)
+
+    # Calculate the numerator
+    numerator = (forecast - obs)**2
+
+    # Calculate the denominator
+    denominator = (obs - np.mean(obs))**2
+
+    # Calculate the mean squared skill score
+    msss = 1 - (np.sum(numerator) / np.sum(denominator))
+
+    # Return the mean squared skill score
+    return msss
+
 
 # Write a new function which will plot a series of subplots
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
