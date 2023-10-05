@@ -1966,6 +1966,12 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
     filename_mean = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_mean.nc"
     filename_members = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_members.nc"
 
+    # if laggged_nao is True
+    if lagged_nao == True:
+        # Set up the filename
+        filename_mean = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_mean_lagged.nc"
+        filename_members = f"{match_variable_model}_{region}_{season}_{forecast_range}_{start_year}-{end_year}_matched_var_ensemble_members_lagged.nc"
+
     # Set up the path to save the data
     save_path_mean = f"{save_dir}/{filename_mean}"
     save_path_members = f"{save_dir}/{filename_members}"
