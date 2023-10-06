@@ -2010,6 +2010,9 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
         if np.array_equal(f1_years, f2_years) == False:
             raise ValueError("forecast1 and forecast2 years are not the same after processing")
 
+        # Set the forecast1 and forecast2 data to the common data
+        forecast1 = forecast1_data_common ; forecast2 = forecast2_data_common
+
     # Now that the years are the same, we can convert to numpy arrays
     # First convert the obs to a numpy array
     obs = obs.values
