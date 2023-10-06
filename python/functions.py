@@ -5747,7 +5747,11 @@ def forecast_stats(obs, forecast1, forecast2):
             msss1_boot_cell = msss1_boot[:, lat, lon]
             r12_boot_cell = r12_boot[:, lat, lon]
             rdiff_boot_cell = rdiff_boot[:, lat, lon]
-            rpc1_boot_cell = 
+            rpc1_boot_cell = rpc1_boot[:, lat, lon] ; rpc2_boot_cell = rpc2_boot[:, lat, lon]
+            r_partial_boot_cell = r_partial_boot[:, lat, lon]
+
+            # Calculate the p-values
+            # TODO: add a function to calculate the p-values here
 
 
     forecasts_stats['corr1_p'] = float(count_vals) / nboot # p value
