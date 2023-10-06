@@ -5538,7 +5538,7 @@ def forecast_stats(obs, forecast1, forecast2):
     nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
 
     # Set up the number of bootstraps
-    nboot = 10 # test case 10 bootstraps
+    nboot = 5 # test case 5 bootstraps
 
     # Set up the shapes of the arrays to be filled
     r_partial_boot = np.zeros([nboot, n_lats, n_lons]) ; r_partial_bias_boot = np.zeros([nboot, n_lats, n_lons])
@@ -5619,10 +5619,10 @@ def forecast_stats(obs, forecast1, forecast2):
             # Loop over the block indices
             for iblock in index_block:
 
-                    print("block index", iblock)
-                    print("time index", itime)
-                    print("shape of obs_boot", np.shape(obs_boot))
-                    print("shape of obs", np.shape(obs))
+                    # print("block index", iblock)
+                    # print("time index", itime)
+                    # print("shape of obs_boot", np.shape(obs_boot))
+                    # print("shape of obs", np.shape(obs))
                     
                     # Extract the observations for the block
                     obs_boot[itime, :, :] = obs[iblock, :, :]
@@ -5738,6 +5738,17 @@ def forecast_stats(obs, forecast1, forecast2):
     forecasts_stats['corr1_max'] = np.percentile(r1o_boot, 95, axis=0) # 95% uncertainty
 
     count_vals = np.sum(i < 0.0 for i in r1o_boot) # count of negative values - will this be different for each lat lon?
+
+    for lat in range(n_lats):
+        for lon in range(n_lons):
+            # Extract the forecasts and obs bootstrapped data for the cell
+            r1o_boot_cell = r1o_boot[:, lat, lon] ; r2o_boot_cell = r2o_boot[:, lat, lon]
+            r_ens_10_boot_cell = r_ens_10_boot[:, lat, lon] 
+            msss1_boot_cell = msss1_boot[:, lat, lon]
+            r12_boot_cell = r12_boot[:, lat, lon]
+            rdiff_boot_cell = rdiff_boot[:, lat, lon]
+            rpc1_boot_cell = 
+
 
     forecasts_stats['corr1_p'] = float(count_vals) / nboot # p value
 
