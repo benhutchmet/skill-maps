@@ -5607,7 +5607,7 @@ def forecast_stats(obs, forecast1, forecast2):
         for ithis in index_time_this:
 
             # Set up the individual block index
-            index_block = range(ithis, ithis+block_length)
+            index_block = np.arange(ithis, ithis+block_length)
 
             # If the block index is greater than the number of times, then reduce the block index
             index_block[(index_block > n_times-1)] = index_block[(index_block > n_times-1)] - n_times
