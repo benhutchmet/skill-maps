@@ -1819,6 +1819,43 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
 
     return observed_data, constrained_data, matched_var_ensemble_members
 
+
+# Define a new function to align forecast1, forecast2, and obs
+# before converting each to numpy arrays
+def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, forecast2_models, obs):
+
+    """
+    After removing years with NaNs, aligns the forecast1, forecast2, and obs datasets by their time axis.
+    
+    Converts the forecast1, forecast2, and obs datasets to numpy arrays.
+    
+    Inputs:
+    
+        forecast1 (dict) = dictionary of forecast1 data, indexed by model
+        
+        forecast1_models (list) = list of models used as indices for forecast1
+        
+        forecast2 (dict) = dictionary of forecast2 data, indexed by model
+        
+        forecast2_models (list) = list of models used as indices for forecast2
+        
+        obs[time, lat, lon] (xarray.Dataset) = observations data
+        
+    Outputs:
+    
+        forecast1[members, time, lat, lon] (array) = forecast1 data, aligned by time axis
+        
+        forecast2[members, time, lat, lon] (array) = forecast2 data, aligned by time axis
+        
+        obs[time, lat, lon] (array) = observations data, aligned by time axis
+        
+        common_time (array) = an array of years common to all datasets
+        
+    """
+
+
+
+
 # Define a new function to rescalse the NAO index for each year
 def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
                             forecast_range, output_dir, lagged=False, omit_no_either_side=1):
@@ -3148,7 +3185,7 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
 
         # Compute the rescaled NAO index for this year
         signal_adjusted_nao_index_year, _ = rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
-                                                            forecast_range, output_dir, lagged=False, omit_no_either_side=1, lag=lag)
+                                                            forecast_range, output_dir, lagged=False, omit_no_either_side=1)
 
         # Append the rescaled NAO index to the list, along with the year
         rescaled_model_nao[i] = signal_adjusted_nao_index_year
