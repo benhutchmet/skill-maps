@@ -1886,10 +1886,17 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
         # Find the common years between forecast1 and forecast2
         common_years = np.intersect1d(f1_years, f2_years)
 
+        # Set up dictionaries for the forecast1 and forecast2 data
+        forecast1_data_common = {}
+        forecast2_data_common = {}
+
         # Select only those years from forecast1 and forecast2
         for model in forecast1_models:
             # Extract the forecast1 data
             forecast1_data = forecast1[model]
+
+            if model not in forecast1_data_common:
+                forecast1_data_common[model] = []
 
             # Loop over the ensemble members in the forecast1 data
             for member in forecast1_data:
@@ -1899,9 +1906,15 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
                 # Select only those years from the forecast1 data
                 member = member.sel(time=member.time.dt.year.isin(common_years))
 
+                # Append the member to the forecast1_data_common dictionary
+                forecast1_data_common[model].append(member)
+
         for model in forecast2_models:
             # Extract the forecast2 data
             forecast2_data = forecast2[model]
+
+            if model not in forecast2_data_common:
+                forecast2_data_common[model] = []
 
             # Loop over the ensemble members in the forecast2 data
             for member in forecast2_data:
@@ -1911,11 +1924,14 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
                 # Select only those years from the forecast2 data
                 member = member.sel(time=member.time.dt.year.isin(common_years))
 
+                # Append the member to the forecast2_data_common dictionary
+                forecast2_data_common[model].append(member)
+
         # Extract the forecast1 years
-        f1_years = forecast1[forecast1_models[0]][0].time.dt.year.values
+        f1_years = forecast1_data_common[forecast1_models[0]][0].time.dt.year.values
 
         # Extract the forecast2 years
-        f2_years = forecast2[forecast2_models[0]][0].time.dt.year.values
+        f2_years = forecast2_data_common[forecast2_models[0]][0].time.dt.year.values
 
         # If these are not the same, raise a value error
         if np.array_equal(f1_years, f2_years) == False:
@@ -1938,9 +1954,16 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
         # Select only those years from obs and forecast1
         obs = obs.sel(time=obs.time.dt.year.isin(common_years))
 
+        # Initialize dictionaries for the forecast1 and forecast2 data
+        forecast1_data_common = {}
+        forecast2_data_common = {}
+
         for model in forecast1_models:
             # Extract the forecast1 data
             forecast1_data = forecast1[model]
+            
+            if model not in forecast1_data_common:
+                forecast1_data_common[model] = []
 
             # Loop over the ensemble members in the forecast1 data
             for member in forecast1_data:
@@ -1950,10 +1973,16 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
                 # Select only those years from the forecast1 data
                 member = member.sel(time=member.time.dt.year.isin(common_years))
 
+                # Append the member to the forecast1_data_common dictionary
+                forecast1_data_common[model].append(member)
+
         # For the forecast2 data
         for model in forecast2_models:
             # Extract the forecast2 data
             forecast2_data = forecast2[model]
+
+            if model not in forecast2_data_common:
+                forecast2_data_common[model] = []
 
             # Loop over the ensemble members in the forecast2 data
             for member in forecast2_data:
@@ -1963,10 +1992,13 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
                 # Select only those years from the forecast2 data
                 member = member.sel(time=member.time.dt.year.isin(common_years))
 
+                # Append the member to the forecast2_data_common dictionary
+                forecast2_data_common[model].append(member)
+
         # Extract the years for obs, forecast1, and forecast2
         obs_years = obs.time.dt.year.values
-        f1_years = forecast1[forecast1_models[0]][0].time.dt.year.values
-        f2_years = forecast2[forecast2_models[0]][0].time.dt.year.values
+        f1_years = forecast1_data_common[forecast1_models[0]][0].time.dt.year.values
+        f2_years = forecast2_data_common[forecast2_models[0]][0].time.dt.year.values
 
         # If these are not the same, raise a value error
         if np.array_equal(obs_years, f1_years) == False:
