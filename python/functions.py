@@ -1971,12 +1971,76 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
         # If these are not the same, raise a value error
         if np.array_equal(obs_years, f1_years) == False:
             raise ValueError("obs and forecast1 years are not the same after processing")
-        
+              
         if np.array_equal(obs_years, f2_years) == False:
             raise ValueError("obs and forecast2 years are not the same after processing")
-
+        
         if np.array_equal(f1_years, f2_years) == False:
             raise ValueError("forecast1 and forecast2 years are not the same after processing")
+
+    # Now that the years are the same, we can convert to numpy arrays
+    # First convert the obs to a numpy array
+    obs = obs.values
+
+    print("shape of obs array", np.shape(obs))
+
+    # Extract the lats from the obs
+    lats = obs.shape[1]
+    lons = obs.shape[2]
+
+    # Extract the years
+    years = obs.shape[0]
+
+    # Count the number of ensemble members for forecast1
+    f1_ensemble_members = np.sum([len(forecast1[model]) for model in forecast1_models])
+
+    # Count the number of ensemble members for forecast2
+    f2_ensemble_members = np.sum([len(forecast2[model]) for model in forecast2_models])
+
+    # Create an empty array to store the forecast1 data
+    f1 = np.empty((f1_ensemble_members, years, lats, lons))
+
+    # Create an empty array to store the forecast2 data
+    f2 = np.empty((f2_ensemble_members, years, lats, lons))
+
+    # Loop over the forecast1 models
+    for model in forecast1_models:
+        # Extract the forecast1 data
+        forecast1_data = forecast1[model]
+
+        # Loop over the ensemble members in the forecast1 data
+        for member in forecast1_data:
+            # Extract the ensemble member index
+            member_index = forecast1_data.index(member)
+
+            # Extract the data
+            data = member.values
+
+            # Assign the data to the forecast1 array
+            f1[member_index, :, :, :] = data
+
+    # Loop over the forecast2 models
+    for model in forecast2_models:
+        # Extract the forecast2 data
+        forecast2_data = forecast2[model]
+
+        # Loop over the ensemble members in the forecast2 data
+        for member in forecast2_data:
+            # Extract the ensemble member index
+            member_index = forecast2_data.index(member)
+
+            # Extract the data
+            data = member.values
+
+            # Assign the data to the forecast2 array
+            f2[member_index, :, :, :] = data
+
+    # Print the shapes of the forecast1 and forecast2 arrays
+    print("shape of forecast1 array", np.shape(f1))
+    print("shape of forecast2 array", np.shape(f2))
+
+    # Return the forecast1, forecast2, and obs arrays
+    return f1, f2, obs, common_years
 
 # Define a new function to rescalse the NAO index for each year
 def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
