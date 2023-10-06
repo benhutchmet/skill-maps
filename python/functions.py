@@ -5560,7 +5560,7 @@ def forecast_stats(obs, forecast1, forecast2):
     # if the nblocks * block_length is less than n_times
     # add one to the number of blocks
     if n_blocks * block_length < n_times:
-        n_blocks += 1
+        n_blocks = n_blocks + 1
 
     # set up the indexes
     # for the time - time needs to be the same for all forecasts and obs
@@ -5571,6 +5571,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
     # Loop over the bootstraps
     for iboot in np.arange(nboot):
+        
         print("bootstrap index", iboot)
         # Select ensemble members and the starting indicies for the blocks
         # for the first forecast just use the raw data
@@ -5613,7 +5614,7 @@ def forecast_stats(obs, forecast1, forecast2):
             index_block[(index_block > n_times-1)] = index_block[(index_block > n_times-1)] - n_times
 
             # Select a subset of indices for the block
-            index_block = index_block[:min(block_length, n_times-ithis)]
+            index_block = index_block[:min(block_length, n_times - itime)]
 
             # Loop over the block indices
             for iblock in index_block:
