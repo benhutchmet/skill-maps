@@ -5662,7 +5662,7 @@ def forecast_stats(obs, forecast1, forecast2):
                 
                 # Perform the correlations
                 r12, _ = pearsonr(f1_cell, f2_cell) ; r1o, _ = pearsonr(f1_cell, o_cell) ; r2o, _ = pearsonr(f2_cell, o_cell)
-                r_ens_10_boot[iboot, lat, lon], _ = pearsonr(f10, o_cell)
+                r_ens_10_boot[iboot, lat, lon], _ = pearsonr(f10_cell, o_cell)
 
                 # Assign values to bootstrap arrays
                 r1o_boot[iboot, lat, lon] = r1o ; r2o_boot[iboot, lat, lon] = r2o ; r12_boot[iboot, lat, lon] = r12
@@ -5716,13 +5716,13 @@ def forecast_stats(obs, forecast1, forecast2):
                 sig_o = np.std(o_cell) ; sig_f2_1 = np.std(f2_1_cell) ; sig_f2_2 = np.std(f2_2_cell)
 
                 # Calculate the residuals for the forecast using the first half of the ensemble
-                res_f1 = f1_cell - r12_1 * f2_1 * (sig_f1 / sig_f2_1)
+                res_f1 = f1_cell - r12_1 * f2_1_cell * (sig_f1 / sig_f2_1)
 
                 # Calculate the residuals for the observations using the first half of the ensemble
-                res_o_1 = o_cell - r2o_1 * f2_1 * (sig_o / sig_f2_1)
+                res_o_1 = o_cell - r2o_1 * f2_1_cell * (sig_o / sig_f2_1)
 
                 # Calculate the residuals for the observations using the second half of the ensemble
-                res_o_2 = o_cell - r2o_2 * f2_2 * (sig_o / sig_f2_2)
+                res_o_2 = o_cell - r2o_2 * f2_2_cell * (sig_o / sig_f2_2)
 
                 # Calculate the correlations for the biased partial correlation - same half of members
                 rp_biased, _ = pearsonr(res_f1, res_o_1) # correlations between first half of members forecast and obs residuals
