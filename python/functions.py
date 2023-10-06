@@ -5570,7 +5570,7 @@ def forecast_stats(obs, forecast1, forecast2):
     index_ens1 = range(nens1) ; index_ens2 = range(nens2)
 
     # Loop over the bootstraps
-    for iboot in range(nboot):
+    for iboot in np.arange(nboot):
 
         # Select ensemble members and the starting indicies for the blocks
         # for the first forecast just use the raw data
