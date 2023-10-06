@@ -5571,9 +5571,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
     # Loop over the bootstraps
     for iboot in np.arange(nboot):
-
-    print("bootstrap index", iboot)
-
+        print("bootstrap index", iboot)
         # Select ensemble members and the starting indicies for the blocks
         # for the first forecast just use the raw data
         if(iboot == 0):
