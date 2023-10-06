@@ -5410,7 +5410,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
                 # Calculate the biased partial correlation - full ensemble, no seperation
                 # Set up the denominator for this
-                denom_sq = (1.0 - r2o**2) * (1.0 - r12**2))
+                denom_sq = (1.0 - r2o**2) * (1.0 - r12**2)
 
                 # Set up the numerator
                 num = (r1o - r12 * r2o)
