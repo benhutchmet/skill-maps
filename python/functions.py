@@ -5545,7 +5545,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
     r1o_boot = np.zeros([nboot, n_lats, n_lons]) ; r2o_boot = np.zeros([nboot, n_lats, n_lons]) ; r12_boot = np.zeros([nboot, n_lats, n_lons])
 
-    # sig_f1 = np.zeros([n_lats, n_lons]) ; sig_f2 = np.zeros([n_lats, n_lons])
+    sig_f1 = np.zeros([nboot, n_lats, n_lons]) ; sig_f2 = np.zeros([nboot, n_lats, n_lons])
 
     rdiff_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc1_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc2_boot = np.zeros([nboot, n_lats, n_lons])
 
@@ -5674,12 +5674,12 @@ def forecast_stats(obs, forecast1, forecast2):
                 # var_noise_f1 = np.var(fcst1_boot[:, :, lat, lon] - f1, axis=0)
 
                 # Calculate the standard deviations of the forecasts1 and 2
-                sig_f1 = np.std(f1) ; sig_f2 = np.std(f2)
+                sig_f1[iboot, lat, lon] = np.std(f1) ; sig_f2[iboot, lat, lon] = np.std(f2)
 
                 # Calculate the RPC scores
-                rpc1_boot[iboot, lat, lon] = r1o / (sig_f1 / np.std(fcst1_boot[:, :, lat, lon], axis=0))
+                rpc1_boot[iboot, lat, lon] = r1o / (sig_f1[iboot, lat, lon] / np.std(fcst1_boot[:, :, lat, lon], axis=0))
 
-                rpc2_boot[iboot, lat, lon] = r2o / (sig_f2 / np.std(fcst2_boot[:, :, lat, lon], axis=0))
+                rpc2_boot[iboot, lat, lon] = r2o / (sig_f2[iboot, lat, lon] / np.std(fcst2_boot[:, :, lat, lon], axis=0))
 
                 # Calculate the biased partial correlation - full ensemble, no seperation
                 # Set up the denominator for this
