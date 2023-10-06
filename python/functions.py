@@ -2038,6 +2038,9 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
     # Create an empty array to store the forecast2 data
     f2 = np.empty((f2_ensemble_members, years, lats, lons))
 
+    # initialize a variable to keep track of the ensemble member index
+    member_index = 0
+
     # Loop over the forecast1 models
     for model in forecast1_models:
         # Extract the forecast1 data
@@ -2046,13 +2049,13 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
         # Loop over the ensemble members in the forecast1 data
         for member in forecast1_data:
             # Extract the ensemble member index
-            member_index = forecast1_data.index(member)
+            member_index += 1
 
             # Extract the data
             data = member.values
 
             # Assign the data to the forecast1 array
-            f1[member_index, :, :, :] = data
+            f1[member_index-1, :, :, :] = data
 
     # Loop over the forecast2 models
     for model in forecast2_models:
@@ -2062,13 +2065,13 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
         # Loop over the ensemble members in the forecast2 data
         for member in forecast2_data:
             # Extract the ensemble member index
-            member_index = forecast2_data.index(member)
+            member_index += 1
 
             # Extract the data
             data = member.values
 
             # Assign the data to the forecast2 array
-            f2[member_index, :, :, :] = data
+            f2[member_index-1, :, :, :] = data
 
     # Print the shapes of the forecast1 and forecast2 arrays
     print("shape of forecast1 array", np.shape(f1))
