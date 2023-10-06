@@ -5545,7 +5545,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
     r1o_boot = np.zeros([nboot, n_lats, n_lons]) ; r2o_boot = np.zeros([nboot, n_lats, n_lons]) ; r12_boot = np.zeros([nboot, n_lats, n_lons])
 
-    sig_f1 = np.zeros([nboot, n_lats, n_lons]) ; sig_f2 = np.zeros([nboot, n_lats, n_lons])
+    # sig_f1 = np.zeros([nboot, n_lats, n_lons]) ; sig_f2 = np.zeros([nboot, n_lats, n_lons])
 
     rdiff_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc1_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc2_boot = np.zeros([nboot, n_lats, n_lons])
 
@@ -5674,7 +5674,33 @@ def forecast_stats(obs, forecast1, forecast2):
                 # var_noise_f1 = np.var(fcst1_boot[:, :, lat, lon] - f1, axis=0)
 
                 # Calculate the standard deviations of the forecasts1 and 2
-                sig_f1[iboot, lat, lon] = np.std(f1) ; sig_f2[iboot, lat, lon] = np.std(f2)
+                sig_f1 = np.std(f1) ; sig_f2 = np.std(f2)
+
+                # print the shape of the sig_f1 and sig_f2 arrays
+                print("sig_f1 shape", np.shape(sig_f1))
+                print("sig_f2 shape", np.shape(sig_f2))
+                print("type sig_f1", type(sig_f1))
+                print("type sig_f2", type(sig_f2))
+
+                # print the type of 
+                print("type fcst1_boot sigmas", type(fcst1_boot[:, :, lat, lon]))
+                print("type fcst2_boot sigmas", type(fcst2_boot[:, :, lat, lon]))
+                print("type fcst1_boot", type(fcst1_boot))
+                print("type fcst2_boot", type(fcst2_boot))
+                print("shape fcst1_boot", np.shape(fcst1_boot))
+                print("shape fcst2_boot", np.shape(fcst2_boot))
+                print("shape fcst1_boot[:, :, lat, lon]", np.shape(fcst1_boot[:, :, lat, lon]))
+                print("shape fcst2_boot[:, :, lat, lon]", np.shape(fcst2_boot[:, :, lat, lon]))
+
+                # Calculate the denom sigma
+                denom_sigma_fcst1 = np.std(fcst1_boot[:, :, lat, lon], axis=0)
+                denom_sigma_fcst1 = np.std(fcst1_boot[:, :, lat, lon], axis=0)
+
+                # Print the shapes and types of the denom_sigma_fcst1 and denom_sigma_fcst2 arrays
+                print("shape denom_sigma_fcst1", np.shape(denom_sigma_fcst1))
+                print("shape denom_sigma_fcst2", np.shape(denom_sigma_fcst2))
+                print("type denom_sigma_fcst1", type(denom_sigma_fcst1))
+                print("type denom_sigma_fcst2", type(denom_sigma_fcst2))
 
                 # Calculate the RPC scores
                 rpc1_boot[iboot, lat, lon] = r1o / (sig_f1[iboot, lat, lon] / np.std(fcst1_boot[:, :, lat, lon], axis=0))
