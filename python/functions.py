@@ -5656,6 +5656,9 @@ def forecast_stats(obs, forecast1, forecast2):
                 f1 = f1[:, lat, lon] ; f2 = f2[:, lat, lon]
                 f10 = f10[:, lat, lon] 
                 o = obs[:, lat, lon]
+
+                # Extract the forecasts and obs for the independent estimates
+                f2_1 = f2_1[:, lat, lon] ; f2_2 = f2_2[:, lat, lon]
                 
                 # Perform the correlations
                 r12, _ = pearsonr(f1, f2) ; r1o, _ = pearsonr(f1, o) ; r2o, _ = pearsonr(f2, o)
