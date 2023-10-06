@@ -5538,7 +5538,7 @@ def forecast_stats(obs, forecast1, forecast2):
     nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
 
     # Set up the number of bootstraps
-    nboot = 1000
+    nboot = 10 # test case 10 bootstraps
 
     # Set up the shapes of the arrays to be filled
     r_partial_boot = np.zeros([nboot, n_lats, n_lons]) ; r_partial_bias_boot = np.zeros([nboot, n_lats, n_lons])
