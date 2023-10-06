@@ -5694,7 +5694,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
                 # Calculate the denom sigma
                 denom_sigma_fcst1 = np.std(fcst1_boot[:, :, lat, lon], axis=0)
-                denom_sigma_fcst1 = np.std(fcst1_boot[:, :, lat, lon], axis=0)
+                denom_sigma_fcst2 = np.std(fcst2_boot[:, :, lat, lon], axis=0)
 
                 # Print the shapes and types of the denom_sigma_fcst1 and denom_sigma_fcst2 arrays
                 print("shape denom_sigma_fcst1", np.shape(denom_sigma_fcst1))
@@ -5703,7 +5703,7 @@ def forecast_stats(obs, forecast1, forecast2):
                 print("type denom_sigma_fcst2", type(denom_sigma_fcst2))
 
                 # Calculate the RPC scores
-                rpc1_boot[iboot, lat, lon] = r1o / (sig_f1[iboot, lat, lon] / np.std(fcst1_boot[:, :, lat, lon], axis=0))
+                rpc1_boot[iboot, lat, lon] = r1o / (sig_f1 / np.std(fcst1_boot[:, :, lat, lon], axis=0))
 
                 rpc2_boot[iboot, lat, lon] = r2o / (sig_f2[iboot, lat, lon] / np.std(fcst2_boot[:, :, lat, lon], axis=0))
 
