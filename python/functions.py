@@ -5661,7 +5661,7 @@ def forecast_stats(obs, forecast1, forecast2):
                 f2_1_cell = f2_1[:, lat, lon] ; f2_2_cell = f2_2[:, lat, lon]
                 
                 # Perform the correlations
-                r12, _ = pearsonr(f1_cell, f2_cell) ; r1o, _ = pearsonr(f1, o_cell) ; r2o, _ = pearsonr(f2, o_cell)
+                r12, _ = pearsonr(f1_cell, f2_cell) ; r1o, _ = pearsonr(f1_cell, o_cell) ; r2o, _ = pearsonr(f2_cell, o_cell)
                 r_ens_10_boot[iboot, lat, lon], _ = pearsonr(f10, o_cell)
 
                 # Assign values to bootstrap arrays
