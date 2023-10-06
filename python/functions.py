@@ -5572,6 +5572,8 @@ def forecast_stats(obs, forecast1, forecast2):
     # Loop over the bootstraps
     for iboot in np.arange(nboot):
 
+    print("bootstrap index", iboot)
+
         # Select ensemble members and the starting indicies for the blocks
         # for the first forecast just use the raw data
         if(iboot == 0):
@@ -5653,16 +5655,16 @@ def forecast_stats(obs, forecast1, forecast2):
         for lat in range(n_lats):
             for lon in range(n_lons):
                 # Extract the forecasts and obs
-                f1 = f1[:, lat, lon] ; f2 = f2[:, lat, lon]
-                f10 = f10[:, lat, lon] 
-                o = obs[:, lat, lon]
+                f1_cell = f1[:, lat, lon] ; f2_cell = f2[:, lat, lon]
+                f10_cell = f10[:, lat, lon] 
+                o_cell = obs[:, lat, lon]
 
                 # Extract the forecasts and obs for the independent estimates
-                f2_1 = f2_1[:, lat, lon] ; f2_2 = f2_2[:, lat, lon]
+                f2_1_cell = f2_1[:, lat, lon] ; f2_2_cell = f2_2[:, lat, lon]
                 
                 # Perform the correlations
-                r12, _ = pearsonr(f1, f2) ; r1o, _ = pearsonr(f1, o) ; r2o, _ = pearsonr(f2, o)
-                r_ens_10_boot[iboot, lat, lon], _ = pearsonr(f10, o)
+                r12, _ = pearsonr(f1_cell, f2_cell) ; r1o, _ = pearsonr(f1, o_cell) ; r2o, _ = pearsonr(f2, o_cell)
+                r_ens_10_boot[iboot, lat, lon], _ = pearsonr(f10, o_cell)
 
                 # Assign values to bootstrap arrays
                 r1o_boot[iboot, lat, lon] = r1o ; r2o_boot[iboot, lat, lon] = r2o ; r12_boot[iboot, lat, lon] = r12
@@ -5671,13 +5673,13 @@ def forecast_stats(obs, forecast1, forecast2):
                 rdiff_boot[iboot, lat, lon] = r1o - r2o
 
                 # Calculate the mean squared skill score
-                msss1_boot[iboot, lat, lon] = msss(o, f1)
+                msss1_boot[iboot, lat, lon] = msss(o_cell, f1_cell)
 
                 # Calculate the variance of th noise for forecast1
                 # var_noise_f1 = np.var(fcst1_boot[:, :, lat, lon] - f1, axis=0)
 
                 # Calculate the standard deviations of the forecasts1 and 2
-                sig_f1 = np.std(f1) ; sig_f2 = np.std(f2)
+                sig_f1 = np.std(f1_cell) ; sig_f2 = np.std(f2_cell)
 
                 # Calculate the RPC scores
                 rpc1_boot[iboot, lat, lon] = r1o / (sig_f1 / np.std(fcst1_boot[:, :, lat, lon]))
@@ -5706,23 +5708,23 @@ def forecast_stats(obs, forecast1, forecast2):
                 r_partial_boot[iboot, lat, lon] = num / np.sqrt(denom_sq)
 
                 # Compute the correlations for the independent estimates
-                r12_1, _ = pearsonr(f1, f2_1) 
+                r12_1, _ = pearsonr(f1_cell, f2_1_cell) 
 
-                r2o_1, _ = pearsonr(f2_1, o)
+                r2o_1, _ = pearsonr(f2_1_cell, o_cell)
 
-                r2o_2, _ = pearsonr(f2_2, o)
+                r2o_2, _ = pearsonr(f2_2_cell, o_cell)
 
                 # Compute the standard deviations of the independent estimates
-                sig_o = np.std(o) ; sig_f2_1 = np.std(f2_1) ; sig_f2_2 = np.std(f2_2)
+                sig_o = np.std(o_cell) ; sig_f2_1 = np.std(f2_1_cell) ; sig_f2_2 = np.std(f2_2_cell)
 
                 # Calculate the residuals for the forecast using the first half of the ensemble
-                res_f1 = f1 - r12_1 * f2_1 * (sig_f1 / sig_f2_1)
+                res_f1 = f1_cell - r12_1 * f2_1 * (sig_f1 / sig_f2_1)
 
                 # Calculate the residuals for the observations using the first half of the ensemble
-                res_o_1 = o - r2o_1 * f2_1 * (sig_o / sig_f2_1)
+                res_o_1 = o_cell - r2o_1 * f2_1 * (sig_o / sig_f2_1)
 
                 # Calculate the residuals for the observations using the second half of the ensemble
-                res_o_2 = o - r2o_2 * f2_2 * (sig_o / sig_f2_2)
+                res_o_2 = o_cell - r2o_2 * f2_2 * (sig_o / sig_f2_2)
 
                 # Calculate the correlations for the biased partial correlation - same half of members
                 rp_biased, _ = pearsonr(res_f1, res_o_1) # correlations between first half of members forecast and obs residuals
