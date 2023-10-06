@@ -5364,10 +5364,17 @@ def forecast_stats(obs, forecast1, forecast2):
         obs = obs_boot
 
         # Get the ensemble mean forecast
+        # Should these be calculated for each lat lon, or does numpy do that for me?
         f1 = np.mean(fcst1_boot, axis=0) ; f2 = np.mean(fcst2_boot, axis=0)
 
         # Get the 10 member ensemble mean forecast
         f10 = np.mean(fcst10_boot, axis=0)
+
+        # Compute the bias by removing independent estimates of f2 - the historical ensemble mean
+        f2_1 = np.mean(fcst2_boot[0:nens2_2, :, :, :], axis=0) # first half of the ensemble
+
+        # Compute the second sample for the second half od the ensemble
+        f2_2 = np.mean(fcst2_boot[nens2_2:-1, :, :, :], axis=0) # second half of the ensemble
 
         # Loop over the gridpoints to calculate the correlations
         for lat in range(n_lats):
@@ -5411,6 +5418,43 @@ def forecast_stats(obs, forecast1, forecast2):
                 # Calculate the partial correlation
                 r_partial_boot[iboot, lat, lon] = num / np.sqrt(denom_sq)
 
+                # Compute the correlations for the independent estimates
+                r12_1, _ = pearsonr(f1, f2_1) 
+
+                r2o_1, _ = pearsonr(f2_1, o)
+
+                r2o_2, _ = pearsonr(f2_2, o)
+
+                # Compute the standard deviations of the independent estimates
+                sig_o = np.std(o) ; sig_f2_1 = np.std(f2_1) ; sig_f2_2 = np.std(f2_2)
+
+                # Calculate the residuals for the forecast using the first half of the ensemble
+                res_f1 = f1 - r12_1 * f2_1 * (sig_f1 / sig_f2_1)
+
+                # Calculate the residuals for the observations using the first half of the ensemble
+                res_o_1 = o - r2o_1 * f2_1 * (sig_o / sig_f2_1)
+
+                # Calculate the residuals for the observations using the second half of the ensemble
+                res_o_2 = o - r2o_2 * f2_2 * (sig_o / sig_f2_2)
+
+                # Calculate the correlations for the biased partial correlation - same half of members
+                rp_biased, _ = pearsonr(res_f1, res_o_1) # correlations between first half of members forecast and obs residuals
+
+                # Calculate the correlations for the unbiased partial correlation - different half of members
+                rp_unbiased, _ = pearsonr(res_f1, res_o_2) # correlations between first half of members forecast and obs residuals for the second half of members
+
+                # Calculate the r_partial_bias
+                r_partial_bias_boot[iboot, lat, lon] = rp_biased - rp_unbiased
+
+    # Append the stats - are these the right shape for the dictionary?
+    # TODO: fix these to be the right shape for lat lon
+    forecasts_stats['corr1'] = r1o_boot[0] # correlation between forecast1 ensemble mean and observations for non-bootstrapped data
+
+    forecasts_stats['corr1_min'] = np.percentile(r1o_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['corr1_max'] = np.percentile(r1o_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 0.0 for i in r1o_boot) # count of negative values - will this be different for each lat lon?
 
 
 # Define a function which will calculate the mean squared skill score
