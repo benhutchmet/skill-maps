@@ -5456,6 +5456,110 @@ def forecast_stats(obs, forecast1, forecast2):
 
     count_vals = np.sum(i < 0.0 for i in r1o_boot) # count of negative values - will this be different for each lat lon?
 
+    forecasts_stats['corr1_p'] = float(count_vals) / nboot # p value
+
+    forecasts_stats['corr2'] = r2o_boot[0] # correlation between forecast2 ensemble mean and observations for non-bootstrapped data
+
+    forecasts_stats['corr2_min'] = np.percentile(r2o_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['corr2_max'] = np.percentile(r2o_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 0.0 for i in r2o_boot) # count of negative values - will this be different for each lat lon?
+
+    forecasts_stats['corr2_p'] = float(count_vals) / nboot # p value
+
+    forecasts_stats['corr10'] = np.percentile(r_ens_10_boot, 50, axis=0) # correlation between 10 member forecast ensemble mean and observations for non-bootstrapped data
+
+    forecasts_stats['corr10_min'] = np.percentile(r_ens_10_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['corr10_max'] = np.percentile(r_ens_10_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 0.0 for i in r_ens_10_boot) # count of negative values - will this be different for each lat lon?
+
+    forecasts_stats['corr10_p'] = float(count_vals) / nboot # p value
+
+    forecasts_stats['msss1'] = msss1_boot[0] # mean squared skill score between forecast1 ensemble mean and observations for non-bootstrapped data
+
+    forecasts_stats['msss1_min'] = np.percentile(msss1_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['msss1_max'] = np.percentile(msss1_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 0.0 for i in msss1_boot) # count of negative values - will this be different for each lat lon?
+
+    forecasts_stats['msss1_p'] = float(count_vals) / nboot # p value
+
+    forecasts_stats['corr12'] = r12_boot[0] # correlation between forecast1 and forecast2 ensemble means for non-bootstrapped data
+
+    forecasts_stats['corr12_min'] = np.percentile(r12_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['corr12_max'] = np.percentile(r12_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 0.0 for i in r12_boot) # count of negative values - will this be different for each lat lon?
+
+    forecast_stats['corr12_p'] = float(count_vals) / nboot # p value
+
+    forecasts_stats['corr_diff'] = rdiff_boot[0] # corr1 - corr2 for non-bootstrapped data
+
+    forecasts_stats['corr_diff_min'] = np.percentile(rdiff_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['corr_diff_max'] = np.percentile(rdiff_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 0.0 for i in rdiff_boot) # count of negative values - will this be different for each lat lon?
+
+    forecasts_stats['corr_diff_p'] = float(count_vals) / nboot # p value
+
+    forecasts_stats['rpc1'] = rpc1_boot[0] # ratio of predictable components for forecast1 for non-bootstrapped data
+
+    forecasts_stats['rpc1_min'] = np.percentile(rpc1_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['rpc1_max'] = np.percentile(rpc1_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 1.0 for i in rpc1_boot) # count of values less than 1 fo RPC
+
+    forecasts_stats['rpc1_p'] = float(count_vals) / nboot # p value
+
+    forecasts_stats['rpc2'] = rpc2_boot[0] # ratio of predictable components for forecast2 for non-bootstrapped data
+
+    forecasts_stats['rpc2_min'] = np.percentile(rpc2_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['rpc2_max'] = np.percentile(rpc2_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 1.0 for i in rpc2_boot) # count of values less than 1 fo RPC
+
+    forecasts_stats['rpc2_p'] = float(count_vals) / nboot # p value
+
+    # Adjusted partial correlation
+
+    adjust_bias = np.percentile(r_partial_bias_boot, 50, axis=0) # 50% uncertainty
+
+    r_partial_boot = r_partial_boot - adjust_bias # adjust for bias
+
+    forecasts_stats['partialr_bias'] = adjust_bias # bias in partial correlation
+
+    forecasts_stats['partialr'] = r_partial_boot[0] # partial correlation between obs and forecast1 ensemble mean for non-bootstrapped data
+
+    forecasts_stats['partialr_min'] = np.percentile(r_partial_boot, 5, axis=0) # 5% uncertainty
+
+    forecasts_stats['partialr_max'] = np.percentile(r_partial_boot, 95, axis=0) # 95% uncertainty
+
+    count_vals = np.sum(i < 0.0 for i in r_partial_boot) # count of negative values - will this be different for each lat lon?
+
+    forecasts_stats['partialr_p'] = float(count_vals) / nboot # p value
+
+    # Calculate the residuals for the observations
+
+    f1 = np.mean(fcst1_boot, axis=0) ; f2 = np.mean(fcst2_boot, axis=0)
+
+    sig1 = np.std(f1) ; sig2 = np.std(f2) ; sigo = np.std(obs)
+
+    # Calculate the residuals for the observations
+    forecasts_stats['obs_resid'] = obs - r2o_boot[0] * f2 * (sigo / sig2)
+
+    # Calculate the residuals for the forecast1 ensemble mean
+    forecasts_stats['fcst1_em_resid'] = f1 - r2o_boot[0] * f2 * (sig1 / sig2)
+
+    # Return the forecasts_stats dictionary
+    return forecasts_stats
 
 # Define a function which will calculate the mean squared skill score
 def msss(obs, forecast):
