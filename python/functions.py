@@ -1502,6 +1502,16 @@ def constrain_years(model_data, models):
 
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
+            
+            # If there are any NaN values in the model data
+            if np.isnan(member).any():
+                print("There are NaN values in the model data for model " + model + "member " + member.attrs['variant_label'])
+                # if there are only NaN values in the model data
+                if np.all(np.isnan(member)):
+                    print("All values in the model data are NaN values for model " + model + "member " + member.attrs['variant_label'])
+                    # continue with the loop
+                    continue
+            
             # Extract the years
             years = member.time.dt.year.values
 
@@ -6244,7 +6254,7 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
 
             # Append the ensemble members count to the list
             # for each season
-            # for each method 
+            # for each method
             ensemble_members_count_list.append(ensemble_members_count)
 
             # Append the obs_lons_converted and lons_converted to the lists
