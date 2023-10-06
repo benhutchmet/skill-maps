@@ -2057,6 +2057,9 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
             # Assign the data to the forecast1 array
             f1[member_index-1, :, :, :] = data
 
+    # initialize a variable to keep track of the ensemble member index
+    member_index = 0
+
     # Loop over the forecast2 models
     for model in forecast2_models:
         # Extract the forecast2 data
@@ -5441,12 +5444,11 @@ def forecast_stats(obs, forecast1, forecast2):
     
     Inputs:
     
-        obs
-            timeseries of observations
-        forecast1[member, time]
-            forecast1 ensemble
-        forecast2[member, time]
-            forecast2 ensemble
+        obs[time, lat, lon] (array) = timeseries of observations
+
+        forecast1[member, time] = forecast1 ensemble
+
+        forecast2[member, time] = forecast2 ensemble
             
     Outputs:
 
