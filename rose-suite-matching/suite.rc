@@ -3,7 +3,7 @@
     [[parameters]]
         match_var="psl"
         region="global"
-        season=1,2,3,4
+        season=1,2,3
         forecast_range="2-9"
         start_year="1960"
         end_year="2022"
@@ -31,4 +31,4 @@
         python nao_matching_seasons.py ${CYLC_TASK_PARAM_match_var} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members}
         """
         [[[job]]]
-            execution time limit = PT150M
+            execution time limit = PT240M

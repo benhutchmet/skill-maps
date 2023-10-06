@@ -5262,7 +5262,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
     # Extract the number of ensemble members for the second forecast
     # also divide this into two halves
-    # nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
+    nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
 
     # Set up the number of bootstraps
     nboot = 1000
@@ -5272,7 +5272,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
     r1o_boot = np.zeros([nboot, n_lats, n_lons]) ; r2o_boot = np.zeros([nboot, n_lats, n_lons]) ; r12_boot = np.zeros([nboot, n_lats, n_lons])
 
-    sig_f1 = np.zeros([n_lats, n_lons]) ; sig_f2 = np.zeros([n_lats, n_lons])
+    # sig_f1 = np.zeros([n_lats, n_lons]) ; sig_f2 = np.zeros([n_lats, n_lons])
 
     rdiff_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc1_boot = np.zeros([nboot, n_lats, n_lons]) ; rpc2_boot = np.zeros([nboot, n_lats, n_lons])
 
@@ -5394,14 +5394,22 @@ def forecast_stats(obs, forecast1, forecast2):
                 # var_noise_f1 = np.var(fcst1_boot[:, :, lat, lon] - f1, axis=0)
 
                 # Calculate the standard deviations of the forecasts1 and 2
-                sig_f1[lat, lon] = np.std(f1) ; sig_f2[lat, lon] = np.std(f2)
+                sig_f1 = np.std(f1) ; sig_f2 = np.std(f2)
 
                 # Calculate the RPC scores
-                rpc1_boot[iboot, lat, lon] = r1o / (sig_f1[lat, lon] / np.std(fcst1_boot[:, :, lat, lon], axis=0))
+                rpc1_boot[iboot, lat, lon] = r1o / (sig_f1 / np.std(fcst1_boot[:, :, lat, lon], axis=0))
 
-                rpc2_boot[iboot, lat, lon] = r2o / (sig_f2[lat, lon] / np.std(fcst2_boot[:, :, lat, lon], axis=0))
+                rpc2_boot[iboot, lat, lon] = r2o / (sig_f2 / np.std(fcst2_boot[:, :, lat, lon], axis=0))
 
-                
+                # Calculate the biased partial correlation - full ensemble, no seperation
+                # Set up the denominator for this
+                denom_sq = (1.0 - r2o**2) * (1.0 - r12**2))
+
+                # Set up the numerator
+                num = (r1o - r12 * r2o)
+
+                # Calculate the partial correlation
+                r_partial_boot[iboot, lat, lon] = num / np.sqrt(denom_sq)
 
 
 
