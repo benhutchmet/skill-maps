@@ -1852,9 +1852,131 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
         common_time (array) = an array of years common to all datasets
         
     """
+    # Extract the obs years
+    obs_years = obs.time.dt.year.values
+    print("shape of obs years pre Nan removal", np.shape(obs_years))
 
+    # Loop over the obs years and get rid of years containing only NaN values
+    for year in obs_years:
+        odata = obs.sel(time=f"{year}")
 
+        # If there are only NaN values in the data
+        if np.isnan(odata.values).all():
+            # Select the year from the observed data
+            obs = obs.sel(time=obs.time.dt.year != year)
 
+            print(year, "all NaN values for this year in the obs")
+        else:
+            print(year, "no NaN values for this year in the obs")
+
+    # Extract the obs years
+    obs_years = obs.time.dt.year.values
+    print("shape of obs years post Nan removal", np.shape(obs_years))
+
+    # Both forecast1 and forecast2 should have consistent years between models and members
+    f1_years = forecast1[forecast1_models[0]][0].time.dt.year.values
+
+    f2_years = forecast2[forecast2_models[0]][0].time.dt.year.values
+
+    # If the years are not the same
+    if np.array_equal(f1_years, f2_years) == False:
+        print("forecast1 and forecast2 years are not the same")
+        print("forecast1 years:", f1_years)
+        print("forecast2 years:", f2_years)
+        # Find the common years between forecast1 and forecast2
+        common_years = np.intersect1d(f1_years, f2_years)
+
+        # Select only those years from forecast1 and forecast2
+        for model in forecast1_models:
+            # Extract the forecast1 data
+            forecast1_data = forecast1[model]
+
+            # Loop over the ensemble members in the forecast1 data
+            for member in forecast1_data:
+                # Extract the years
+                years = member.time.dt.year.values
+
+                # Select only those years from the forecast1 data
+                member = member.sel(time=member.time.dt.year.isin(common_years))
+
+        for model in forecast2_models:
+            # Extract the forecast2 data
+            forecast2_data = forecast2[model]
+
+            # Loop over the ensemble members in the forecast2 data
+            for member in forecast2_data:
+                # Extract the years
+                years = member.time.dt.year.values
+
+                # Select only those years from the forecast2 data
+                member = member.sel(time=member.time.dt.year.isin(common_years))
+
+        # Extract the forecast1 years
+        f1_years = forecast1[forecast1_models[0]][0].time.dt.year.values
+
+        # Extract the forecast2 years
+        f2_years = forecast2[forecast2_models[0]][0].time.dt.year.values
+
+        # If these are not the same, raise a value error
+        if np.array_equal(f1_years, f2_years) == False:
+            raise ValueError("forecast1 and forecast2 years are not the same after processing")
+        
+    # If the forecast1 and forecast2 years are the same
+    common_f_years = f1_years
+
+    # If the obs and forecast1 years are not the same
+    if np.array_equal(obs_years, common_f_years) == False:
+        print("obs and forecast1 years are not the same")
+        print("obs years:", obs_years)
+        print("obs years shape:", np.shape(obs_years))
+        print("commonf years:", common_f_years)
+        print("commonf years shape:", np.shape(common_f_years))
+
+        # Find the common years between obs and forecast1
+        common_years = np.intersect1d(obs_years, common_f_years)
+
+        # Select only those years from obs and forecast1
+        obs = obs.sel(time=obs.time.dt.year.isin(common_years))
+
+        for model in forecast1_models:
+            # Extract the forecast1 data
+            forecast1_data = forecast1[model]
+
+            # Loop over the ensemble members in the forecast1 data
+            for member in forecast1_data:
+                # Extract the years
+                years = member.time.dt.year.values
+
+                # Select only those years from the forecast1 data
+                member = member.sel(time=member.time.dt.year.isin(common_years))
+
+        # For the forecast2 data
+        for model in forecast2_models:
+            # Extract the forecast2 data
+            forecast2_data = forecast2[model]
+
+            # Loop over the ensemble members in the forecast2 data
+            for member in forecast2_data:
+                # Extract the years
+                years = member.time.dt.year.values
+
+                # Select only those years from the forecast2 data
+                member = member.sel(time=member.time.dt.year.isin(common_years))
+
+        # Extract the years for obs, forecast1, and forecast2
+        obs_years = obs.time.dt.year.values
+        f1_years = forecast1[forecast1_models[0]][0].time.dt.year.values
+        f2_years = forecast2[forecast2_models[0]][0].time.dt.year.values
+
+        # If these are not the same, raise a value error
+        if np.array_equal(obs_years, f1_years) == False:
+            raise ValueError("obs and forecast1 years are not the same after processing")
+        
+        if np.array_equal(obs_years, f2_years) == False:
+            raise ValueError("obs and forecast2 years are not the same after processing")
+
+        if np.array_equal(f1_years, f2_years) == False:
+            raise ValueError("forecast1 and forecast2 years are not the same after processing")
 
 # Define a new function to rescalse the NAO index for each year
 def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
