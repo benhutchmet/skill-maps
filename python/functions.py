@@ -3170,7 +3170,7 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
 
 
 # Define a new function to rescalse the NAO index for each year
-def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
+def rescale_nao_by_year_mod(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, season,
                             forecast_range, output_dir, lagged=False, omit_no_either_side=1, lag=None):
     """
     Rescales the observed and model NAO indices for a given year and season, and saves the results to disk.
