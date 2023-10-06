@@ -5634,7 +5634,7 @@ def forecast_stats(obs, forecast1, forecast2):
                     itime += 1
 
         # Process the stats
-        obs = obs_boot
+        o = obs_boot
 
         # Get the ensemble mean forecast
         # Should these be calculated for each lat lon, or does numpy do that for me?
@@ -5655,7 +5655,7 @@ def forecast_stats(obs, forecast1, forecast2):
                 # Extract the forecasts and obs
                 f1_cell = f1[:, lat, lon] ; f2_cell = f2[:, lat, lon]
                 f10_cell = f10[:, lat, lon] 
-                o_cell = obs[:, lat, lon]
+                o_cell = o[:, lat, lon]
 
                 # Extract the forecasts and obs for the independent estimates
                 f2_1_cell = f2_1[:, lat, lon] ; f2_2_cell = f2_2[:, lat, lon]
