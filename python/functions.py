@@ -5617,6 +5617,11 @@ def forecast_stats(obs, forecast1, forecast2):
 
             # Loop over the block indices
             for iblock in index_block:
+
+                    print("block index", iblock)
+                    print("time index", itime)
+                    print("shape of obs_boot", np.shape(obs_boot))
+                    print("shape of obs", np.shape(obs))
                     
                     # Extract the observations for the block
                     obs_boot[itime, :, :] = obs[iblock, :, :]
@@ -5691,17 +5696,6 @@ def forecast_stats(obs, forecast1, forecast2):
                 # Set up the numerator
                 num = (r1o - r12 * r2o)
 
-                # Print the shapes and types of the variables
-                print("numerator shape", np.shape(num))
-                print("denominator shape", np.shape(denom_sq))
-                print("numerator type", type(num))
-                print("denominator type", type(denom_sq))
-
-                print("r_partial_boot shape", np.shape(r_partial_boot))
-                print("r_partial_boot type", type(r_partial_boot))
-                print("r_partial_boot[iboot, lat, lon] shape", np.shape(r_partial_boot[iboot, lat, lon]))
-                print("r_partial_boot[iboot, lat, lon] type", type(r_partial_boot[iboot, lat, lon]))
-
                 # Calculate the partial correlation
                 r_partial_boot[iboot, lat, lon] = num / np.sqrt(denom_sq)
 
@@ -5732,6 +5726,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
                 # Calculate the r_partial_bias
                 r_partial_bias_boot[iboot, lat, lon] = rp_biased - rp_unbiased
+
 
     # Append the stats - are these the right shape for the dictionary?
     # TODO: fix these to be the right shape for lat lon
