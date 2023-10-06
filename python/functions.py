@@ -5691,6 +5691,17 @@ def forecast_stats(obs, forecast1, forecast2):
                 # Set up the numerator
                 num = (r1o - r12 * r2o)
 
+                # Print the shapes and types of the variables
+                print("numerator shape", np.shape(num))
+                print("denominator shape", np.shape(denom_sq))
+                print("numerator type", type(num))
+                print("denominator type", type(denom_sq))
+
+                print("r_partial_boot shape", np.shape(r_partial_boot))
+                print("r_partial_boot type", type(r_partial_boot))
+                print("r_partial_boot[iboot, lat, lon] shape", np.shape(r_partial_boot[iboot, lat, lon]))
+                print("r_partial_boot[iboot, lat, lon] type", type(r_partial_boot[iboot, lat, lon]))
+
                 # Calculate the partial correlation
                 r_partial_boot[iboot, lat, lon] = num / np.sqrt(denom_sq)
 
