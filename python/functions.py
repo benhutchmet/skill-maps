@@ -5435,7 +5435,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     return pfield_bootstrap
 
 
-def forecast_stats(obs, forecast1, forecast2):
+def forecast_stats(obs, forecast1, forecast2, nboot=1000):
 
     """
     Assess and compares two forecasts, using a block bootstrap for uncertanties.
@@ -5449,6 +5449,9 @@ def forecast_stats(obs, forecast1, forecast2):
         forecast1[member, time] = forecast1 ensemble
 
         forecast2[member, time] = forecast2 ensemble
+
+        nboot = number of bootstraps = no. of bootstrap samples to use.
+                                        Default is 1000.
             
     Outputs:
 
@@ -5538,7 +5541,7 @@ def forecast_stats(obs, forecast1, forecast2):
     nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
 
     # Set up the number of bootstraps
-    nboot = 5 # test case 5 bootstraps
+    nboot = nboot
 
     # Set up the shapes of the arrays to be filled
     r_partial_boot = np.zeros([nboot, n_lats, n_lons]) ; r_partial_bias_boot = np.zeros([nboot, n_lats, n_lons])

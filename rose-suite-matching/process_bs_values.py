@@ -12,7 +12,7 @@ Usage:
 
     $ python process_bs_values.py <match_var> <obs_var_name>
     <region> <season> <forecast_range> <start_year> <end_year> 
-    <lag> <no_subset_members> <method> <measure>
+    <lag> <no_subset_members> <method> <nboot>
 
 Parameters:
 ===========
@@ -47,6 +47,8 @@ Parameters:
     method: str
         The method to use for the bootstrapping. 
         Must be a method in the input files.
+    nboot: int
+        The number of bootstraps to perform.
 
 Output:
 =======
@@ -130,6 +132,9 @@ def extract_variables():
     
     parser.add_argument('method', type=str,
                         help='The method to use for the bootstrapping.')
+    
+    parser.add_argument('nboot', type=int,
+                        help='The number of bootstraps to perform.')
     
     # Extract the CLAs
     args = parser.parse_args()
@@ -295,8 +300,6 @@ def main():
 
     save_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
 
-    no_bootstraps = 10 # Test case
-
     # Extract the command line arguments using the function
     args = extract_variables()
 
@@ -321,6 +324,7 @@ def main():
 
     method = args.method
 
+    no_bootstraps = args.nboot
 
     # If the region is global, set the region to the global gridspec
     if region == "global":
@@ -383,7 +387,8 @@ def main():
                                                                  obs)
     
     # Now perform the bootstrapping to create the forecast stats
-    forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2)
+    forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2, 
+                                        nboot = no_bootstraps)
                                                                 
 if __name__ == "__main__":
     main()
