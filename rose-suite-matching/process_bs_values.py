@@ -407,17 +407,17 @@ def main():
 
     partial_r_name = (
         f"partial_r_{variable}_{region}_{season}_{forecast_range}" +
-        f".npy"
+        ".npy"
     )
 
     obs_resid_name = (
         f"obs_resid_{variable}_{region}_{season}_{forecast_range}" +
-        f".npy"
+        ".npy"
     )
 
     partial_r_p_name = (
         f"partial_r_p_{variable}_{region}_{season}_{forecast_range}" +
-        f".npy"
+        ".npy"
     )
     
     # Save the arrays
