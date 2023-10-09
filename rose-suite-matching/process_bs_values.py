@@ -189,7 +189,7 @@ def load_and_process_hist_data(base_dir, hist_models, variable, region,
                                 forecast_range, season):
     """
     Load and process the historical data for a given variable, region,
-    forecast range and season.
+    forecast range and season. Assumes surface data.
     
     Args:
         base_dir (str): The base directory containing the historical data.
@@ -214,6 +214,69 @@ def load_and_process_hist_data(base_dir, hist_models, variable, region,
     hist_data, _ = hist_fnc.process_data(hist_datasets, variable)
 
     return hist_data
+
+# Define a new function to load and process the model data
+def load_and_process_dcpp_data(base_dir, dcpp_models, variable, region,
+                                forecast_range, season):
+    """
+    Load and process the model data for a given variable, region,
+    forecast range and season. Assumes surface data.
+
+    Args:
+        base_dir (str): The base directory containing the dcpp data.
+        dcpp_models (list): A list of the dcpp models to load the data for.
+        variable (str): The variable to load the data for.
+        region (str): The region to load the data for.
+        forecast_range (str): The forecast range to load the data for.
+        season (str): The season to load the data for.
+
+    Returns:
+        dcpp_data (dict): The processed dcpp data.
+                          As a dictionary containing the model names as keys.
+    """
+
+    dcpp_datasets = fnc.load_data(base_dir, dcpp_models, variable, 
+                                    region, forecast_range, season)
+    
+    dcpp_data, _ = fnc.process_data(dcpp_datasets, variable)
+
+    return dcpp_data
+
+# Define a new function to align the time periods and convert to array
+def align_and_convert_to_array(hist_data, dcpp_data, hist_models, dcpp_models,
+                               obs):
+    """
+    Align the time periods and convert the data to an array.
+
+    Args:
+        hist_data (dict): The processed historical data.
+                          As a dictionary containing the model names as keys.
+        dcpp_data (dict): The processed dcpp data.
+                          As a dictionary containing the model names as keys.
+        hist_models (list): A list of the historical models to load data for.
+        dcpp_models (list): A list of the dcpp models to load the data for.
+        variable (str): The variable to load the data for.
+        obs (array): The processed observations.
+
+    Returns:
+        fcst1 (array): The processed dcpp data as an array.
+        fcst2 (array): The processed historical data as an array.
+        obs (array): The processed observations as an array.
+        common_years (array): The common years between all three datasets.
+    """
+
+    # Use constrain_years to make sure that the models have the same time axis
+    constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
+
+    constrained_dcpp_data = fnc.constrain_years(dcpp_data, dcpp_models)
+
+    # Align the forecasts and observations
+    fcst1, fcst2, obs, common_years = fnc.align_forecast1_forecast2_obs(
+        constrained_dcpp_data, dcpp_models, constrained_hist_data, hist_models,
+        obs)
+    
+    # Return the aligned data
+    return fcst1, fcst2, obs, common_years
 
 # Define the main function
 def main():
@@ -302,6 +365,17 @@ def main():
     else:
         model_season = season
 
+    # Load and process the historical data
+    hist_data = load_and_process_hist_data(base_dir_historical, hist_models, 
+                                            variable, region, forecast_range, 
+                                            season)
+    
+    # Load and process the model data
+    dcpp_data = load_and_process_dcpp_data(base_dir, dcpp_models, variable, 
+                                            region, forecast_range, 
+                                            model_season)
+    
+    # Now we process the data to align the time periods and convert to array
 
                                                                 
 if __name__ == "__main__":
