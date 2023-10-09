@@ -405,14 +405,20 @@ def main():
 
     corr1_p_name = f"corr1_p_{variable}_{region}_{season}_{forecast_range}.npy"
 
-    partial_r_name = f"partial_r_{variable}_{region}_{season}_{forecast_range}\
-                    .npy"
-    
-    obs_resid_name = f"obs_resid_{variable}_{region}_{season}_{forecast_range}\
-                    .npy"
+    partial_r_name = (
+        f"partial_r_{variable}_{region}_{season}_{forecast_range}" +
+        f".npy"
+    )
 
-    partial_r_p_name = f"partial_r_p_{variable}_{region}_{season}_\
-                        {forecast_range}.npy"
+    obs_resid_name = (
+        f"obs_resid_{variable}_{region}_{season}_{forecast_range}" +
+        f".npy"
+    )
+
+    partial_r_p_name = (
+        f"partial_r_p_{variable}_{region}_{season}_{forecast_range}" +
+        f".npy"
+    )
     
     # Save the arrays
     np.save(save_path + corr1_name, forecast_stats["corr1"])
@@ -432,11 +438,15 @@ def main():
 
     sigo = f"sigo_{variable}_{region}_{season}_{forecast_range}.txt"
 
-    sigo_resid = f"sigo_resid_{variable}_{region}_{season}_\
-                 {forecast_range}.txt"
+    sigo_resid = (
+        f"sigo_resid_{variable}_{region}_{season}_" +
+        f"{forecast_range}.txt"
+    )
 
-    start_end_years = f"start_end_years_{variable}_{region}_{season}_\
-                       {forecast_range}.txt"
+    start_end_years = (
+        f"start_end_years_{variable}_{region}_{season}_" +
+        f"{forecast_range}.txt"
+    )
     
     # Save the values of the forecast stats
     np.savetxt(save_path + nens1_name, np.array([forecast_stats["nens1"]]))
