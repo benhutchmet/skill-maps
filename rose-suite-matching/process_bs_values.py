@@ -439,13 +439,13 @@ def main():
                        {forecast_range}.txt"
     
     # Save the values of the forecast stats
-    np.savetxt(save_path + nens1_name, forecast_stats["nens1"])
+    np.savetxt(save_path + nens1_name, np.array(forecast_stats["nens1"]))
 
-    np.savetxt(save_path + nens2_name, forecast_stats["nens2"])
+    np.savetxt(save_path + nens2_name, np.array(forecast_stats["nens2"]))
 
-    np.savetxt(save_path + sigo, forecast_stats["sigo"])
+    np.savetxt(save_path + sigo, np.array(forecast_stats["sigo"]))
 
-    np.savetxt(save_path + sigo_resid, forecast_stats["sigo_resid"])
+    np.savetxt(save_path + sigo_resid, np.array(forecast_stats["sigo_resid"]))
 
     np.savetxt(save_path + start_end_years, [common_years[0], 
                                              common_years[-1]])
