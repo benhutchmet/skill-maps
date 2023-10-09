@@ -1,9 +1,10 @@
 [cylc]
     UTC mode = True # Ignore DST
     [[parameters]]
-        match_var="sfcWind"
+        variables=tas,psl,rsds,sfcWind
+        obs_variables=t2m,msl,ssrd,si10
         region="global"
-        season=1,2,3,4
+        seasons=DJFM,MAM,JJA,SON 
         forecast_range="2-9"
         start_year="1960"
         end_year="2022"
