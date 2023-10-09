@@ -13,10 +13,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "tas",
-                "t2m",
+                "rsds",
+                "ssrd",
                 "global",
-                "DJFM",
+                "JJA",
                 "2-9",
                 "1960",
                 "2022",

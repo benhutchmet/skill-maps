@@ -356,6 +356,7 @@ def main():
                                    forecast_range, season, obs_path_name, 
                                    variable, plev=None)
 
+
     # if the variable is 'rsds'
     # divide the obs data by 86400 to convert from J/m2 to W/m2
     if variable in ['rsds', 'ssrd']:

@@ -552,6 +552,8 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
             # Load the dataset for the selected variable
             regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', parallel=True, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
 
+            print("Dataset loaded: ", regrid_sel_region_dataset.values)
+
             # Combine the two expver variables
             regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
 
@@ -689,6 +691,9 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
         rolling_mean_range = forecast_range_end - forecast_range_start + 1
         #print("Rolling mean range:", rolling_mean_range)
         
+        # P[RINT THE TIME DIMENSION OF THE OBSERVATIONS
+        print("Time dimension of obs:", obs_anomalies_annual.time.values)
+
         obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range, center = True).mean()
         
         return obs_anomalies_annual_forecast_range
@@ -976,6 +981,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # for given variable
         obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name, plev)
 
+        print("Observations dataset:", obs_dataset.values)
+
         # Check for NaN values in the observations dataset
         # #print("Checking for NaN values in obs_dataset")
         # check_for_nan_values(obs_dataset)
@@ -994,6 +1001,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
+        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.values)
+
         # # #print the dimensions of the regridded and selected region dataset
         #print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
 
@@ -1004,12 +1013,16 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # Calculate anomalies
         obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
 
+        print("Observations anomalies:", obs_anomalies.values)
+
         # Check for NaN values in the observations dataset
         # #print("Checking for NaN values in obs_anomalies")
         # check_for_nan_values(obs_anomalies)
 
         # Calculate annual mean anomalies
         obs_annual_mean_anomalies = calculate_annual_mean_anomalies(obs_anomalies, season)
+
+        print("Observations annual mean anomalies:", obs_annual_mean_anomalies.values)
 
         # Check for NaN values in the observations dataset
         # #print("Checking for NaN values in obs_annual_mean_anomalies")
@@ -1020,6 +1033,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # Check for NaN values in the observations dataset
         # #print("Checking for NaN values in obs_anomalies_annual_forecast_range")
         # check_for_nan_values(obs_anomalies_annual_forecast_range)
+
+        print("Observations anomalies annual forecast range:", obs_anomalies_annual_forecast_range.values)
 
         # if the forecast range is "2-2" i.e. a year ahead forecast
         # then we need to shift the dataset by 1 year
