@@ -10,11 +10,13 @@
         end_year="2022"
         lag="4"
         no_subset_members="20"
+        method="raw"
+        nboot="1000"
 
 [scheduling]
     [[dependencies]]
         graph = """
-        nao_matching<match_var><region><season><forecast_range><start_year><end_year><lag><no_subset_members>
+        process_bootstrap<variables><obs_variables><region><seasons><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot>
         """
 
 [runtime]
@@ -25,11 +27,11 @@
             batch system = slurm
         [[[directives]]]
             --partition = short-serial
-    [[nao_matching<match_var><region><season><forecast_range><start_year><end_year><lag><no_subset_members>]]
+    [[process_bootstrap<variables><obs_variables><region><seasons><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot>]]
         script = """
         module load jaspy/3.10/r20230718
         cd ${CYLC_SUITE_RUN_DIR}/
-        python nao_matching_seasons.py ${CYLC_TASK_PARAM_match_var} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members}
+        python process_bs_values.py ${CYLC_TASK_PARAM_variables} ${CYLC_TASK_PARAM_obs_variables} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_seasons} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members} ${CYLC_TASK_PARAM_method} ${CYLC_TASK_PARAM_nboot}
         """
         [[[job]]]
-            execution time limit = PT240M
+            execution time limit = PT90M
