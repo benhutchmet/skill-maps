@@ -102,7 +102,7 @@ def extract_variables():
     parser = argparse.ArgumentParser()
 
     # Add the CLAs
-    parser.add_argument('match_var', type=str, 
+    parser.add_argument('variable', type=str, 
                         help='The variable to perform the matching for.')
 
     parser.add_argument('obs_var_name', type=str,
@@ -419,11 +419,11 @@ def main():
 
     np.save(save_path + corr1_p_name, forecast_stats["corr1_p"])
 
-    np.save(save_path + partial_r_name, forecast_stats["partial_r"])
+    np.save(save_path + partial_r_name, forecast_stats["partialr"])
 
     np.save(save_path + obs_resid_name, forecast_stats["obs_resid"])
 
-    np.save(save_path + partial_r_p_name, forecast_stats["partial_r_p"])
+    np.save(save_path + partial_r_p_name, forecast_stats["partialr_p"])
 
     # Set up the names for the values of the forecast stats
     nens1_name = f"nens1_{variable}_{region}_{season}_{forecast_range}.txt"
