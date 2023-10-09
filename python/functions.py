@@ -5737,34 +5737,100 @@ def forecast_stats(obs, forecast1, forecast2):
 
     forecasts_stats['corr1_max'] = np.percentile(r1o_boot, 95, axis=0) # 95% uncertainty
 
-    count_vals = np.sum(i < 0.0 for i in r1o_boot) # count of negative values - will this be different for each lat lon?
+    # Initialize the count of values arrays
+    count_vals_r1o = np.zeros([n_lats, n_lons]) ; count_vals_r2o = np.zeros([n_lats, n_lons])
+
+    count_vals_r_ens_10 = np.zeros([n_lats, n_lons]) ; count_vals_msss1 = np.zeros([n_lats, n_lons])
+
+    count_vals_r12 = np.zeros([n_lats, n_lons]) ; count_vals_rdiff = np.zeros([n_lats, n_lons])
+
+    count_vals_rpc1 = np.zeros([n_lats, n_lons]) ; count_vals_rpc2 = np.zeros([n_lats, n_lons])
+
+    count_vals_r_partial = np.zeros([n_lats, n_lons])
+
+    # Initialize the correlation arrays
+    r1o_p = np.zeros([n_lats, n_lons]) ; r2o_p = np.zeros([n_lats, n_lons])
+
+    r_ens_10_p = np.zeros([n_lats, n_lons]) ; msss1_p = np.zeros([n_lats, n_lons])
+
+    r12_p = np.zeros([n_lats, n_lons]) ; rdiff_p = np.zeros([n_lats, n_lons])
+
+    rpc1_p = np.zeros([n_lats, n_lons]) ; rpc2_p = np.zeros([n_lats, n_lons])
+
+    r_partial_p = np.zeros([n_lats, n_lons])
 
     for lat in range(n_lats):
         for lon in range(n_lons):
             # Extract the forecasts and obs bootstrapped data for the cell
             r1o_boot_cell = r1o_boot[:, lat, lon] ; r2o_boot_cell = r2o_boot[:, lat, lon]
+            
             r_ens_10_boot_cell = r_ens_10_boot[:, lat, lon] 
+            
             msss1_boot_cell = msss1_boot[:, lat, lon]
+            
             r12_boot_cell = r12_boot[:, lat, lon]
+            
             rdiff_boot_cell = rdiff_boot[:, lat, lon]
+            
             rpc1_boot_cell = rpc1_boot[:, lat, lon] ; rpc2_boot_cell = rpc2_boot[:, lat, lon]
+            
             r_partial_boot_cell = r_partial_boot[:, lat, lon]
 
             # Calculate the p-values
             # TODO: add a function to calculate the p-values here and do count vals thing
+            # Process the count_vals
+            count_vals_r1o[lat, lon] = np.sum(i < 0.0 for i in r1o_boot_cell) # count of negative values
 
+            count_vals_r2o[lat, lon] = np.sum(i < 0.0 for i in r2o_boot_cell) # count of negative values
 
-    forecasts_stats['corr1_p'] = float(count_vals) / nboot # p value
+            count_vals_r_ens_10[lat, lon] = np.sum(i < 0.0 for i in r_ens_10_boot_cell) # count of negative values
+            
+            count_vals_msss1[lat, lon] = np.sum(i < 0.0 for i in msss1_boot_cell) # count of negative values
+            
+            count_vals_r12[lat, lon] = np.sum(i < 0.0 for i in r12_boot_cell) # count of negative values
+            
+            count_vals_rdiff[lat, lon] = np.sum(i < 0.0 for i in rdiff_boot_cell) # count of negative values
+            
+            count_vals_rpc1[lat, lon] = np.sum(i < 1.0 for i in rpc1_boot_cell) # count of values less than 1 fo RPC
+            
+            count_vals_rpc2[lat, lon] = np.sum(i < 1.0 for i in rpc2_boot_cell) # count of values less than 1 fo RPC
+            
+            count_vals_r_partial[lat, lon] = np.sum(i < 0.0 for i in r_partial_boot_cell) # count of negative values
 
-    forecasts_stats['corr2'] = r2o_boot[0] # correlation between forecast2 ensemble mean and observations for non-bootstrapped data
+            # Calculate the p-values
+            r1o_p[lat, lon] = float(count_vals_r1o[lat, lon]) / nboot
+
+            r2o_p[lat, lon] = float(count_vals_r2o[lat, lon]) / nboot
+
+            r_ens_10_p[lat, lon] = float(count_vals_r_ens_10[lat, lon]) / nboot
+
+            msss1_p[lat, lon] = float(count_vals_msss1[lat, lon]) / nboot
+
+            r12_p[lat, lon] = float(count_vals_r12[lat, lon]) / nboot
+
+            rdiff_p[lat, lon] = float(count_vals_rdiff[lat, lon]) / nboot
+
+            rpc1_p[lat, lon] = float(count_vals_rpc1[lat, lon]) / nboot
+
+            rpc2_p[lat, lon] = float(count_vals_rpc2[lat, lon]) / nboot
+
+            r_partial_p[lat, lon] = float(count_vals_r_partial[lat, lon]) / nboot
+
+    # Append the p-values to the dictionary
+    forecasts_stats['corr1_p'] = r1o_p ; forecasts_stats['corr2_p'] = r2o_p
+
+    forecasts_stats['corr10_p'] = r_ens_10_p ; forecasts_stats['msss1_p'] = msss1_p
+
+    forecasts_stats['corr12_p'] = r12_p ; forecasts_stats['corr_diff_p'] = rdiff_p
+
+    forecasts_stats['rpc1_p'] = rpc1_p ; forecasts_stats['rpc2_p'] = rpc2_p
+
+    forecasts_stats['partialr_p'] = r_partial_p
+
 
     forecasts_stats['corr2_min'] = np.percentile(r2o_boot, 5, axis=0) # 5% uncertainty
 
     forecasts_stats['corr2_max'] = np.percentile(r2o_boot, 95, axis=0) # 95% uncertainty
-
-    count_vals = np.sum(i < 0.0 for i in r2o_boot) # count of negative values - will this be different for each lat lon?
-
-    forecasts_stats['corr2_p'] = float(count_vals) / nboot # p value
 
     forecasts_stats['corr10'] = np.percentile(r_ens_10_boot, 50, axis=0) # correlation between 10 member forecast ensemble mean and observations for non-bootstrapped data
 
@@ -5772,19 +5838,11 @@ def forecast_stats(obs, forecast1, forecast2):
 
     forecasts_stats['corr10_max'] = np.percentile(r_ens_10_boot, 95, axis=0) # 95% uncertainty
 
-    count_vals = np.sum(i < 0.0 for i in r_ens_10_boot) # count of negative values - will this be different for each lat lon?
-
-    forecasts_stats['corr10_p'] = float(count_vals) / nboot # p value
-
     forecasts_stats['msss1'] = msss1_boot[0] # mean squared skill score between forecast1 ensemble mean and observations for non-bootstrapped data
 
     forecasts_stats['msss1_min'] = np.percentile(msss1_boot, 5, axis=0) # 5% uncertainty
 
     forecasts_stats['msss1_max'] = np.percentile(msss1_boot, 95, axis=0) # 95% uncertainty
-
-    count_vals = np.sum(i < 0.0 for i in msss1_boot) # count of negative values - will this be different for each lat lon?
-
-    forecasts_stats['msss1_p'] = float(count_vals) / nboot # p value
 
     forecasts_stats['corr12'] = r12_boot[0] # correlation between forecast1 and forecast2 ensemble means for non-bootstrapped data
 
@@ -5792,19 +5850,11 @@ def forecast_stats(obs, forecast1, forecast2):
 
     forecasts_stats['corr12_max'] = np.percentile(r12_boot, 95, axis=0) # 95% uncertainty
 
-    count_vals = np.sum(i < 0.0 for i in r12_boot) # count of negative values - will this be different for each lat lon?
-
-    forecasts_stats['corr12_p'] = float(count_vals) / nboot # p value
-
     forecasts_stats['corr_diff'] = rdiff_boot[0] # corr1 - corr2 for non-bootstrapped data
 
     forecasts_stats['corr_diff_min'] = np.percentile(rdiff_boot, 5, axis=0) # 5% uncertainty
 
     forecasts_stats['corr_diff_max'] = np.percentile(rdiff_boot, 95, axis=0) # 95% uncertainty
-
-    count_vals = np.sum(i < 0.0 for i in rdiff_boot) # count of negative values - will this be different for each lat lon?
-
-    forecasts_stats['corr_diff_p'] = float(count_vals) / nboot # p value
 
     forecasts_stats['rpc1'] = rpc1_boot[0] # ratio of predictable components for forecast1 for non-bootstrapped data
 
@@ -5812,19 +5862,11 @@ def forecast_stats(obs, forecast1, forecast2):
 
     forecasts_stats['rpc1_max'] = np.percentile(rpc1_boot, 95, axis=0) # 95% uncertainty
 
-    count_vals = np.sum(i < 1.0 for i in rpc1_boot) # count of values less than 1 fo RPC
-
-    forecasts_stats['rpc1_p'] = float(count_vals) / nboot # p value
-
     forecasts_stats['rpc2'] = rpc2_boot[0] # ratio of predictable components for forecast2 for non-bootstrapped data
 
     forecasts_stats['rpc2_min'] = np.percentile(rpc2_boot, 5, axis=0) # 5% uncertainty
 
     forecasts_stats['rpc2_max'] = np.percentile(rpc2_boot, 95, axis=0) # 95% uncertainty
-
-    count_vals = np.sum(i < 1.0 for i in rpc2_boot) # count of values less than 1 fo RPC
-
-    forecasts_stats['rpc2_p'] = float(count_vals) / nboot # p value
 
     # Adjusted partial correlation
 
@@ -5839,10 +5881,6 @@ def forecast_stats(obs, forecast1, forecast2):
     forecasts_stats['partialr_min'] = np.percentile(r_partial_boot, 5, axis=0) # 5% uncertainty
 
     forecasts_stats['partialr_max'] = np.percentile(r_partial_boot, 95, axis=0) # 95% uncertainty
-
-    count_vals = np.sum(i < 0.0 for i in r_partial_boot) # count of negative values - will this be different for each lat lon?
-
-    forecasts_stats['partialr_p'] = float(count_vals) / nboot # p value
 
     # Calculate the residuals for the observations
 
