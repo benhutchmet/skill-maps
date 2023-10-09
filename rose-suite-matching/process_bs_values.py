@@ -104,38 +104,38 @@ def extract_variables():
     # Add the CLAs
     parser.add_argument('match_var', type=str, 
                         help='The variable to perform the matching for.')
-    
+
     parser.add_argument('obs_var_name', type=str,
                         help='The name of the variable in the \
                         observations file.')
-    
+
     parser.add_argument('region', type=str,
                         help='The region to perform the matching for.')
-    
+
     parser.add_argument('season', type=str,
                         help='The season to perform the matching for.')
-    
+
     parser.add_argument('forecast_range', type=str,
                         help='The forecast range to perform the matching for.')
-    
+
     parser.add_argument('start_year', type=str,
                         help='The start year to perform the matching for.')
-    
+
     parser.add_argument('end_year', type=str,
                         help='The end year to perform the matching for.')
-    
+
     parser.add_argument('lag', type=int,
                         help='The lag to perform the matching for.')
-    
+
     parser.add_argument('no_subset_members', type=int,
                         help='The number of ensemble members to subset to.')
-    
+
     parser.add_argument('method', type=str,
                         help='The method to use for the bootstrapping.')
-    
+
     parser.add_argument('nboot', type=int,
                         help='The number of bootstraps to perform.')
-    
+
     # Extract the CLAs
     args = parser.parse_args()
 
@@ -308,19 +308,19 @@ def main():
     variable = args.variable
 
     obs_var_name = args.obs_var_name
-    
+
     region = args.region
-    
+
     season = args.season
-    
+
     forecast_range = args.forecast_range
-    
+
     start_year = args.start_year
-    
+
     end_year = args.end_year
-    
+
     lag = args.lag
-    
+
     no_subset_members = args.no_subset_members
 
     method = args.method
