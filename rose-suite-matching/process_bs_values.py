@@ -299,7 +299,7 @@ def main():
 
     output_dir = "/home/users/benhutch/skill-maps-processed-data/output"
 
-    save_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
+    save_dir = "/gws/nopw/j04/canari/users/benhutch/bootstrapping"
 
     # Extract the command line arguments using the function
     args = extract_variables()
@@ -394,6 +394,67 @@ def main():
     # TODO: extract and save the relevant forecast stats for plotting
     # TODO: also save the common years for plotting (initial year, final year)
     # TODO: associate nens1/nens2 with the variable being processed
+
+    # Set up the save path
+    save_path = save_dir + "/" + variable + "/" + region + "/" + season + "/" \
+                + forecast_range + "/" + method + "/" + "no_bootstraps_" + \
+                str(no_bootstraps) + "/"
+    
+    # If the save path doesn't exist, create it
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    # Set up the file names for the arrays
+    corr1_name = f"corr1_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr1_p_name = f"corr1_p_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    partial_r_name = f"partial_r_{variable}_{region}_{season}_{forecast_range}\
+                    .npy"
+    
+    obs_resid_name = f"obs_resid_{variable}_{region}_{season}_{forecast_range}\
+                    .npy"
+
+    partial_r_p_name = f"partial_r_p_{variable}_{region}_{season}_\
+                        {forecast_range}.npy"
+    
+    # Save the arrays
+    np.save(save_path + corr1_name, forecast_stats["corr1"])
+
+    np.save(save_path + corr1_p_name, forecast_stats["corr1_p"])
+
+    np.save(save_path + partial_r_name, forecast_stats["partial_r"])
+
+    np.save(save_path + obs_resid_name, forecast_stats["obs_resid"])
+
+    np.save(save_path + partial_r_p_name, forecast_stats["partial_r_p"])
+
+    # Set up the names for the values of the forecast stats
+    nens1_name = f"nens1_{variable}_{region}_{season}_{forecast_range}.txt"
+
+    nens2_name = f"nens2_{variable}_{region}_{season}_{forecast_range}.txt"
+
+    sigo = f"sigo_{variable}_{region}_{season}_{forecast_range}.txt"
+
+    sigo_resid = f"sigo_resid_{variable}_{region}_{season}_\
+                 {forecast_range}.txt"
+
+    start_end_years = f"start_end_years_{variable}_{region}_{season}_\
+                       {forecast_range}.txt"
+    
+    # Save the values of the forecast stats
+    np.savetxt(save_path + nens1_name, forecast_stats["nens1"])
+
+    np.savetxt(save_path + nens2_name, forecast_stats["nens2"])
+
+    np.savetxt(save_path + sigo, forecast_stats["sigo"])
+
+    np.savetxt(save_path + sigo_resid, forecast_stats["sigo_resid"])
+
+    np.savetxt(save_path + start_end_years, [common_years[0], 
+                                             common_years[-1]])
+
+
                                                                 
 if __name__ == "__main__":
     main()
