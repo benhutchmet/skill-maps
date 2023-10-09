@@ -5490,8 +5490,16 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
         partial_r_bias: bias in partial correlation
 
+        nens1: number of ensemble members in forecast1
+
+        nens2: number of ensemble members in forecast2
+
+        sigo: standard deviation of observations
+
         obs_resid: residual after regressing out forecast2 ensemble mean from observations
 
+        sigo_resid: standard deviation of obs_resid
+        
         forecast1_em_resid: residual after regressing out forecast2 ensemble mean from forecast1 ensemble mean
 
     """
