@@ -376,7 +376,14 @@ def main():
                                             model_season)
     
     # Now we process the data to align the time periods and convert to array
-
+    fcst1, fcst2, obs, _ = align_and_convert_to_array(hist_data, 
+                                                                 dcpp_data, 
+                                                                 hist_models, 
+                                                                 dcpp_models,
+                                                                 obs)
+    
+    # Now perform the bootstrapping to create the forecast stats
+    forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2)
                                                                 
 if __name__ == "__main__":
     main()
