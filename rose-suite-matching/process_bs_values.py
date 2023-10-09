@@ -10,36 +10,49 @@ Creates and saves a file containing these values.
 Usage:
 ------
 
-    $ python process_bs_values.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members> <method> <measure>
+    $ python process_bs_values.py <match_var> <obs_var_name>
+    <region> <season> <forecast_range> <start_year> <end_year> 
+    <lag> <no_subset_members> <method> <measure>
 
 Parameters:
 ===========
 
-    match_var: str
-        The variable to perform the matching for. Must be a variable in the input files.
+    variable: str
+        The variable to perform the matching for. 
+        Must be a variable in the input files.
+    obs_var_name: str
+        The name of the variable in the observations file. 
+        Must be a variable in the input files.
     region: str
-        The region to perform the matching for. Must be a region in the input files.
+        The region to perform the matching for. 
+        Must be a region in the input files.
     season: str
-        The season to perform the matching for. Must be a season in the input files.
+        The season to perform the matching for. 
+        Must be a season in the input files.
     forecast_range: str
-        The forecast range to perform the matching for. Must be a forecast range in the input files.
+        The forecast range to perform the matching for. 
+        Must be a forecast range in the input files.
     start_year: str
-        The start year to perform the matching for. Must be a year in the input files.
+        The start year to perform the matching for. 
+        Must be a year in the input files.
     end_year: str
-        The end year to perform the matching for. Must be a year in the input files.
+        The end year to perform the matching for. 
+        Must be a year in the input files.
     lag: int
-        The lag to perform the matching for. Must be a lag in the input files.
+        The lag to perform the matching for. 
+        Must be a lag in the input files.
     no_subset_members: int
-        The number of ensemble members to subset to. Must be a number in the input files.
+        The number of ensemble members to subset to. 
+        Must be a number in the input files.
     method: str
-        The method to use for the bootstrapping. Must be a method in the input files.
-    measure: str
-        The measure to use for the bootstrapping. Must be a measure in the input files.
+        The method to use for the bootstrapping. 
+        Must be a method in the input files.
 
 Output:
 =======
 
-    A file containing the bootstrapped significance values for the given variable.
+    A file containing the bootstrapped significance values 
+    for the given variable.
 
 """
 
@@ -47,46 +60,44 @@ Output:
 import argparse
 import os
 import sys
-import glob
-import re
+
+# Import from other scripts
+# -------------------------
+
+# Import the dictionaries
+sys.path.append("/home/users/benhutch/skill-maps")
+import dictionaries as dicts
+
+# Import the functions
+sys.path.append("/home/users/benhutch/skill-maps/python")
+import functions as fnc
+
+# Import the historical functions
+sys.path.append("/home/users/benhutch/skill-maps-differences")
+import functions_diff as hist_fnc
 
 # Third party imports
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import xarray as xr
-import cartopy.crs as ccrs
-from datetime import datetime
-import scipy.stats as stats
-import matplotlib.animation as animation
-from matplotlib import rcParams
-from PIL import Image
 
-import matplotlib.cm as mpl_cm
-import matplotlib
-import cartopy.crs as ccrs
-import iris
-import iris.coord_categorisation as coord_cat
-import iris.plot as iplt
-import scipy
-import pdb
 
-# Import the dictionaries
-sys.path.append('/home/users/benhutch/skill-maps')
-import dictionaries as dic
+# Define a function to extract the variables from the command line
+def extract_variables():
+    """
+    Extract the variables from the command line.
+    
+    Returns:
+    --------
 
-# Import the functions
-sys.path.append('/home/users/benhutch/skill-maps/python')
-import functions as fnc
+        Args: dict
+            A dictionary containing the variables.
+    """
 
-# import functions from the other script
-sys.path.append('/home/users/benhutch/skill-maps/rose-suite-matching')
-import nao_matching_seasons as nms_fnc
+    # Set up the parser for the CLAs
+    parser = argparse.ArgumentParser()
 
-# Import the bootstrapping functions
-sys.path.append('/home/users/benhutch/skill-maps-differences')
-import functions as fnc_bs
-
+    # Add the CLAs
+    parser.add_argument('match_var', type=str, 
+                        help='The variable to perform the matching for.')
 
 # Define the main function
 def main():
