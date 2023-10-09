@@ -390,10 +390,6 @@ def main():
     # Now perform the bootstrapping to create the forecast stats
     forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2, 
                                         no_boot = no_bootstraps)
-    
-    # TODO: extract and save the relevant forecast stats for plotting
-    # TODO: also save the common years for plotting (initial year, final year)
-    # TODO: associate nens1/nens2 with the variable being processed
 
     # Set up the save path
     save_path = save_dir + "/" + variable + "/" + region + "/" + season + "/" \
@@ -453,8 +449,6 @@ def main():
 
     np.savetxt(save_path + start_end_years, [common_years[0], 
                                              common_years[-1]])
-
-
                                                                 
 if __name__ == "__main__":
     main()
