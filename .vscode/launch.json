@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -13,15 +14,16 @@
             "justMyCode": true,
             "args": [
                 "tas",
+                "t2m",
                 "global",
-                "1",
+                "DJFM",
                 "2-9",
                 "1960",
                 "2022",
                 "4",
                 "20",
-                "lagged",
-                "acc"
+                "raw",
+                "5"
             ]
         },
         {
