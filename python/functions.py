@@ -5827,6 +5827,7 @@ def forecast_stats(obs, forecast1, forecast2):
 
     forecasts_stats['partialr_p'] = r_partial_p
 
+    forecasts_stats['corr2'] = r2o_boot[0] # correlation between forecast2 ensemble mean and observations for non-bootstrapped data
 
     forecasts_stats['corr2_min'] = np.percentile(r2o_boot, 5, axis=0) # 5% uncertainty
 
