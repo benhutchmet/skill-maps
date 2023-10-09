@@ -5435,7 +5435,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     return pfield_bootstrap
 
 
-def forecast_stats(obs, forecast1, forecast2, nboot=1000):
+def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
     """
     Assess and compares two forecasts, using a block bootstrap for uncertanties.
@@ -5517,9 +5517,13 @@ def forecast_stats(obs, forecast1, forecast2, nboot=1000):
 
         'rpc2':mdi, 'rpc2_min':mdi, 'rpc2_max':mdi, 'rpc2_p':mdi,
 
-        'corr_diff':mdi, 'corr_diff_min':mdi, 'corr_diff_max':mdi, 'corr_diff_p':mdi,
+        'corr_diff':mdi, 'corr_diff_min':mdi, 'corr_diff_max':mdi, 
+        
+        'corr_diff_p':mdi, 'partialr':mdi, 'partialr_min':mdi,
 
-        'partialr':mdi, 'partialr_min':mdi, 'partialr_max':mdi, 'partialr_p':mdi, 'partialr_bias':mdi,
+        'partialr_max':mdi, 'partialr_p':mdi, 'partialr_bias':mdi,
+
+        'nens1':mdi, 'nens2':mdi, 'sigo': mdi, 'sigo_resid': mdi,  
 
         'obs_resid':[], 'fcst1_em_resid':[]
 
@@ -5541,7 +5545,7 @@ def forecast_stats(obs, forecast1, forecast2, nboot=1000):
     nens2 = np.shape(forecast2)[0] ; nens2_2 = int(nens2/2+1)
 
     # Set up the number of bootstraps
-    nboot = nboot
+    nboot = no_boot
 
     # Set up the shapes of the arrays to be filled
     r_partial_boot = np.zeros([nboot, n_lats, n_lons]) ; r_partial_bias_boot = np.zeros([nboot, n_lats, n_lons])
@@ -5622,25 +5626,25 @@ def forecast_stats(obs, forecast1, forecast2, nboot=1000):
             # Loop over the block indices
             for iblock in index_block:
 
-                    # print("block index", iblock)
-                    # print("time index", itime)
-                    # print("shape of obs_boot", np.shape(obs_boot))
-                    # print("shape of obs", np.shape(obs))
-                    
-                    # Extract the observations for the block
-                    obs_boot[itime, :, :] = obs[iblock, :, :]
-    
-                    # Extract the first forecast for the block and random ensemble members
-                    fcst1_boot[:, itime, :, :] = forecast1[index_ens1_this, iblock, :, :]
-    
-                    # Extract the second forecast for the block and random ensemble members
-                    fcst2_boot[:, itime, :, :] = forecast2[index_ens2_this, iblock, :, :]
-    
-                    # Extract the 10 member forecast for the block and random ensemble members
-                    fcst10_boot[:, itime, :, :] = forecast1[index_ens1_this[0:10], iblock, :, :]
-    
-                    # Increment the time
-                    itime += 1
+                # print("block index", iblock)
+                # print("time index", itime)
+                # print("shape of obs_boot", np.shape(obs_boot))
+                # print("shape of obs", np.shape(obs))
+                
+                # Extract the observations for the block
+                obs_boot[itime, :, :] = obs[iblock, :, :]
+
+                # Extract the first forecast for the block and random ensemble members
+                fcst1_boot[:, itime, :, :] = forecast1[index_ens1_this, iblock, :, :]
+
+                # Extract the second forecast for the block and random ensemble members
+                fcst2_boot[:, itime, :, :] = forecast2[index_ens2_this, iblock, :, :]
+
+                # Extract the 10 member forecast for the block and random ensemble members
+                fcst10_boot[:, itime, :, :] = forecast1[index_ens1_this[0:10], iblock, :, :]
+
+                # Increment the time
+                itime += 1
 
         # Process the stats
         o = obs_boot
@@ -5892,8 +5896,17 @@ def forecast_stats(obs, forecast1, forecast2, nboot=1000):
 
     sig1 = np.std(f1) ; sig2 = np.std(f2) ; sigo = np.std(obs)
 
+    # Append the ensemble members count to the dictionary
+    forecasts_stats['nens1'] = nens1 ; forecasts_stats['nens2'] = nens2
+
+    # Append the standard deviations to the dictionary
+    forecasts_stats['sigo'] = sigo
+
     # Calculate the residuals for the observations
     forecasts_stats['obs_resid'] = obs - r2o_boot[0] * f2 * (sigo / sig2)
+
+    # Calculate the standard deviation of the residuals for the observations
+    forecasts_stats['sigo_resid'] = np.std(forecasts_stats['obs_resid'])
 
     # Calculate the residuals for the forecast1 ensemble mean
     forecasts_stats['fcst1_em_resid'] = f1 - r2o_boot[0] * f2 * (sig1 / sig2)

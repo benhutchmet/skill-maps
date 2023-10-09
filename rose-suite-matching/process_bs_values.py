@@ -286,7 +286,8 @@ def align_and_convert_to_array(hist_data, dcpp_data, hist_models, dcpp_models,
 # Define the main function
 def main():
     """
-    Main function which parses the command line arguments and calls the functions to perform the bootstrapping.
+    Main function which parses the command line arguments and 
+    calls the functions to perform the bootstrapping.
     """
 
     # Set up any hardcoded variables
@@ -380,7 +381,7 @@ def main():
                                             model_season)
     
     # Now we process the data to align the time periods and convert to array
-    fcst1, fcst2, obs, _ = align_and_convert_to_array(hist_data, 
+    fcst1, fcst2, obs, common_years = align_and_convert_to_array(hist_data, 
                                                                  dcpp_data, 
                                                                  hist_models, 
                                                                  dcpp_models,
@@ -388,7 +389,7 @@ def main():
     
     # Now perform the bootstrapping to create the forecast stats
     forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2, 
-                                        nboot = no_bootstraps)
+                                        no_boot = no_bootstraps)
                                                                 
 if __name__ == "__main__":
     main()
