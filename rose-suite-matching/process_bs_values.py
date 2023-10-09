@@ -171,13 +171,49 @@ def extract_hist_models(variable, dic):
         variable (str): The variable to extract the historical models for.
         dic (dict): A dictionary containing the historical models 
                     for each variable.
+                    Must contain 'historical_models_map' as a key. 
         
     Returns:
         list: A list of the historical models for the given variable.
     """
 
-    
+    # Extract the historical models for the given variable
+    hist_models = dic.historical_models_map[variable]
 
+    # Return the historical models
+    return hist_models   
+
+
+# Define a new function to load and process the historical data
+def load_and_process_hist_data(base_dir, hist_models, variable, region,
+                                forecast_range, season):
+    """
+    Load and process the historical data for a given variable, region,
+    forecast range and season.
+    
+    Args:
+        base_dir (str): The base directory containing the historical data.
+        hist_models (list): A list of the historical models to load the data for.
+        variable (str): The variable to load the data for.
+        region (str): The region to load the data for.
+        forecast_range (str): The forecast range to load the data for.
+        season (str): The season to load the data for.
+        
+    Returns:
+        hist_data (dict): The processed historical data.
+                          As a dictionary containing the model names as keys.
+    """
+
+    hist_datasets = hist_fnc.load_processed_historical_data(base_dir, 
+                                                            hist_models, 
+                                                            variable, 
+                                                            region, 
+                                                            forecast_range, 
+                                                            season)
+    
+    hist_data, _ = hist_fnc.process_data(hist_datasets, variable)
+
+    return hist_data
 
 # Define the main function
 def main():
@@ -241,21 +277,22 @@ def main():
     # Set up the dcpp models
     dcpp_models = match_variable_models(variable)
 
+    # Set up the historical models
+    hist_models = extract_hist_models(variable, dicts)
+
     # Set up the observations path for the matching variable
     obs_path_name = obs_path(variable)
 
-    # Get the models for the matching variable
-    match_var_models = nms_fnc.match_variable_models(match_var)
-
     # Process the observed data
-    obs = fnc.process_observations(match_var, region, region_grid, forecast_range, season, obs_path, obs_var_name)
+    obs = fnc.process_observations(variable, region, region_grid, 
+                                   forecast_range, season, obs_path_name, 
+                                   variable, plev=None)
 
     # if the variable is 'rsds'
     # divide the obs data by 86400 to convert from J/m2 to W/m2
-    if match_var in ['rsds', 'ssrd']:
+    if variable in ['rsds', 'ssrd']:
         print("converting obs to W/m2")
         obs /= 86400
-
 
     # Set up the model season
     if season == "MAM":
@@ -265,99 +302,7 @@ def main():
     else:
         model_season = season
 
-    # if the method is raw
-    if method == "raw":
-        # Load and process the model data
-        model_datasets = fnc.load_data(base_dir, match_var_models, match_var, region, forecast_range, model_season)
-        # Process the model data
-        model_data, _ = fnc.process_data(model_datasets, match_var)
 
-        # Make sure that the models have the same time period
-        model_data = fnc.constrain_years(model_data, match_var_models)
-
-        # Remove years containing NaNs from the observations and model data
-        obs, model_data, _ = fnc.remove_years_with_nans_nao(obs, model_data, match_var_models,
-                                                            NAO_matched=False)
-
-        # Call the bootstrapping function
-        bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=no_bootstraps,
-                                                                experiment=None, lag=None, matched_var_ensemble_members=None,
-                                                                ensemble_mean=None, measure=measure)
-    elif method == 'lagged':
-        # Load and process the model data
-        model_datasets = fnc.load_data(base_dir, match_var_models, match_var, region, forecast_range, model_season)
-        # Process the model data
-        model_data, _ = fnc.process_data(model_datasets, match_var)
-
-        # Make sure that the models have the same time period
-        model_data = fnc.constrain_years(model_data, match_var_models)
-
-        # Remove years containing NaNs from the observations and model data
-        obs, model_data, _ = fnc.remove_years_with_nans_nao(obs, model_data, match_var_models,
-                                                            NAO_matched=False)
-
-        # Call the bootstrapping function
-        bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, model_data, match_var_models, match_var, n_bootstraps=no_bootstraps,  
-                                                                experiment=None, lag=lag, matched_var_ensemble_members=None,
-                                                                ensemble_mean=None, measure=measure)
-    elif method == "nao_matched":
-        # process the psl observations for the nao index
-            obs_psl_anomaly = fnc.read_obs('psl', region, forecast_range, season, 
-                                            dic.obs, start_year, end_year)
-
-            # Load and process the model data for the NAO index
-            model_datasets_psl = fnc.load_data(dic.base_dir, dic.psl_models, 'psl', region, forecast_range, 
-                                        model_season)
-            # Process the model data
-            model_data_psl, _ = fnc.process_data(model_datasets_psl, 'psl')
-
-            # Make sure that the models have the same time period for psl
-            model_data_psl = fnc.constrain_years(model_data_psl, dic.psl_models)
-
-            # Remove years containing NaNs from the observations and model data
-            # and align the time periods
-            obs_psl_anomaly, model_data_psl, _ = fnc.remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl, 
-                                                                            dic.psl_models, NAO_matched=False)
-
-            # Calculate the lagged NAO index
-            obs_nao, model_nao = fnc.calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, dic.psl_models,
-                                                                'psl', season, forecast_range, plots_dir)                                                    
-            
-            # Rescale the NAO index
-            rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = fnc.rescale_nao(obs_nao, model_nao, dic.psl_models,
-                                                                                    season, forecast_range, plots_dir, lag=lag)
-
-            # Perform the NAO matching for the target variableOnao
-            matched_var_ensemble_mean, matched_var_ensemble_members = fnc.nao_matching_other_var(rescaled_nao, model_nao,
-                                                                match_var_models, match_var, match_var, dic.base_dir,
-                                                                    match_var_models, obs_path, region, model_season, forecast_range,
-                                                                        start_year, end_year, plots_dir, dic.save_dir, lagged_years=years,
-                                                                            lagged_nao=True, no_subset_members=no_subset_members)        
-
-            # Remove years containing NaNs from the observations and model data
-            obs, matched_var_ensemble_mean, matched_var_ensemble_members = fnc.remove_years_with_nans_nao(obs, matched_var_ensemble_mean,
-                                                                                                        match_var_models, NAO_matched=True,
-                                                                                                        matched_var_ensemble_members=matched_var_ensemble_members)
-
-            # Call the bootstrapping function
-            bs_pfield = fnc.calculate_spatial_correlations_bootstrap(obs, matched_var_ensemble_mean, match_var_models, match_var, n_bootstraps=no_bootstraps,
-                                                                    experiment=None, lag=None, matched_var_ensemble_members=matched_var_ensemble_members,
-                                                                    ensemble_mean=ensemble_mean_nao, measure=measure)
-    else:
-        print("Method not recognised. Please try again.")
-        sys.exit()
-
-    # Save the bootstrapped values
-    save_path = os.path.join(save_dir, match_var, region, season, forecast_range, start_year, end_year, str(lag), str(no_subset_members), method, measure)
-    # if the save path does not already exist, create it
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    print("Saving bootstrapped values to:", save_path)
-    # form the filename
-    filename = "bootrapped_values" + region + "_" + season + "_" + forecast_range + "_" + start_year + "_" + end_year + "_" + str(lag) + "_" + str(no_subset_members) + "_" + method + "_" + measure + ".npy"
-
-    # Save the bootstrapped values
-    np.save(os.path.join(save_path, filename), bs_pfield)
                                                                 
 if __name__ == "__main__":
     main()
