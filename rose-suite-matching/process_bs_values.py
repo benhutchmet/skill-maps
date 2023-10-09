@@ -72,6 +72,10 @@ import dictionaries as dicts
 sys.path.append("/home/users/benhutch/skill-maps/python")
 import functions as fnc
 
+# Import the other functions
+sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
+from nao_matching_seasons import match_variable_models, obs_path
+
 # Import the historical functions
 sys.path.append("/home/users/benhutch/skill-maps-differences")
 import functions_diff as hist_fnc
@@ -98,6 +102,82 @@ def extract_variables():
     # Add the CLAs
     parser.add_argument('match_var', type=str, 
                         help='The variable to perform the matching for.')
+    
+    parser.add_argument('obs_var_name', type=str,
+                        help='The name of the variable in the \
+                        observations file.')
+    
+    parser.add_argument('region', type=str,
+                        help='The region to perform the matching for.')
+    
+    parser.add_argument('season', type=str,
+                        help='The season to perform the matching for.')
+    
+    parser.add_argument('forecast_range', type=str,
+                        help='The forecast range to perform the matching for.')
+    
+    parser.add_argument('start_year', type=str,
+                        help='The start year to perform the matching for.')
+    
+    parser.add_argument('end_year', type=str,
+                        help='The end year to perform the matching for.')
+    
+    parser.add_argument('lag', type=int,
+                        help='The lag to perform the matching for.')
+    
+    parser.add_argument('no_subset_members', type=int,
+                        help='The number of ensemble members to subset to.')
+    
+    parser.add_argument('method', type=str,
+                        help='The method to use for the bootstrapping.')
+    
+    # Extract the CLAs
+    args = parser.parse_args()
+
+    # Return the CLAs
+    return args
+
+# Define a function to convert the season
+def convert_season(season, dic):
+    """
+    Convert a season from a number to a string using a dictionary.
+
+    Args:
+        season (str): The season to convert.
+        dic (dict): A dictionary mapping season numbers to season names.
+                    Must contain 'season_map' as a key.
+
+    Returns:
+        str: The converted season name.
+
+    Example:
+        >>> season = "1"
+        >>> dic = {"1": "DJF", "2": "MAM", "3": "JJA", "4": "SON"}
+        >>> convert_season(season, dic)
+        'DJF'
+    """
+    # If season contains a number, convert it to the string
+    if season in ["1", "2", "3", "4"]:
+        season = dic.season_map[season]
+    
+    return season
+
+# Define a function to extract historical models based on the variable
+def extract_hist_models(variable, dic):
+    """
+    For a given variable, extract the historical models.
+    
+    Args:
+        variable (str): The variable to extract the historical models for.
+        dic (dict): A dictionary containing the historical models 
+                    for each variable.
+        
+    Returns:
+        list: A list of the historical models for the given variable.
+    """
+
+    
+
 
 # Define the main function
 def main():
@@ -106,53 +186,63 @@ def main():
     """
 
     # Set up any hardcoded variables
-    base_dir = dic.base_dir
-    plots_dir = dic.plots_dir
-    save_dir = dic.save_dir
-    region_grid = dic.gridspec_global
-    obs_path = dic.obs
-    no_bootstraps = 10
+    base_dir = "/home/users/benhutch/skill-maps-processed-data"
+
+    base_dir_historical = base_dir + "/historical"
+
+    plots_dir = "/home/users/benhutch/skill-maps-processed-data/plots"
+
+    output_dir = "/home/users/benhutch/skill-maps-processed-data/output"
+
+    save_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
+
+    no_bootstraps = 10 # Test case
+
+    # Extract the command line arguments using the function
+    args = extract_variables()
 
     # Extract the command line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('match_var', type=str, help='The variable to perform the matching for.')
-    parser.add_argument('region', type=str, help='The region to perform the matching for.')
-    parser.add_argument('season', type=str, help='The season to perform the matching for.')
-    parser.add_argument('forecast_range', type=str, help='The forecast range to perform the matching for.')
-    parser.add_argument('start_year', type=str, help='The start year to perform the matching for.')
-    parser.add_argument('end_year', type=str, help='The end year to perform the matching for.')
-    parser.add_argument('lag', type=int, help='The lag to perform the matching for.')
-    parser.add_argument('no_subset_members', type=int, help='The number of ensemble members to subset to.')
-    parser.add_argument('method', type=str, help='The method to use for the bootstrapping.')
-    parser.add_argument('measure', type=str, help='The measure to use for the bootstrapping.')
-    args = parser.parse_args()
+    variable = args.variable
 
-    # Extract the command line arguments
-    match_var = args.match_var
+    obs_var_name = args.obs_var_name
+    
     region = args.region
+    
     season = args.season
+    
     forecast_range = args.forecast_range
+    
     start_year = args.start_year
+    
     end_year = args.end_year
+    
     lag = args.lag
+    
     no_subset_members = args.no_subset_members
+
     method = args.method
-    measure = args.measure
+
+
+    # If the region is global, set the region to the global gridspec
+    if region == "global":
+        region_grid = dicts.gridspec_global
+    else:
+        raise ValueError("Region not recognised. Please try again.")
 
     # If season conttains a number, convert it to the string
-    if season in ["1", "2", "3", "4"]:
-        season = dic.season_map[season]
-        print("NAO matching for variable:", match_var, "region:", region, "season:", season, "forecast range:", forecast_range,)
+    season = convert_season(season, dicts)
 
-    # Set up the models
-    match_var_models = nms_fnc.match_variable_models(match_var)
+    # Print the variables
+    print("NAO matching for variable:", variable, "region:", region, "season:"
+          , season, "forecast range:", forecast_range, "start year:",
+          start_year, "end year:", end_year, "lag:", lag, "no subset members:",
+          no_subset_members, "method:", method)
+
+    # Set up the dcpp models
+    dcpp_models = match_variable_models(variable)
 
     # Set up the observations path for the matching variable
-    obs_path_match_var = nms_fnc.obs_path(match_var)
-
-    # get the obs var name from the dictionary
-    obs_var_name = dic.var_name_map[match_var]
-    print("obs_var_name:", obs_var_name)
+    obs_path_name = obs_path(variable)
 
     # Get the models for the matching variable
     match_var_models = nms_fnc.match_variable_models(match_var)
