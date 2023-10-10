@@ -1875,12 +1875,17 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
     for year in obs_years:
         odata = obs.sel(time=f"{year}")
 
-        # If there are only NaN values in the data
-        if np.isnan(odata.values).all():
-            # Select the year from the observed data
-            obs = obs.sel(time=obs.time.dt.year != year)
+        # If there are any NaN values in the data
+        if np.isnan(odata.values).any():
+            print("NaN values in the obs data for this year: ", year)
+            # If there are only NaN values in the data
+            if np.isnan(odata.values).all():
+                # Select the year from the observed data
+                obs = obs.sel(time=obs.time.dt.year != year)
 
-            print(year, "all NaN values for this year in the obs")
+                print(year, "all NaN values for this year in the obs")
+            else:
+                print(year, "Not all NaN values for this year in the obs")
         else:
             print(year, "no NaN values for this year in the obs")
 
