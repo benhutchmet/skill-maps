@@ -5703,7 +5703,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                 o_cell = o[:, lat, lon]
 
                 # If all the values of o_cell are 0
-                if np.all(o_cell == 0):
+                if np.all(o_cell == 0.0):
                     # Print a warning
                     print("Warning: all values of o_cell are 0 at lat", lat, "lon", lon)
                     print("Setting all values of the correlations to NaN at lat", lat, "lon", lon)
@@ -5728,6 +5728,8 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                     # Set the r partial bias to NaN
                     r_partial_bias_boot[iboot, lat, lon] = np.nan
 
+                    # Continue to the next lat lon
+                    continue
 
                 # Extract the forecasts and obs for the independent estimates
                 f2_1_cell = f2_1[:, lat, lon] ; f2_2_cell = f2_2[:, lat, lon]
