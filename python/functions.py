@@ -5967,7 +5967,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
     forecasts_stats['obs_resid'] = obs - r2o_boot[0] * f2 * (sigo / sig2)
 
     # Calculate the standard deviation of the residuals for the observations
-    forecasts_stats['sigo_resid'] = np.std(forecasts_stats['obs_resid'])
+    forecasts_stats['sigo_resid'] = np.nanstd(forecasts_stats['obs_resid'])
 
     # Calculate the residuals for the forecast1 ensemble mean
     forecasts_stats['fcst1_em_resid'] = f1 - r2o_boot[0] * f2 * (sig1 / sig2)
