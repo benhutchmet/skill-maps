@@ -5677,6 +5677,10 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
         # Process the stats
         o = obs_boot
 
+        print("shape of obs_boot", np.shape(o))
+        print("value of obs_boot", o)
+
+
         # Get the ensemble mean forecast
         # Should these be calculated for each lat lon, or does numpy do that for me?
         f1 = np.mean(fcst1_boot, axis=0) ; f2 = np.mean(fcst2_boot, axis=0)
@@ -5697,6 +5701,33 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                 f1_cell = f1[:, lat, lon] ; f2_cell = f2[:, lat, lon]
                 f10_cell = f10[:, lat, lon] 
                 o_cell = o[:, lat, lon]
+
+                # If all the values of o_cell are 0
+                if np.all(o_cell == 0):
+                    # Print a warning
+                    print("Warning: all values of o_cell are 0 at lat", lat, "lon", lon)
+                    print("Setting all values of the correlations to NaN at lat", lat, "lon", lon)
+                    # Set all the values of the correlations to NaN
+                    r1o_boot[iboot, lat, lon] = np.nan ; r2o_boot[iboot, lat, lon] = np.nan ; r12_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the differences in correlations to NaN
+                    rdiff_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the MSSS to NaN
+                    msss1_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the RPCs to NaN
+                    rpc1_boot[iboot, lat, lon] = np.nan ; rpc2_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the 10 member ensemble mean correlations to NaN
+                    r_ens_10_boot[iboot, lat, lon] = np.nan
+
+                    # set the r partial correlations to NaN
+                    r_partial_boot[iboot, lat, lon] = np.nan
+
+                    # Set the r partial bias to NaN
+                    r_partial_bias_boot[iboot, lat, lon] = np.nan
+
 
                 # Extract the forecasts and obs for the independent estimates
                 f2_1_cell = f2_1[:, lat, lon] ; f2_2_cell = f2_2[:, lat, lon]

@@ -1,0 +1,7 @@
+cylc broadcast rose-suite-matching -n process_bootstrap<variables><obs_variables><region><seasons><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot> -s "[job]execution_time_limit=PT2000M"
+
+cylc broadcast rose-suite-matching -n process_bootstrap -s "[job]execution_time_limit=PT2000M"
+
+cylc broadcast tutorial-broadcast -n announce -s "[environment]WORD=it"
+
+cylc broadcast --host=localhost -n process_bootstrap -s [job]execution_time_limit=PT2000M rose-suite-matching
