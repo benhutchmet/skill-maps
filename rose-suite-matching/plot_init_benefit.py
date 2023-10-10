@@ -150,17 +150,18 @@ def load_arrays_from_npy(path, variable):
     print(files)
 
     # find the file containing corr1
-    corr1_file = [file for file in files if f'corr1_{variable}' in file]
+    corr1_file = [file for file in files if f'corr1_{variable}' in file][0]
+    print("corr1_file: ", corr1_file)
 
     # find the file containing corr1_p
-    corr1_p_file = [file for file in files if 'corr1_p' in file]
+    corr1_p_file = [file for file in files if 'corr1_p' in file][0]
 
     # find the file containing partial_r
-    partial_r_file = [file for file in files if f'partial_r_{variable}' 
-                      in file]
+    partial_r_file = [file for file in files if f'partial_r_{variable}'
+                      in file][0]
 
     # find the file containing partial_r_p
-    partial_r_p_file = [file for file in files if 'partial_r_p' in file]
+    partial_r_p_file = [file for file in files if 'partial_r_p' in file][0]
 
     # Load the arrays from the files
     arrays['corr1'] = np.load(corr1_file)
@@ -170,4 +171,41 @@ def load_arrays_from_npy(path, variable):
 
     # Return the arrays
     return arrays
+
+# Now define a function to calculate the benefit of initialization
+# As the ratio of the predicted signal arising from initialization
+# divided by the total predicted signal
+def calculate_init_benefit(partial_r, sigo_resid, corr1, sigo):
+    """
+    Calculates the benefit of initialization as the ratio of the predicted
+    signal arising from initialization divided by the total predicted signal.
+    
+    Numerator is the predicted signal arising from initialization:
+        - partial_r * sigo_resid
+
+    Denominator is the total predicted signal:
+        - corr1 * sigo
+
+    Args:
+        partial_r (np.ndarray): bias corrected correlation of the first 
+                                    ensemble (initialized) with the 
+                                    observations (after accounting for 
+                                    uninitialized trend)
+        sigo_resid (float): standard deviation of the observed residuals
+        corr1 (np.ndarray): correlation of the first ensemble (initialized)
+                                with the observations
+        sigo (float): standard deviation of the observations
+
+    Returns:
+        init_impact (np.ndarray): benefit of initialization as the ratio of
+                                    the predicted signal arising from 
+                                    initialization divided by the total 
+                                    predicted signal
+    """
+
+    # Calculate the benefit of initialization
+    init_impact = (partial_r * sigo_resid) / (corr1 * sigo)
+
+    # Return the benefit of initialization
+    return init_impact
 
