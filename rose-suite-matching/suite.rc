@@ -27,7 +27,7 @@
             batch system = slurm
         [[[directives]]]
             --partition = high-mem
-            --mem = 90000
+            --mem = 80000
     [[process_bootstrap<variables><obs_variables><region><seasons><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot>]]
         script = """
         module load jaspy/3.10/r20230718
@@ -35,4 +35,4 @@
         python process_bs_values.py ${CYLC_TASK_PARAM_variables} ${CYLC_TASK_PARAM_obs_variables} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_seasons} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members} ${CYLC_TASK_PARAM_method} ${CYLC_TASK_PARAM_nboot}
         """
         [[[job]]]
-            execution time limit = PT1200M
+            execution time limit = PT1800M
