@@ -77,7 +77,7 @@ def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
 
 
     # set up the lons and lats
-    lons = np.arange(0, 360, 2.5)
+    lons = np.arange(-180, 180, 2.5)
     lats = np.arange(-90, 90, 2.5)
 
     # set up the contour levels for the raw correlation
@@ -165,3 +165,4 @@ f"_{finish_year}.png"
 
     # show the figure
     plt.show()
+
