@@ -69,7 +69,7 @@ def extract_values_from_txt(path, variable):
     }
 
     # Extract the values from the txt file
-    files = glob.glob(path)
+    files = glob.glob(f'{path}/*.txt')
 
     # Print the files
     print(files)
@@ -95,14 +95,16 @@ def extract_values_from_txt(path, variable):
     print(start_end_file)
 
     # Load the values from the files
-    values['nens1'] = (np.loadtxt(nens1_file)).astype(int)
-    values['nens2'] = (np.loadtxt(nens2_file)).astype(int)
-    values['sigo'] = np.loadtxt(sigo_file)
-    values['sigo_resid'] = np.loadtxt(sigo_resid_file)
-    values['start_year'] = ((np.loadtxt(start_end_file))[0]).astype(int)
-    values['end_year'] = ((np.loadtxt(start_end_file))[1]).astype(int)
+    values['nens1'] = (np.loadtxt(nens1_file))[0].astype(int)
+    values['nens2'] = (np.loadtxt(nens2_file))[0].astype(int)
+    values['sigo'] = (np.loadtxt(sigo_file))[0]
+    values['sigo_resid'] = (np.loadtxt(sigo_resid_file))[0]
+    values['start_year'] = (np.loadtxt(start_end_file))[0].astype(int)
+    values['end_year'] = (np.loadtxt(start_end_file))[1].astype(int)
 
     # Return the values
     return values
+
+# Now define a function to extract the numpy arrays within the path
 
 
