@@ -406,8 +406,34 @@ def main():
 
     corr1_p_name = f"corr1_p_{variable}_{region}_{season}_{forecast_range}.npy"
 
+    corr2_name = f"corr2_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr2_p_name = f"corr2_p_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr10_name = f"corr10_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr10_p_name = (f"corr10_p_{variable}_{region}_{season}_{forecast_range}"+
+                    ".npy")
+
     partial_r_name = (
         f"partial_r_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Partial r min and max values
+    partial_r_min_name = (
+        f"partial_r_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    partial_r_max_name = (
+        f"partial_r_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also the partial r bias
+    partial_r_bias_name = (
+        f"partial_r_bias_{variable}_{region}_{season}_{forecast_range}" +
         ".npy"
     )
 
@@ -418,6 +444,154 @@ def main():
 
     partial_r_p_name = (
         f"partial_r_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    sigo = f"sigo_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    sigo_resid = (
+        f"sigo_resid_{variable}_{region}_{season}_" +
+        f"{forecast_range}.npy"
+    )
+
+    # Also save arrays for the correlation differences
+    corr_diff_name = (
+        f"corr_diff_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Min and max values
+    corr_diff_min_name = (
+        f"corr_diff_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr_diff_max_name = (
+        f"corr_diff_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr_diff_p_name = (
+        f"corr_diff_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save arrays for the RPC and RPC_p
+    rpc1_name = (
+        f"rpc1_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Min and max arrays
+    rpc1_min_name = (
+        f"rpc1_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc1_max_name = (
+        f"rpc1_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc1_p_name = (
+        f"rpc1_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc2_name = (
+        f"rpc2_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Min and max arrays
+    rpc2_min_name = (
+        f"rpc2_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc2_max_name = (
+        f"rpc2_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc2_p_name = (
+        f"rpc2_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the arrays for MSSS1 and MSSS2
+
+    msss1_name = (
+        f"msss1_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    msss2_name = (
+        f"msss2_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the arrays for the min and max values of MSS1 and MSS2
+    msss1_min_name = (
+        f"msss1_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    msss1_max_name = (
+        f"msss1_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    msss2_min_name = (
+        f"msss2_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    msss2_max_name = (
+        f"msss2_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the arrays for the MSSS1 and MSSS2 p values
+    mss1_p_name = (
+        f"mss1_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    mss2_p_name = (
+        f"mss2_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the corr1 and corr2 min and max values
+    corr1_min_name = (
+        f"corr1_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr1_max_name = (
+        f"corr1_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr2_min_name = (
+        f"corr2_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr2_max_name = (
+        f"corr2_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the corr10 min and max values
+    corr10_min_name = (
+        f"corr10_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr10_max_name = (
+        f"corr10_max_{variable}_{region}_{season}_{forecast_range}" +
         ".npy"
     )
     
@@ -432,17 +606,15 @@ def main():
 
     np.save(save_path + partial_r_p_name, forecast_stats["partialr_p"])
 
+    # FIXME: These will now be arrays
+    np.save(save_path + sigo, forecast_stats["sigo"])
+
+    np.save(save_path + sigo_resid, forecast_stats["sigo_resid"])
+
     # Set up the names for the values of the forecast stats
     nens1_name = f"nens1_{variable}_{region}_{season}_{forecast_range}.txt"
 
     nens2_name = f"nens2_{variable}_{region}_{season}_{forecast_range}.txt"
-
-    sigo = f"sigo_{variable}_{region}_{season}_{forecast_range}.txt"
-
-    sigo_resid = (
-        f"sigo_resid_{variable}_{region}_{season}_" +
-        f"{forecast_range}.txt"
-    )
 
     start_end_years = (
         f"start_end_years_{variable}_{region}_{season}_" +
@@ -453,10 +625,6 @@ def main():
     np.savetxt(save_path + nens1_name, np.array([forecast_stats["nens1"]]))
 
     np.savetxt(save_path + nens2_name, np.array([forecast_stats["nens2"]]))
-
-    np.savetxt(save_path + sigo, np.array([forecast_stats["sigo"]]))
-
-    np.savetxt(save_path + sigo_resid, np.array([forecast_stats["sigo_resid"]]))
 
     np.savetxt(save_path + start_end_years, [common_years[0], 
                                              common_years[-1]])
