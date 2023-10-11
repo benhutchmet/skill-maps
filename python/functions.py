@@ -5953,24 +5953,61 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
     # Calculate the residuals for the observations
 
-    f1 = np.mean(fcst1_boot, axis=0) ; f2 = np.mean(fcst2_boot, axis=0)
+    f1 = np.mean(forecast1, axis=0) ; f2 = np.mean(forecast2, axis=0)
 
-    sig1 = np.std(f1) ; sig2 = np.std(f2) ; sigo = np.std(obs)
+    # Initialize arrays for the standard deviations
+    sig1 = np.zeros([n_lats, n_lons]) ; sig2 = np.zeros([n_lats, n_lons])
+    
+    sigo = np.zeros([n_lats, n_lons])
+
+    sigo_resid = np.zeros([n_lats, n_lons])
+
+    obs_resid = np.zeros([n_times, n_lats, n_lons])
+
+    fcst1_em_resid = np.zeros([n_times, n_lats, n_lons])
+
+
+    # Loop over the gridpoints to calculate the correlations
+    for lat in range(n_lats):
+        for lon in range(n_lons):
+            # Extract the forecasts and obs for the cell
+            f1_cell = f1[:, lat, lon] ; f2_cell = f2[:, lat, lon]
+
+            o_cell = o[:, lat, lon]
+
+            # Calculate the standard deviations of the forecasts1 and 2
+            sig1_cell = np.std(f1_cell) ; sig2_cell = np.std(f2_cell)
+
+            # Calculate the standard deviation of the observations
+            sigo_cell = np.std(o_cell)
+
+            # Append the standard deviations to the arrays
+            sig1[lat, lon] = sig1_cell ; sig2[lat, lon] = sig2_cell
+
+            sigo[lat, lon] = sigo_cell
+
+            # Calculate the residuals for the observations
+            obs_resid[:, lat, lon] = o_cell - r2o_boot[0, lat, lon] * f2_cell \
+                                    * (sigo_cell / sig2_cell)
+
+            # Calculate the residuals for the forecast1 ensemble mean
+            fcst1_em_resid[:, lat, lon] = f1_cell - r2o_boot[0, lat, lon] \
+                                           * f2_cell * (sig1_cell / sig2_cell)
+
+            # Calculate the standard deviation of the 
+            # residuals for the observations    
+            sigo_resid[lat, lon] = np.nanstd(obs_resid[:, lat, lon])
+
+    # Append the standard deviations to the dictionary
+    forecasts_stats['sigo'] = sigo ; forecasts_stats['sigo_resid'] = sigo_resid
+
+    # Append the residuals to the dictionary
+    forecasts_stats['obs_resid'] = obs_resid
+    
+    forecasts_stats['fcst1_em_resid'] = fcst1_em_resid
 
     # Append the ensemble members count to the dictionary
     forecasts_stats['nens1'] = nens1 ; forecasts_stats['nens2'] = nens2
-
-    # Append the standard deviations to the dictionary
-    forecasts_stats['sigo'] = sigo
-
-    # Calculate the residuals for the observations
-    forecasts_stats['obs_resid'] = obs - r2o_boot[0] * f2 * (sigo / sig2)
-
-    # Calculate the standard deviation of the residuals for the observations
-    forecasts_stats['sigo_resid'] = np.nanstd(forecasts_stats['obs_resid'])
-
-    # Calculate the residuals for the forecast1 ensemble mean
-    forecasts_stats['fcst1_em_resid'] = f1 - r2o_boot[0] * f2 * (sig1 / sig2)
 
     # Return the forecasts_stats dictionary
     return forecasts_stats
