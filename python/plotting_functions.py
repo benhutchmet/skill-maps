@@ -123,7 +123,7 @@ def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
 
     # Plot the benefit of initialization relative to the uninitialized forecast
     cf2 = ax2.contourf(lons, lats, init_impact, clevs, cmap='RdBu_r', 
-                        transform=proj)
+                        transform=proj, extend='both')
     
     # If any r_partial_p values are NaN
     if np.isnan(init_impact).any():
