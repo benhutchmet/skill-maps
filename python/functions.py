@@ -5483,7 +5483,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
         corr2_min, corr2_max, corr2_p: 5% to 95% uncertainties and p value
 
-        corr10 correlation between forecast1 ensemble mean and observations for 10 ensemble members
+        corr10: correlation between forecast1 ensemble mean and observations for 10 ensemble members
 
         corr10_min, corr10_max, corr10_p: 5% to 95% uncertainties and p value
 
