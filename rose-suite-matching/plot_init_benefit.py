@@ -47,9 +47,6 @@ def extract_values_from_txt(path, variable):
                                     ensemble
                 - 'nens2' (int): number of ensemble members in the second
                                     ensemble
-                - 'sigo' (float): standard deviation of the observations
-                - 'sigo_resid' (float): standard deviation of the observed
-                                            residuals
                 - 'start_year' (int): start year of the forecast
                 - 'end_year' (int): end year of the forecast
     
@@ -62,8 +59,6 @@ def extract_values_from_txt(path, variable):
     values = {
         'nens1': mdi,
         'nens2': mdi,
-        'sigo': mdi,
-        'sigo_resid': mdi,
         'start_year': mdi,
         'end_year': mdi
     }
@@ -82,14 +77,6 @@ def extract_values_from_txt(path, variable):
     nens2_file = [file for file in files if 'nens2' in file][0]
     print(nens2_file)
 
-    # find the file containing sigo
-    sigo_file = [file for file in files if f'sigo_{variable}' in file][0]
-    print(sigo_file)
-
-    # find the file containing sigo_resid
-    sigo_resid_file = [file for file in files if 'sigo_resid' in file][0]
-    print(sigo_resid_file)
-
     # find the file containing start_year
     start_end_file = [file for file in files if 'start_end_years' in file][0]
     print(start_end_file)
@@ -97,8 +84,6 @@ def extract_values_from_txt(path, variable):
     # Load the values from the files
     values['nens1'] = np.loadtxt(nens1_file).astype(int)
     values['nens2'] = np.loadtxt(nens2_file).astype(int)
-    values['sigo'] = np.loadtxt(sigo_file)
-    values['sigo_resid'] = np.loadtxt(sigo_resid_file)
     values['start_year'] = (np.loadtxt(start_end_file))[0].astype(int)
     values['end_year'] = (np.loadtxt(start_end_file))[1].astype(int)
 
@@ -132,6 +117,9 @@ def load_arrays_from_npy(path, variable):
                                                 the observations (after 
                                                 accounting for uninitialized
                                                 trend)
+                - 'sigo (np.ndarray)': standard deviation of the observations
+                - 'sigo_resid (np.ndarray)': standard deviation of the
+                                                observed residuals
     
     """
 
@@ -140,7 +128,9 @@ def load_arrays_from_npy(path, variable):
         'corr1': None,
         'corr1_p': None,
         'partial_r': None,
-        'partial_r_p': None
+        'partial_r_p': None,
+        'sigo': None,
+        'sigo_resid': None
     }
 
     # extract the .npy files using glob
@@ -163,11 +153,19 @@ def load_arrays_from_npy(path, variable):
     # find the file containing partial_r_p
     partial_r_p_file = [file for file in files if 'partial_r_p' in file][0]
 
+    # find the file containing sigo
+    sigo_file = [file for file in files if f'sigo_{variable}' in file][0]
+
+    # find the file containing sigo_resid
+    sigo_resid_file = [file for file in files if 'sigo_resid' in file][0]
+
     # Load the arrays from the files
     arrays['corr1'] = np.load(corr1_file)
     arrays['corr1_p'] = np.load(corr1_p_file)
     arrays['partial_r'] = np.load(partial_r_file)
     arrays['partial_r_p'] = np.load(partial_r_p_file)
+    arrays['sigo'] = np.load(sigo_file)
+    arrays['sigo_resid'] = np.load(sigo_resid_file)
 
     # Return the arrays
     return arrays
