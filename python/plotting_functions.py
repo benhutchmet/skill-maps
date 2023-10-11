@@ -56,7 +56,7 @@ def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
     ax_labels = ['A', 'B']
 
     # Set up the plot_names
-    plot_names = ['Total skill', 'Init. impact']
+    plot_names = ['Total skill', 'Residual Correlations']
 
     # Set up the projection
     proj = ccrs.PlateCarree()
