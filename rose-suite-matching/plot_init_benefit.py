@@ -201,9 +201,33 @@ def calculate_init_benefit(partial_r, sigo_resid, corr1, sigo):
                                     predicted signal
     """
 
-    # Calculate the benefit of initialization
-    init_impact = (partial_r * sigo_resid) / (corr1 * sigo)
+    # Extract the nlats from the partial_r
+    nlats = partial_r.shape[0]
+    
+    # Extract the nlons from the partial_r
+    nlons = partial_r.shape[1]
+
+    # Set up a new array for the init_impact
+    init_impact = np.zeros([nlats, nlons])
+
+    # Loop over the lats
+    for lat in range(nlats):
+        for lon in range(nlons):
+            # extract the values
+            partial_r_cell = partial_r[lat, lon]
+
+            sigo_resid_cell = sigo_resid[lat, lon]
+
+            corr1_cell = corr1[lat, lon]
+
+            sigo_cell = sigo[lat, lon]
+
+            pred_sig_init = partial_r_cell * sigo_resid_cell
+
+            total_pred_sig = corr1_cell * sigo_cell
+
+            # Calculate the init_impact
+            init_impact[lat, lon] = pred_sig_init / total_pred_sig
 
     # Return the benefit of initialization
     return init_impact
-
