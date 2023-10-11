@@ -652,12 +652,12 @@ def main():
     np.save(save_path + corr_diff_p_name, forecast_stats["corr_diff_p"])
 
     # Save the partial r min and max values
-    np.save(save_path + partial_r_min_name, forecast_stats["partial_r_min"])
+    np.save(save_path + partial_r_min_name, forecast_stats["partialr_min"])
 
-    np.save(save_path + partial_r_max_name, forecast_stats["partial_r_max"])
+    np.save(save_path + partial_r_max_name, forecast_stats["partialr_max"])
 
     # Save the partial r bias
-    np.save(save_path + partial_r_bias_name, forecast_stats["partial_r_bias"])
+    np.save(save_path + partial_r_bias_name, forecast_stats["partialr_bias"])
 
     # Save the fcst1_em_resid array
     np.save(save_path + fcst1_em_resid_name, forecast_stats["fcst1_em_resid"])
