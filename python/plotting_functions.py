@@ -151,7 +151,7 @@ def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
 
     # Add a colorbar for the correlation
     cbar = fig.colorbar(cf1, ax=axs, orientation='horizontal', pad = 0.05,
-                        aspect=50, shrink=0.8)
+                        aspect=50, shrink=0.8, extend='both')
     cbar.set_label('correlation coefficient')
 
     # Set up the pathname for saving the figure
