@@ -5991,7 +5991,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                                     * (sigo_cell / sig2_cell)
 
             # Calculate the residuals for the forecast1 ensemble mean
-            fcst1_em_resid[:, lat, lon] = f1_cell - r2o_boot[0, lat, lon] \
+            fcst1_em_resid[:, lat, lon] = f1_cell - r12_boot[0, lat, lon] \
                                            * f2_cell * (sig1_cell / sig2_cell)
 
             # Calculate the standard deviation of the 
