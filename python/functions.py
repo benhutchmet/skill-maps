@@ -7118,6 +7118,76 @@ def plot_seasonal_correlations_wind_speed(shared_models, obs_path, region, regio
     plt.show() 
 
 
+# Define a new function to plot the time series for raw, lagged and NAO-matched
+#data
+def plot_seasonal_correlations_timeseries_methods(models, observations_path, obs_variable,
+                                                obs_path, region, region_grid, forecast_range,
+                                                start_year, end_year, seasons_list_obs, seasons_list_mod,
+                                                plots_dir, time_series_grid, p_sig=0.05, experiment='dcppA-hindcast'):
+    """
+    Plots the time series for the correlations for the different models and seasons"
+    """
+
+    # Create an empty list to store the processed observations
+    obs_list = []
+
+    # Create empty lists to store the r field for the time series
+    rfield_list = []
+    pfield_list = []
+
+    # List for the ensemble mean array
+    ensemble_mean_array_list = []
+
+    # List for the ensemble members count
+    ensemble_members_count_list = []
+
+    # Set up the ax labels
+    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F' ,'G', 'H' ,'I', 'J', 'K', 'L']
+
+    # Set up the methods
+    methods = ['raw', 'lagged', 'nao_matched']
+
+    # set up the model load region
+    model_load_region = 'global'
+
+    # Loop over the methods
+    for method in methods:
+        print("method", method)
+
+        # Loop over the seasons
+        for i, obs_season in enumerate(seasons_list_obs):
+            print("obs season", obs_season)
+
+            # Set up the model season
+            model_season = seasons_list_mod[i]
+
+            # Process the observations for the region and season
+            region = 'central-europe' #hardcoded for now
+            obs = process_observations_timeseries(obs_variable, region, 
+                                                  forecast_range, obs_season, observations_path)
+
+            # if the method is raw
+            if method == 'raw':
+                print("method is raw")
+                
+                # Load the model data
+                model_datasets = load_data(dic.base_dir, models, obs_variable, model_load_region,
+                                               forecast_range, model_season)
+
+                # Process the model data
+                model_data, _ = process_data(model_datasets, obs_variable)
+
+                # Now use the function calculate_correlations_timeseries
+                # to get the correlation time series for the seasons
+                r, p, ensemble_mean_array, observed_data_array, \
+                ensemble_members_count, obs_years, model_years = calculate_correlations_timeseries(obs, model_data, models, obs_variable,
+                                                                                                obs_season, model_season, forecast_range, method=method)                             
+
+
+
+
+
+
 # for the same variable, region and forecast range (e.g. psl global years 2-9)
 # but with different seasons (e.g. DJFM, MAM, JJA, SON)
 def plot_seasonal_correlations_timeseries(models, observations_path, variable, forecast_range, 

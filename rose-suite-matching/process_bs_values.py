@@ -532,11 +532,6 @@ def main():
         ".npy"
     )
 
-    msss2_name = (
-        f"msss2_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
     # Also save the arrays for the min and max values of MSS1 and MSS2
     msss1_min_name = (
         f"msss1_min_{variable}_{region}_{season}_{forecast_range}" +
@@ -548,24 +543,9 @@ def main():
         ".npy"
     )
 
-    msss2_min_name = (
-        f"msss2_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    msss2_max_name = (
-        f"msss2_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
     # Also save the arrays for the MSSS1 and MSSS2 p values
     msss1_p_name = (
         f"msss1_p_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    msss2_p_name = (
-        f"msss2_p_{variable}_{region}_{season}_{forecast_range}" +
         ".npy"
     )
 
@@ -632,22 +612,15 @@ def main():
     # Save the MSSS1 and MSSS2 arrays
     np.save(save_path + msss1_name, forecast_stats["msss1"])
 
-    np.save(save_path + msss2_name, forecast_stats["msss2"])
 
     # Save the min and max values
     np.save(save_path + msss1_min_name, forecast_stats["msss1_min"])
 
     np.save(save_path + msss1_max_name, forecast_stats["msss1_max"])
 
-    np.save(save_path + msss2_min_name, forecast_stats["msss2_min"])
-
-    np.save(save_path + msss2_max_name, forecast_stats["msss2_max"])
-
     # Save the MSSS1 and MSSS2 p values
 
     np.save(save_path + msss1_p_name, forecast_stats["msss1_p"])
-
-    np.save(save_path + msss2_p_name, forecast_stats["msss2_p"])
 
     # Save the RPC1 and RPC2 arrays
     np.save(save_path + rpc1_name, forecast_stats["rpc1"])
@@ -679,12 +652,12 @@ def main():
     np.save(save_path + corr_diff_p_name, forecast_stats["corr_diff_p"])
 
     # Save the partial r min and max values
-    np.save(save_path + partial_r_min_name, forecast_stats["partial_r_min"])
+    np.save(save_path + partial_r_min_name, forecast_stats["partialr_min"])
 
-    np.save(save_path + partial_r_max_name, forecast_stats["partial_r_max"])
+    np.save(save_path + partial_r_max_name, forecast_stats["partialr_max"])
 
     # Save the partial r bias
-    np.save(save_path + partial_r_bias_name, forecast_stats["partial_r_bias"])
+    np.save(save_path + partial_r_bias_name, forecast_stats["partialr_bias"])
 
     # Save the fcst1_em_resid array
     np.save(save_path + fcst1_em_resid_name, forecast_stats["fcst1_em_resid"])

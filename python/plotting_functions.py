@@ -56,7 +56,7 @@ def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
     ax_labels = ['A', 'B']
 
     # Set up the plot_names
-    plot_names = ['Total skill', 'Init. impact']
+    plot_names = ['Total skill', 'Residual Correlations']
 
     # Set up the projection
     proj = ccrs.PlateCarree()
@@ -88,7 +88,8 @@ def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
 
     # Plot the correlation between the initialized forecast 
     # and the observations
-    cf1 = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
+    cf1 = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj,
+                        extend='both')
 
     # If any corr1 values are NaN
     if np.isnan(corr1).any():
@@ -122,7 +123,7 @@ def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
 
     # Plot the benefit of initialization relative to the uninitialized forecast
     cf2 = ax2.contourf(lons, lats, init_impact, clevs, cmap='RdBu_r', 
-                        transform=proj)
+                        transform=proj, extend='both')
     
     # If any r_partial_p values are NaN
     if np.isnan(init_impact).any():
