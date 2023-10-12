@@ -153,19 +153,19 @@ def load_arrays_from_npy(path, variable):
     # find the file containing partial_r_p
     partial_r_p_file = [file for file in files if 'partial_r_p' in file][0]
 
-    # find the file containing sigo
-    sigo_file = [file for file in files if f'sigo_{variable}' in file][0]
+    # # find the file containing sigo
+    # sigo_file = [file for file in files if f'sigo_{variable}' in file][0]
 
-    # find the file containing sigo_resid
-    sigo_resid_file = [file for file in files if 'sigo_resid' in file][0]
+    # # find the file containing sigo_resid
+    # sigo_resid_file = [file for file in files if 'sigo_resid' in file][0]
 
     # Load the arrays from the files
     arrays['corr1'] = np.load(corr1_file)
     arrays['corr1_p'] = np.load(corr1_p_file)
     arrays['partial_r'] = np.load(partial_r_file)
     arrays['partial_r_p'] = np.load(partial_r_p_file)
-    arrays['sigo'] = np.load(sigo_file)
-    arrays['sigo_resid'] = np.load(sigo_resid_file)
+    # arrays['sigo'] = np.load(sigo_file)
+    # arrays['sigo_resid'] = np.load(sigo_resid_file)
 
     # Return the arrays
     return arrays
