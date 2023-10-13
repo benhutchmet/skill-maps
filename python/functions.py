@@ -3856,10 +3856,10 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
 
     if not NAO_index:
         # Set up an empty array for the lagged ensemble members
-        lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years, lat_shape, lon_shape))
+        lagged_ensemble = np.zeros([m_lagged_ensemble_members, n_years, lat_shape, lon_shape])
     else:
         # Set up an empty array for the lagged ensemble members
-        lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years))
+        lagged_ensemble = np.zeros([m_lagged_ensemble_members, n_years])
 
 # Loop over the ensemble members
     for member in range(m_ensemble_members):
@@ -3876,9 +3876,9 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                 for lag_index in range(lag):
                     # Set the lag_index members with the year <= lag - 1 to NaN
                     if not NAO_index:
-                        lagged_ensemble[member * lag + lag_index, year, :, :] = np.nan
+                        lagged_ensemble[member + (lag_index * m_ensemble_members), year, :, :] = np.nan
                     else:
-                        lagged_ensemble[member * lag + lag_index, year] = np.nan
+                        lagged_ensemble[member + (lag_index * m_ensemble_members), year] = np.nan
             # if the year index is greater than or equal to lag - 1
             else:
                 # Loop over the lag
@@ -3887,9 +3887,9 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                     # to the ensemble member
                     # for the current year minus the lag index
                     if not NAO_index:
-                        lagged_ensemble[member * lag + lag_index, year, :, :] = ensemble_members[member, year - lag_index, :, :]
+                        lagged_ensemble[member + (lag_index * m_ensemble_members), year, :, :] = ensemble_members[member, year - lag_index, :, :]
                     else:
-                        lagged_ensemble[member * lag + lag_index, year] = ensemble_members[member, year - lag_index]
+                        lagged_ensemble[member + (lag_index * m_ensemble_members), year] = ensemble_members[member, year - lag_index]
                         
     # Remove the years which only contain NaN values
     years_to_keep = []
@@ -3902,6 +3902,7 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
         else:
             if not np.isnan(lagged_ensemble[:, year]).all():
                 years_to_keep.append(year)
+                
     # Create a new array that only contains the non-NaN years
     lagged_ensemble_constrained = lagged_ensemble[:, years_to_keep, :, :] if not NAO_index else lagged_ensemble[:, years_to_keep]
 
