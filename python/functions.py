@@ -122,21 +122,21 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
             # print(file)
 
             # Conditional statement to ensure that models are common to all variables
-            if model == "CMCC-CM2-SR5":
-                # Don't use the files containing r11 and above or r2?i?
-                if re.search(r"r1[1-9]", file) or re.search(r"r2.i.", file):
-                    print("Skipping file", file)
-                    continue
-            elif model == "EC-Earth3":
-                # Don't use the files containing r?i2 or r??i2
-                if re.search(r"r.i2", file) or re.search(r"r..i2", file):
-                    print("Skipping file", file)
-                    continue
-            elif model == "FGOALS-f3-L":
-                # Don't use files containing r1-6i? or r??i?
-                if any(re.search(fr"r{i}i.", file) for i in range(1, 7)) or re.search(r"r..i.", file):
-                    print("Skipping file", file)
-                    continue
+            # if model == "CMCC-CM2-SR5":
+            #     # Don't use the files containing r11 and above or r2?i?
+            #     if re.search(r"r1[1-9]", file) or re.search(r"r2.i.", file):
+            #         print("Skipping file", file)
+            #         continue
+            # elif model == "EC-Earth3":
+            #     # Don't use the files containing r?i2 or r??i2
+            #     if re.search(r"r.i2", file) or re.search(r"r..i2", file):
+            #         print("Skipping file", file)
+            #         continue
+            # elif model == "FGOALS-f3-L":
+            #     # Don't use files containing r1-6i? or r??i?
+            #     if any(re.search(fr"r{i}i.", file) for i in range(1, 7)) or re.search(r"r..i.", file):
+            #         print("Skipping file", file)
+            #         continue
 
             # check that the file exists
             # if it doesn't exist, #print a warning and
@@ -1538,6 +1538,7 @@ def constrain_years(model_data, models):
             if len(years[years < 2020]) != len(set(years[years < 2020])):
                 # Raise a value error
                 print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
+                # continue with the loop
                 continue
 
             # If there is a gap of more than 1 year in the years
@@ -1600,7 +1601,7 @@ def constrain_years(model_data, models):
                 print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
                 # print the values of the years where the gap is greater than 1
                 # Convert the tuple returned by np.where() to a NumPy array
-                indices = np.array(np.where(np.diff(years) > 1))
+                indices = np.array(np.where(np.diff(years[years < 2020]) > 1))
 
                 # Subtract 2 from the indices to adjust for the gap
                 adjusted_indices = indices - 2
@@ -2184,13 +2185,16 @@ def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, 
     
     # Log which years are being used for the cross-validation
     print("Cross-validation indices:", cross_validation_indices)
-
+    print("shape of ensemble members pre delete: ", ensemble_members_nao)
     # Extract the ensemble members for the cross-validation
     # i.e. don't use the years given by the cross_validation_indices
     ensemble_members_nao_array_cross_val = np.delete(ensemble_members_nao, cross_validation_indices, axis=1)
     # Take the mean over the ensemble members
     # to get the ensemble mean nao for the cross-validation
+    print("shape of cross val remaining: ", ensemble_members_nao_array_cross_val.shape)                             
     ensemble_mean_nao_cross_val = ensemble_members_nao_array_cross_val.mean(axis=0)
+
+    print("shape of ensemble members post delete: ", ensemble_members_nao_array_cross_val)                            
 
     # Remove the indicies from the obs_nao
     obs_nao_cross_val = np.delete(obs_nao, cross_validation_indices, axis=0)
@@ -2198,11 +2202,19 @@ def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, 
     # Calculate the pearson correlation coefficient between the observed and model NAO indices
     acc_score, p_value = stats.pearsonr(obs_nao_cross_val, ensemble_mean_nao_cross_val)
 
+    print("acc score :", acc_score)                            
+    print
+                                
     # Calculate the RPS score 
     rps_score = calculate_rps(acc_score, ensemble_members_nao_array_cross_val, obs_nao_cross_val)  
 
+    print("rps score :", rps_score)
+    print("ensemble mean nao year pre *rps :", ensemble_mean_nao_year)                            
+
     # Compute the rescaled NAO index for the year
     signal_adjusted_nao_index = ensemble_mean_nao_year * rps_score
+
+    print("signal adjusted nao index post *rpc :", signal_adjusted_nao_index)                              
 
     return signal_adjusted_nao_index, ensemble_mean_nao_year
 
@@ -3350,6 +3362,10 @@ def calculate_ensemble_mean(model_var, models, lag=None):
     # Calculate the ensemble mean NAO index
     ensemble_mean_var = np.mean(ensemble_members_var, axis=0)
 
+    # print the dimensions
+    print("dimensions of the lagged:", lag, "ensemble: ", dims)
+    print("coordinates of the lagged: ", lag, "ensemble: ", coords)
+
     # Convert the ensemble mean NAO index to an xarray DataArray
     ensemble_mean_var = xr.DataArray(ensemble_mean_var, coords=member.coords, dims=member.dims)
 
@@ -3425,6 +3441,11 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
 
     # Create an empty numpy array to store the rescaled NAO index
     rescaled_model_nao = np.empty((len(model_years)))
+
+    # dimensions of memmbers
+    print("dimensions of ensemble members nao: ", ensemble_members_nao.shape)
+    print("coords of ensemble members nao: ", ensemble_members_nao.shape)
+    print("shape of ensemble mean: ", ensemble_mean_nao.shape)
 
     # Loop over the years and perform the rescaling (including cross-validation)
     for i, year in enumerate(model_years):
@@ -3856,10 +3877,10 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
 
     if not NAO_index:
         # Set up an empty array for the lagged ensemble members
-        lagged_ensemble = np.zeros([m_lagged_ensemble_members, n_years, lat_shape, lon_shape])
+        lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years, lat_shape, lon_shape))
     else:
         # Set up an empty array for the lagged ensemble members
-        lagged_ensemble = np.zeros([m_lagged_ensemble_members, n_years])
+        lagged_ensemble = np.empty((m_lagged_ensemble_members, n_years))
 
 # Loop over the ensemble members
     for member in range(m_ensemble_members):
@@ -3876,9 +3897,9 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                 for lag_index in range(lag):
                     # Set the lag_index members with the year <= lag - 1 to NaN
                     if not NAO_index:
-                        lagged_ensemble[member + (lag_index * m_ensemble_members), year, :, :] = np.nan
+                        lagged_ensemble[member * lag + lag_index, year, :, :] = np.nan
                     else:
-                        lagged_ensemble[member + (lag_index * m_ensemble_members), year] = np.nan
+                        lagged_ensemble[member * lag + lag_index, year] = np.nan
             # if the year index is greater than or equal to lag - 1
             else:
                 # Loop over the lag
@@ -3887,9 +3908,9 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
                     # to the ensemble member
                     # for the current year minus the lag index
                     if not NAO_index:
-                        lagged_ensemble[member + (lag_index * m_ensemble_members), year, :, :] = ensemble_members[member, year - lag_index, :, :]
+                        lagged_ensemble[member * lag + lag_index, year, :, :] = ensemble_members[member, year - lag_index, :, :]
                     else:
-                        lagged_ensemble[member + (lag_index * m_ensemble_members), year] = ensemble_members[member, year - lag_index]
+                        lagged_ensemble[member * lag + lag_index, year] = ensemble_members[member, year - lag_index]
                         
     # Remove the years which only contain NaN values
     years_to_keep = []
@@ -3902,7 +3923,6 @@ def lag_ensemble(ensemble_members, lag, NAO_index=False):
         else:
             if not np.isnan(lagged_ensemble[:, year]).all():
                 years_to_keep.append(year)
-                
     # Create a new array that only contains the non-NaN years
     lagged_ensemble_constrained = lagged_ensemble[:, years_to_keep, :, :] if not NAO_index else lagged_ensemble[:, years_to_keep]
 
