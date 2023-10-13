@@ -1538,8 +1538,18 @@ def constrain_years(model_data, models):
             if len(years) != len(set(years)):
                 # Raise a value error
                 print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
-                # continue with the loop
-                continue
+                
+                # Constrain years so that the array does not contain 2020 and 
+                # above
+                years_constrained = years[years < 2020]
+
+                # Check that the years_constrained array does not contain
+                # any duplicate values
+                if len(years_constrained) != len(set(years_constrained)):
+                    print("The models years has duplicate values for model before 2020" + model + "member " + member.attrs['variant_label'])
+
+                    # continue with the loop
+                    continue
 
             # If there is a gap of more than 1 year in the years
             # then raise a value error
