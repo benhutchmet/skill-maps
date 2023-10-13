@@ -1535,21 +1535,10 @@ def constrain_years(model_data, models):
             # print("years len:", len(years), "for model:", model)
 
             # If the years has duplicate values
-            if len(years) != len(set(years)):
+            if len(years[years < 2020]) != len(set(years[years < 2020])):
                 # Raise a value error
                 print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
-                
-                # Constrain years so that the array does not contain 2020 and 
-                # above
-                years_constrained = years[years < 2020]
-
-                # Check that the years_constrained array does not contain
-                # any duplicate values
-                if len(years_constrained) != len(set(years_constrained)):
-                    print("The models years has duplicate values for model before 2020" + model + "member " + member.attrs['variant_label'])
-
-                    # continue with the loop
-                    continue
+                continue
 
             # If there is a gap of more than 1 year in the years
             # then raise a value error
@@ -1599,7 +1588,7 @@ def constrain_years(model_data, models):
             # #print('model years shape', np.shape(years))
 
             # If the years has duplicate values
-            if len(years) != len(set(years)):
+            if len(years[years < 2020]) != len(set(years[years < 2020])):
                 # Raise a value error
                 print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
                 # continue with the loop
@@ -1607,7 +1596,7 @@ def constrain_years(model_data, models):
 
             # If there is a gap of more than 1 year in the years
             # then raise a value error
-            if np.any(np.diff(years) > 1):
+            if np.any(np.diff(years[years < 2020]) > 1):
                 print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
                 # print the values of the years where the gap is greater than 1
                 # Convert the tuple returned by np.where() to a NumPy array
