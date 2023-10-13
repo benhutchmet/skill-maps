@@ -2223,7 +2223,7 @@ def rescale_nao_by_year(year, obs_nao, ensemble_mean_nao, ensemble_members_nao, 
 def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_variable_model, match_variable_obs, match_var_base_dir,
                             match_var_models, match_var_obs_path, region, season, forecast_range, 
                                 start_year, end_year, output_dir, save_dir, lagged_years=None, lagged_nao=False, 
-                                    no_subset_members=20, level = None, ensemble_mean_nao=None):
+                                    no_subset_members=20, level = None, ensemble_mean_nao=None, load_files = True):
     """
     Performs the NAO matching for the given variable. E.g. T2M. By default will select from the lagged ensemble members.
 
@@ -2294,7 +2294,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
     save_path_members = f"{save_dir}/{filename_members}"
 
     # If the file already exists
-    if os.path.exists(save_path_mean) and os.path.exists(save_path_members):
+    if os.path.exists(save_path_mean) and os.path.exists(save_path_members) and load_files == True:
         # Print a notification
         print(f"The files {filename_mean} and {filename_members} already exist")
         print("Loading the files")
