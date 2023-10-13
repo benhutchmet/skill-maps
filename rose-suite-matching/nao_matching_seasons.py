@@ -204,7 +204,9 @@ def main():
     
     # Calculate the NAO index for the obs and model NAO
     obs_nao, model_nao = fnc.calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, psl_models,
-                                                            psl_var, season, forecast_range, plots_dir)
+                                                            psl_var, season, forecast_range, plots_dir,
+                                                            plot_graphics=False, azores_grid = dic.azores_grid_corrected,
+                                                            iceland_grid = dic.iceland_grid_corrected)
     
     # Perform the lagging of the ensemble and rescale the NAO index
     rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = fnc.rescale_nao(obs_nao, model_nao, psl_models,
