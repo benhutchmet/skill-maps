@@ -1544,7 +1544,7 @@ def constrain_years(model_data, models):
             # If there is a gap of more than 1 year in the years
             # then raise a value error
             # Check whats going on with Canesm5
-            if np.any(np.diff(years) > 1):
+            if np.any(np.diff(years[years < 2020]) > 1):
                 print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
                 # continue with the loop
                 continue
@@ -3457,9 +3457,14 @@ def rescale_nao(obs_nao, model_nao, models, season, forecast_range, output_dir, 
         # Append the rescaled NAO index to the list, along with the year
         rescaled_model_nao[i] = signal_adjusted_nao_index_year
 
+    # Print the rescaled model nao
+    print("rescaled model nao before xarray", rescaled_model_nao)
+
     # Convert the list to an xarray DataArray
     # With the same coordinates as the ensemble mean NAO index
     rescaled_model_nao = xr.DataArray(rescaled_model_nao, coords=ensemble_mean_nao.coords, dims=ensemble_mean_nao.dims)
+
+    print("rescaled model nao after xarray", rescaled_model_nao.values)
 
     # If the time type is not datetime64 for the rescaled model nao
     # Then convert the time type to datetime64
