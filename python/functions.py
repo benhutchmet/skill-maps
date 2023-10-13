@@ -3251,7 +3251,10 @@ def plot_nao_index(obs_nao, ensemble_mean_nao, variable, season, forecast_range,
         p_text = f"= {p:.2f}"
 
     # Extract the ensemble members count
-    no_ensemble_members = sum(ensemble_members_count.values())
+    if ensemble_members_count is not None:
+        no_ensemble_members = sum(ensemble_members_count.values())
+    else:
+        no_ensemble_members = None
 
     # Set up the title for the plot
     plt.title(f"ACC = {r:.2f}, p {p_text}, n = {no_ensemble_members}, years_{forecast_range}, {season}, {experiment}", fontsize=10)
