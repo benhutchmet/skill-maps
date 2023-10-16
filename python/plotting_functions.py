@@ -221,7 +221,7 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
     proj = ccrs.PlateCarree()
 
     # Set up the figure
-    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(8, 12),
+    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(10, 12),
                             subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
@@ -235,7 +235,7 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
         ' method' + 'no_bootstraps = ' + str(no_bootstraps)
     
     # set up the supertitle
-    fig.suptitle(title, fontsize=10, y=0.90)
+    fig.suptitle(title, fontsize=8, y=0.90)
 
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5)
