@@ -3110,12 +3110,12 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=Tr
         
         # Set up the coordinates for the lagged ensemble members
         member_coords = {
-            'time': years,
-            'member': lagged_ensemble_members_list.member.values
+            'member': lagged_ensemble_members_list.member.values,
+            'time': years
         }
 
         # Set up the dimensions for the lagged ensemble members
-        member_dims = ['time', 'member']
+        member_dims = ['member', 'time']
 
         # Convert the lagged ensemble members to an xarray dataset
         lagged_ensemble_members_list = xr.DataArray(lagged_ensemble_members_list,
