@@ -173,11 +173,9 @@ f"_{finish_year}.png"
 # with the total skill on the left 
 # and the residual correlations on the right
 # Rows are DJFM, MAM, JJA, SON, going downwards
-def plot_raw_init_impact_subplots(corr1_dict: dict, corr1_p_dict: dict, rpartial_dict: dict,
-                                  rpartial_p_dict: dict, variable: str, seasons_list: list,
+def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable: str, seasons_list: list,
                                   forecast_range: str, method: str, no_bootstraps: int,
-                                  nens1_dict: dict, nens2_dict: dict, start_year: int,
-                                  finish_year: int, plots_dir: str) -> None:
+                                  start_year: int, finish_year: int, plots_dir: str) -> None:
     """
     Plots two subplots alongside (similar to Doug Smith's 2019 - Robust skill
     figure 3) each other. Left subplot is the correlation between the
@@ -188,29 +186,25 @@ def plot_raw_init_impact_subplots(corr1_dict: dict, corr1_p_dict: dict, rpartial
     Subplots are for the seasons in the seasons_list.
 
     Args:
-        corr1_dict (dict): dictionary of correlations between the initialized
-                            forecast and the observations. Indexed by season.
-        corr1_p_dict (dict): dictionary of p-values for the correlation
-                                between the initialized forecast and the
-                                observations. Indexed by season.
-        rpartial_dict (dict): dictionary of residual correlations between the
-                                initialized forecast and the observations after
-                                removing the influence of the uninitialized
-                                forecast. Indexed by season.
-        rpartial_p_dict (dict): dictionary of p-values for the residual
-                                    correlations between the initialized
-                                    forecast and the observations after
-                                    removing the influence of the
-                                    uninitialized forecast. Indexed by season.
+        arrays_list (list): list of dictionaries containing the arrays to plot.
+                            Indexed by season.
+                            Each dictionary contains the following keys:
+                                corr1 (array): correlation between the initialized forecast and the observations
+                                corr1_p (array): p-value for the correlation between the initialized forecast and the observations
+                                partial_r (array): partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
+                                partial_r_p (array): p-value for the partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
+        values_list (list): list of dictionaries containing the values to plot.
+                            Indexed by season.
+                            Each dictionary contains the following keys:
+                                nens1 (int): number of ensemble members in the first ensemble (initialized)
+                                nens2 (int): number of ensemble members in the second ensemble (uninitialized)
+                                start_year (int): start year of the forecast
+                                end_year (int): end year of the forecast
         variable (str): variable to plot
         seasons_list (list): list of seasons to plot
         forecast_range (str): forecast range to plot
         method (str): method to plot
         no_bootstraps (int): number of bootstraps to plot
-        nens1_dict (dict): dictionary of number of ensemble members in the
-                            first ensemble (initialized). Indexed by season.
-        nens2_dict (dict): dictionary of number of ensemble members in the
-                            second ensemble (uninitialized). Indexed by season.
         start_year (int): start year of the forecast
         finish_year (int): end year of the forecast
         plots_dir (str): path to the directory to save the plots
@@ -257,3 +251,128 @@ def plot_raw_init_impact_subplots(corr1_dict: dict, corr1_p_dict: dict, rpartial
     # Loop over the seasons
     for i, season in enumerate(seasons_list):
         print("Plotting index:", i, "season:", season)
+
+        # Extract the dictionaries for this season
+        season_arrays = arrays_list[i]
+        season_values = values_list[i]
+
+        # From the dictionaries, extract the arrays
+        corr1 = season_arrays['corr1']
+        corr1_p = season_arrays['corr1_p']
+        partial_r = season_arrays['partial_r']
+        partial_r_p = season_arrays['partial_r_p']
+
+        # From the dictionaries, extract the values
+        nens1 = season_values['nens1']
+        nens2 = season_values['nens2']
+        start_year = season_values['start_year']
+        end_year = season_values['end_year']
+
+        # Set up the axes for the total skill
+        ax1 = axs[i, 0]
+        ax1.coastlines()
+        cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj,
+                            extend='both')
+        
+        # if any of the corr1 values are NaN
+        if np.isnan(corr1).any():
+            # set the corr1_p value to NaN at those points
+            corr1_p[corr1 == np.nan] = np.nan
+
+        # If any of the corr1_p values are greater than the significance
+        # threshold - set them to NaN
+        corr1_p[corr1_p > sig_threshold] = np.nan
+
+        # Plot the p-values for the correlation between the initialized forecast
+        # and the observations
+        ax1.contourf(lons, lats, corr1_p, hatches=['....'], alpha=0.,
+                     transform=proj)
+        
+        # Add a textbox with the figure label
+        ax1.text(0.95, 0.05, ax_labels[i], transform=ax1.transAxes,
+                    verticalalignment='bottom', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5))
+        
+        # Add a textbox with the plot name
+        ax1.text(0.05, 0.95, plot_names[0], transform=ax1.transAxes,
+                    verticalalignment='top', horizontalalignment='left',
+                    bbox=dict(facecolor='white', alpha=0.5))
+        
+        # Add a textbox with the method
+        # to the top right of the plot
+        ax1.text(0.95, 0.95, method, transform=ax1.transAxes,
+                    verticalalignment='top', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5))
+        
+        # add a textbox with the season
+        # to the bottom left of the plot
+        ax1.text(0.05, 0.05, season, transform=ax1.transAxes,
+                    verticalalignment='bottom', horizontalalignment='left',
+                    bbox=dict(facecolor='white', alpha=0.5))
+        
+        # Add the contourf object to the list
+        cf_list.append(cf)
+
+        # Set up the axes for the residual correlation
+        ax2 = axs[i, 1]
+        ax2.coastlines()
+        cf = ax2.contourf(lons, lats, partial_r, clevs, cmap='RdBu_r', 
+                            transform=proj, extend='both')
+
+        # Append the contourf object to the list
+        cf_list.append(cf)
+
+        # If any of the partial_r values are NaN
+        if np.isnan(partial_r).any():
+            # Set the partial_r_p values to NaN at those points
+            partial_r_p[partial_r == np.nan] = np.nan
+
+        # If any of the partial_r_p values are greater than the significance
+        # threshold - set them to NaN
+        partial_r_p[partial_r_p > sig_threshold] = np.nan
+
+        # Plot the p-values for the partial correlation between the initialized
+        # forecast and the observations after removing the influence of the
+        # uninitialized forecast
+        ax2.contourf(lons, lats, partial_r_p, hatches=['....'], alpha=0.,
+                     transform=proj)
+        
+        # Add a textbox with the figure label
+        ax2.text(0.95, 0.05, ax_labels[i+4], transform=ax2.transAxes,
+                    verticalalignment='bottom', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5))
+        
+        # Add a textbox with the plot name
+        ax2.text(0.05, 0.95, plot_names[1], transform=ax2.transAxes,
+                    verticalalignment='top', horizontalalignment='left',
+                    bbox=dict(facecolor='white', alpha=0.5))
+        
+        # Add a textbox with the method
+        # to the top right of the plot
+        ax2.text(0.95, 0.95, method, transform=ax2.transAxes,
+                    verticalalignment='top', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5))
+        
+        # add a textbox with the season
+        # to the bottom left of the plot
+        ax2.text(0.05, 0.05, season, transform=ax2.transAxes,
+                    verticalalignment='bottom', horizontalalignment='left',
+                    bbox=dict(facecolor='white', alpha=0.5))
+
+    # Add a colorbar for the correlation
+    cbar = fig.colorbar(cf_list[0], ax=axs, orientation='horizontal', pad = 0.05,
+                        aspect=50, shrink=0.8)
+    cbar.set_label('correlation coefficient')
+
+    # Set up the pathname for saving the figure
+    fig_name = f"{plots_dir}/raw_init_impact_{variable}_subplots_" + \
+    f"{forecast_range}_{method}_{no_bootstraps}_{start_year}" + \
+    f"_{finish_year}.png"
+    
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # show the figure
+    plt.show()
