@@ -175,7 +175,7 @@ f"_{finish_year}.png"
 # Rows are DJFM, MAM, JJA, SON, going downwards
 def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable: str, seasons_list: list,
                                   forecast_range: str, method: str, no_bootstraps: int,
-                                  start_year: int, finish_year: int, plots_dir: str) -> None:
+                                  plots_dir: str) -> None:
     """
     Plots two subplots alongside (similar to Doug Smith's 2019 - Robust skill
     figure 3) each other. Left subplot is the correlation between the
@@ -205,8 +205,6 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
         forecast_range (str): forecast range to plot
         method (str): method to plot
         no_bootstraps (int): number of bootstraps to plot
-        start_year (int): start year of the forecast
-        finish_year (int): end year of the forecast
         plots_dir (str): path to the directory to save the plots
 
     Returns:
