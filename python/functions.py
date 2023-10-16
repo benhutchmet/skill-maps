@@ -2333,7 +2333,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         
         # Now we want to ensure that the match var model data is lagged
         _, _, match_var_model_anomalies_constrained = form_ensemble_members_list(match_var_model_anomalies_constrained,
-                                                                            match_var_models, lagged=True, lag=4, NAO=False)
+                                                                            match_var_models, lagged=True, lag=4)
 
         # Make sure that the years for rescaled_model_nao and model_nao 
         # and match_var_model_anomalies_constrained are the same
@@ -2382,6 +2382,14 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
 
         print("looping over the years:", years)
 
+        # Prior to the loop, form the lagged ensemble members list
+        # for NAO containing the individual members
+        _, ensemble_members_count_nao_lagged, nao_lagged_ensemble_members = form_ensemble_members_list(
+                                                                                model_nao_constrained, 
+                                                                                models_in_both,
+                                                                                lagged=True, 
+                                                                                lag=4)
+
         # Loop over the years and perform the NAO matching                                                                               
         for i, year in enumerate(years):
             print("Selecting members for year: ", year)
@@ -2390,7 +2398,8 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
             # for the given year
             smallest_diff = calculate_closest_members(year, rescaled_model_nao, model_nao_constrained, models_in_both, 
                                                         season, forecast_range, output_dir, lagged=True,
-                                                            no_subset_members=no_subset_members)  
+                                                        no_subset_members=no_subset_members,
+                                                        nao_lagged_ensemble_members=nao_lagged_ensemble_members)  
 
             # Using the closest NAO index members, extract the same members
             # for the matched variable
@@ -2802,7 +2811,8 @@ def extract_matched_var_members(year, match_var_model_anomalies_constrained, sma
 
 # Calculate the members which have the closest NAO index to the rescaled NAO index
 def calculate_closest_members(year, rescaled_model_nao, model_nao, models, season, forecast_range, 
-                                output_dir, lagged=True, no_subset_members=20):
+                                output_dir, lagged=True, no_subset_members=20,
+                                nao_lagged_ensemble_members=None):
     """
     Calculates the ensemble members (within model_nao) which have the closest NAO index to the rescaled NAO index.
 
@@ -2827,6 +2837,8 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
         Flag to indicate whether the ensemble is lagged or not. The default is False.
     no_subset_members : int, optional
         Number of ensemble members to subset. The default is 20.
+    nao_lagged_ensemble_members : list, optional
+        List of ensemble members for NAO. The default is None.
     
     Returns
     -------
@@ -2854,13 +2866,18 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     # Extract the data for the year for the rescaled NAO index
     rescaled_model_nao_year = rescaled_model_nao.sel(time=f"{year}")
 
-    if lagged == True:
-        # Form the list of ensemble members
-        _, ensemble_members_count, ensemble_members_list = form_ensemble_members_list(model_nao, models, lagged=True, lag=4)
+    # If nao_lagged_ensemble_members is None
+    if nao_lagged_ensemble_members == None:
+        if lagged == True:
+            # Form the list of ensemble members
+            _, ensemble_members_count, ensemble_members_list = form_ensemble_members_list(model_nao, models, lagged=True, lag=4)
+        else:
+            # Form the list of ensemble members
+            ensemble_members_list, ensemble_members_count, _ = form_ensemble_members_list(model_nao, models, lagged=False)
     else:
-        # Form the list of ensemble members
-        ensemble_members_list, ensemble_members_count, _ = form_ensemble_members_list(model_nao, models, lagged=False)
-
+        print("Using nao_lagged_ensemble_members")
+        # Set the ensemble_members_list to the nao_lagged_ensemble_members
+        ensemble_members_list = nao_lagged_ensemble_members
 
     # Loop over the ensemble members
     for member in ensemble_members_list:
@@ -2980,7 +2997,7 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     return smallest_diff
 
 # Define a new function to form the list of ensemble members
-def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=True):
+def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
     """
     Forms a list of ensemble members, not a dictionary with model keys.
     Each xarray object should have the associated metadata stored in attributes.
@@ -3011,36 +3028,6 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=Tr
 
     # Initialize a dictionary to store the number of ensemble members for each model
     ensemble_members_count = {}
-
-    # If lagged is True and lag is not None
-    if lagged == True and lag is not None and NAO == True:
-        # Set up a filename for the lagged ensemble members
-        lagged_ensemble_members_list_filename = f"lagged_ensemble_members_list_NAO_{lag}.nc"
-        
-        # Set up the directory to store the lagged ensemble members
-        save_members_dir = "/gws/nopw/j04/canari/users/benhutch/" + \
-                            "NAO-matching/save_lagged_members/"
-        
-        # If the directory does not exist, then create it
-        if not os.path.exists(save_members_dir):
-            os.makedirs(save_members_dir)
-
-        # Form the filename
-        lagged_ensemble_members_list_file = f"{save_members_dir}{lagged_ensemble_members_list_filename}"
-
-        # If the file exists
-        if os.path.exists(lagged_ensemble_members_list_file):
-            # Load the lagged ensemble members
-            ensemble_members_list = xr.open_dataset(lagged_ensemble_members_list_file)
-
-            # Set this to the lagged ensemble members
-            lagged_ensemble_members_list = ensemble_members_list
-
-            # Set the other variables to None
-            ensemble_members_count = None ; ensemble_members_list = None
-
-            # Return the ensemble_members_list, ensemble_members_count, and lagged_ensemble_members_list
-            return ensemble_members_list, ensemble_members_count, lagged_ensemble_members_list
 
     # Loop over the models
     for model in models:
@@ -3100,29 +3087,6 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=Tr
 
             # Add one to the ensemble_members_count dictionary
             ensemble_members_count[model] += 1
-
-    # If lagged is True and lag is not None
-    # TODO: FIX this for saving lagged members
-    if lagged == True and lag is not None and lagged_ensemble_members_list is not None and NAO == True:
-        
-        # Concatenate the lagged_ensemble_members_list
-        lagged_ensemble_members_list = xr.concat(lagged_ensemble_members_list, dim="member", coords="minimal", compat="override")
-        
-        # Set up the coordinates for the lagged ensemble members
-        member_coords = {
-            'member': lagged_ensemble_members_list.member.values,
-            'time': years
-        }
-
-        # Set up the dimensions for the lagged ensemble members
-        member_dims = ['member', 'time']
-
-        # Convert the lagged ensemble members to an xarray dataset
-        lagged_ensemble_members_list = xr.DataArray(lagged_ensemble_members_list,
-                                                    coords=member_coords, dims=member_dims)
-
-        # Save the lagged ensemble members
-        lagged_ensemble_members_list.to_netcdf(lagged_ensemble_members_list_file)
 
     return ensemble_members_list, ensemble_members_count, lagged_ensemble_members_list
 
