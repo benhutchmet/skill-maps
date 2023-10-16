@@ -373,6 +373,9 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
     
     fig_path = os.path.join(plots_dir, fig_name)
 
+    # Specify a tight layout
+    plt.tight_layout()
+
     # Save the figure
     plt.savefig(fig_path, dpi=300, bbox_inches='tight')
 
