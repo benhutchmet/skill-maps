@@ -469,6 +469,20 @@ def main():
     elif method == "nao-matched":
         print("Performing NAO matching before processing forecast stats")
 
+        # Set up the NAO matching base directory
+        nao_match_base_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
+
+        # Load the nao-matched data
+        nao_matched_data = load_nao_matched_data(nao_match_base_dir, variable,
+                                                region, season, forecast_range,
+                                                start_year, end_year)
+        
+        # Extract the nao-matched members and mean
+        nao_matched_members = nao_matched_data[0]
+        nao_matched_mean = nao_matched_data[1]
+
+        # TODO: Use the function to constrain the NAO matched members
+        # here
 
 
     else:
