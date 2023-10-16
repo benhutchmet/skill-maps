@@ -3104,6 +3104,10 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=Tr
     # If lagged is True and lag is not None
     # TODO: FIX this for saving lagged members
     if lagged == True and lag is not None and lagged_ensemble_members_list is not None and NAO == True:
+        
+        # Concatenate the lagged_ensemble_members_list
+        lagged_ensemble_members_list = xr.concat(lagged_ensemble_members_list, dim="member", coords="minimal", compat="override")
+        
         # Set up the coordinates for the lagged ensemble members
         member_coords = {
             'time': years,
