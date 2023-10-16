@@ -387,10 +387,16 @@ def main():
                                                                  hist_models, 
                                                                  dcpp_models,
                                                                  obs)
+
+    # If the method is 'raw', process the forecast stats
+    if method == "raw":                                                             
     
-    # Now perform the bootstrapping to create the forecast stats
-    forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2, 
-                                        no_boot = no_bootstraps)
+        # Now perform the bootstrapping to create the forecast stats
+        forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2, 
+                                            no_boot = no_bootstraps)
+        
+    # Else if the method is 'lagged', lag the data
+    # Before processing the forecast stats
 
     # Set up the save path
     save_path = save_dir + "/" + variable + "/" + region + "/" + season + "/" \

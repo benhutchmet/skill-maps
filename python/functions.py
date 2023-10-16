@@ -6893,15 +6893,82 @@ def plot_seasonal_correlations_raw_lagged_matched(models, observations_path, mod
     # Show the figure
     plt.show()
 
+# Define a function to form the lagging of the ensemble for an array
+def lag_ensemble_array(fcst1: np.ndarray, fcst2: np.ndarray, 
+                        obs_array: np.ndarray, lag: int = 4):
+    """
+    Lag the ensemble forecast and observation arrays.
 
-            
+    Parameters
+    ----------
+    fcst1 : numpy.ndarray
+        The first ensemble forecast array with shape (no_members, no_years, no_lats, no_lons).
+    fcst2 : numpy.ndarray
+        The second ensemble forecast array with shape (no_members, no_years, no_lats, no_lons).
+    obs_array : numpy.ndarray
+        The observation array with shape (no_years, no_lats, no_lons).
+    lag : int, optional
+        The number of years to lag the ensemble forecast and observation arrays, by default 4.
 
-            
+    Returns
+    -------
+        lagged_fcst1 : numpy.ndarray
+            The lagged ensemble forecast array with 
+                shape (no_lagged_members, no_years - (lag - 1), no_lats, no_lons).
+        lagged_obs : numpy.ndarray
+            The lagged observation array with
+                shape (no_years - (lag - 1), no_lats, no_lons).
+        lagged_fcst2 : numpy.ndarray
+            The lagged ensemble forecast array with
+                shape (no_lagged_members, no_years - (lag - 1), no_lats, no_lons).
+    
+    """
+    # Extract the no_members
+    n_members = fcst1.shape[0]
+    n_years = fcst1.shape[1]
 
-            
+    # Extract the no_lats
+    n_lats = fcst1.shape[2]
+    n_lons = fcst1.shape[3]
 
-     
-            
+    # Set up the no_lagged_members
+    n_lagged_members = n_members * lag
+
+    # Set up the lagged ensemble
+    lagged_fcst1 = np.zeros([n_lagged_members, n_years, n_lats, n_lons])
+
+    # Loop over the ensemble members
+    for member in range(n_members):
+        # Loop over the years
+        for year in range(n_years):
+            # If the year is less than the lag
+            if year < lag - 1:
+                # Set the lagged ensemble member equal to NaN
+                lagged_fcst1[member, year, :, :] = np.nan
+
+                # Also set the lagged ensemble member equal to NaN
+                for lag_i in range(lag):
+                    lagged_fcst1[member + (lag_i * n_members), year, :, :] = np.nan
+            # Otherwise
+            else:
+                # Loop over the lag
+                for lag_i in range(lag):
+                    # Set the lagged ensemble member equal to the forecast
+                    lagged_fcst1[member + (lag_i * n_members), year, :, :] = \
+                        fcst1[member, year - lag_i, :, :]
+
+    # Now we have the lagged ensemble
+    # The first 3 years of the lagged ensemble should be NaN
+    # Remove these years
+    lagged_fcst1 = lagged_fcst1[:, lag-1:, :, :]
+
+    # Do the same for the observations
+    lagged_obs = obs_array[lag-1:, :, :]
+
+    # Do the same for the second forecast
+    lagged_fcst2 = fcst2[:, lag-1:, :, :]
+
+    return lagged_fcst1, lagged_obs, lagged_fcst2
 
 # Plot seasonal correlations for the wind speed at a given level
 # TODO: WRIte function for plotting wind speed correlations at a given level (850 hPa)
