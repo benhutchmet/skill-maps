@@ -2934,8 +2934,8 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
         # Calculate the difference between the rescaled NAO index and the model NAO index
         nao_diff = np.abs(rescaled_model_nao_year_ann_mean - model_nao_year_ann_mean)
 
-        # Print the difference
-        print("Difference:", nao_diff.values)
+        # # Print the difference
+        # print("Difference:", nao_diff.values)
 
         # Assign the coordinates of the rescaled NAO index to the difference
         nao_diff = nao_diff.assign_coords(coords=rescaled_model_nao_year_ann_mean.coords)
@@ -2963,6 +2963,10 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
 
     # Select only the first no_subset_members members
     smallest_diff = smallest_diff[:no_subset_members]
+
+    # Print the values of the smallest_diff
+    print("Smallest difference values:", [member.values for 
+                                        member in smallest_diff])
 
     # Loop over the members with the smallest differences
     # for i, member in enumerate(smallest_diff):
@@ -3007,6 +3011,36 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
 
     # Initialize a dictionary to store the number of ensemble members for each model
     ensemble_members_count = {}
+
+    # If lagged is True and lag is not None
+    if lagged == True and lag is not None:
+        # Set up a filename for the lagged ensemble members
+        lagged_ensemble_members_list = f"lagged_ensemble_members_list_NAO_{lag}.nc"
+        
+        # Set up the directory to store the lagged ensemble members
+        save_members_dir = "/gws/nopw/j04/canari/users/benhutch/" + \
+                            "NAO-matching/save_lagged_members/"
+        
+        # If the directory does not exist, then create it
+        if not os.path.exists(save_members_dir):
+            os.makedirs(save_members_dir)
+
+        # Form the filename
+        lagged_ensemble_members_list_file = f"{save_members_dir}{lagged_ensemble_members_list}"
+
+        # If the file exists
+        if os.path.exists(lagged_ensemble_members_list_file):
+            # Load the lagged ensemble members
+            ensemble_members_list = xr.open_dataset(lagged_ensemble_members_list_file)
+
+            # Set this to the lagged ensemble members
+            lagged_ensemble_members_list = ensemble_members_list
+
+            # Set the other variables to None
+            ensemble_members_count = None ; ensemble_members_list = None
+
+            # Return the ensemble_members_list, ensemble_members_count, and lagged_ensemble_members_list
+            return ensemble_members_list, ensemble_members_count, lagged_ensemble_members_list
 
     # Loop over the models
     for model in models:
@@ -3066,6 +3100,11 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
 
             # Add one to the ensemble_members_count dictionary
             ensemble_members_count[model] += 1
+
+    # If lagged is True and lag is not None
+    if lagged == True and lag is not None and lagged_ensemble_members_list is not None:
+        # Save the lagged ensemble members
+        xr.save_mfdataset(lagged_ensemble_members_list, lagged_ensemble_members_list_file)
 
     return ensemble_members_list, ensemble_members_count, lagged_ensemble_members_list
 
