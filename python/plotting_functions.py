@@ -167,3 +167,93 @@ f"_{finish_year}.png"
     # show the figure
     plt.show()
 
+
+# define a function which plots all of the seasons as subplots
+# in a 4 x 2 grid of subplots
+# with the total skill on the left 
+# and the residual correlations on the right
+# Rows are DJFM, MAM, JJA, SON, going downwards
+def plot_raw_init_impact_subplots(corr1_dict: dict, corr1_p_dict: dict, rpartial_dict: dict,
+                                  rpartial_p_dict: dict, variable: str, seasons_list: list,
+                                  forecast_range: str, method: str, no_bootstraps: int,
+                                  nens1_dict: dict, nens2_dict: dict, start_year: int,
+                                  finish_year: int, plots_dir: str) -> None:
+    """
+    Plots two subplots alongside (similar to Doug Smith's 2019 - Robust skill
+    figure 3) each other. Left subplot is the correlation between the
+    initialized forecast and the obs, and the right subplot is the residual
+    correlation between the initialized forecast and the observations after
+    removing the influence of the uninitialized forecast. 
+
+    Subplots are for the seasons in the seasons_list.
+
+    Args:
+        corr1_dict (dict): dictionary of correlations between the initialized
+                            forecast and the observations. Indexed by season.
+        corr1_p_dict (dict): dictionary of p-values for the correlation
+                                between the initialized forecast and the
+                                observations. Indexed by season.
+        rpartial_dict (dict): dictionary of residual correlations between the
+                                initialized forecast and the observations after
+                                removing the influence of the uninitialized
+                                forecast. Indexed by season.
+        rpartial_p_dict (dict): dictionary of p-values for the residual
+                                    correlations between the initialized
+                                    forecast and the observations after
+                                    removing the influence of the
+                                    uninitialized forecast. Indexed by season.
+        variable (str): variable to plot
+        seasons_list (list): list of seasons to plot
+        forecast_range (str): forecast range to plot
+        method (str): method to plot
+        no_bootstraps (int): number of bootstraps to plot
+        nens1_dict (dict): dictionary of number of ensemble members in the
+                            first ensemble (initialized). Indexed by season.
+        nens2_dict (dict): dictionary of number of ensemble members in the
+                            second ensemble (uninitialized). Indexed by season.
+        start_year (int): start year of the forecast
+        finish_year (int): end year of the forecast
+        plots_dir (str): path to the directory to save the plots
+
+    Returns:
+        None
+    """
+
+    # Set up the axis labels
+    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+
+    # Set up the plot_names
+    plot_names = ['total skill', 'residual corr']
+
+    # Set up the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the figure
+    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(12, 12),
+                            subplot_kw={'projection': proj}, 
+                            gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    
+    # Set up the title
+    title = 'Total skill and impact of initialization for ' + variable + ' for ' + forecast_range + \
+        ' between ' + str(start_year) + ' and ' + str(finish_year) + ' using ' + method + \
+        ' method' + 'no_bootstraps = ' + str(no_bootstraps)
+    
+    # set up the supertitle
+    fig.suptitle(title, fontsize=10, y=0.90)
+
+    # Set up the lats and lons
+    lons = np.arange(-180, 180, 2.5)
+    lats = np.arange(-90, 90, 2.5)
+
+    # Set up the contour levels
+    clevs = np.arange(-1.0, 1.1, 0.1)
+
+    # Set up the significance threshold as 0.05
+    sig_threshold = 0.05
+
+    # Create a list for the contourf objects
+    cf_list = []
+
+    # Loop over the seasons
+    for i, season in enumerate(seasons_list):
+        print("Plotting index:", i, "season:", season)
