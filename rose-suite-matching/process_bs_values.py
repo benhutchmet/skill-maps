@@ -84,7 +84,8 @@ import functions_diff as hist_fnc
 
 # Third party imports
 import numpy as np
-
+from typing import Tuple
+import xarray as xr
 
 # Define a function to extract the variables from the command line
 def extract_variables():
@@ -283,6 +284,55 @@ def align_and_convert_to_array(hist_data, dcpp_data, hist_models, dcpp_models,
     # Return the aligned data
     return fcst1, fcst2, obs, common_years
 
+# Define a new function to load the NAO matched data
+def load_nao_matched_data(base_dir: str, variable: str, region: str, season: str, forecast_range: str, start_year: int, end_year: int) -> Tuple[xr.Dataset, xr.Dataset]:
+    """
+    Load the NAO matched members and mean from a directory.
+
+    Parameters
+    ----------
+    base_dir : str
+        The base directory containing the NAO matched data.
+    variable : str
+        The variable to load (e.g. "t2m").
+    region : str
+        The region to load (e.g. "uk").
+    season : str
+        The season to load (e.g. "djf").
+    forecast_range : str
+        The forecast range to load (e.g. "day10").
+    start_year : int
+        The start year of the data to load.
+    end_year : int
+        The end year of the data to load.
+
+    Returns
+    -------
+    Tuple[xr.Dataset, xr.Dataset]
+        A tuple containing the NAO matched members and mean as xarray Datasets.
+    """
+    # Set up the path to the data
+    path_nao_match_dir = f"{base_dir}/{variable}/{region}/{season}/{forecast_range}/{start_year}-{end_year}/"
+
+    # Check if there are files in the directory
+    if len(os.listdir(path_nao_match_dir)) == 0:
+        raise ValueError("There are no files in the directory")
+
+    # Extract the files in the directory
+    files = os.listdir(path_nao_match_dir)
+
+    # Extract the file containing the lagged ensemble NAO matched mean
+    nao_matched_mean_file = [file for file in files if "mean_lagged" in file][0]
+
+    # Extract the file containing the lagged ensemble NAO matched members
+    nao_matched_members_file = [file for file in files if "members_lagged" in file][0]
+
+    # Open the datasets using xarray
+    nao_matched_members = xr.open_dataset(path_nao_match_dir + nao_matched_members_file)
+    nao_matched_mean = xr.open_dataset(path_nao_match_dir + nao_matched_mean_file)
+
+    return (nao_matched_members, nao_matched_mean)
+
 # Define the main function
 def main():
     """
@@ -332,6 +382,12 @@ def main():
         region_grid = dicts.gridspec_global
     else:
         raise ValueError("Region not recognised. Please try again.")
+    
+    # Assert that method must be 'raw', 'lagged' or 'nao-matched'
+    assert method in ["raw", "lagged", "nao-matched"], (
+        "Method not recognised. Please try again." +
+        "Must be 'raw', 'lagged' or 'nao-matched'"
+    )
 
     # If season conttains a number, convert it to the string
     season = convert_season(season, dicts)
@@ -390,13 +446,33 @@ def main():
 
     # If the method is 'raw', process the forecast stats
     if method == "raw":                                                             
-    
+        print("Processing forecast stats for raw method")
+
         # Now perform the bootstrapping to create the forecast stats
         forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2, 
                                             no_boot = no_bootstraps)
         
     # Else if the method is 'lagged', lag the data
     # Before processing the forecast stats
+    elif method == "lagged":
+        print("Performing lagging before processing forecast stats")
+
+        # Call the function to perform the lagging
+        lag_fcst1, lag_obs, lag_fcst2 = fnc.lag_ensemble_array(fcst1, fcst2,
+                                                               obs, lag=lag)
+        
+        # Now process the forecast stats for the lagged data
+        forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
+                                            no_boot = no_bootstraps)
+    
+    # Else if the method is NAO-matched
+    elif method == "nao-matched":
+        print("Performing NAO matching before processing forecast stats")
+
+
+
+    else:
+        raise ValueError("Method not recognised. Please try again.")
 
     # Set up the save path
     save_path = save_dir + "/" + variable + "/" + region + "/" + season + "/" \
