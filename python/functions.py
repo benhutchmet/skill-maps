@@ -3015,7 +3015,7 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
     # If lagged is True and lag is not None
     if lagged == True and lag is not None:
         # Set up a filename for the lagged ensemble members
-        lagged_ensemble_members_list = f"lagged_ensemble_members_list_NAO_{lag}.nc"
+        lagged_ensemble_members_list_filename = f"lagged_ensemble_members_list_NAO_{lag}.nc"
         
         # Set up the directory to store the lagged ensemble members
         save_members_dir = "/gws/nopw/j04/canari/users/benhutch/" + \
@@ -3026,7 +3026,7 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
             os.makedirs(save_members_dir)
 
         # Form the filename
-        lagged_ensemble_members_list_file = f"{save_members_dir}{lagged_ensemble_members_list}"
+        lagged_ensemble_members_list_file = f"{save_members_dir}{lagged_ensemble_members_list_filename}"
 
         # If the file exists
         if os.path.exists(lagged_ensemble_members_list_file):
