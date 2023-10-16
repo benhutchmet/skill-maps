@@ -225,6 +225,10 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
                             subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
+    # Extract a start year and finish year from the values_list
+    start_year = values_list[0]['start_year']
+    finish_year = values_list[0]['end_year']
+    
     # Set up the title
     title = 'Total skill and impact of initialization for ' + variable + ' for ' + forecast_range + \
         ' between ' + str(start_year) + ' and ' + str(finish_year) + ' using ' + method + \
