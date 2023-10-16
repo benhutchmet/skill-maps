@@ -3102,9 +3102,15 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=Tr
             ensemble_members_count[model] += 1
 
     # If lagged is True and lag is not None
+    # TODO: FIX this for saving lagged members
     if lagged == True and lag is not None and lagged_ensemble_members_list is not None and NAO == True:
-        # Save the lagged ensemble members
-        xr.save_mfdataset(lagged_ensemble_members_list, lagged_ensemble_members_list_file)
+        # Set up the coordinates for the lagged ensemble members
+        member_coords = {
+            'time': years,
+            'member': lagged_ensemble_members_list.member.values,
+            'lat': lagged_ensemble_members_list.lat.values,
+            'lon': lagged_ensemble_members_list.lon.values
+        }
 
     return ensemble_members_list, ensemble_members_count, lagged_ensemble_members_list
 
