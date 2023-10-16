@@ -221,7 +221,7 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
     proj = ccrs.PlateCarree()
 
     # Set up the figure
-    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(12, 12),
+    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(8, 12),
                             subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
@@ -372,9 +372,6 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
     f"_{finish_year}.png"
     
     fig_path = os.path.join(plots_dir, fig_name)
-
-    # Specify a tight layout
-    plt.tight_layout()
 
     # Save the figure
     plt.savefig(fig_path, dpi=300, bbox_inches='tight')
