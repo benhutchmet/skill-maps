@@ -3112,6 +3112,16 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=Tr
             'lon': lagged_ensemble_members_list.lon.values
         }
 
+        # Set up the dimensions for the lagged ensemble members
+        member_dims = ['time', 'member', 'lat', 'lon']
+
+        # Convert the lagged ensemble members to an xarray dataset
+        lagged_ensemble_members_list = xr.DataArray(lagged_ensemble_members_list,
+                                                    coords=member_coords, dims=member_dims)
+
+        # Save the lagged ensemble members
+        lagged_ensemble_members_list.to_netcdf(lagged_ensemble_members_list_file)
+
     return ensemble_members_list, ensemble_members_count, lagged_ensemble_members_list
 
 # Write a function to calculate the NAO index
