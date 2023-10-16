@@ -291,7 +291,7 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
                      transform=proj)
         
         # Add a textbox with the figure label
-        ax1.text(0.95, 0.05, ax_labels[i], transform=ax1.transAxes,
+        ax1.text(0.95, 0.05, ax_labels[2 * i], transform=ax1.transAxes,
                     verticalalignment='bottom', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5))
         
@@ -340,7 +340,7 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
                      transform=proj)
         
         # Add a textbox with the figure label
-        ax2.text(0.95, 0.05, ax_labels[i+1], transform=ax2.transAxes,
+        ax2.text(0.95, 0.05, ax_labels[(2*i)+1], transform=ax2.transAxes,
                     verticalalignment='bottom', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5))
         
