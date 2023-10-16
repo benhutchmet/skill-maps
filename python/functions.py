@@ -2333,7 +2333,7 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         
         # Now we want to ensure that the match var model data is lagged
         _, _, match_var_model_anomalies_constrained = form_ensemble_members_list(match_var_model_anomalies_constrained,
-                                                                            match_var_models, lagged=True, lag=4)
+                                                                            match_var_models, lagged=True, lag=4, NAO=False)
 
         # Make sure that the years for rescaled_model_nao and model_nao 
         # and match_var_model_anomalies_constrained are the same
@@ -2980,7 +2980,7 @@ def calculate_closest_members(year, rescaled_model_nao, model_nao, models, seaso
     return smallest_diff
 
 # Define a new function to form the list of ensemble members
-def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
+def form_ensemble_members_list(model_nao, models, lagged=False, lag=None, NAO=True):
     """
     Forms a list of ensemble members, not a dictionary with model keys.
     Each xarray object should have the associated metadata stored in attributes.
@@ -3013,7 +3013,7 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
     ensemble_members_count = {}
 
     # If lagged is True and lag is not None
-    if lagged == True and lag is not None:
+    if lagged == True and lag is not None and NAO == True:
         # Set up a filename for the lagged ensemble members
         lagged_ensemble_members_list_filename = f"lagged_ensemble_members_list_NAO_{lag}.nc"
         
@@ -3102,7 +3102,7 @@ def form_ensemble_members_list(model_nao, models, lagged=False, lag=None):
             ensemble_members_count[model] += 1
 
     # If lagged is True and lag is not None
-    if lagged == True and lag is not None and lagged_ensemble_members_list is not None:
+    if lagged == True and lag is not None and lagged_ensemble_members_list is not None and NAO == True:
         # Save the lagged ensemble members
         xr.save_mfdataset(lagged_ensemble_members_list, lagged_ensemble_members_list_file)
 
