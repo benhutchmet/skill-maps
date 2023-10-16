@@ -48,29 +48,8 @@ import re
 
 # Third party imports
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
-import cartopy.crs as ccrs
-from datetime import datetime
-import scipy.stats as stats
-import matplotlib.animation as animation
-from matplotlib import rcParams
-from PIL import Image
-
-import matplotlib.cm as mpl_cm
-import matplotlib
-import cartopy.crs as ccrs
-import iris
-import iris.coord_categorisation as coord_cat
-import iris.plot as iplt
-import scipy
-import pdb
-# import iris.quickplot as qplt
-
-# Import CDO
-from cdo import *
-# cdo = Cdo()
 
 # Import the dictionaries and functions
 sys.path.append('/home/users/benhutch/skill-maps')
@@ -203,6 +182,7 @@ def main():
                                                                         psl_models, NAO_matched=False)
     
     # Calculate the NAO index for the obs and model NAO
+    # NOTE: Corrected grids here
     obs_nao, model_nao = fnc.calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, psl_models,
                                                             psl_var, season, forecast_range, plots_dir,
                                                             plot_graphics=False, azores_grid = dic.azores_grid_corrected,
