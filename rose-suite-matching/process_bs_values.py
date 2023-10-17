@@ -333,6 +333,131 @@ def load_nao_matched_data(base_dir: str, variable: str, region: str, season: str
 
     return (nao_matched_members, nao_matched_mean)
 
+# Define a function to align the NAO matched data with the constrained hist
+# data and the obs
+def align_nao_matched_members(obs: xr.DataArray, 
+                                nao_matched_members: xr.Dataset, 
+                                constrained_hist_data: dict,
+                                hist_models: list) -> tuple:
+    """
+    Aligns the NAO matched members, observations, and constrained historical data
+    to have the same years.
+
+    Args:
+    obs (xr.DataArray): The observations as an xarray DataArray.
+    nao_matched_members (xr.Dataset): The NAO matched members as an xarray Dataset.
+    constrained_hist_data (dict): The constrained historical data as a dictionary
+                                    of xarray Datasets.
+    hist_models (list): A list of the historical models.
+
+    Returns:
+    tuple: A tuple containing the aligned NAO matched members, forecast2, 
+            observations, and common years.
+    """
+
+    # First extract the years for the observations
+    obs_years = obs.time.dt.year.values
+
+    # Loop over the years
+    for year in obs_years:
+        # If there are any NaN values in the observations
+        obs_year = obs.sel(time=f'{year}')
+        if np.isnan(obs_year.values).any():
+            print(f"there are NaN values in the observations for {year}")
+            if np.isnan(obs_year.values).all():
+                print(f"all values are NaN for {year}")
+                # Delete the year from the observations
+                obs = obs.sel(time=obs.time.dt.year != year)
+            else:
+                print(f"not all values are NaN for {year}")
+        else:
+            print(f"there are no NaN values in the observations for {year}")
+
+    # Extract the constrained obs_years
+    obs_years = obs.time.dt.year.values
+
+    # Extract the years for the NAO matched members
+    nao_matched_members_years = nao_matched_members.time.values
+
+    # Check that there are no duplicate years in the NAO matched members
+    if len(nao_matched_members_years) != len(np.unique(nao_matched_members_years)):
+        raise ValueError("there are duplicate years in the NAO matched members")
+
+    # Loop over the years for the NAO matched members
+    # and check that there are no NaN values
+    for year in nao_matched_members_years:
+        # If there are any NaN values in the observations
+        nao_matched_year = nao_matched_members['__xarray_dataarray_variable__'].sel(time=year)
+        if np.isnan(nao_matched_year.values).any():
+            print(f"there are NaN values in the NAO matched members for {year}")
+            if np.isnan(nao_matched_year.values).all():
+                print(f"all values are NaN for {year}")
+                # Delete the year from the observations
+                nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
+            else:
+                print(f"not all values are NaN for {year}")
+        else:
+            print(f"there are no NaN values in the NAO matched members for {year}")
+
+    # Extract the years for the constrained historical data
+    constrained_hist_data_years = constrained_hist_data[hist_models[0]][0].time.dt.year.values
+
+    # If the years for the NAO matched members are not the same as the constrained historical data
+    if not np.array_equal(nao_matched_members_years, 
+                          constrained_hist_data_years):
+        print("years for NAO matched members and constrained historical data are not the same")
+
+        # Find the common years
+        common_years = np.intersect1d(nao_matched_members_years, constrained_hist_data_years)
+
+        # Extract the common years from the NAO matched members
+        common_years_mask = np.in1d(nao_matched_members.time.values, common_years)
+        fcst1_nm = nao_matched_members.isel(time=common_years_mask)
+
+        # Extract the common years from the constrained historical data
+        constrained_hist_data_nmatch = {}
+        for model in constrained_hist_data:
+            model_data = constrained_hist_data[model]
+            for member in model_data:
+                # Extract the years for the member
+                member_years = member.time.dt.year.values
+
+                # If the years for the member are not the same as the common years
+                if not np.array_equal(member_years, common_years):
+                    print(f"years for {model} member {member} are not the same as the common years")
+                    # Extract the common years for the member
+                    member = member.sel(time=member.time.dt.year.isin(common_years))
+
+                # Append to the list
+                if model not in constrained_hist_data_nmatch:
+                    constrained_hist_data_nmatch[model] = []
+
+                constrained_hist_data_nmatch[model].append(member)
+
+        # FIXME: Check the aligning of years here
+
+        # Check the new years
+        fcst2_years = fcst1_nm.time.dt.year.values
+        obs_years = obs.time.dt.year.values
+
+        # Assert that the arrays are the same
+        assert np.array_equal(fcst2_years, obs_years) == True, "the years are not the same"
+
+        # Set the variables to the new values
+        fcst2 = np.zeros([fcst1_nm.shape[0], len(obs_years), fcst1_nm.shape[2], fcst1_nm.shape[3]])
+        for i in range(fcst1_nm.shape[0]):
+            fcst2[i, :, :, :] = constrained_hist_data_nmatch[historical_models[0]][i].values
+
+    else:
+        # If the forecast1 and forecast2 are now the same
+        fcst1_nm = nao_matched_members
+        fcst2 = np.zeros([fcst1_nm.shape[0], len(obs_years), fcst1_nm.shape[2], fcst1_nm.shape[3]])
+        for i in range(fcst1_nm.shape[0]):
+            fcst2[i, :, :, :] = constrained_hist_data[historical_models[0]][i].values
+
+    # Return the aligned data as a tuple
+    return fcst1_nm, fcst2, obs, obs_years
+
 # Define the main function
 def main():
     """
@@ -432,6 +557,9 @@ def main():
                                             variable, region, forecast_range, 
                                             season)
     
+    # Set up the constrained historical data (contain only the common years)
+    constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
+    
     # Load and process the model data
     dcpp_data = load_and_process_dcpp_data(base_dir, dcpp_models, variable, 
                                             region, forecast_range, 
@@ -483,6 +611,8 @@ def main():
 
         # TODO: Use the function to constrain the NAO matched members
         # here
+        # Takes as arguments the obs, nao_matched_members, constrained_hist_data
+        # and returns fcst1_nm, fcst2, obs, common_years
 
 
     else:
