@@ -311,6 +311,15 @@ def load_nao_matched_data(base_dir: str, variable: str, region: str, season: str
     Tuple[xr.Dataset, xr.Dataset]
         A tuple containing the NAO matched members and mean as xarray Datasets.
     """
+
+    # Convert the season to the model season
+    if season == "MAM":
+        season = "MAY"
+    elif season == "JJA":
+        season = "ULG"
+    else:
+        season = season
+        
     # Set up the path to the data
     path_nao_match_dir = f"{base_dir}/{variable}/{region}/{season}/{forecast_range}/{start_year}-{end_year}/"
 
