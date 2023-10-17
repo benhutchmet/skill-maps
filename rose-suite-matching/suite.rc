@@ -11,7 +11,7 @@
         lag="4"
         no_subset_members="20"
         method=raw,lagged,nao_matched
-        nboot=1000s
+        nboot=1000
 
 [scheduling]
     [[dependencies]]
