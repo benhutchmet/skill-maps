@@ -437,10 +437,13 @@ def align_nao_matched_members(obs: xr.DataArray,
         # FIXME: Check the aligning of years here
         fcst1_nm_years = fcst1_nm.time.values
 
-        # Assert that 
-
         # Check the new years
         fcst2_years = fcst1_nm.time.dt.year.values
+
+        # Assert that the NAO matched members and constrained historical data
+        # have the same years
+
+
         obs_years = obs.time.dt.year.values
 
         # Assert that the arrays are the same
