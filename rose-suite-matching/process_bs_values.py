@@ -443,7 +443,7 @@ def align_nao_matched_members(obs: xr.DataArray,
         fcst1_nm_years = fcst1_nm.time.values
 
         # Check the new years
-        fcst2_years = fcst1_nm.time.dt.year.values
+        fcst2_years = constrained_hist_data_nmatch[hist_models[0]][0].time.dt.year.values
 
         # Assert that the NAO matched members and constrained historical data
         # have the same years
