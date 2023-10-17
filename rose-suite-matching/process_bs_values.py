@@ -557,6 +557,11 @@ def align_nao_matched_members(obs: xr.DataArray,
 
     common_years = obs_years
 
+    # Print the shapes
+    print("fcst1_nm shape:", fcst1_nm.shape)
+    print("fcst2 shape:", fcst2.shape)
+    print("obs shape:", obs.shape)
+
     return (fcst1_nm, fcst2, obs, common_years)
 
 # Define the main function
