@@ -13,8 +13,8 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "tas",
-                "t2m",
+                "sfcWind",
+                "10w",
                 "global",
                 "DJFM",
                 "2-9",
@@ -23,7 +23,7 @@
                 "4",
                 "20",
                 "nao-matched",
-                "10"
+                "5"
             ]
         },
         {

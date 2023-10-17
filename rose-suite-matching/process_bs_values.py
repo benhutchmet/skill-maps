@@ -401,8 +401,14 @@ def align_nao_matched_members(obs: xr.DataArray,
                 nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
             else:
                 print(f"not all values are NaN for {year}")
+                print("deleting the year containing some NaNs from the NAO matched members")
+                # Delete the year from the NAo matched members
+                nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
         else:
             print(f"there are no NaN values in the NAO matched members for {year}")
+
+    # Extract the constrained nao_matched_members_years
+    nao_matched_members_years = nao_matched_members.time.values
 
     # Extract the years for the constrained historical data
     constrained_hist_data_years = constrained_hist_data[hist_models[0]][0].time.dt.year.values
