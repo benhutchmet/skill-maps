@@ -353,6 +353,11 @@ def align_nao_matched_members(obs: xr.DataArray,
     Returns:
     tuple: A tuple containing the aligned NAO matched members, forecast2, 
             observations, and common years.
+            Contains the following:
+            fcst1_nm (array): The aligned NAO matched members.
+            fcst2 (array): The aligned constrained historical data.
+            obs (array): The aligned observations.
+            common_years (array): The common years between all three datasets.
     """
 
     # First extract the years for the observations
@@ -549,6 +554,8 @@ def align_nao_matched_members(obs: xr.DataArray,
 
     # Assert that the array shapes are the same
     assert fcst1_nm[0].shape == obs.shape, "the forecast and obs array shapes are not the same"
+
+    common_years = obs_years
 
     return (fcst1_nm, fcst2, obs, common_years)
 
