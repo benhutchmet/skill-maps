@@ -673,10 +673,10 @@ def main():
     
     # Now we process the data to align the time periods and convert to array
     fcst1, fcst2, obs, common_years = align_and_convert_to_array(hist_data, 
-                                                                 dcpp_data, 
-                                                                 hist_models, 
-                                                                 dcpp_models,
-                                                                 obs)
+                                                                    dcpp_data, 
+                                                                    hist_models, 
+                                                                    dcpp_models,
+                                                                    obs)
 
     # If the method is 'raw', process the forecast stats
     if method == "raw":                                                             
@@ -693,7 +693,7 @@ def main():
 
         # Call the function to perform the lagging
         lag_fcst1, lag_obs, lag_fcst2 = fnc.lag_ensemble_array(fcst1, fcst2,
-                                                               obs, lag=lag)
+                                                                obs, lag=lag)
         
         # Now process the forecast stats for the lagged data
         forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
@@ -713,12 +713,22 @@ def main():
         
         # Extract the nao-matched members and mean
         nao_matched_members = nao_matched_data[0]
-        nao_matched_mean = nao_matched_data[1]
+        # nao_matched_mean = nao_matched_data[1]
 
-        # TODO: Use the function to constrain the NAO matched members
-        # here
-        # Takes as arguments the obs, nao_matched_members, constrained_hist_data
-        # and returns fcst1_nm, fcst2, obs, common_years
+        # Use the function to constrain the NAO matched members
+        aligned_data = align_nao_matched_members(obs, nao_matched_members,
+                                                    constrained_hist_data,
+                                                    hist_models)
+        
+        # Extract the aligned NAO matched members, forecast2, obs, and common years
+        fcst1_nm = aligned_data[0]
+        fcst2 = aligned_data[1]
+        obs = aligned_data[2]
+        common_years = aligned_data[3]
+
+        # Now perform the bootstrapping to create the forecast stats
+        forecast_stats = fnc.forecast_stats(obs, fcst1_nm, fcst2, 
+                                            no_boot = no_bootstraps)
 
 
     else:
