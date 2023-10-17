@@ -729,10 +729,12 @@ def main():
         # Now perform the bootstrapping to create the forecast stats
         forecast_stats = fnc.forecast_stats(obs, fcst1_nm, fcst2, 
                                             no_boot = no_bootstraps)
-
-
+        
     else:
         raise ValueError("Method not recognised. Please try again.")
+
+    # Check that forecast_stats exists and is a dictionary
+    assert isinstance(forecast_stats, dict), "forecast_stats is not a dictionary"
 
     # Set up the save path
     save_path = save_dir + "/" + variable + "/" + region + "/" + season + "/" \
