@@ -1021,7 +1021,6 @@ def main():
 
     np.save(save_path + partial_r_p_name, forecast_stats["partialr_p"])
 
-    # FIXME: These will now be arrays
     np.save(save_path + sigo, forecast_stats["sigo"])
 
     np.save(save_path + sigo_resid, forecast_stats["sigo_resid"])
