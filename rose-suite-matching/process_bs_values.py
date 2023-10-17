@@ -435,6 +435,9 @@ def align_nao_matched_members(obs: xr.DataArray,
                 constrained_hist_data_nmatch[model].append(member)
 
         # FIXME: Check the aligning of years here
+        fcst1_nm_years = fcst1_nm.time.values
+
+        # Assert that 
 
         # Check the new years
         fcst2_years = fcst1_nm.time.dt.year.values
