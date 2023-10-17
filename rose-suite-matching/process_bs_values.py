@@ -684,6 +684,8 @@ def main():
                                                                     dcpp_models,
                                                                     obs)
 
+    # Set up the                                                                
+
     # If the method is 'raw', process the forecast stats
     if method == "raw":                                                             
         print("Processing forecast stats for raw method")
@@ -932,6 +934,7 @@ def main():
     )
     
     # Save the arrays
+    # if the file already exists, don't overwrite it
     np.save(save_path + corr1_name, forecast_stats["corr1"])
 
     # Save the min and max values
