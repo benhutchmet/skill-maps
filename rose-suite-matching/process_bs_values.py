@@ -442,6 +442,26 @@ def align_nao_matched_members(obs: xr.DataArray,
 
         # Assert that the NAO matched members and constrained historical data
         # have the same years
+        assert np.array_equal(fcst2_years, fcst1_nm_years), "the years are not the same"
+
+        # NAO matched members years
+        nao_matched_members_years = fcst1_nm_years
+
+    # Forecast 1 NM and forecast 2 should now be the same
+    common_model_years = nao_matched_members_years
+
+    # If the obs years are not the same as the common model years
+    if not np.array_equal(obs_years, common_model_years):
+        print("years for observations and common model years are not the same")
+
+        # Find the common years
+        common_years = np.intersect1d(obs_years, common_model_years)
+
+        # Select the common years from the observations
+        obs = obs.sel(time=obs.time.dt.year.isin(common_years))
+
+        # Use a boolean mask to select the common years from the NAO matched members
+        common_years_mask = np.in1d(nao_matched_members.time.values, common_years)
 
 
         obs_years = obs.time.dt.year.values
