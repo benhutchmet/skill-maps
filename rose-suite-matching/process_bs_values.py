@@ -620,10 +620,10 @@ def main():
     else:
         raise ValueError("Region not recognised. Please try again.")
     
-    # Assert that method must be 'raw', 'lagged' or 'nao-matched'
-    assert method in ["raw", "lagged", "nao-matched"], (
+    # Assert that method must be 'raw', 'lagged' or 'nao_matched'
+    assert method in ["raw", "lagged", "nao_matched"], (
         "Method not recognised. Please try again." +
-        "Must be 'raw', 'lagged' or 'nao-matched'"
+        "Must be 'raw', 'lagged' or 'nao_matched'"
     )
 
     # If season conttains a number, convert it to the string
@@ -707,19 +707,19 @@ def main():
         forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
                                             no_boot = no_bootstraps)
     
-    # Else if the method is NAO-matched
-    elif method == "nao-matched":
+    # Else if the method is nao_matched
+    elif method == "nao_matched":
         print("Performing NAO matching before processing forecast stats")
 
         # Set up the NAO matching base directory
         nao_match_base_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
 
-        # Load the nao-matched data
+        # Load the nao_matched data
         nao_matched_data = load_nao_matched_data(nao_match_base_dir, variable,
                                                 region, season, forecast_range,
                                                 start_year, end_year)
         
-        # Extract the nao-matched members and mean
+        # Extract the nao_matched members and mean
         nao_matched_members = nao_matched_data[0]
         # nao_matched_mean = nao_matched_data[1]
 

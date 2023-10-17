@@ -10,7 +10,7 @@
         end_year="2022"
         lag="4"
         no_subset_members="20"
-        method=raw,lagged,nao-matched
+        method=raw,lagged,nao_matched
         nboot=1000s
 
 [scheduling]
