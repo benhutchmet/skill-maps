@@ -429,7 +429,7 @@ def align_nao_matched_members(obs: xr.DataArray,
 
                 # If the years for the member are not the same as the common years
                 if not np.array_equal(member_years, common_years):
-                    print(f"years for {model} member {member} are not the same as the common years")
+                    # print(f"years for {model} member {member} are not the same as the common years")
                     # Extract the common years for the member
                     member = member.sel(time=member.time.dt.year.isin(common_years))
 
@@ -483,7 +483,7 @@ def align_nao_matched_members(obs: xr.DataArray,
 
                 # If the years for the member are not the same as the common years
                 if not np.array_equal(member_years, common_years):
-                    print(f"years for {model} member {member} are not the same as the common years")
+                    # print(f"years for {model} member {member} are not the same as the common years")
                     # Extract the common years for the member
                     member = member.sel(time=member.time.dt.year.isin(common_years))
 
@@ -497,7 +497,7 @@ def align_nao_matched_members(obs: xr.DataArray,
         obs_years = obs.time.dt.year.values
 
         # Extract the years for the constrained historical data
-        constrained_hist_data_years = constrained_hist_data[hist_models[0]][0].time.dt.year.values
+        constrained_hist_data_years = constrained_hist_data_nmatch_obs[hist_models[0]][0].time.dt.year.values
 
         # Assert that the arrays are the same
         assert np.array_equal(obs_years, constrained_hist_data_years), \
