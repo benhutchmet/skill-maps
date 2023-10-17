@@ -463,26 +463,94 @@ def align_nao_matched_members(obs: xr.DataArray,
         # Use a boolean mask to select the common years from the NAO matched members
         common_years_mask = np.in1d(nao_matched_members.time.values, common_years)
 
+        # Extract the common years from the NAO matched members
+        fcst1_nm = nao_matched_members.isel(time=common_years_mask)
 
+        # Extract the common years from the constrained historical data
+        constrained_hist_data_nmatch_obs = {}
+
+        # Extract the common obs years from the constrained historical data
+        for model in constrained_hist_data:
+            model_data = constrained_hist_data[model]
+            for member in model_data:
+                # Extract the years for the member
+                member_years = member.time.dt.year.values
+
+                # If the years for the member are not the same as the common years
+                if not np.array_equal(member_years, common_years):
+                    print(f"years for {model} member {member} are not the same as the common years")
+                    # Extract the common years for the member
+                    member = member.sel(time=member.time.dt.year.isin(common_years))
+
+                # Append to the list
+                if model not in constrained_hist_data_nmatch_obs:
+                    constrained_hist_data_nmatch_obs[model] = []
+
+                constrained_hist_data_nmatch_obs[model].append(member)
+
+        # Check the new years
         obs_years = obs.time.dt.year.values
 
+        # Extract the years for the constrained historical data
+        constrained_hist_data_years = constrained_hist_data[hist_models[0]][0].time.dt.year.values
+
         # Assert that the arrays are the same
-        assert np.array_equal(fcst2_years, obs_years) == True, "the years are not the same"
+        assert np.array_equal(obs_years, constrained_hist_data_years), \
+                                "the years are not the same"
+        
+        # Extract the nao matched members years again
+        nao_matched_members_years = fcst1_nm.time.values
 
-        # Set the variables to the new values
-        fcst2 = np.zeros([fcst1_nm.shape[0], len(obs_years), fcst1_nm.shape[2], fcst1_nm.shape[3]])
-        for i in range(fcst1_nm.shape[0]):
-            fcst2[i, :, :, :] = constrained_hist_data_nmatch[historical_models[0]][i].values
+        # Assert that the arrays are the same
+        assert np.array_equal(obs_years, nao_matched_members_years), \
+                                "the years are not the same"
+        
+    # Extract the arrays from the datasets
+    fcst1_nm = fcst1_nm['__xarray_dataarray_variable__'].values
 
-    else:
-        # If the forecast1 and forecast2 are now the same
-        fcst1_nm = nao_matched_members
-        fcst2 = np.zeros([fcst1_nm.shape[0], len(obs_years), fcst1_nm.shape[2], fcst1_nm.shape[3]])
-        for i in range(fcst1_nm.shape[0]):
-            fcst2[i, :, :, :] = constrained_hist_data[historical_models[0]][i].values
+    # Extract the obs
+    obs = obs.values
 
-    # Return the aligned data as a tuple
-    return fcst1_nm, fcst2, obs, obs_years
+    # Extract the no. ensemble members for f2
+    n_members_hist = np.sum([len(constrained_hist_data_nmatch[model]) for model
+                                in constrained_hist_data_nmatch])
+    
+    # Set up the fcst2 array
+    fcst2 = np.zeros([n_members_hist, len(obs_years), fcst1_nm.shape[2], fcst1_nm.shape[3]])
+
+    # Initialize the member index counter
+    member_index = 0
+
+    # Loop over the models
+    for model in constrained_hist_data_nmatch:
+        # Extract the model data
+        model_data = constrained_hist_data_nmatch[model]
+
+        # Loop over the members
+        for member in model_data:
+            # Extract the member data
+            member_data = member.values
+
+            # Set up the member data
+            fcst2[member_index, :, :, :] = member_data
+
+            # Increment the member index
+            member_index += 1
+
+    # If the time axis is not the second axis of the nao matched members
+    if fcst1_nm.shape[1] != len(obs_years):
+        print("time axis is not the second axis of the nao matched members")
+
+        # Swap the first and second axes
+        fcst1_nm = np.swapaxes(fcst1_nm, 0, 1)
+
+    # Assert that the array shapes are the same
+    assert fcst1_nm[0].shape == fcst2[0].shape, "the forecast array shapes are not the same"
+
+    # Assert that the array shapes are the same
+    assert fcst1_nm[0].shape == obs.shape, "the forecast and obs array shapes are not the same"
+
+    return (fcst1_nm, fcst2, obs, common_years)
 
 # Define the main function
 def main():
