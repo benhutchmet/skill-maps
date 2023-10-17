@@ -672,7 +672,7 @@ def main():
                                             model_season)
     
     # Now we process the data to align the time periods and convert to array
-    fcst1, fcst2, obs, common_years = align_and_convert_to_array(hist_data, 
+    fcst1, fcst2, obs_array, common_years = align_and_convert_to_array(hist_data, 
                                                                     dcpp_data, 
                                                                     hist_models, 
                                                                     dcpp_models,
@@ -683,7 +683,7 @@ def main():
         print("Processing forecast stats for raw method")
 
         # Now perform the bootstrapping to create the forecast stats
-        forecast_stats = fnc.forecast_stats(obs, fcst1, fcst2, 
+        forecast_stats = fnc.forecast_stats(obs_array, fcst1, fcst2, 
                                             no_boot = no_bootstraps)
         
     # Else if the method is 'lagged', lag the data
@@ -693,7 +693,7 @@ def main():
 
         # Call the function to perform the lagging
         lag_fcst1, lag_obs, lag_fcst2 = fnc.lag_ensemble_array(fcst1, fcst2,
-                                                                obs, lag=lag)
+                                                                obs_array, lag=lag)
         
         # Now process the forecast stats for the lagged data
         forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
@@ -723,11 +723,11 @@ def main():
         # Extract the aligned NAO matched members, forecast2, obs, and common years
         fcst1_nm = aligned_data[0]
         fcst2 = aligned_data[1]
-        obs = aligned_data[2]
+        obs_array = aligned_data[2]
         common_years = aligned_data[3]
 
         # Now perform the bootstrapping to create the forecast stats
-        forecast_stats = fnc.forecast_stats(obs, fcst1_nm, fcst2, 
+        forecast_stats = fnc.forecast_stats(obs_array, fcst1_nm, fcst2, 
                                             no_boot = no_bootstraps)
         
     else:
