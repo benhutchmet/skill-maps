@@ -204,10 +204,10 @@ north_sea_grid = {
 
 # Define the dimensions for the gridbox for Central Europe
 central_europe_grid = {
-    'lon1': 5,
-    'lon2': 35,
-    'lat1': 45,
-    'lat2': 60
+    'lon1': -5,
+    'lon2': 30,
+    'lat1': 40,
+    'lat2': 65
 }
 
 # Define the dimensions for another central europe grid for RSDS correlations
