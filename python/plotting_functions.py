@@ -516,6 +516,26 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
+            
+            # Constrain the corr1 array to the gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx = np.where(lats == lat1)[0][0]
+            lat2_idx = np.where(lats == lat2)[0][0]
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx = np.where(lons == lon1)[0][0]
+            lon2_idx = np.where(lons == lon2)[0][0]
+
+            # Constrain the corr1 array to the gridbox
+            corr1_gridbox = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Calculate the mean corr1 over the gridbox
+            corr1_mean = np.nanmean(corr1_gridbox)
+
+            # Show this values in the lower left textbox
+            ax1.text(0.05, 0.05, f"r = {corr1_mean:.2f}", transform=ax1.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
         # if any of the corr1 values are NaN
         if np.isnan(corr1).any():
@@ -547,11 +567,11 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                     verticalalignment='top', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
-        # add a textbox with the season
-        # to the bottom left of the plot
-        ax1.text(0.05, 0.05, season, transform=ax1.transAxes,
-                    verticalalignment='bottom', horizontalalignment='left',
-                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+        # # add a textbox with the season
+        # # to the bottom left of the plot
+        # ax1.text(0.05, 0.05, season, transform=ax1.transAxes,
+        #             verticalalignment='bottom', horizontalalignment='left',
+        #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -567,6 +587,26 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # Add green lines outlining the gridbox
             ax2.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
+            
+            # Constrain the partia_r array to the gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx = np.where(lats == lat1)[0][0]
+            lat2_idx = np.where(lats == lat2)[0][0]
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx = np.where(lons == lon1)[0][0]
+            lon2_idx = np.where(lons == lon2)[0][0]
+
+            # Constrain the partial_r array to the gridbox
+            partial_r_gridbox = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Calculate the mean partial_r over the gridbox
+            partial_r_mean = np.nanmean(partial_r_gridbox)
+
+            # Show this values in the lower left textbox
+            ax2.text(0.05, 0.05, f"r' = {partial_r_mean:.2f}", transform=ax2.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
         # Append the contourf object to the list
         cf_list.append(cf)
@@ -602,11 +642,11 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                     verticalalignment='top', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
-        # add a textbox with the season
-        # to the bottom left of the plot
-        ax2.text(0.05, 0.05, season, transform=ax2.transAxes,
-                    verticalalignment='bottom', horizontalalignment='left',
-                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+        # # add a textbox with the season
+        # # to the bottom left of the plot
+        # ax2.text(0.05, 0.05, season, transform=ax2.transAxes,
+        #             verticalalignment='bottom', horizontalalignment='left',
+        #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
     # Add a colorbar for the correlation
     cbar = fig.colorbar(cf_list[0], ax=axs, orientation='horizontal', pad = 0.05,
