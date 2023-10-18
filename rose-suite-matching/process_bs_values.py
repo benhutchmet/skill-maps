@@ -1059,8 +1059,7 @@ def main():
     np.savetxt(save_path + nens2_name, np.array([forecast_stats["nens2"]]))
 
     np.savetxt(save_path + start_end_years, [common_years[0], 
-                                             common_years[-1]])
-    
+                                             common_years[-1]])   
     # Save the forecast time series
     np.save(save_path + fcst1_ts_name, forecast_stats["f1_ts"])
 
