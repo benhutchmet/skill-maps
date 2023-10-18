@@ -387,6 +387,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                             variable: str, season: str,
                                             forecast_range: str, method_list: list,
                                             no_bootstraps: int, plots_dir: str,
+                                            gridbox: dict = None,
                                             figsize_x: int = 10, figsize_y: int = 12) -> None:
     """
     Plots a 3 x 2 matrix of subplots. The first column is the total correlation
@@ -423,6 +424,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         plots_dir (str): path to the directory to save the plots
 
+        gridbox (dict): dictionary containing the gridbox to plot. Default is None.
+                        Contains constrained gridbox with dimensions as follows:
+                            'lon1': lower longitude bound
+                            'lon2': upper longitude bound
+                            'lat1': lower latitude bound
+                            'lat2': upper latitude bound
+
         figsize_x (int): size of the figure in the x direction. Default is 10.
 
         figsize_y (int): size of the figure in the y direction. Default is 12.
@@ -458,6 +466,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     
     # set up the supertitle
     fig.suptitle(title, fontsize=8, y=0.90)
+
+    # If the gridbox is not None
+    if gridbox is not None:
+        # Set up the lats and lons for this gridbox
+        lon1, lon2 = gridbox['lon1'], gridbox['lon2']
+        lat1, lat2 = gridbox['lat1'], gridbox['lat2']
 
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5)
@@ -496,6 +510,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         ax1 = axs[i, 0]
         ax1.coastlines()
         cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
+
+        # If the gridbox is not None
+        if gridbox is not None:
+            # Add green lines outlining the gridbox
+            ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
+                    color='green', linewidth=2, transform=proj)
 
         # if any of the corr1 values are NaN
         if np.isnan(corr1).any():
@@ -542,6 +562,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         cf = ax2.contourf(lons, lats, partial_r, clevs, cmap='RdBu_r', 
                             transform=proj)
         
+        # if the gridbox is not None
+        if gridbox is not None:
+            # Add green lines outlining the gridbox
+            ax2.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
+                    color='green', linewidth=2, transform=proj)
+
         # Append the contourf object to the list
         cf_list.append(cf)
 
