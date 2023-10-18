@@ -218,6 +218,14 @@ central_europe_grid_rsds = {
     'lat2': 70
 }
 
+# Define a gribox for the SPNA region as in Smith et al. 2019
+spna_grid = {
+    'lon1': -60,
+    'lon2': -10,
+    'lat1': 50,
+    'lat2': 65
+}
+
 
 # Define the dimensions for the gridbox for the N-S UK index
 # From thornton et al. 2019
