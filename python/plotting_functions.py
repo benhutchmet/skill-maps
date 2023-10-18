@@ -675,7 +675,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
 # Define a function which loads the files and plots the different methods
 # for the same season and variable
-def load_files_and_plot(variable: str, region: str, season: str, forecast_range: str, method_list: str,
+def load_files_and_plot(variable: str, region: str, season: str, forecast_range: str, methods_list: list,
                         no_bootstraps: int, plots_dir: str, bootstrap_base_dir: str,
                         gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 12) -> None:
     
@@ -693,7 +693,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         
         forecast_range (str): forecast range to plot
         
-        method (str): method to plot (e.g. raw, lagged, nao_matched)
+        methods_list (list): list of methods to plot (e.g. raw, lagged, nao_matched)
         
         no_bootstraps (int): number of bootstraps to plot
         
