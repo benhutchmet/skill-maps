@@ -2,6 +2,10 @@
 Functions to be used for creating plots from bootstrapped data.
 """
 
+# Import functions from plot_init_benefit
+sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
+from plot_init_benefit import extract_values_from_txt, load_arrays_from_npy
+
 # Import general Python modules
 import argparse, os, sys, glob, re
 
@@ -668,3 +672,85 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
     # show the figure
     plt.show()
+
+# Define a function which loads the files and plots the different methods
+# for the same season and variable
+def load_files_and_plot(variable: str, region: str, season: str, forecast_range: str, method_list: str,
+                        no_bootstraps: int, plots_dir: str, bootstrap_base_dir: str,
+                        gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 12) -> None:
+    
+    """
+    Wrapper function which loads the required files and plots the different
+    methods for the same season and variable.
+    
+    Args:
+    
+        variable (str): variable to plot
+        
+        region (str): region to plot
+        
+        season (str): season to plot
+        
+        forecast_range (str): forecast range to plot
+        
+        method (str): method to plot (e.g. raw, lagged, nao_matched)
+        
+        no_bootstraps (int): number of bootstraps to plot
+        
+        plots_dir (str): path to the directory to save the plots
+        
+        bootstrap_base_dir (str): path to the directory containing the bootstrapped
+                                    files
+                                    
+        gridbox (dict): dictionary containing the gridbox to plot. Default is None.
+                        contains constrained gridbox with dimensions as follows:
+                            'lon1': lower longitude bound
+                            'lon2': upper longitude bound
+                            'lat1': lower latitude bound
+                            'lat2': upper latitude bound
+                            
+        figsize_x (int): size of the figure in the x direction. Default is 10.
+        
+        figsize_y (int): size of the figure in the y direction. Default is 12.
+        
+    Returns:
+    
+        None
+    """
+
+    # Set up the lists
+    paths_list = []
+
+    # Form the paths for the different methods
+    for method in method_list:
+        # If the method is raw, use no_bootstraps = 1000 for now
+        # FIXME: change this to 1000 once all the files have been created
+        if method == 'raw':
+            no_bootstraps = 1000
+        else:
+            no_bootstraps = 100
+
+        # Set up the path to the file
+        path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
+                f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
+        
+        # Assert that the path exists
+        assert os.path.exists(path), f"Path {path} does not exist for method {method}" +
+        f" and no_bootstraps {no_bootstraps}"
+
+        # Append the path to the list
+        paths_list.append(path)
+
+    # Loop over the paths to get the values
+    values_list = [extract_values_from_txt(path, variable) for path in paths_list]
+
+    # Loop over the paths to get the arrays
+    arrays_list = [load_arrays_from_npy(path, variable) for path in paths_list]
+
+    # Plot the different methods
+    plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
+                                            forecast_range, method_list, no_bootstraps,
+                                            plots_dir, gridbox=gridbox,
+                                            figsize_x=figsize_x, figsize_y=figsize_y)
+    
+
