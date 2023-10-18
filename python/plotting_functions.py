@@ -826,12 +826,8 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
     # as gridbox is needed to collapse 3D array into time series
     assert gridbox is not None, "gridbox must be specified"
 
-    # Set up the projection
-    proj = ccrs.PlateCarree()
-
     # Set up the figure size
     fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(figsize_x, figsize_y),
-                            subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
     # Extract a start year and finish year from the values_list
@@ -901,6 +897,15 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
         # Set up the x-axis for the time series
         years = np.arange(start_year, end_year + 1)
 
+        # If the method is lagged or nao_matched
+        if method == 'lagged':
+            print("Skipping the first three years of the time series")
+            
+            # Skip the first three years of the time series
+            years = years[3:]
+        else:
+            print("Not skipping the first three years of the time series")
+
         # TODO: Potentially add the r-values and p-values to the plot
 
         # Set up the axes for the total skill
@@ -948,6 +953,9 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
         # Include a legend
         ax2.legend()
 
+    # show the figure
+    plt.show()
+
     # Set up the pathname for saving the figure
     fig_name = f"{plots_dir}/raw_init_impact_{variable}_{season}_" + \
     f"{forecast_range}_different_methods_timeseries_{no_bootstraps}_{start_year}" + \
@@ -957,9 +965,6 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
 
     # Save the figure
     plt.savefig(fig_path, dpi=300, bbox_inches='tight')
-
-    # show the figure
-    plt.show()
 
     return None
 
