@@ -941,6 +941,15 @@ def main():
         f"corr10_max_{variable}_{region}_{season}_{forecast_range}" +
         ".npy"
     )
+
+    # Set up the names for the forecast time series
+    fcst1_ts_name = f"fcst1_ts_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    fcst2_ts_name = f"fcst2_ts_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    fcst10_ts_name = f"fcst10_ts_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    obs_ts_name = f"obs_ts_{variable}_{region}_{season}_{forecast_range}.npy"
     
     # Save the arrays
     # if the file already exists, don't overwrite it
@@ -1051,6 +1060,15 @@ def main():
 
     np.savetxt(save_path + start_end_years, [common_years[0], 
                                              common_years[-1]])
+    
+    # Save the forecast time series
+    np.save(save_path + fcst1_ts_name, forecast_stats["f1_ts"])
+
+    np.save(save_path + fcst2_ts_name, forecast_stats["f2_ts"])
+
+    np.save(save_path + fcst10_ts_name, forecast_stats["f10_ts"])
+
+    np.save(save_path + obs_ts_name, forecast_stats["o_ts"])
                                                                 
 if __name__ == "__main__":
     main()
