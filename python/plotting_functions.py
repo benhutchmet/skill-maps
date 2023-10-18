@@ -936,13 +936,12 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
             # Set the title to 'anomalies'
             ax1.set_title('anomalies')
 
-        # Include a legend
-        ax1.legend()
-
         # Set up the axes for the residual correlation
         ax2 = axs[i, 1]
         ax2.plot(years, fcst1_em_resid_mean, color='red', label='init')
         ax2.plot(years, obs_resid_mean, color='black', label='obs')
+        # Add a zero dashed line in black at y = 0
+        ax2.axhline(y=0, color='black', linestyle='--')
 
         # Add a textbox with the figure label
         ax2.text(0.95, 0.05, ax_labels[(2*i)+1], transform=ax2.transAxes,
