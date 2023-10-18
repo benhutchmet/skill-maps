@@ -204,9 +204,9 @@ north_sea_grid = {
 
 # Define the dimensions for the gridbox for Central Europe
 central_europe_grid = {
-    'lon1': -5,
-    'lon2': 30,
-    'lat1': 40,
+    'lon1': -10,
+    'lon2': 25,
+    'lat1': 36,
     'lat2': 65
 }
 
