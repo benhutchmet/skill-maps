@@ -71,15 +71,15 @@ def extract_values_from_txt(path, variable):
 
     # find the file containing nens1
     nens1_file = [file for file in files if 'nens1' in file][0]
-    print(nens1_file)
+    # print(nens1_file)
 
     # find the file containing nens2
     nens2_file = [file for file in files if 'nens2' in file][0]
-    print(nens2_file)
+    # print(nens2_file)
 
     # find the file containing start_year
     start_end_file = [file for file in files if 'start_end_years' in file][0]
-    print(start_end_file)
+    # print(start_end_file)
 
     # Load the values from the files
     values['nens1'] = np.loadtxt(nens1_file).astype(int)
@@ -141,7 +141,7 @@ def load_arrays_from_npy(path, variable):
 
     # find the file containing corr1
     corr1_file = [file for file in files if f'corr1_{variable}' in file][0]
-    print("corr1_file: ", corr1_file)
+    # print("corr1_file: ", corr1_file)
 
     # find the file containing corr1_p
     corr1_p_file = [file for file in files if 'corr1_p' in file][0]
