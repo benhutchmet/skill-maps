@@ -828,7 +828,8 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
 
     # Set up the figure size
     fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(figsize_x, figsize_y),
-                            gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+                            gridspec_kw={'wspace': 0.1, 'hspace': 0.1},
+                            sharex='col', sharey='row')
     
     # Extract a start year and finish year from the values_list
     start_year = values[0]['start_year']
@@ -840,7 +841,7 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
         ' using different methods' + 'no_bootstraps = ' + str(no_bootstraps)
     
     # set up the supertitle
-    fig.suptitle(title, fontsize=8, y=0.90)
+    fig.suptitle(title, fontsize=8, y=0.95)
 
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5)
@@ -914,6 +915,9 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
         ax1.plot(years, fcst2_ts_mean, color='purple', label='unin')
         ax1.plot(years, obs_ts_mean, color='black', label='obs')
 
+        # Set consitenet y-limits
+        ax1.set_ylim([-1.5, 1.0])
+
         # Add a textbox with the figure label
         ax1.text(0.95, 0.05, ax_labels[2 * i], transform=ax1.transAxes,
                     verticalalignment='bottom', horizontalalignment='right',
@@ -925,8 +929,12 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
                     verticalalignment='top', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
-        # Set the title to 'anomalies'
-        ax1.set_title('anomalies')
+        if i == 0:
+            # Add a legend
+            ax1.legend()
+
+            # Set the title to 'anomalies'
+            ax1.set_title('anomalies')
 
         # Include a legend
         ax1.legend()
@@ -947,11 +955,12 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
                     verticalalignment='top', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
-        # Set the title to 'residuals'
-        ax2.set_title('residuals')
+        if i == 0:
+            # Set the title to 'residuals'
+            ax2.set_title('residuals')
 
-        # Include a legend
-        ax2.legend()
+            # Include a legend in the botom left corner
+            ax2.legend(loc='lower left')
 
     # show the figure
     plt.show()
