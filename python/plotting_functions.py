@@ -519,12 +519,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             
             # Constrain the corr1 array to the gridbox
             # find the indices of the lats which correspond to the gridbox
-            lat1_idx = np.where(lats == lat1)[0][0]
-            lat2_idx = np.where(lats == lat2)[0][0]
+            lat1_idx = np.argmin(np.abs(lats - lat1))
+            lat2_idx = np.argmin(np.abs(lats - lat2))
 
             # find the indices of the lons which correspond to the gridbox
-            lon1_idx = np.where(lons == lon1)[0][0]
-            lon2_idx = np.where(lons == lon2)[0][0]
+            lon1_idx = np.argmin(np.abs(lons - lon1))
+            lon2_idx = np.argmin(np.abs(lons - lon2))
 
             # Constrain the corr1 array to the gridbox
             corr1_gridbox = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
@@ -590,12 +590,15 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             
             # Constrain the partia_r array to the gridbox
             # find the indices of the lats which correspond to the gridbox
-            lat1_idx = np.where(lats == lat1)[0][0]
-            lat2_idx = np.where(lats == lat2)[0][0]
+            # Constrain the corr1 array to the gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx = np.argmin(np.abs(lats - lat1))
+            lat2_idx = np.argmin(np.abs(lats - lat2))
 
             # find the indices of the lons which correspond to the gridbox
-            lon1_idx = np.where(lons == lon1)[0][0]
-            lon2_idx = np.where(lons == lon2)[0][0]
+            lon1_idx = np.argmin(np.abs(lons - lon1))
+            lon2_idx = np.argmin(np.abs(lons - lon2))
+
 
             # Constrain the partial_r array to the gridbox
             partial_r_gridbox = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
