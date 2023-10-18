@@ -491,7 +491,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
     # Loop over the methods
     for i, method in enumerate(method_list):
-        print("plotting index: ", i, " for method: ", method)
+        # print("plotting index: ", i, " for method: ", method)
 
         # Extract the dictionaries for this method
         method_arrays = arrays[i]
