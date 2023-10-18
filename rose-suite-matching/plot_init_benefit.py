@@ -120,6 +120,15 @@ def load_arrays_from_npy(path, variable):
                 - 'sigo (np.ndarray)': standard deviation of the observations
                 - 'sigo_resid (np.ndarray)': standard deviation of the
                                                 observed residuals
+                - 'fcst1_ts (np.ndarray)': timeseries of the first ensemble
+                                            (initialized)
+                - 'fcst2_ts (np.ndarray)': timeseries of the second ensemble
+                                            (uninitialized)
+                - 'obs_ts (np.ndarray)': timeseries of the observations
+                - 'fcst1_em_resid (np.ndarray)': residuals of the first
+                                                    ensemble (initialized)
+                - 'obs_resid (np.ndarray)': residuals of the observations
+            
     
     """
 
@@ -130,7 +139,12 @@ def load_arrays_from_npy(path, variable):
         'partial_r': None,
         'partial_r_p': None,
         'sigo': None,
-        'sigo_resid': None
+        'sigo_resid': None,
+        'fcst1_ts': None,
+        'fcst2_ts': None,
+        'obs_ts': None,
+        'fcst1_em_resid': None,
+        'obs_resid': None
     }
 
     # extract the .npy files using glob
@@ -148,7 +162,7 @@ def load_arrays_from_npy(path, variable):
 
     # find the file containing partial_r
     partial_r_file = [file for file in files if f'partial_r_{variable}'
-                      in file][0]
+                        in file][0]
 
     # find the file containing partial_r_p
     partial_r_p_file = [file for file in files if 'partial_r_p' in file][0]
@@ -159,6 +173,21 @@ def load_arrays_from_npy(path, variable):
     # # find the file containing sigo_resid
     # sigo_resid_file = [file for file in files if 'sigo_resid' in file][0]
 
+    # find the file containing fcst1_ts
+    fcst1_ts_file = [file for file in files if f'fcst1_ts_{variable}' in file][0]
+
+    # find the file containing fcst2_ts
+    fcst2_ts_file = [file for file in files if f'fcst2_ts_{variable}' in file][0]
+
+    # find the file containing obs_ts
+    obs_ts_file = [file for file in files if f'obs_ts_{variable}' in file][0]
+
+    # find the file containing fcst1_em_resid
+    fcst1_em_resid_file = [file for file in files if f'fcst1_em_resid_{variable}' in file][0]
+
+    # find the file containing obs_resid
+    obs_resid_file = [file for file in files if f'obs_resid_{variable}' in file][0]
+
     # Load the arrays from the files
     arrays['corr1'] = np.load(corr1_file)
     arrays['corr1_p'] = np.load(corr1_p_file)
@@ -166,6 +195,12 @@ def load_arrays_from_npy(path, variable):
     arrays['partial_r_p'] = np.load(partial_r_p_file)
     # arrays['sigo'] = np.load(sigo_file)
     # arrays['sigo_resid'] = np.load(sigo_resid_file)
+
+    arrays['fcst1_ts'] = np.load(fcst1_ts_file)
+    arrays['fcst2_ts'] = np.load(fcst2_ts_file)
+    arrays['obs_ts'] = np.load(obs_ts_file)
+    arrays['fcst1_em_resid'] = np.load(fcst1_em_resid_file)
+    arrays['obs_resid'] = np.load(obs_resid_file)
 
     # Return the arrays
     return arrays
