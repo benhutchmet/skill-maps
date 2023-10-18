@@ -516,7 +516,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
-            
+                       
             # Constrain the corr1 array to the gridbox
             # find the indices of the lats which correspond to the gridbox
             lat1_idx = np.argmin(np.abs(lats - lat1))
