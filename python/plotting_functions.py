@@ -1,11 +1,6 @@
 """
 Functions to be used for creating plots from bootstrapped data.
 """
-
-# Import functions from plot_init_benefit
-sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
-from plot_init_benefit import extract_values_from_txt, load_arrays_from_npy
-
 # Import general Python modules
 import argparse, os, sys, glob, re
 
@@ -14,6 +9,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
+
+# Import functions from plot_init_benefit
+sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
+from plot_init_benefit import extract_values_from_txt, load_arrays_from_npy
 
 # Define a function for plotting the values
 def plot_raw_init_impact(corr1, corr1_p, init_impact, r_partial_p,
@@ -677,7 +676,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 # for the same season and variable
 def load_files_and_plot(variable: str, region: str, season: str, forecast_range: str, methods_list: list,
                         no_bootstraps: int, plots_dir: str, bootstrap_base_dir: str,
-                        gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 12) -> None:
+                        gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 10) -> None:
     
     """
     Wrapper function which loads the required files and plots the different
@@ -722,20 +721,20 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     paths_list = []
 
     # Form the paths for the different methods
-    for method in method_list:
+    for method in methods_list:
         # If the method is raw, use no_bootstraps = 1000 for now
         # FIXME: change this to 1000 once all the files have been created
         if method == 'raw':
             no_bootstraps = 1000
         else:
-            no_bootstraps = 100
+            no_bootstraps = 10
 
         # Set up the path to the file
         path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
                 f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
         
         # Assert that the path exists
-        assert os.path.exists(path), f"Path {path} does not exist for method {method}" +
+        assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
         f" and no_bootstraps {no_bootstraps}"
 
         # Append the path to the list
@@ -749,7 +748,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
 
     # Plot the different methods
     plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
-                                            forecast_range, method_list, no_bootstraps,
+                                            forecast_range, methods_list, no_bootstraps,
                                             plots_dir, gridbox=gridbox,
                                             figsize_x=figsize_x, figsize_y=figsize_y)
     
