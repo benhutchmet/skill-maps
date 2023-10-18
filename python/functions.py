@@ -5571,6 +5571,14 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
         
         forecast1_em_resid: residual after regressing out forecast2 ensemble mean from forecast1 ensemble mean
 
+        f1_ts: forecast1 ensemble mean timeseries
+
+        f2_ts: forecast2 ensemble mean timeseries
+
+        f10_ts: forecast1 ensemble mean timeseries for 10 ensemble members
+
+        o_ts: observations timeseries
+
     """
 
     # Set up the dictionary for the outputs
@@ -5602,7 +5610,9 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
         'nens1':mdi, 'nens2':mdi, 'sigo': mdi, 'sigo_resid': mdi,  
 
-        'obs_resid':[], 'fcst1_em_resid':[]
+        'obs_resid':[], 'fcst1_em_resid':[], 'f1_ts': [],
+
+        'f2_ts': [], 'f10_ts': [], 'o_ts': [] 
 
     }
 
@@ -5736,6 +5746,13 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
         # Get the 10 member ensemble mean forecast
         f10 = np.mean(fcst10_boot, axis=0)
+
+        # TODO: Extract the first bootstrap value of f1, f2 and f10
+        # For the ensemble mean time series plots
+        if iboot == 0:
+            f1_ts = f1 ; f2_ts = f2 ; f10_ts = f10
+
+            o_ts = o
 
         # Compute the bias by removing independent estimates of f2 - the historical ensemble mean
         f2_1 = np.mean(fcst2_boot[0:nens2_2, :, :, :], axis=0) # first half of the ensemble
@@ -6057,6 +6074,13 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
     # Append the ensemble members count to the dictionary
     forecasts_stats['nens1'] = nens1 ; forecasts_stats['nens2'] = nens2
+
+    # Append the forecasts to the dictionary
+    forecasts_stats['f1_ts'] = f1_ts ; forecasts_stats['f2_ts'] = f2_ts
+
+    forecasts_stats['f10_ts'] = f10_ts
+
+    forecasts_stats['o_ts'] = o_ts
 
     # Return the forecasts_stats dictionary
     return forecasts_stats
