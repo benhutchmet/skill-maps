@@ -901,14 +901,67 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
         # Set up the x-axis for the time series
         years = np.arange(start_year, end_year + 1)
 
+        # TODO: Potentially add the r-values and p-values to the plot
+
         # Set up the axes for the total skill
         ax1 = axs[i, 0]
         ax1.plot(years, fcst1_ts_mean, color='red', label='init')
         ax1.plot(years, fcst2_ts_mean, color='purple', label='unin')
         ax1.plot(years, obs_ts_mean, color='black', label='obs')
 
+        # Add a textbox with the figure label
+        ax1.text(0.95, 0.05, ax_labels[2 * i], transform=ax1.transAxes,
+                    verticalalignment='bottom', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+        
+        # Add a textbox with the method
+        # to the top right of the plot
+        ax1.text(0.95, 0.95, method, transform=ax1.transAxes,
+                    verticalalignment='top', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+
+        # Set the title to 'anomalies'
+        ax1.set_title('anomalies')
+
         # Include a legend
         ax1.legend()
+
+        # Set up the axes for the residual correlation
+        ax2 = axs[i, 1]
+        ax2.plot(years, fcst1_em_resid_mean, color='red', label='init')
+        ax2.plot(years, obs_resid_mean, color='black', label='obs')
+
+        # Add a textbox with the figure label
+        ax2.text(0.95, 0.05, ax_labels[(2*i)+1], transform=ax2.transAxes,
+                    verticalalignment='bottom', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+        
+        # Add a textbox with the method
+        # to the top right of the plot
+        ax2.text(0.95, 0.95, method, transform=ax2.transAxes,
+                    verticalalignment='top', horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+
+        # Set the title to 'residuals'
+        ax2.set_title('residuals')
+
+        # Include a legend
+        ax2.legend()
+
+    # Set up the pathname for saving the figure
+    fig_name = f"{plots_dir}/raw_init_impact_{variable}_{season}_" + \
+    f"{forecast_range}_different_methods_timeseries_{no_bootstraps}_{start_year}" + \
+    f"_{finish_year}.png"
+
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # show the figure
+    plt.show()
+
+    return None
 
 
 
