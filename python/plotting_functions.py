@@ -457,7 +457,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         ' using different methods' + 'no_bootstraps = ' + str(no_bootstraps)
     
     # set up the supertitle
-    fig.suptitle(title, fontsize=6, y=0.90)
+    fig.suptitle(title, fontsize=8, y=0.90)
 
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5)
