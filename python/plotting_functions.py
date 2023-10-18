@@ -514,24 +514,24 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # Add a textbox with the figure label
         ax1.text(0.95, 0.05, ax_labels[2 * i], transform=ax1.transAxes,
                     verticalalignment='bottom', horizontalalignment='right',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # Add a textbox with the plot name
         ax1.text(0.05, 0.95, plot_names[0], transform=ax1.transAxes,
                     verticalalignment='top', horizontalalignment='left',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # Add a textbox with the method
         # to the top right of the plot
         ax1.text(0.95, 0.95, method, transform=ax1.transAxes,
                     verticalalignment='top', horizontalalignment='right',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # add a textbox with the season
         # to the bottom left of the plot
         ax1.text(0.05, 0.05, season, transform=ax1.transAxes,
                     verticalalignment='bottom', horizontalalignment='left',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -563,24 +563,24 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # Add a textbox with the figure label
         ax2.text(0.95, 0.05, ax_labels[(2*i)+1], transform=ax2.transAxes,
                     verticalalignment='bottom', horizontalalignment='right',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # Add a textbox with the plot name
         ax2.text(0.05, 0.95, plot_names[1], transform=ax2.transAxes,
                     verticalalignment='top', horizontalalignment='left',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # Add a textbox with the method
         # to the top right of the plot
         ax2.text(0.95, 0.95, method, transform=ax2.transAxes,
                     verticalalignment='top', horizontalalignment='right',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
         # add a textbox with the season
         # to the bottom left of the plot
         ax2.text(0.05, 0.05, season, transform=ax2.transAxes,
                     verticalalignment='bottom', horizontalalignment='left',
-                    bbox=dict(facecolor='white', alpha=0.5))
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
     # Add a colorbar for the correlation
     cbar = fig.colorbar(cf_list[0], ax=axs, orientation='horizontal', pad = 0.05,
