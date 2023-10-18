@@ -752,4 +752,167 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                                             plots_dir, gridbox=gridbox,
                                             figsize_x=figsize_x, figsize_y=figsize_y)
     
+    return None
+
+# Write a new function to plot the time series of the forecasts
+# for the initialized, uninitialized and observed data
+def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
+                                                 variable: str, season: str,
+                                                 forecast_range: str, method_list: list,
+                                                 no_bootstraps: int, plots_dir: str,
+                                                 gridbox: dict = None,
+                                                 figsize_x: int = 10, figsize_y: int = 10) -> None:
+    """
+    Plots a 3 x 2 matrix of subplots. The first column is the total correlation
+    timeseries and the second column is the residual correlation timeseries. The
+    rows are for raw, lagged and nao-matched data, as defined in methods list.
+
+    Args:
+
+        ts_arrays (list): list of dicts containing the arrays to plot.
+                            Indexed by the methods in method_list.
+                            Each dictionary contains the following keys:
+                                fcst1_ts (array) [time, lat, lon]: ensemble mean initialized forecast timeseries
+                                fcst2_ts (array) [time, lat, lon]: ensemble mean uninitialized forecast timeseries
+                                obs_ts (array) [time, lat, lon]: observed timeseries
+                                fcst1_em_resid (array) [time, lat, lon]: ensemble mean initialized forecast timeseries with the ensemble mean of the uninitialized forecast removed
+                                obs_resid (array) [time, lat, lon]: observed timeseries with the ensemble mean of the uninitialized forecast removed.
+
+        values (list): list of dicts containing the values to plot.
+                        Indexed by the methods in method_list.
+                        Each dictionary contains the following keys:
+                            nens1 (int): number of ensemble members in the first ensemble (initialized)
+                            nens2 (int): number of ensemble members in the second ensemble (uninitialized)
+                            start_year (int): start year of the forecast
+                            end_year (int): end year of the forecast
+
+        variable (str): variable to plot
+
+        season (str): season to plot
+
+        forecast_range (str): forecast range to plot
+
+        method_list (list): list of methods to plot (e.g. raw, lagged, nao_matched)
+
+        no_bootstraps (int): number of bootstraps to plot
+
+        plots_dir (str): path to the directory to save the plots
+
+        gridbox (dict): dictionary containing the gridbox to calculate the time
+                        series for. Default is None.
+                        Contains constrained gridbox with dimensions as follows:
+                            'lon1': lower longitude bound
+                            'lon2': upper longitude bound
+                            'lat1': lower latitude bound
+                            'lat2': upper latitude bound
+
+        figsize_x (int): size of the figure in the x direction. Default is 10.
+
+        figsize_y (int): size of the figure in the y direction. Default is 10.
+
+    Returns:
+
+        None
+
+    """
+
+    # Set up the axis labels
+    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F']
+
+    # Set up the plot_names
+    plot_names = ['total skill', 'residual corr']
+
+    # Assert that gridbox is not None
+    # as gridbox is needed to collapse 3D array into time series
+    assert gridbox is not None, "gridbox must be specified"
+
+    # Set up the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the figure size
+    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(figsize_x, figsize_y),
+                            subplot_kw={'projection': proj}, 
+                            gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    
+    # Extract a start year and finish year from the values_list
+    start_year = values[0]['start_year']
+    finish_year = values[0]['end_year']
+
+    # Set up the title
+    title = 'Total and residual timeseries for ' + variable + ' in ' + season + ' for ' + forecast_range + \
+        ' between ' + str(start_year) + ' and ' + str(finish_year) + \
+        ' using different methods' + 'no_bootstraps = ' + str(no_bootstraps)
+    
+    # set up the supertitle
+    fig.suptitle(title, fontsize=8, y=0.90)
+
+    # Set up the lats and lons
+    lons = np.arange(-180, 180, 2.5)
+    lats = np.arange(-90, 90, 2.5)
+
+    # Set up the significance threshold as 0.05
+    sig_threshold = 0.05
+
+    # Use the gridbox to constrain the lats and lons
+    # find the indices of the lats which correspond to the gridbox
+    lat1_idx = np.argmin(np.abs(lats - gridbox['lat1']))
+    lat2_idx = np.argmin(np.abs(lats - gridbox['lat2']))
+
+    # find the indices of the lons which correspond to the gridbox
+    lon1_idx = np.argmin(np.abs(lons - gridbox['lon1']))
+    lon2_idx = np.argmin(np.abs(lons - gridbox['lon2']))
+
+    # Loop over the methods
+    for i, method in enumerate(method_list):
+        print("plotting index: ", i, " for method: ", method)
+
+        # Extract the dictionaries for this method
+        method_arrays = ts_arrays[i]
+        method_values = values[i]
+
+        # From the dictionaries, extract the arrays
+        fcst1_ts = method_arrays['fcst1_ts']
+        fcst2_ts = method_arrays['fcst2_ts']
+        obs_ts = method_arrays['obs_ts']
+        fcst1_em_resid = method_arrays['fcst1_em_resid']
+        obs_resid = method_arrays['obs_resid']
+
+        # From the dictionaries, extract the values
+        nens1 = method_values['nens1']
+        nens2 = method_values['nens2']
+        start_year = method_values['start_year']
+        end_year = method_values['end_year']
+
+        # Process the arrays to get the time series
+        # Frist constrain the arrays to the gridbox
+        fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+        fcst2_ts_gridbox = fcst2_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+        obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+        fcst1_em_resid_gridbox = fcst1_em_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+        obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+        # Calculate the mean over the gridbox
+        fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
+        fcst2_ts_mean = np.nanmean(fcst2_ts_gridbox, axis=(1, 2))
+        obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
+        fcst1_em_resid_mean = np.nanmean(fcst1_em_resid_gridbox, axis=(1, 2))
+        obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
+
+        # Set up the x-axis for the time series
+        years = np.arange(start_year, end_year + 1)
+
+        # Set up the axes for the total skill
+        ax1 = axs[i, 0]
+        ax1.plot(years, fcst1_ts_mean, color='red', label='init')
+        ax1.plot(years, fcst2_ts_mean, color='purple', label='unin')
+        ax1.plot(years, obs_ts_mean, color='black', label='obs')
+
+        # Include a legend
+        ax1.legend()
+
+
+
+
+
+
 
