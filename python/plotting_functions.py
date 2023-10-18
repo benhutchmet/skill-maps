@@ -386,7 +386,8 @@ def plot_raw_init_impact_subplots(arrays_list: list, values_list: list, variable
 def plot_different_methods_same_season_var(arrays: list, values: list, 
                                             variable: str, season: str,
                                             forecast_range: str, method_list: list,
-                                            no_bootstraps: int, plots_dir: str) -> None:
+                                            no_bootstraps: int, plots_dir: str,
+                                            figsize_x: int = 10, figsize_y: int = 12) -> None:
     """
     Plots a 3 x 2 matrix of subplots. The first column is the total correlation
     skill and the second column is the residual correlation. The rows are for
@@ -422,6 +423,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         plots_dir (str): path to the directory to save the plots
 
+        figsize_x (int): size of the figure in the x direction. Default is 10.
+
+        figsize_y (int): size of the figure in the y direction. Default is 12.
+
     Returns:
 
         None
@@ -438,7 +443,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     proj = ccrs.PlateCarree()
 
     # Set up the figure size
-    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(8, 12),
+    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(figsize_x, figsize_y),
                             subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
@@ -452,7 +457,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         ' using different methods' + 'no_bootstraps = ' + str(no_bootstraps)
     
     # set up the supertitle
-    fig.suptitle(title, fontsize=8, y=0.90)
+    fig.suptitle(title, fontsize=6, y=0.90)
 
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5)
