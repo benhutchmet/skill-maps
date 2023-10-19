@@ -722,7 +722,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
 
     # Form the paths for the different methods
     for method in methods_list:
-        
+
         # Set up the path to the file
         path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
                 f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
@@ -910,7 +910,7 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
         ax1.plot(years, obs_ts_mean, color='black', label='obs')
 
         # Set consitenet y-limits
-        ax1.set_ylim([-1.5, 1.0])
+        ax1.set_ylim([-0.8, 1.0])
 
         # Add a textbox with the figure label
         ax1.text(0.95, 0.05, ax_labels[2 * i], transform=ax1.transAxes,
