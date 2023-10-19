@@ -535,8 +535,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon2_idx = np.argmin(np.abs(lons - plot_lon2))
 
             # Constrain the lats and lon arrays to the gridbox
-            lats = lats[lat1_idx:lat2_idx]
-            lons = lons[lon1_idx:lon2_idx]
+            lats_cs = lats[lat1_idx:lat2_idx]
+            lons_cs = lons[lon1_idx:lon2_idx]
 
             # Constrain the corr1 array to the gridbox
             corr1 = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
@@ -553,14 +553,17 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # Set up the axes for the total skill
         ax1 = axs[i, 0]
         ax1.coastlines()
-        cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
+        if plot_gridbox is not None:
+            cf = ax1.contourf(lons_cs, lats_cs, corr1, clevs, cmap='RdBu_r', transform=proj)
+        else:
+            cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
 
         # If the gridbox is not None
         if gridbox is not None:
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
-                       
+
             # Constrain the corr1 array to the gridbox
             # find the indices of the lats which correspond to the gridbox
             lat1_idx = np.argmin(np.abs(lats - lat1))
@@ -623,8 +626,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # Set up the axes for the residual correlation
         ax2 = axs[i, 1]
         ax2.coastlines()
-        cf = ax2.contourf(lons, lats, partial_r, clevs, cmap='RdBu_r', 
-                            transform=proj)
+
+        if plot_gridbox is not None:
+            cf = ax2.contourf(lons_cs, lats_cs, partial_r, clevs, cmap='RdBu_r',
+                                transform=proj)
+        else:
+            cf = ax2.contourf(lons, lats, partial_r, clevs, cmap='RdBu_r', 
+                                transform=proj)
         
         # if the gridbox is not None
         if gridbox is not None:
