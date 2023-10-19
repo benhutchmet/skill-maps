@@ -210,6 +210,14 @@ central_europe_grid = {
     'lat2': 65
 }
 
+# define a grid to plot for the north atlantic
+north_atlantic_grid_plot = {
+    'lon1': -60,
+    'lon2': 40,
+    'lat1': 30,
+    'lat2': 90
+}
+
 # Define the dimensions for another central europe grid for RSDS correlations
 central_europe_grid_rsds = {
     'lon1': 165,
