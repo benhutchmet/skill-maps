@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
+from scipy.stats import pearsonr
 
 # Import functions from plot_init_benefit
 sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
@@ -518,6 +519,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         partial_r = method_arrays['partial_r']
         partial_r_p = method_arrays['partial_r_p']
 
+        # TODO: Once cylc suite has processed for 1 bootstrap case
+        # Extract the time series arrays to calculate correlations
+        # fcst1_ts = method_arrays['fcst1_ts']
+        # obs_ts = method_arrays['obs_ts']
+        # fcst1_em_residual = method_arrays['fcst1_em_residual']
+        # obs_resid = method_arrays['obs_resid']
+
         # From the dictionaries, extract the values
         nens1 = method_values['nens1']
         nens2 = method_values['nens2']
@@ -573,6 +581,23 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon1_idx = np.argmin(np.abs(lons - lon1))
             lon2_idx = np.argmin(np.abs(lons - lon2))
 
+            # TODO: Once cylc suite has processed for 1 bootstrap case
+            # # Constrain both fcst1_ts and obs_ts to the gridbox
+            # fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            # obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            # fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
+            # obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
+
+            # # Calculate the correlation between the two
+            # r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+
+            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            # ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
+            #             verticalalignment='bottom', horizontalalignment='left',
+            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+
             # Constrain the corr1 array to the gridbox
             corr1_gridbox = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
@@ -596,6 +621,23 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # find the indices of the lons which correspond to the gridbox
             lon1_idx = np.argmin(np.abs(lons_cs - lon1))
             lon2_idx = np.argmin(np.abs(lons_cs - lon2))
+
+            # TODO: Once cylc suite has processed for 1 bootstrap case
+            # # Constrain both fcst1_ts and obs_ts to the gridbox
+            # fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            # obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            # fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
+            # obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
+
+            # # Calculate the correlation between the two
+            # r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+
+            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            # ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
+            #             verticalalignment='bottom', horizontalalignment='left',   
+            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)    
 
             # Constrain the corr1 array to the gridbox
             corr1_gridbox = corr1_cs[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
@@ -688,7 +730,6 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # find the indices of the lons which correspond to the gridbox
             lon1_idx = np.argmin(np.abs(lons - lon1))
             lon2_idx = np.argmin(np.abs(lons - lon2))
-
 
             # Constrain the partial_r array to the gridbox
             partial_r_gridbox = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
