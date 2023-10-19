@@ -11,7 +11,7 @@
         lag="4"
         no_subset_members="20"
         method=raw,lagged,nao_matched
-        nboot=1000
+        nboot=1
 
 [scheduling]
     [[dependencies]]
@@ -27,7 +27,7 @@
             batch system = slurm
         [[[directives]]]
             --partition = high-mem
-            --mem = 80000
+            --mem = 20000
     [[process_bootstrap<match_var><obs_var_name><region><season><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot>]]
         script = """
         module load jaspy/3.10/r20230718
@@ -35,4 +35,4 @@
         python process_bs_values.py ${CYLC_TASK_PARAM_match_var} ${CYLC_TASK_PARAM_obs_var_name} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members} ${CYLC_TASK_PARAM_method} ${CYLC_TASK_PARAM_nboot}
         """
         [[[job]]]
-            execution time limit = PT2000M
+            execution time limit = PT40M
