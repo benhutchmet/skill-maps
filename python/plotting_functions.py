@@ -722,13 +722,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
 
     # Form the paths for the different methods
     for method in methods_list:
-        # If the method is raw, use no_bootstraps = 1000 for now
-        # FIXME: change this to 1000 once all the files have been created
-        if method == 'raw' and variable != 'rsds':
-            no_bootstraps = 1000
-        else:
-            no_bootstraps = 10
-
+        
         # Set up the path to the file
         path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
                 f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
