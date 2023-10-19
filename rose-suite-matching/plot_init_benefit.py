@@ -175,13 +175,13 @@ def load_arrays_from_npy(path, variable):
 
     # find the file containing fcst1_ts
     # FIXME: not processed for 1000 bootstrap run - comment out for now
-    # fcst1_ts_file = [file for file in files if f'fcst1_ts_{variable}' in file][0]
+    fcst1_ts_file = [file for file in files if f'fcst1_ts_{variable}' in file][0]
 
-    # # find the file containing fcst2_ts
-    # fcst2_ts_file = [file for file in files if f'fcst2_ts_{variable}' in file][0]
+    # find the file containing fcst2_ts
+    fcst2_ts_file = [file for file in files if f'fcst2_ts_{variable}' in file][0]
 
-    # # find the file containing obs_ts
-    # obs_ts_file = [file for file in files if f'obs_ts_{variable}' in file][0]
+    # find the file containing obs_ts
+    obs_ts_file = [file for file in files if f'obs_ts_{variable}' in file][0]
 
     # find the file containing fcst1_em_resid
     fcst1_em_resid_file = [file for file in files if f'fcst1_em_resid_{variable}' in file][0]
@@ -198,9 +198,9 @@ def load_arrays_from_npy(path, variable):
     # arrays['sigo_resid'] = np.load(sigo_resid_file)
 
     # FIXME: not processed for 1000 bootstrap run - comment out for now
-    # arrays['fcst1_ts'] = np.load(fcst1_ts_file)
-    # arrays['fcst2_ts'] = np.load(fcst2_ts_file)
-    # arrays['obs_ts'] = np.load(obs_ts_file)
+    arrays['fcst1_ts'] = np.load(fcst1_ts_file)
+    arrays['fcst2_ts'] = np.load(fcst2_ts_file)
+    arrays['obs_ts'] = np.load(obs_ts_file)
     arrays['fcst1_em_resid'] = np.load(fcst1_em_resid_file)
     arrays['obs_resid'] = np.load(obs_resid_file)
 
