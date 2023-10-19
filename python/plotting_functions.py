@@ -793,7 +793,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
                                             forecast_range, methods_list, no_bootstraps,
                                             plots_dir, gridbox=gridbox,
-                                            figsize_x=figsize_x, figsize_y=figsize_y)
+                                            figsize_x=figsize_x, figsize_y=figsize_y,
+                                            plot_gridbox=plot_gridbox)
     
     return None
 
