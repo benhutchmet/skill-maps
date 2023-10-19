@@ -26,8 +26,7 @@
         [[[job]]]
             batch system = slurm
         [[[directives]]]
-            --partition = high-mem
-            --mem = 20000
+            --partition = short-serial
     [[process_bootstrap<match_var><obs_var_name><region><season><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot>]]
         script = """
         module load jaspy/3.10/r20230718

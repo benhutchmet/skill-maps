@@ -391,7 +391,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                             forecast_range: str, method_list: list,
                                             no_bootstraps: int, plots_dir: str,
                                             gridbox: dict = None,
-                                            figsize_x: int = 10, figsize_y: int = 12) -> None:
+                                            figsize_x: int = 10, figsize_y: int = 12,
+                                            plot_gridbox: dict = None) -> None:
     """
     Plots a 3 x 2 matrix of subplots. The first column is the total correlation
     skill and the second column is the residual correlation. The rows are for
@@ -438,6 +439,14 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         figsize_y (int): size of the figure in the y direction. Default is 12.
 
+        plot_gridbox (dict): dictionary containing the gridbox to constrain the
+                            plot to. Default is None.
+                            Contains constrained gridbox with dimensions as follows:
+                                'lon1': lower longitude bound
+                                'lon2': upper longitude bound
+                                'lat1': lower latitude bound
+                                'lat2': upper latitude bound
+
     Returns:
 
         None
@@ -476,6 +485,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         lon1, lon2 = gridbox['lon1'], gridbox['lon2']
         lat1, lat2 = gridbox['lat1'], gridbox['lat2']
 
+    # If the plot_gridbox is not None
+    if plot_gridbox is not None:
+        # Set up the lats and lons for this gridbox
+        plot_lon1, plot_lon2 = plot_gridbox['lon1'], plot_gridbox['lon2']
+        plot_lat1, plot_lat2 = plot_gridbox['lat1'], plot_gridbox['lat2']
+
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5)
     lats = np.arange(-90, 90, 2.5)
@@ -508,6 +523,32 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         nens2 = method_values['nens2']
         start_year = method_values['start_year']
         end_year = method_values['end_year']
+
+        # If the plot_gridbox is not None
+        if plot_gridbox is not None:
+            # Find the indices of the lats which correspond to the gridbox
+            lat1_idx = np.argmin(np.abs(lats - plot_lat1))
+            lat2_idx = np.argmin(np.abs(lats - plot_lat2))
+
+            # Find the indices of the lons which correspond to the gridbox
+            lon1_idx = np.argmin(np.abs(lons - plot_lon1))
+            lon2_idx = np.argmin(np.abs(lons - plot_lon2))
+
+            # Constrain the lats and lon arrays to the gridbox
+            lats = lats[lat1_idx:lat2_idx]
+            lons = lons[lon1_idx:lon2_idx]
+
+            # Constrain the corr1 array to the gridbox
+            corr1 = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constrain the corr1_p array to the gridbox
+            corr1_p = corr1_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constrain the partial_r array to the gridbox
+            partial_r = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constrain the partial_r_p array to the gridbox
+            partial_r_p = partial_r_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
         # Set up the axes for the total skill
         ax1 = axs[i, 0]
@@ -676,7 +717,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 # for the same season and variable
 def load_files_and_plot(variable: str, region: str, season: str, forecast_range: str, methods_list: list,
                         no_bootstraps: int, plots_dir: str, bootstrap_base_dir: str,
-                        gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 10) -> None:
+                        gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 10,
+                        plot_gridbox: dict = None) -> None:
     
     """
     Wrapper function which loads the required files and plots the different
@@ -711,6 +753,13 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         figsize_x (int): size of the figure in the x direction. Default is 10.
         
         figsize_y (int): size of the figure in the y direction. Default is 12.
+
+        plot_gridbox (dict): dictionary containing the gridbox to plot. Default is None.
+                        contains constrained gridbox with dimensions as follows:
+                            'lon1': lower longitude bound
+                            'lon2': upper longitude bound
+                            'lat1': lower latitude bound
+                            'lat2': upper latitude bound
         
     Returns:
     
