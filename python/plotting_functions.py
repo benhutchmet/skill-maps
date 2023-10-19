@@ -731,6 +731,23 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon1_idx = np.argmin(np.abs(lons - lon1))
             lon2_idx = np.argmin(np.abs(lons - lon2))
 
+            # TODO: Once cylc suite has processed for 1 bootstrap case
+            # # Constrain both fcst1_em_residual and obs_resid to the gridbox
+            # fcst1_em_residual_gridbox = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            # obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            # fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
+            # obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
+
+            # # Calculate the correlation between the two
+            # r, p = pearsonr(fcst1_em_residual_mean, obs_resid_mean)
+
+            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            # ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
+            #             verticalalignment='bottom', horizontalalignment='left',
+            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+
             # Constrain the partial_r array to the gridbox
             partial_r_gridbox = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
@@ -754,6 +771,23 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # find the indices of the lons which correspond to the gridbox
             lon1_idx = np.argmin(np.abs(lons_cs - lon1))
             lon2_idx = np.argmin(np.abs(lons_cs - lon2))
+
+            # TODO: Once cylc suite has processed for 1 bootstrap case
+            # # Constrain both fcst1_em_residual and obs_resid to the gridbox
+            # fcst1_em_residual_gridbox = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            # obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            # fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
+            # obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
+
+            # # Calculate the correlation between the two
+            # r, p = pearsonr(fcst1_em_residual_mean, obs_resid_mean)
+
+            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            # ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
+            #             verticalalignment='bottom', horizontalalignment='left',
+            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
             # Constrin the partial_r array to the gridbox
             partial_r_gridbox = partial_r_cs[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
