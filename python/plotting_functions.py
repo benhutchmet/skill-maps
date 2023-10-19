@@ -539,22 +539,22 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lons_cs = lons[lon1_idx:lon2_idx]
 
             # Constrain the corr1 array to the gridbox
-            corr1 = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            corr1_cs = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
             # Constrain the corr1_p array to the gridbox
-            corr1_p = corr1_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            corr1_p_cs = corr1_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
             # Constrain the partial_r array to the gridbox
-            partial_r = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            partial_r_cs = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
             # Constrain the partial_r_p array to the gridbox
-            partial_r_p = partial_r_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            partial_r_p_cs = partial_r_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
         # Set up the axes for the total skill
         ax1 = axs[i, 0]
         ax1.coastlines()
         if plot_gridbox is not None:
-            cf = ax1.contourf(lons_cs, lats_cs, corr1, clevs, cmap='RdBu_r', transform=proj)
+            cf = ax1.contourf(lons_cs, lats_cs, corr1_cs, clevs, cmap='RdBu_r', transform=proj)
         else:
             cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
 
@@ -583,20 +583,58 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax1.text(0.05, 0.05, f"r = {corr1_mean:.2f}", transform=ax1.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+        elif gridbox is not None and plot_gridbox is not None:
+            # Add green lines outlining the gridbox
+            ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
+                    color='green', linewidth=2, transform=proj)
 
-        # if any of the corr1 values are NaN
-        if np.isnan(corr1).any():
-            # set the corr1_p value to NaN at those points
-            corr1_p[corr1 == np.nan] = np.nan
+            # Constrain the corr1 array to the gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx = np.argmin(np.abs(lats_cs - lat1))
+            lat2_idx = np.argmin(np.abs(lats_cs - lat2))
 
-        # If any of the corr1_p values are greater than the significance
-        # threshold - set them to NaN
-        corr1_p[corr1_p > sig_threshold] = np.nan
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx = np.argmin(np.abs(lons_cs - lon1))
+            lon2_idx = np.argmin(np.abs(lons_cs - lon2))
 
-        # Plot the p-values for the correlation between the initialized forecast
-        # and the observations
-        ax1.contourf(lons, lats, corr1_p, hatches=['....'], alpha=0.,
-                        transform=proj)
+            # Constrain the corr1 array to the gridbox
+            corr1_gridbox = corr1_cs[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Calculate the mean corr1 over the gridbox
+            corr1_mean = np.nanmean(corr1_gridbox)
+
+            # Show this values in the lower left textbox
+            ax1.text(0.05, 0.05, f"r = {corr1_mean:.2f}", transform=ax1.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+            
+        if plot_gridbox is not None:
+            if np.isnan(corr1_cs).any():
+                # set the corr1_p value to NaN at those points
+                corr1_p_cs[corr1_cs == np.nan] = np.nan
+
+            # If any of the corr1_p values are greater than the significance
+            # threshold - set them to NaN
+            corr1_p_cs[corr1_p_cs > sig_threshold] = np.nan
+
+            # Plot the p-values for the correlation between the initialized forecast
+            # and the observations
+            ax1.contourf(lons_cs, lats_cs, corr1_p_cs, hatches=['....'], alpha=0.,
+                            transform=proj)
+        else:
+            # if any of the corr1 values are NaN
+            if np.isnan(corr1).any():
+                # set the corr1_p value to NaN at those points
+                corr1_p[corr1 == np.nan] = np.nan
+
+            # If any of the corr1_p values are greater than the significance
+            # threshold - set them to NaN
+            corr1_p[corr1_p > sig_threshold] = np.nan
+
+            # Plot the p-values for the correlation between the initialized forecast
+            # and the observations
+            ax1.contourf(lons, lats, corr1_p, hatches=['....'], alpha=0.,
+                            transform=proj)
 
         # Add a textbox with the figure label
         ax1.text(0.95, 0.05, ax_labels[2 * i], transform=ax1.transAxes,
@@ -628,7 +666,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         ax2.coastlines()
 
         if plot_gridbox is not None:
-            cf = ax2.contourf(lons_cs, lats_cs, partial_r, clevs, cmap='RdBu_r',
+            cf = ax2.contourf(lons_cs, lats_cs, partial_r_cs, clevs, cmap='RdBu_r',
                                 transform=proj)
         else:
             cf = ax2.contourf(lons, lats, partial_r, clevs, cmap='RdBu_r', 
@@ -662,24 +700,63 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax2.text(0.05, 0.05, f"r' = {partial_r_mean:.2f}", transform=ax2.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+        elif gridbox is not None and plot_gridbox is not None:
+            # Add green lines outlining the gridbox
+            ax2.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
+                    color='green', linewidth=2, transform=proj)
+            
+            # Constrain the partia_r array to the gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx = np.argmin(np.abs(lats_cs - lat1))
+            lat2_idx = np.argmin(np.abs(lats_cs - lat2))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx = np.argmin(np.abs(lons_cs - lon1))
+            lon2_idx = np.argmin(np.abs(lons_cs - lon2))
+
+            # Constrin the partial_r array to the gridbox
+            partial_r_gridbox = partial_r_cs[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Calculate the mean partial_r over the gridbox
+            partial_r_mean = np.nanmean(partial_r_gridbox)
+
+            # Show this values in the lower left textbox
+            ax2.text(0.05, 0.05, f"r' = {partial_r_mean:.2f}", transform=ax2.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
         # Append the contourf object to the list
         cf_list.append(cf)
 
-        # If any of the partial_r values are NaN
-        if np.isnan(partial_r).any():
-            # Set the partial_r_p values to NaN at those points
-            partial_r_p[partial_r == np.nan] = np.nan
+        if plot_gridbox is not None:
+            if np.isnan(partial_r_cs).any():
+                # Set the partial_r_p values to NaN at those points
+                partial_r_p_cs[partial_r_cs == np.nan] = np.nan
 
-        # If any of the partial_r_p values are greater than the significance
-        # threshold - set them to NaN
-        partial_r_p[partial_r_p > sig_threshold] = np.nan
+            # If any of the partial_r_p values are greater than the significance
+            # threshold - set them to NaN
+            partial_r_p_cs[partial_r_p_cs > sig_threshold] = np.nan
 
-        # Plot the p-values for the partial correlation between the initialized
-        # forecast and the observations after removing the influence of the
-        # uninitialized forecast
-        ax2.contourf(lons, lats, partial_r_p, hatches=['....'], alpha=0.,
-                        transform=proj)
+            # Plot the p-values for the partial correlation between the initialized
+            # forecast and the observations after removing the influence of the
+            # uninitialized forecast
+            ax2.contourf(lons_cs, lats_cs, partial_r_p_cs, hatches=['....'], alpha=0.,
+                            transform=proj)
+        else:
+            # If any of the partial_r values are NaN
+            if np.isnan(partial_r).any():
+                # Set the partial_r_p values to NaN at those points
+                partial_r_p[partial_r == np.nan] = np.nan
+
+            # If any of the partial_r_p values are greater than the significance
+            # threshold - set them to NaN
+            partial_r_p[partial_r_p > sig_threshold] = np.nan
+
+            # Plot the p-values for the partial correlation between the initialized
+            # forecast and the observations after removing the influence of the
+            # uninitialized forecast
+            ax2.contourf(lons, lats, partial_r_p, hatches=['....'], alpha=0.,
+                            transform=proj)
         
         # Add a textbox with the figure label
         ax2.text(0.95, 0.05, ax_labels[(2*i)+1], transform=ax2.transAxes,
