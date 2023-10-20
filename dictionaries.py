@@ -224,9 +224,9 @@ central_europe_grid = {
 
 # define a grid to plot for the north atlantic
 north_atlantic_grid_plot = {
-    'lon1': -60,
+    'lon1': -70,
     'lon2': 40,
-    'lat1': 30,
+    'lat1': 20,
     'lat2': 90
 }
 
