@@ -593,7 +593,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
 
         # If the gridbox is not None
-        if gridbox is not None and ['south' and 'north'] not in gridbox:
+        if gridbox is not None and 'south' and 'north' not in gridbox:
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
@@ -623,7 +623,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
             
-        elif ['south' and 'north'] in gridbox:
+        elif 'south' and 'north' in gridbox:
             # Add green lines outlining the north gridbox
             ax1.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
@@ -705,7 +705,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',   
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-        elif ['south'and 'north'] in gridbox and plot_gridbox is not None:
+        elif 'south'and 'north' in gridbox and plot_gridbox is not None:
             # Add green lines outlining the north gridbox
             ax1.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
@@ -857,7 +857,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-        elif ['south' and 'north'] in gridbox:
+        elif 'south' and 'north' in gridbox:
             # Add green lines outlining the north gridbox
             ax2.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
@@ -943,7 +943,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
             
-        elif ['south'and 'north'] in gridbox and plot_gridbox is not None:
+        elif 'south'and 'north' in gridbox and plot_gridbox is not None:
                         # Add green lines outlining the north gridbox
             ax2.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
