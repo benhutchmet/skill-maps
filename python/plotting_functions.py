@@ -943,7 +943,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                                             forecast_range, methods_list, no_bootstraps,
                                             plots_dir, gridbox=gridbox,
                                             figsize_x=figsize_x, figsize_y=figsize_y,
-                                            plot_gridbox=plot_gridbox)
+                                            plot_gridbox=plot_gridbox,
+                                            ts_arrays=ts_arrays_list)
     
     return None
 
