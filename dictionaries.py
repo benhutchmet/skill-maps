@@ -222,6 +222,14 @@ central_europe_grid = {
     'lat2': 65
 }
 
+# define the uk grid from Clarke et al. 2017
+uk_grid = {
+    'lon1': -10,
+    'lon2': 3,
+    'lat1': 50,
+    'lat2': 60
+}
+
 # define a grid to plot for the north atlantic
 north_atlantic_grid_plot = {
     'lon1': -70,
