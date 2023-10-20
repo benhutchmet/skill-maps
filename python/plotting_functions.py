@@ -393,7 +393,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                             no_bootstraps: int, plots_dir: str,
                                             gridbox: dict = None,
                                             figsize_x: int = 10, figsize_y: int = 12,
-                                            plot_gridbox: dict = None) -> None:
+                                            plot_gridbox: dict = None,
+                                            ts_arrays: list = None) -> None:
     """
     Plots a 3 x 2 matrix of subplots. The first column is the total correlation
     skill and the second column is the residual correlation. The rows are for
@@ -448,6 +449,18 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                 'lat1': lower latitude bound
                                 'lat2': upper latitude bound
 
+        ts_arrays (list): list of dicts containing the time series arrays to plot.
+                            Indexed by the methods in method_list.
+                            Each dictionary contains the following keys:
+                            corr1 (array): correlation between the initialized forecast and the observations
+                            corr1_p (array): p-value for the correlation between the initialized forecast and the observations
+                            partial_r (array): partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
+                            partial_r_p (array): p-value for the partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
+                            fcst1_ts (array): time series of the initialized forecast
+                            fcst2_ts (array): time series of the uninitialized forecast
+                            obs_ts (array): time series of the observations
+                            fcst1_em_resid (array): residuals of the initialized forecast
+                            obs_resid (array): residuals of the observations
     Returns:
 
         None
@@ -511,6 +524,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         # Extract the dictionaries for this method
         method_arrays = arrays[i]
+        method_arrays_ts = ts_arrays[i]
         method_values = values[i]
 
         # From the dictionaries, extract the arrays
@@ -521,10 +535,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         # TODO: Once cylc suite has processed for 1 bootstrap case
         # Extract the time series arrays to calculate correlations
-        # fcst1_ts = method_arrays['fcst1_ts']
-        # obs_ts = method_arrays['obs_ts']
-        # fcst1_em_residual = method_arrays['fcst1_em_residual']
-        # obs_resid = method_arrays['obs_resid']
+        fcst1_ts = method_arrays_ts['fcst1_ts']
+        obs_ts = method_arrays_ts['obs_ts']
+        fcst1_em_residual = method_arrays_ts['fcst1_em_residual']
+        obs_resid = method_arrays_ts['obs_resid']
 
         # From the dictionaries, extract the values
         nens1 = method_values['nens1']
@@ -581,33 +595,22 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon1_idx = np.argmin(np.abs(lons - lon1))
             lon2_idx = np.argmin(np.abs(lons - lon2))
 
-            # TODO: Once cylc suite has processed for 1 bootstrap case
             # # Constrain both fcst1_ts and obs_ts to the gridbox
-            # fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-            # obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
-            # # Calculate the gridbox mean of both fcst1_ts and obs_ts
-            # fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
-            # obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
+            # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
+            obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
 
-            # # Calculate the correlation between the two
-            # r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+            # Calculate the correlation between the two
+            r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
 
-            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
-            # ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
-            #             verticalalignment='bottom', horizontalalignment='left',
-            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-
-            # Constrain the corr1 array to the gridbox
-            corr1_gridbox = corr1[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-
-            # Calculate the mean corr1 over the gridbox
-            corr1_mean = np.nanmean(corr1_gridbox)
-
-            # Show this values in the lower left textbox
-            ax1.text(0.05, 0.05, f"r = {corr1_mean:.2f}", transform=ax1.transAxes,
+            # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+
         elif gridbox is not None and plot_gridbox is not None:
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
@@ -622,34 +625,22 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon1_idx = np.argmin(np.abs(lons_cs - lon1))
             lon2_idx = np.argmin(np.abs(lons_cs - lon2))
 
-            # TODO: Once cylc suite has processed for 1 bootstrap case
-            # # Constrain both fcst1_ts and obs_ts to the gridbox
-            # fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-            # obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            # Constrain both fcst1_ts and obs_ts to the gridbox
+            fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
-            # # Calculate the gridbox mean of both fcst1_ts and obs_ts
-            # fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
-            # obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
+            # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
+            obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
 
-            # # Calculate the correlation between the two
-            # r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+            # Calculate the correlation between the two
+            r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
 
-            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
-            # ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
-            #             verticalalignment='bottom', horizontalalignment='left',   
-            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)    
-
-            # Constrain the corr1 array to the gridbox
-            corr1_gridbox = corr1_cs[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-
-            # Calculate the mean corr1 over the gridbox
-            corr1_mean = np.nanmean(corr1_gridbox)
-
-            # Show this values in the lower left textbox
-            ax1.text(0.05, 0.05, f"r = {corr1_mean:.2f}", transform=ax1.transAxes,
-                        verticalalignment='bottom', horizontalalignment='left',
+            # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',   
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-            
+    
         if plot_gridbox is not None:
             if np.isnan(corr1_cs).any():
                 # set the corr1_p value to NaN at those points
@@ -731,33 +722,22 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon1_idx = np.argmin(np.abs(lons - lon1))
             lon2_idx = np.argmin(np.abs(lons - lon2))
 
-            # TODO: Once cylc suite has processed for 1 bootstrap case
-            # # Constrain both fcst1_em_residual and obs_resid to the gridbox
-            # fcst1_em_residual_gridbox = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-            # obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            # Constrain both fcst1_em_residual and obs_resid to the gridbox
+            fcst1_em_residual_gridbox = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
-            # # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
-            # fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
-            # obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
+            # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
+            obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
 
-            # # Calculate the correlation between the two
-            # r, p = pearsonr(fcst1_em_residual_mean, obs_resid_mean)
+            # Calculate the correlation between the two
+            r, p = pearsonr(fcst1_em_residual_mean, obs_resid_mean)
 
-            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
-            # ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
-            #             verticalalignment='bottom', horizontalalignment='left',
-            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-
-            # Constrain the partial_r array to the gridbox
-            partial_r_gridbox = partial_r[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-
-            # Calculate the mean partial_r over the gridbox
-            partial_r_mean = np.nanmean(partial_r_gridbox)
-
-            # Show this values in the lower left textbox
-            ax2.text(0.05, 0.05, f"r' = {partial_r_mean:.2f}", transform=ax2.transAxes,
+            # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+
         elif gridbox is not None and plot_gridbox is not None:
             # Add green lines outlining the gridbox
             ax2.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
@@ -772,31 +752,19 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon1_idx = np.argmin(np.abs(lons_cs - lon1))
             lon2_idx = np.argmin(np.abs(lons_cs - lon2))
 
-            # TODO: Once cylc suite has processed for 1 bootstrap case
-            # # Constrain both fcst1_em_residual and obs_resid to the gridbox
-            # fcst1_em_residual_gridbox = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-            # obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            # Constrain both fcst1_em_residual and obs_resid to the gridbox
+            fcst1_em_residual_gridbox = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
-            # # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
-            # fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
-            # obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
+            # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
+            obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
 
-            # # Calculate the correlation between the two
-            # r, p = pearsonr(fcst1_em_residual_mean, obs_resid_mean)
+            # Calculate the correlation between the two
+            r, p = pearsonr(fcst1_em_residual_mean, obs_resid_mean)
 
-            # # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
-            # ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
-            #             verticalalignment='bottom', horizontalalignment='left',
-            #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-
-            # Constrin the partial_r array to the gridbox
-            partial_r_gridbox = partial_r_cs[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-
-            # Calculate the mean partial_r over the gridbox
-            partial_r_mean = np.nanmean(partial_r_gridbox)
-
-            # Show this values in the lower left textbox
-            ax2.text(0.05, 0.05, f"r' = {partial_r_mean:.2f}", transform=ax2.transAxes,
+            # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
+            ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
@@ -948,6 +916,27 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
 
     # Loop over the paths to get the arrays
     arrays_list = [load_arrays_from_npy(path, variable) for path in paths_list]
+
+    # Set the number of bootstraps to 1
+    # to extract the time series
+    no_bootstraps = 1
+
+    # Form the paths for the different methods
+    for method in methods_list:
+
+        # Set up the path to the file
+        path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
+                f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
+        
+        # Assert that the path exists
+        assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
+        f" and no_bootstraps {no_bootstraps}"
+
+        # Append the path to the list
+        paths_list.append(path)
+
+    # Loop over the paths to get the timeseries arrays
+    ts_arrays_list = [load_arrays_from_npy(path, variable, timeseries=True) for path in paths_list]
 
     # Plot the different methods
     plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
