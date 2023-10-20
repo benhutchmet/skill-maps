@@ -5862,7 +5862,6 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                     # Continue to the next lat lon
                     continue
 
-
                 # Extract the forecasts and obs for the independent estimates
                 f2_1_cell = f2_1[:, lat, lon] ; f2_2_cell = f2_2[:, lat, lon]
                 
