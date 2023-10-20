@@ -77,7 +77,7 @@ def match_variable_models(match_var):
     elif match_var in ["psl", "msl" ]:
         match_var_models = dic.models
     elif match_var in ["ua", "va"]:
-        match_var_models = dic.common_models
+        match_var_models = dic.common_models_noIPSL_noCan
     else:
         print("The variable is not supported for NAO matching.")
         sys.exit()
