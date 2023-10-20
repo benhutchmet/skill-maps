@@ -485,6 +485,9 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                             subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
+    # Update the params for mathtext default rcParams
+    plt.rcParams.update({'mathtext.default': 'regular'})
+    
     # Extract a start year and finish year from the values_list
     start_year = values[0]['start_year']
     finish_year = values[0]['end_year']
@@ -675,10 +678,14 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
             # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
-            ax1.text(0.05, 0.05, r"$r_{n} = {:.2f}, p_{{n}} = {:.2f}$".format(r_n, p_n) + \
-                        r"$\quad r_{s} = {:.2f}, p_{{s}} = {:.2f}$".format(r_s, p_s),
-                        transform=ax1.transAxes, verticalalignment='bottom', horizontalalignment='left',
-                        bbox=dict(facecolor='white', alpha=0.5), fontsize=8) 
+            ax1.text(0.05, 0.05, 
+                    f"r$_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
+                    f"r$_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
+                    transform=ax1.transAxes,
+                    verticalalignment='bottom',
+                    horizontalalignment='left',
+                    bbox=dict(facecolor='white', alpha=0.5),
+                    fontsize=10)
         elif gridbox is not None and plot_gridbox is not None:
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
@@ -759,10 +766,14 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
             # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
-            ax1.text(0.05, 0.05, r"$r_{n} = {:.2f}, p_{{n}} = {:.2f}$".format(r_n, p_n) + \
-                        "\n" + r"$r_{s} = {:.2f}, p_{{s}} = {:.2f}$".format(r_s, p_s),
-                        transform=ax1.transAxes, verticalalignment='bottom', horizontalalignment='left',
-                        bbox=dict(facecolor='white', alpha=0.5), fontsize=8)
+            ax1.text(0.05, 0.05, 
+                    f"r$_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
+                    f"r$_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
+                    transform=ax1.transAxes,
+                    verticalalignment='bottom',
+                    horizontalalignment='left',
+                    bbox=dict(facecolor='white', alpha=0.5),
+                    fontsize=10)
         if plot_gridbox is not None:
             if np.isnan(corr1_cs).any():
                 # set the corr1_p value to NaN at those points
@@ -910,10 +921,14 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
             # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
-            ax2.text(0.05, 0.05, r"$r'_{n} = {:.2f}, p_{{n}} = {:.2f}$".format(r_n, p_n) + \
-                        "\n" + r"$r'_{s} = {:.2f}, p_{{s}} = {:.2f}$".format(r_s, p_s),
-                        transform=ax2.transAxes, verticalalignment='bottom', horizontalalignment='left',
-                        bbox=dict(facecolor='white', alpha=0.5), fontsize=8)
+            ax2.text(0.05, 0.05, 
+                        f"r$'_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
+                        f"r$'_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
+                        transform=ax2.transAxes,
+                        verticalalignment='bottom',
+                        horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5),
+                        fontsize=10)
         elif gridbox is not None and plot_gridbox is not None:
             # Add green lines outlining the gridbox
             ax2.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
@@ -995,11 +1010,14 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
             # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
-            ax2.text(0.05, 0.05, r"$r'_{n} = {:.2f}, p_{{n}} = {:.2f}$".format(r_n, p_n) + \
-                        "\n" + r"$r'_{s} = {:.2f}, p_{{s}} = {:.2f}$".format(r_s, p_s),
-                        transform=ax2.transAxes, verticalalignment='bottom', horizontalalignment='left',
-                        bbox=dict(facecolor='white', alpha=0.5), fontsize=8)
-        # Append the contourf object to the list
+            ax2.text(0.05, 0.05, 
+                        f"r$'_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
+                        f"r$'_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
+                        transform=ax2.transAxes,
+                        verticalalignment='bottom',
+                        horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5),
+                        fontsize=10)        # Append the contourf object to the list
         cf_list.append(cf)
 
         if plot_gridbox is not None:
