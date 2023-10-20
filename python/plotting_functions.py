@@ -921,6 +921,9 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     # to extract the time series
     no_bootstraps = 1
 
+    # Initialize a list for the paths to the time series files
+    paths_list_ts = []
+
     # Form the paths for the different methods
     for method in methods_list:
 
@@ -933,10 +936,10 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         f" and no_bootstraps {no_bootstraps}"
 
         # Append the path to the list
-        paths_list.append(path)
+        paths_list_ts.append(path)
 
     # Loop over the paths to get the timeseries arrays
-    ts_arrays_list = [load_arrays_from_npy(path, variable, timeseries=True) for path in paths_list]
+    ts_arrays_list = [load_arrays_from_npy(path, variable, timeseries=True) for path in paths_list_ts]
 
     # Plot the different methods
     plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
