@@ -74,6 +74,8 @@ def match_variable_models(match_var):
         match_var_models = dic.rsds_models_noCMCC
     elif match_var in ["psl", "msl" ]:
         match_var_models = dic.models
+    elif match_var in ["ua", "va"]:
+        match_var_models = dic.common_models
     else:
         print("The variable is not supported for NAO matching.")
         sys.exit()
@@ -82,7 +84,7 @@ def match_variable_models(match_var):
     return match_var_models
 
 # write a function which sets up the observations path for the variable
-def obs_path(match_var):
+def find_obs_path(match_var):
     """
     Matches up the matching variable to its observations path.
     """
@@ -90,6 +92,8 @@ def obs_path(match_var):
     # Case statement for the matching variable
     if match_var in ["tas", "t2m", "sfcWind", "si10", "rsds", "ssrd", "psl", "msl"]:
         obs_path = dic.obs
+    elif match_var in ["ua", "va"]:
+        obs_path = dic.obs_ua_va
     else:
         print("The variable is not supported for NAO matching.")
         sys.exit()

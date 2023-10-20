@@ -96,6 +96,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
         # If the level is not None, then we want to load the data for the specified level
         if level is not None:
             files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + f"plev_{level}" + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
+            print("Searching for files in ", files_path)
         else:
             # create the path to the files for this model
             files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
