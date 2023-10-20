@@ -68,6 +68,8 @@ import sys
 
 # Import from other scripts
 # -------------------------
+from typing import Union, Tuple
+import xarray as xr
 
 # Import the dictionaries
 sys.path.append("/home/users/benhutch/skill-maps")
@@ -324,8 +326,6 @@ def load_nao_matched_data(base_dir: str, variable: str, region: str, season: str
         season = "MAY"
     elif season == "JJA":
         season = "ULG"
-    else:
-        season = season
         
     # Set up the path to the data
     path_nao_match_dir = f"{base_dir}/{variable}/{region}/{season}/{forecast_range}/{start_year}-{end_year}/"
@@ -417,9 +417,9 @@ def align_nao_matched_members(obs: xr.DataArray,
                 nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
             else:
                 print(f"not all values are NaN for {year}")
-                print("deleting the year containing some NaNs from the NAO matched members")
-                # Delete the year from the NAo matched members
-                nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
+                # print("deleting the year containing some NaNs from the NAO matched members")
+                # # Delete the year from the NAo matched members
+                # nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
         else:
             print(f"there are no NaN values in the NAO matched members for {year}")
 
