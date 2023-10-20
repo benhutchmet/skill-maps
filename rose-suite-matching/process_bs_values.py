@@ -12,7 +12,7 @@ Usage:
 
     $ python process_bs_values.py <match_var> <obs_var_name>
     <region> <season> <forecast_range> <start_year> <end_year> 
-    <lag> <no_subset_members> <method> <nboot>
+    <lag> <no_subset_members> <method> <nboot> <level>
 
 Parameters:
 ===========
@@ -49,6 +49,9 @@ Parameters:
         Must be a method in the input files.
     nboot: int
         The number of bootstraps to perform.
+    level: int
+        The level to perform the matching for. 
+        Must be a level in the input files.
 
 Output:
 =======
@@ -136,6 +139,10 @@ def extract_variables():
 
     parser.add_argument('nboot', type=int,
                         help='The number of bootstraps to perform.')
+    
+    # add optional argument for level, which defaults to None
+    parser.add_argument('level', type=int, default=None,
+                        help='The level to perform the matching for.')
 
     # Extract the CLAs
     args = parser.parse_args()

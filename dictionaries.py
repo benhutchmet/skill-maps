@@ -71,6 +71,8 @@ sfcWind_models_historical = [ "BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-C
 
 psl_models_historical = [ "BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "NorCPM1" ]
 
+historical_models_ua = [ "BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "NorCPM1" ]
+
 # Define a dictionary to map the season strings to their corresponding months
 season_month_map = {
     "DJF": [12, 1, 2],
@@ -92,7 +94,8 @@ historical_models_map = {
     "psl": psl_models_historical,
     "tas": tas_models_noEC_historical,
     "sfcWind": sfcWind_models_historical,
-    "rsds": rsds_models_historical
+    "rsds": rsds_models_historical,
+    "ua": historical_models_ua
 }
 
 
