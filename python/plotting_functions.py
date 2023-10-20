@@ -494,10 +494,22 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     fig.suptitle(title, fontsize=8, y=0.90)
 
     # If the gridbox is not None
-    if gridbox is not None:
+    if gridbox is not None and gridbox not in ['nao_skill_grid', 'snao_skill_grid']:
         # Set up the lats and lons for this gridbox
         lon1, lon2 = gridbox['lon1'], gridbox['lon2']
         lat1, lat2 = gridbox['lat1'], gridbox['lat2']
+    elif gridbox in ['nao_skill_grid', 'snao_skill_grid']:
+        # Extract the south and north nao skill gridboxes
+        south_gridbox = gridbox['south']
+        north_gridbox = gridbox['north']
+
+        # Set up the lats and lons for the south gridbox
+        lon1_s, lon2_s = south_gridbox['lon1'], south_gridbox['lon2']
+        lat1_s, lat2_s = south_gridbox['lat1'], south_gridbox['lat2']
+
+        # Set up the lats and lons for the north gridbox
+        lon1_n, lon2_n = north_gridbox['lon1'], north_gridbox['lon2']
+        lat1_n, lat2_n = north_gridbox['lat1'], north_gridbox['lat2']
 
     # If the plot_gridbox is not None
     if plot_gridbox is not None:
@@ -581,7 +593,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
 
         # If the gridbox is not None
-        if gridbox is not None:
+        if gridbox is not None and gridbox not in ['nao_skill_grid', 'snao_skill_grid']:
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
@@ -610,7 +622,60 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+            
+        elif gridbox in ['nao_skill_grid', 'snao_skill_grid']:
+            # Add green lines outlining the north gridbox
+            ax1.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
+                    color='green', linewidth=2, transform=proj)
 
+            # Add green lines outlining the south gridbox
+            ax1.plot([lon1_s, lon2_s, lon2_s, lon1_s, lon1_s], [lat1_s, lat1_s, lat2_s, lat2_s, lat1_s],
+                    color='green', linewidth=2, transform=proj)       
+
+            # Constrain the corr1 array to the north gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_n = np.argmin(np.abs(lats - lat1_n))
+            lat2_idx_n = np.argmin(np.abs(lats - lat2_n))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_n = np.argmin(np.abs(lons - lon1_n))
+            lon2_idx_n = np.argmin(np.abs(lons - lon2_n))
+
+            # Find the indices of the lats which correspond to the south gridbox
+            lat1_idx_s = np.argmin(np.abs(lats - lat1_s))
+            lat2_idx_s = np.argmin(np.abs(lats - lat2_s))
+
+            # find the indices of the lons which correspond to the south gridbox
+            lon1_idx_s = np.argmin(np.abs(lons - lon1_s))
+            lon2_idx_s = np.argmin(np.abs(lons - lon2_s))
+
+            # Constrain both fcst1_ts and obs_ts to the north gridbox
+            fcst1_ts_gridbox_n = fcst1_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            obs_ts_gridbox_n = obs_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            # Constrain both fcst1_ts and obs_ts to the south gridbox
+            fcst1_ts_gridbox_s = fcst1_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            obs_ts_gridbox_s = obs_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            fcst1_ts_mean_n = np.nanmean(fcst1_ts_gridbox_n, axis=(1, 2))
+            obs_ts_mean_n = np.nanmean(obs_ts_gridbox_n, axis=(1, 2))
+
+            # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            fcst1_ts_mean_s = np.nanmean(fcst1_ts_gridbox_s, axis=(1, 2))
+            obs_ts_mean_s = np.nanmean(obs_ts_gridbox_s, axis=(1, 2))
+
+            # Calculate the correlation between the two
+            r_n, p_n = pearsonr(fcst1_ts_mean_n, obs_ts_mean_n)
+            r_s, p_s = pearsonr(fcst1_ts_mean_s, obs_ts_mean_s)
+
+            # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
+            # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
+            ax1.text(0.05, 0.05, f"r_{{n}} = {r_n:.2f}, p_{{n}} = {p_n:.2f}\n" + \
+                        f"r_{{s}} = {r_s:.2f}, p_{{s}} = {p_s:.2f}", transform=ax1.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+            
         elif gridbox is not None and plot_gridbox is not None:
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
@@ -640,7 +705,62 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax1.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax1.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',   
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-    
+        elif gridbox in ['nao_skill_grid', 'snao_skill_grid'] and plot_gridbox is not None:
+            # Add green lines outlining the north gridbox
+            ax1.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
+                    color='green', linewidth=2, transform=proj)
+            
+            # Add green lines outlining the south gridbox
+            ax1.plot([lon1_s, lon2_s, lon2_s, lon1_s, lon1_s], [lat1_s, lat1_s, lat2_s, lat2_s, lat1_s],
+                    color='green', linewidth=2, transform=proj)
+            
+            # Constrain the corr1 array to the north gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_n = np.argmin(np.abs(lats_cs - lat1_n))
+            lat2_idx_n = np.argmin(np.abs(lats_cs - lat2_n))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_n = np.argmin(np.abs(lons_cs - lon1_n))
+            lon2_idx_n = np.argmin(np.abs(lons_cs - lon2_n))
+
+            # Constrain the corr1 array to the south gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_s = np.argmin(np.abs(lats_cs - lat1_s))
+            lat2_idx_s = np.argmin(np.abs(lats_cs - lat2_s))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_s = np.argmin(np.abs(lons_cs - lon1_s))
+            lon2_idx_s = np.argmin(np.abs(lons_cs - lon2_s))
+
+            # Constrain both fcst1_ts and obs_ts to the north gridbox
+            fcst1_ts_gridbox_n = fcst1_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            obs_ts_gridbox_n = obs_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            # Constrain both fcst1_ts and obs_ts to the south gridbox
+            fcst1_ts_gridbox_s = fcst1_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            obs_ts_gridbox_s = obs_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            fcst1_ts_mean_n = np.nanmean(fcst1_ts_gridbox_n, axis=(1, 2))
+            obs_ts_mean_n = np.nanmean(obs_ts_gridbox_n, axis=(1, 2))
+
+            # Calculate the gridbox mean of both fcst1_ts and obs_ts
+            fcst1_ts_mean_s = np.nanmean(fcst1_ts_gridbox_s, axis=(1, 2))
+            obs_ts_mean_s = np.nanmean(obs_ts_gridbox_s, axis=(1, 2))
+
+            # Calculate the correlation between the two
+            r_n, p_n = pearsonr(fcst1_ts_mean_n, obs_ts_mean_n)
+
+            # Calculate the correlation between the two
+            r_s, p_s = pearsonr(fcst1_ts_mean_s, obs_ts_mean_s)
+
+            # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
+            # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
+            ax1.text(0.05, 0.05, f"r_{{n}} = {r_n:.2f}, p_{{n}} = {p_n:.2f}\n" + \
+                        f"r_{{s}} = {r_s:.2f}, p_{{s}} = {p_s:.2f}", transform=ax1.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+
         if plot_gridbox is not None:
             if np.isnan(corr1_cs).any():
                 # set the corr1_p value to NaN at those points
@@ -737,6 +857,61 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+        elif gridbox in ['nao_skill_grid', 'snao_skill_grid']:
+            # Add green lines outlining the north gridbox
+            ax2.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
+                    color='green', linewidth=2, transform=proj)
+            
+            # Add green lines outlining the south gridbox
+            ax2.plot([lon1_s, lon2_s, lon2_s, lon1_s, lon1_s], [lat1_s, lat1_s, lat2_s, lat2_s, lat1_s],
+                    color='green', linewidth=2, transform=proj)
+            
+            # Constrain the partia_r array to the north gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_n = np.argmin(np.abs(lats - lat1_n))
+            lat2_idx_n = np.argmin(np.abs(lats - lat2_n))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_n = np.argmin(np.abs(lons - lon1_n))
+            lon2_idx_n = np.argmin(np.abs(lons - lon2_n))
+
+            # Constrain the partia_r array to the south gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_s = np.argmin(np.abs(lats - lat1_s))
+            lat2_idx_s = np.argmin(np.abs(lats - lat2_s))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_s = np.argmin(np.abs(lons - lon1_s))
+            lon2_idx_s = np.argmin(np.abs(lons - lon2_s))
+
+            # Constrain both fcst1_em_residual and obs_resid to the north gridbox
+            fcst1_em_residual_gridbox_n = fcst1_em_residual[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            obs_resid_gridbox_n = obs_resid[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            # Constrain both fcst1_em_residual and obs_resid to the south gridbox
+            fcst1_em_residual_gridbox_s = fcst1_em_residual[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            obs_resid_gridbox_s = obs_resid[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            fcst1_em_residual_mean_n = np.nanmean(fcst1_em_residual_gridbox_n, axis=(1, 2))
+            obs_resid_mean_n = np.nanmean(obs_resid_gridbox_n, axis=(1, 2))
+
+            # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            fcst1_em_residual_mean_s = np.nanmean(fcst1_em_residual_gridbox_s, axis=(1, 2))
+            obs_resid_mean_s = np.nanmean(obs_resid_gridbox_s, axis=(1, 2))
+
+            # Calculate the correlation between the two
+            r_n, p_n = pearsonr(fcst1_em_residual_mean_n, obs_resid_mean_n)
+            
+            # Calculate the correlation between the two
+            r_s, p_s = pearsonr(fcst1_em_residual_mean_s, obs_resid_mean_s)
+
+            # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
+            # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
+            ax2.text(0.05, 0.05, f"r'_{{n}} = {r_n:.2f}, p_{{n}} = {p_n:.2f}\n" + \
+                        f"r'_{{s}} = {r_s:.2f}, p_{{s}} = {p_s:.2f}", transform=ax2.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
         elif gridbox is not None and plot_gridbox is not None:
             # Add green lines outlining the gridbox
@@ -765,6 +940,62 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Show these values e.g. r = 0.50, p = 0.01 in the lower left textbox
             ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
+                        verticalalignment='bottom', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+            
+        elif gridbox in ['nao_skill_grid', 'snao_skill_grid'] and plot_gridbox is not None:
+                        # Add green lines outlining the north gridbox
+            ax2.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
+                    color='green', linewidth=2, transform=proj)
+            
+            # Add green lines outlining the south gridbox
+            ax2.plot([lon1_s, lon2_s, lon2_s, lon1_s, lon1_s], [lat1_s, lat1_s, lat2_s, lat2_s, lat1_s],
+                    color='green', linewidth=2, transform=proj)
+            
+            # Constrain the partia_r array to the north gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_n = np.argmin(np.abs(lats_cs - lat1_n))
+            lat2_idx_n = np.argmin(np.abs(lats_cs - lat2_n))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_n = np.argmin(np.abs(lons_cs - lon1_n))
+            lon2_idx_n = np.argmin(np.abs(lons_cs - lon2_n))
+
+            # Constrain the partia_r array to the south gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_s = np.argmin(np.abs(lats_cs - lat1_s))
+            lat2_idx_s = np.argmin(np.abs(lats_cs - lat2_s))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_s = np.argmin(np.abs(lons_cs - lon1_s))
+            lon2_idx_s = np.argmin(np.abs(lons_cs - lon2_s))
+
+            # Constrain both fcst1_em_residual and obs_resid to the north gridbox
+            fcst1_em_residual_gridbox_n = fcst1_em_residual[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            obs_resid_gridbox_n = obs_resid[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            # Constrain both fcst1_em_residual and obs_resid to the south gridbox
+            fcst1_em_residual_gridbox_s = fcst1_em_residual[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            obs_resid_gridbox_s = obs_resid[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            fcst1_em_residual_mean_n = np.nanmean(fcst1_em_residual_gridbox_n, axis=(1, 2))
+            obs_resid_mean_n = np.nanmean(obs_resid_gridbox_n, axis=(1, 2))
+
+            # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
+            fcst1_em_residual_mean_s = np.nanmean(fcst1_em_residual_gridbox_s, axis=(1, 2))
+            obs_resid_mean_s = np.nanmean(obs_resid_gridbox_s, axis=(1, 2))
+
+            # Calculate the correlation between the two
+            r_n, p_n = pearsonr(fcst1_em_residual_mean_n, obs_resid_mean_n)
+            
+            # Calculate the correlation between the two
+            r_s, p_s = pearsonr(fcst1_em_residual_mean_s, obs_resid_mean_s)
+
+            # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
+            # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
+            ax2.text(0.05, 0.05, f"r'_{{n}} = {r_n:.2f}, p_{{n}} = {p_n:.2f}\n" + \
+                        f"r'_{{s}} = {r_s:.2f}, p_{{s}} = {p_s:.2f}", transform=ax2.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
 
