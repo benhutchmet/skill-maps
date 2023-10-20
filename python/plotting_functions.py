@@ -537,7 +537,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # Extract the time series arrays to calculate correlations
         fcst1_ts = method_arrays_ts['fcst1_ts']
         obs_ts = method_arrays_ts['obs_ts']
-        fcst1_em_residual = method_arrays_ts['fcst1_em_residual']
+        fcst1_em_residual = method_arrays_ts['fcst1_em_resid']
         obs_resid = method_arrays_ts['obs_resid']
 
         # From the dictionaries, extract the values
