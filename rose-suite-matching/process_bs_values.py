@@ -79,7 +79,7 @@ import functions as fnc
 
 # Import the other functions
 sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
-from nao_matching_seasons import match_variable_models, obs_path
+from nao_matching_seasons import match_variable_models, find_obs_path
 
 # Import the historical functions
 sys.path.append("/home/users/benhutch/skill-maps-differences")
@@ -141,7 +141,7 @@ def extract_variables():
                         help='The number of bootstraps to perform.')
     
     # add optional argument for level, which defaults to None
-    parser.add_argument('level', type=int, default=None,
+    parser.add_argument('level', type=str, default=None,
                         help='The level to perform the matching for.')
 
     # Extract the CLAs
@@ -630,6 +630,8 @@ def main():
 
     no_bootstraps = args.nboot
 
+    level = args.level
+
     # If the region is global, set the region to the global gridspec
     if region == "global":
         region_grid = dicts.gridspec_global
@@ -658,12 +660,12 @@ def main():
     hist_models = extract_hist_models(variable, dicts)
 
     # Set up the observations path for the matching variable
-    obs_path_name = obs_path(variable)
+    obs_path_name = find_obs_path(variable)
 
     # Process the observed data
     obs = fnc.process_observations(variable, region, region_grid, 
                                    forecast_range, season, obs_path_name, 
-                                   variable, plev=None)
+                                   variable, plev=level)
 
 
     # if the variable is 'rsds'

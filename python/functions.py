@@ -480,6 +480,11 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
         print("Gridspec file does not exist")
         sys.exit()
 
+    # if obs_var_name is ua or va
+    if obs_var_name in ["ua"]:
+        obs_var_name = "var131"
+    elif obs_var_name in ["va"]:
+        obs_var_name = "var132"
 
     # If the variable is ua or va, then we want to select the plev=85000
     if obs_var_name in ["ua", "va", "var131", "var132"]:
@@ -1519,12 +1524,17 @@ def constrain_years(model_data, models):
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
             
+            # If time is zero
+            # then continue with the loop
+            if len(member.time) == 0:
+                continue
+
             # If there are any NaN values in the model data
             if np.isnan(member).any():
-                print("There are NaN values in the model data for model " + model + "member " + member.attrs['variant_label'])
+                print("There are NaN values in the model data for model ", model)
                 # if there are only NaN values in the model data
                 if np.all(np.isnan(member)):
-                    print("All values in the model data are NaN values for model " + model + "member " + member.attrs['variant_label'])
+                    print("All values in the model data are NaN values for model ", model)
                     # continue with the loop
                     continue
             
@@ -1538,7 +1548,7 @@ def constrain_years(model_data, models):
             # If the years has duplicate values
             if len(years[years < 2020]) != len(set(years[years < 2020])):
                 # Raise a value error
-                print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
+                print("The models years has duplicate values for model ", model)
                 # continue with the loop
                 continue
 
@@ -1546,7 +1556,7 @@ def constrain_years(model_data, models):
             # then raise a value error
             # Check whats going on with Canesm5
             if np.any(np.diff(years[years < 2020]) > 1):
-                print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
+                print("There is a gap of more than 1 year in the years for model ", model)
                 # continue with the loop
                 continue
 
@@ -1582,6 +1592,12 @@ def constrain_years(model_data, models):
 
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
+            
+            # if time is zero
+            # then continue with the loop
+            if len(member.time) == 0:
+                continue
+            
             # Extract the years
             years = member.time.dt.year.values
 
@@ -1592,14 +1608,14 @@ def constrain_years(model_data, models):
             # If the years has duplicate values
             if len(years[years < 2020]) != len(set(years[years < 2020])):
                 # Raise a value error
-                print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
+                print("The models years has duplicate values for model ",model)
                 # continue with the loop
                 continue
 
             # If there is a gap of more than 1 year in the years
             # then raise a value error
             if np.any(np.diff(years[years < 2020]) > 1):
-                print("There is a gap of more than 1 year in the years for model " + model + "member " + member.attrs['variant_label'])
+                print("There is a gap of more than 1 year in the years for model ", model)
                 # print the values of the years where the gap is greater than 1
                 # Convert the tuple returned by np.where() to a NumPy array
                 indices = np.array(np.where(np.diff(years[years < 2020]) > 1))
@@ -1619,7 +1635,7 @@ def constrain_years(model_data, models):
 
             # #print("years in both shape", np.shape(years_in_both))
             # #print("years in both", years_in_both)
-            
+
             # Select only those years from the model data
             member = member.sel(time=member.time.dt.year.isin(years_in_both))
 
@@ -2075,6 +2091,11 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
             # Extract the data
             data = member.values
 
+            # If the data has four dimensions
+            if len(data.shape) == 4:
+                # Squeeze the data
+                data = np.squeeze(data)
+
             # Assign the data to the forecast1 array
             f1[member_index-1, :, :, :] = data
 
@@ -2093,6 +2114,11 @@ def align_forecast1_forecast2_obs(forecast1, forecast1_models, forecast2, foreca
 
             # Extract the data
             data = member.values
+
+            # If the data has four dimensions
+            if len(data.shape) == 4:
+                # Squeeze the data
+                data = np.squeeze(data)
 
             # Assign the data to the forecast2 array
             f2[member_index-1, :, :, :] = data
@@ -5806,6 +5832,36 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
                     # Continue to the next lat lon
                     continue
+                # elif f1_cell contains NaNs
+                elif np.isnan(f1_cell).any() or np.isnan(f2_cell).any() \
+                    or np.isnan(o_cell).any() or np.isnan(f10_cell).any():
+                    # Print a warning
+                    print("Warning: f1_cell contains NaNs at lat", lat, "lon", lon)
+                    print("Setting all values of the correlations to NaN at lat", lat, "lon", lon)
+                    # Set all the values of the correlations to NaN
+                    r1o_boot[iboot, lat, lon] = np.nan ; r2o_boot[iboot, lat, lon] = np.nan ; r12_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the differences in correlations to NaN
+                    rdiff_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the MSSS to NaN
+                    msss1_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the RPCs to NaN
+                    rpc1_boot[iboot, lat, lon] = np.nan ; rpc2_boot[iboot, lat, lon] = np.nan
+
+                    # Set all the values of the 10 member ensemble mean correlations to NaN
+                    r_ens_10_boot[iboot, lat, lon] = np.nan
+
+                    # set the r partial correlations to NaN
+                    r_partial_boot[iboot, lat, lon] = np.nan
+
+                    # Set the r partial bias to NaN
+                    r_partial_bias_boot[iboot, lat, lon] = np.nan
+
+                    # Continue to the next lat lon
+                    continue
+
 
                 # Extract the forecasts and obs for the independent estimates
                 f2_1_cell = f2_1[:, lat, lon] ; f2_2_cell = f2_2[:, lat, lon]

@@ -13,7 +13,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "sfcWind",
+                "ua",
                 "10w",
                 "global",
                 "DJFM",
@@ -22,8 +22,9 @@
                 "2022",
                 "4",
                 "20",
-                "nao-matched",
-                "5"
+                "raw",
+                "2",
+                "85000"
             ]
         },
         {
