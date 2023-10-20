@@ -174,6 +174,12 @@ iceland_grid_corrected = {
     'lat2': 70
 }
 
+# Create a dictionary containing both azores grid corrected
+# and iceland grid corrected
+nao_skill_grid = {
+    'south': azores_grid_corrected,
+    'north': iceland_grid_corrected
+}
 # Define the dimensions for the summertime NAO (SNAO) southern pole
 # As defined in Wang and Ting 2022
 # This is the pointwise definition of the SNAO
@@ -192,6 +198,12 @@ snao_north_grid = {
     'lon2': -22, # degrees west
     'lat1': 60,
     'lat2': 70
+}
+
+# Define the summer NAO skill grid
+snao_skill_grid = {
+    'south': snao_south_grid,
+    'north': snao_north_grid
 }
 
 # Define the dimensions for the gridbox for the North Sea Region
