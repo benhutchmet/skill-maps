@@ -2377,6 +2377,15 @@ def nao_matching_other_var(rescaled_model_nao, model_nao, psl_models, match_vari
         # Select the years from the match_var_model_anomalies_constrained
         # Select only the data for the years in the 'years' array
         match_var_model_anomalies_constrained_years = match_var_model_anomalies_constrained[0].sel(time=match_var_model_anomalies_constrained[0].time.dt.year.isin(years))
+
+        # if the match variable model is ua or va
+        if match_variable_model in ['ua', 'va']:
+            print("match variable model is ua or va")
+            print("squeezing single dimesion for plev")
+
+            # Squeeze the single dimension for plev
+            match_var_model_anomalies_constrained_years = match_var_model_anomalies_constrained_years.squeeze()
+
         # Extract the coords for the first years=years of the model_nao_constrained
         coords = match_var_model_anomalies_constrained_years.coords
         dims = match_var_model_anomalies_constrained_years.dims
