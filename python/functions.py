@@ -40,7 +40,7 @@ import iris.quickplot as qplt
 
 # Import CDO
 from cdo import *
-#cdo = Cdo()
+cdo = Cdo()
 
 
 # Install imageio

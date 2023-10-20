@@ -10,7 +10,7 @@ a new netCDF file with the ensemble mean of the NAO matched data for the given v
 Usage:
 ------
 
-    $ python nao_matching_seasons.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members>
+    $ python nao_matching_seasons.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members> <level>
 
 Parameters:
 ===========
@@ -31,6 +31,8 @@ Parameters:
         The lag to perform the matching for. Must be a lag in the input files.
     no_subset_members: int
         The number of ensemble members to subset to. Must be a number in the input files.
+    level: int
+        The level to perform the matching for. Must be a level in the input files.
 
 Output:
 =======
@@ -130,6 +132,7 @@ def main():
     parser.add_argument('end_year', type=str, help='The end year to perform the matching for.')
     parser.add_argument('lag', type=int, help='The lag to perform the matching for.')
     parser.add_argument('no_subset_members', type=int, help='The number of ensemble members to subset to.')
+    parser.add_argument('level', type=int, nargs='?', default=None, help='The level to perform the matching for.')
     args = parser.parse_args()
 
     # Set up the command line arguments
@@ -141,6 +144,7 @@ def main():
     end_year = args.end_year
     lag = args.lag
     no_subset_members = args.no_subset_members
+    level = args.level
 
     # If season conttains a number, convert it to the string
     if season in ["1", "2", "3", "4"]:
@@ -154,7 +158,7 @@ def main():
     # match_var_models = test_models
 
     # Set up the observations path for the matching variable
-    obs_path_match_var = obs_path(match_var)
+    obs_path_match_var = find_obs_path(match_var)
 
     # extract the obs var name
     obs_var_name = dic.var_name_map[match_var]
@@ -200,7 +204,7 @@ def main():
     match_var_ensemble_mean, _  = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
                                                             base_dir, match_var_models, obs_path_match_var, region, model_season, forecast_range,
                                                                 start_year, end_year, plots_dir, save_dir, lagged_years = years,
-                                                                    lagged_nao=True, no_subset_members=no_subset_members, level=None,
+                                                                    lagged_nao=True, no_subset_members=no_subset_members, level=level,
                                                                         ensemble_mean_nao=ensemble_mean_nao)
     
 
