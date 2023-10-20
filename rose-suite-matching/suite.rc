@@ -37,5 +37,3 @@
         """
         [[[job]]]
             execution time limit = PT2000M
-        [[[job]]]
-            execution time limit = PT2000M
