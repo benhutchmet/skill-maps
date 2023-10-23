@@ -600,7 +600,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             cf = ax1.contourf(lons, lats, corr1, clevs, cmap='RdBu_r', transform=proj)
 
         # If the gridbox is not None
-        if gridbox is not None and 'south' and 'north' not in gridbox:
+        if gridbox is not None and 'south' and 'north' not in gridbox and plot_gridbox is None:
+            print("Global plot, gridbox specified, but doesn't contain south and north")
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
@@ -630,7 +631,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
             
-        elif 'south' and 'north' in gridbox:
+        elif 'south' and 'north' in gridbox and plot_gridbox is None:
+            print("Global plot, gridbox specified which contains south and north")
             # Add green lines outlining the north gridbox
             ax1.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
@@ -686,7 +688,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                     horizontalalignment='left',
                     bbox=dict(facecolor='white', alpha=0.5),
                     fontsize=10)
-        elif gridbox is not None and plot_gridbox is not None:
+        elif gridbox is not None and 'south' not in gridbox and 'north' not in gridbox and plot_gridbox is not None:
+            print("Plot constrained to plot_gridbox, gridbox specified, but doesn't contain south and north")
             # Add green lines outlining the gridbox
             ax1.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
@@ -716,6 +719,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         verticalalignment='bottom', horizontalalignment='left',   
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         elif 'south'and 'north' in gridbox and plot_gridbox is not None:
+            print("Plot constrained to plot_gridbox, gridbox specified which contains south and north")
             # Add green lines outlining the north gridbox
             ax1.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
@@ -774,8 +778,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                     horizontalalignment='left',
                     bbox=dict(facecolor='white', alpha=0.5),
                     fontsize=10)
+        
         if plot_gridbox is not None:
             if np.isnan(corr1_cs).any():
+                print("corr1_cs contains NaNs")
                 # set the corr1_p value to NaN at those points
                 corr1_p_cs[corr1_cs == np.nan] = np.nan
 
@@ -783,13 +789,17 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # threshold - set them to NaN
             corr1_p_cs[corr1_p_cs > sig_threshold] = np.nan
 
+            # Create a masked array for the corr1_p values
+            corr1_p_cs_masked = np.ma.masked_where(np.isnan(corr1_p_cs), corr1_p_cs)
+
             # Plot the p-values for the correlation between the initialized forecast
             # and the observations
-            ax1.contourf(lons_cs, lats_cs, corr1_p_cs, hatches=['....'], alpha=0.,
+            ax1.contourf(lons_cs, lats_cs, corr1_p_cs_masked, hatches=['....'], alpha=0.,
                             transform=proj)
         else:
             # if any of the corr1 values are NaN
             if np.isnan(corr1).any():
+                print("corr1 contains NaNs")
                 # set the corr1_p value to NaN at those points
                 corr1_p[corr1 == np.nan] = np.nan
 
@@ -839,7 +849,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                 transform=proj)
         
         # if the gridbox is not None
-        if gridbox is not None and 'south' and 'north' not in gridbox:
+        if gridbox is not None and 'south' and 'north' not in gridbox and plot_gridbox is None:
+            print("Global plot, gridbox specified, but doesn't contain south and north")
             # Add green lines outlining the gridbox
             ax2.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
@@ -870,7 +881,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax2.text(0.05, 0.05, f"r' = {r:.2f}, p = {p:.2f}", transform=ax2.transAxes,
                         verticalalignment='bottom', horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-        elif 'south' and 'north' in gridbox:
+        elif 'south' and 'north' in gridbox and plot_gridbox is None:
+            print("Global plot, gridbox specified which contains south and north")
             # Add green lines outlining the north gridbox
             ax2.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
@@ -929,7 +941,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         horizontalalignment='left',
                         bbox=dict(facecolor='white', alpha=0.5),
                         fontsize=10)
-        elif gridbox is not None and plot_gridbox is not None:
+        elif gridbox is not None and 'south' not in gridbox and 'north' not in gridbox and plot_gridbox is not None:
+            print("Plot constrained to plot_gridbox, gridbox specified, but doesn't contain south and north")
             # Add green lines outlining the gridbox
             ax2.plot([lon1, lon2, lon2, lon1, lon1], [lat1, lat1, lat2, lat2, lat1],
                     color='green', linewidth=2, transform=proj)
@@ -951,6 +964,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
             obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
 
+            # Print the gridbox mean of both fcst1_em_residual and obs_resid
+            print("fcst1_em_residual_mean = ", fcst1_em_residual_mean)
+            print("obs_resid_mean = ", obs_resid_mean)
+
             # Calculate the correlation between the two
             r, p = pearsonr(fcst1_em_residual_mean, obs_resid_mean)
 
@@ -960,6 +977,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
             
         elif 'south'and 'north' in gridbox and plot_gridbox is not None:
+            print("Plot constrained to plot_gridbox, gridbox specified which contains south and north")
                         # Add green lines outlining the north gridbox
             ax2.plot([lon1_n, lon2_n, lon2_n, lon1_n, lon1_n], [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
                     color='green', linewidth=2, transform=proj)
@@ -1022,6 +1040,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         if plot_gridbox is not None:
             if np.isnan(partial_r_cs).any():
+                print("there are NaNs in the partial_r_cs array")
                 # Set the partial_r_p values to NaN at those points
                 partial_r_p_cs[partial_r_cs == np.nan] = np.nan
 
@@ -1037,6 +1056,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         else:
             # If any of the partial_r values are NaN
             if np.isnan(partial_r).any():
+                print("there are NaNs in the partial_r array")
                 # Set the partial_r_p values to NaN at those points
                 partial_r_p[partial_r == np.nan] = np.nan
 
@@ -1181,6 +1201,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
                 f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
         
+        print(path)
+
         # Assert that the path exists
         assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
         f" and no_bootstraps {no_bootstraps}"
