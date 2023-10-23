@@ -591,6 +591,18 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             # Constrain the partial_r_p array to the gridbox
             partial_r_p_cs = partial_r_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
+            # Constraint the fcst1_ts array to the gridbox
+            fcst1_ts_cs = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constraint the obs_ts array to the gridbox
+            obs_ts_cs = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constraint the fcst1_em_residual array to the gridbox
+            fcst1_em_residual_cs = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constraint the obs_resid array to the gridbox
+            obs_resid_cs = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
         # Set up the axes for the total skill
         ax1 = axs[i, 0]
         ax1.coastlines()
@@ -704,8 +716,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon2_idx = np.argmin(np.abs(lons_cs - lon2))
 
             # Constrain both fcst1_ts and obs_ts to the gridbox
-            fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-            obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            fcst1_ts_gridbox = fcst1_ts_cs[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            obs_ts_gridbox = obs_ts_cs[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
             # Calculate the gridbox mean of both fcst1_ts and obs_ts
             fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
@@ -747,12 +759,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon2_idx_s = np.argmin(np.abs(lons_cs - lon2_s))
 
             # Constrain both fcst1_ts and obs_ts to the north gridbox
-            fcst1_ts_gridbox_n = fcst1_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
-            obs_ts_gridbox_n = obs_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            fcst1_ts_gridbox_n = fcst1_ts_cs[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            obs_ts_gridbox_n = obs_ts_cs[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
 
             # Constrain both fcst1_ts and obs_ts to the south gridbox
-            fcst1_ts_gridbox_s = fcst1_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
-            obs_ts_gridbox_s = obs_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            fcst1_ts_gridbox_s = fcst1_ts_cs[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            obs_ts_gridbox_s = obs_ts_cs[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
 
             # Calculate the gridbox mean of both fcst1_ts and obs_ts
             fcst1_ts_mean_n = np.nanmean(fcst1_ts_gridbox_n, axis=(1, 2))
@@ -957,8 +969,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon2_idx = np.argmin(np.abs(lons_cs - lon2))
 
             # Constrain both fcst1_em_residual and obs_resid to the gridbox
-            fcst1_em_residual_gridbox = fcst1_em_residual[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
-            obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            fcst1_em_residual_gridbox = fcst1_em_residual_cs[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+            obs_resid_gridbox = obs_resid_cs[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
             # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
             fcst1_em_residual_mean = np.nanmean(fcst1_em_residual_gridbox, axis=(1, 2))
@@ -1005,12 +1017,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             lon2_idx_s = np.argmin(np.abs(lons_cs - lon2_s))
 
             # Constrain both fcst1_em_residual and obs_resid to the north gridbox
-            fcst1_em_residual_gridbox_n = fcst1_em_residual[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
-            obs_resid_gridbox_n = obs_resid[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            fcst1_em_residual_gridbox_n = fcst1_em_residual_cs[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+            obs_resid_gridbox_n = obs_resid_cs[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
 
             # Constrain both fcst1_em_residual and obs_resid to the south gridbox
-            fcst1_em_residual_gridbox_s = fcst1_em_residual[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
-            obs_resid_gridbox_s = obs_resid[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            fcst1_em_residual_gridbox_s = fcst1_em_residual_cs[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+            obs_resid_gridbox_s = obs_resid_cs[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
 
             # Calculate the gridbox mean of both fcst1_em_residual and obs_resid
             fcst1_em_residual_mean_n = np.nanmean(fcst1_em_residual_gridbox_n, axis=(1, 2))
