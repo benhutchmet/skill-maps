@@ -6104,7 +6104,9 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
             # Extract the forecasts and obs for the cell
             f1_cell = f1[:, lat, lon] ; f2_cell = f2[:, lat, lon]
 
-            o_cell = o[:, lat, lon]
+            # NOTE: This needs to be obs from the arguments
+            # Not o from the bootstrapped data
+            o_cell = obs[:, lat, lon]
 
             # Calculate the standard deviations of the forecasts1 and 2
             sig1_cell = np.std(f1_cell) ; sig2_cell = np.std(f2_cell)
