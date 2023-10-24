@@ -1238,6 +1238,125 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     
     return None
 
+# Define a function similar to load files and plot
+# Which will load the time series arrays and calculate the correlation
+# coefficients for the different methods
+def load_files_and_plot_corr(variable: str, region: str, seasons_list: list, 
+                                forecast_range: str, methods_list: list,
+                                plots_dir: str, bootstrap_base_dir: str,
+                                gridbox: dict, figsize_x: int = 10, figsize_y: int = 10,
+                                no_bootstraps: int = 1) -> None:
+    """
+    Wrapper function which loads the required files and plots a scatter plot
+    showing the correlation coefficients for the different methods and seasons.
+
+    Args:
+
+        variable (str): variable to plot
+
+        region (str): region to plot
+
+        seasons_list (list): list of seasons to plot
+
+        forecast_range (str): forecast range to plot
+
+        methods_list (list): list of methods to plot (e.g. raw, lagged, nao_matched)
+
+        plots_dir (str): path to the directory to save the plots
+
+        bootstrap_base_dir (str): path to the directory containing the bootstrapped
+                                    files
+
+        gridbox (dict): dictionary containing the gridbox to plot. Default is None.
+                        contains constrained gridbox with dimensions as follows:
+                            'lon1': lower longitude bound
+                            'lon2': upper longitude bound
+                            'lat1': lower latitude bound
+                            'lat2': upper latitude bound
+
+        figsize_x (int): size of the figure in the x direction. Default is 10.
+
+        figsize_y (int): size of the figure in the y direction. Default is 10.
+
+        no_bootstraps (int): number of bootstraps to plot. Default is 1.
+
+    Returns:
+
+        None
+    """
+
+    # Set up the lists
+    paths_list = []
+
+    # Set up the lats and lons
+    lats = np.arange(-90, 90, 2.5)
+    lons = np.arange(-180, 180, 2.5)
+
+    # Assert that gridbox is not None and is a dictionary
+    assert gridbox is not None and isinstance(gridbox, dict), "gridbox must be specified and must be a dictionary"
+
+    # Extract the gridbox values
+    if 'south' and 'north' not in gridbox:
+        print("gridbox specified, but doesn't contain south and north")
+        
+        # Extract the gridbox values
+        lon1 = gridbox['lon1'] ; lon2 = gridbox['lon2']
+
+        lat1 = gridbox['lat1'] ; lat2 = gridbox['lat2']
+    elif 'south' and 'north' in gridbox:
+        print("gridbox specified which contains south and north")
+
+        # Extract the south and north gridbox values
+        s_gridbox = gridbox['south'] ; n_gridbox = gridbox['north']
+
+        # Extract the gridbox values
+        lon1_n = n_gridbox['lon1_n'] ; lon2_n = n_gridbox['lon2_n']
+
+        lat1_n = n_gridbox['lat1_n'] ; lat2_n = n_gridbox['lat2_n']
+
+        lon1_s = s_gridbox['lon1_s'] ; lon2_s = s_gridbox['lon2_s']
+
+        lat1_s = s_gridbox['lat1_s'] ; lat2_s = s_gridbox['lat2_s']
+
+    # Form the paths for the different methods
+    for season in seasons_list:
+        
+        for method in methods_list:
+
+            # Set up the path to the file
+            path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
+                    f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
+
+            # Assert that the path exists
+            assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
+            f" and no_bootstraps {no_bootstraps}"
+
+            # Append the path to the list
+            paths_list.append(path)
+
+    # Loop over the paths to extract the time series arrays
+    arrays_ts_list = [load_arrays_from_npy(path, variable, timeseries=True) for path in paths_list]
+
+    # Initialize an empty list for the correlation coefficients
+    corr_list = []
+    p_list = []
+
+    # Loop over the arrays_ts_list
+    for arrays_ts in arrays_ts_list:
+
+        # Extract the initialized forecast timeseries
+        fcst1_ts = arrays_ts['fcst1_ts'] ; obs_ts = arrays_ts['obs_ts']
+
+        # Extract the residual timeseries
+        fcst1_em_resid = arrays_ts['fcst1_em_resid'] ; obs_resid = arrays_ts['obs_resid']
+
+        # if south and north are not in gridbox
+        if 'south' and 'north' not in gridbox:
+            print("gridbox specified, but doesn't contain south and north")
+
+            # Set up the lat indices which correspond to the gridbox 
+
+
 # Write a new function to plot the time series of the forecasts
 # for the initialized, uninitialized and observed data
 def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
