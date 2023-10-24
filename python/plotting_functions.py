@@ -1337,9 +1337,26 @@ def load_files_and_plot_corr(variable: str, region: str, seasons_list: list,
     # Loop over the paths to extract the time series arrays
     arrays_ts_list = [load_arrays_from_npy(path, variable, timeseries=True) for path in paths_list]
 
-    # Initialize an empty list for the correlation coefficients
-    corr_list = []
-    p_list = []
+    # if south and north are not in gridbox
+    if 'south' and 'north' not in gridbox:
+        # Initialize an empty list for the correlation coefficients
+        r_list = []
+
+        p_list = []
+
+        partial_r_list = []
+
+        partial_r_p_list = []
+
+    elif 'south' and 'north' in gridbox:
+        # Initialize an empty list for the correlation coefficients
+        r_list_n = [] ; p_list_n = []
+
+        r_list_s = [] ; p_list_s = []
+
+        partial_r_list_n = [] ; partial_r_p_list_n = []
+
+        partial_r_list_s = [] ; partial_r_p_list_s = []
 
     # Loop over the arrays_ts_list
     for arrays_ts in arrays_ts_list:
@@ -1354,8 +1371,229 @@ def load_files_and_plot_corr(variable: str, region: str, seasons_list: list,
         if 'south' and 'north' not in gridbox:
             print("gridbox specified, but doesn't contain south and north")
 
-            # Set up the lat indices which correspond to the gridbox 
+            # Set up the lat indices which correspond to the gridbox
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx = np.argmin(np.abs(lats - lat1))
 
+            lat2_idx = np.argmin(np.abs(lats - lat2))
+
+            # Set up the lon indices which correspond to the gridbox
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx = np.argmin(np.abs(lons - lon1))
+
+            lon2_idx = np.argmin(np.abs(lons - lon2))
+
+            # Constrain all the arrays to the gridbox
+            fcst1_ts_gridbox = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            obs_ts_gridbox = obs_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            fcst1_em_resid_gridbox = fcst1_em_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            obs_resid_gridbox = obs_resid[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Calculate the gridbox mean of all the arrays
+            fcst1_ts_mean = np.nanmean(fcst1_ts_gridbox, axis=(1, 2))
+
+            obs_ts_mean = np.nanmean(obs_ts_gridbox, axis=(1, 2))
+
+            fcst1_em_resid_mean = np.nanmean(fcst1_em_resid_gridbox, axis=(1, 2))
+
+            obs_resid_mean = np.nanmean(obs_resid_gridbox, axis=(1, 2))
+
+            # Calculate the correlation between the initialized forecast and the observations
+            r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+
+            # Calculate the partial correlation between the initialized forecast and the observations
+            partial_r, partial_r_p = pearsonr(fcst1_em_resid_mean, obs_resid_mean)
+
+            # Append the correlation coefficients to the list
+            r_list.append(r) ; p_list.append(p)
+
+            partial_r_list.append(partial_r) ; partial_r_p_list.append(partial_r_p)
+
+        # if south and north are in gridbox
+        elif 'south' and 'north' in gridbox:
+
+            # Find the indices of the lats which correspond to the gridbox
+            lat1_idx_n = np.argmin(np.abs(lats - lat1_n))
+
+            lat2_idx_n = np.argmin(np.abs(lats - lat2_n))
+
+            # Find the indices of the lons which correspond to the gridbox
+            lon1_idx_n = np.argmin(np.abs(lons - lon1_n))
+
+            lon2_idx_n = np.argmin(np.abs(lons - lon2_n))
+
+            # For the south gridbox do the same
+            # Find the indices of the lats which correspond to the gridbox
+            lat1_idx_s = np.argmin(np.abs(lats - lat1_s))
+
+            lat2_idx_s = np.argmin(np.abs(lats - lat2_s))
+
+            # Find the indices of the lons which correspond to the gridbox
+            lon1_idx_s = np.argmin(np.abs(lons - lon1_s))
+
+            lon2_idx_s = np.argmin(np.abs(lons - lon2_s))
+
+            # Constrain all the arrays to the north gridbox
+            fcst1_ts_gridbox_n = fcst1_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            obs_ts_gridbox_n = obs_ts[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            fcst1_em_resid_gridbox_n = fcst1_em_resid[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            obs_resid_gridbox_n = obs_resid[:, lat1_idx_n:lat2_idx_n, lon1_idx_n:lon2_idx_n]
+
+            # Constrain all the arrays to the south gridbox
+            fcst1_ts_gridbox_s = fcst1_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            obs_ts_gridbox_s = obs_ts[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            fcst1_em_resid_gridbox_s = fcst1_em_resid[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            obs_resid_gridbox_s = obs_resid[:, lat1_idx_s:lat2_idx_s, lon1_idx_s:lon2_idx_s]
+
+            # Calculate the gridbox mean of all the arrays north
+            fcst1_ts_mean_n = np.nanmean(fcst1_ts_gridbox_n, axis=(1, 2))
+
+            obs_ts_mean_n = np.nanmean(obs_ts_gridbox_n, axis=(1, 2))
+
+            fcst1_em_resid_mean_n = np.nanmean(fcst1_em_resid_gridbox_n, axis=(1, 2))
+
+            obs_resid_mean_n = np.nanmean(obs_resid_gridbox_n, axis=(1, 2))
+
+            # Calculate the gridbox mean of all the arrays south
+
+            fcst1_ts_mean_s = np.nanmean(fcst1_ts_gridbox_s, axis=(1, 2))
+
+            obs_ts_mean_s = np.nanmean(obs_ts_gridbox_s, axis=(1, 2))
+
+            fcst1_em_resid_mean_s = np.nanmean(fcst1_em_resid_gridbox_s, axis=(1, 2))
+
+            obs_resid_mean_s = np.nanmean(obs_resid_gridbox_s, axis=(1, 2))
+
+            # Calculate the correlation between the initialized forecast and the observations
+            r_n, p_n = pearsonr(fcst1_ts_mean_n, obs_ts_mean_n)
+
+            # Calculate the partial correlation between the initialized forecast and the observations
+            partial_r_n, partial_r_p_n = pearsonr(fcst1_em_resid_mean_n, obs_resid_mean_n)
+
+            # Calculate the correlation between the initialized forecast and the observations
+            r_s, p_s = pearsonr(fcst1_ts_mean_s, obs_ts_mean_s)
+
+            # Calculate the partial correlation between the initialized forecast and the observations
+            partial_r_s, partial_r_p_s = pearsonr(fcst1_em_resid_mean_s, obs_resid_mean_s)
+
+            # Append the correlation coefficients to the list
+            r_list_n.append(r_n) ; p_list_n.append(p_n)
+
+            partial_r_list_n.append(partial_r_n) ; partial_r_p_list_n.append(partial_r_p_n)
+
+            r_list_s.append(r_s) ; p_list_s.append(p_s)
+
+            partial_r_list_s.append(partial_r_s) ; partial_r_p_list_s.append(partial_r_p_s)
+        else:
+            raise ValueError("gridbox must contain either south and north or neither")
+
+    # Set up the figure for a single plot
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(figsize_x, figsize_y))
+
+    # Set up the title
+    title = f"scatter plot of correlation coefficients for {variable} " + \
+            f"for {region} for {forecast_range} for different methods"
+    
+    # Set the title
+    plt.suptitle(title, fontsize=8)
+
+    # Set up the x-axis labels as the seasons list
+    x_labels = seasons_list
+
+    # if south and north are not in gridbox
+    if 'south' and 'north' not in gridbox:
+        print("gridbox specified, but doesn't contain south and north, plotting")
+
+        # Extract the raw correlation coefficients
+        # Which will the index 0, 3, 6, 9
+        r_raw = r_list[0::3] ; p_raw = p_list[0::3]
+
+        # Extract the lagged correlation coefficients
+        # Which will the index 1, 4, 7, 10
+        r_lagged = r_list[1::3] ; p_lagged = p_list[1::3]
+
+        # Extract the nao-matched correlation coefficients
+        # Which will the index 2, 5, 8, 11
+        r_nao_matched = r_list[2::3] ; p_nao_matched = p_list[2::3]
+
+        # Plot the raw correlation coefficients
+        ax.scatter(x_labels, r_raw, label='raw', color='blue')
+
+        # Plot the lagged correlation coefficients
+        ax.scatter(x_labels, r_lagged, label='lagged', color='orange')
+
+        # Plot the nao-matched correlation coefficients
+        ax.scatter(x_labels, r_nao_matched, label='nao-matched', color='green')
+    elif 'south' and 'north' in gridbox:
+        print("gridbox specified which contains south and north, plotting")
+
+        # Extract the raw correlation coefficients
+        # Which will the index 0, 3, 6, 9
+        r_raw_n = r_list_n[0::3] ; p_raw_n = p_list_n[0::3]
+
+        r_raw_s = r_list_s[0::3] ; p_raw_s = p_list_s[0::3]
+
+        # Extract the lagged correlation coefficients
+        # Which will the index 1, 4, 7, 10
+        r_lagged_n = r_list_n[1::3] ; p_lagged_n = p_list_n[1::3]
+
+        r_lagged_s = r_list_s[1::3] ; p_lagged_s = p_list_s[1::3]
+
+        # Extract the nao-matched correlation coefficients
+        # Which will the index 2, 5, 8, 11
+        r_nao_matched_n = r_list_n[2::3] ; p_nao_matched_n = p_list_n[2::3]
+
+        r_nao_matched_s = r_list_s[2::3] ; p_nao_matched_s = p_list_s[2::3]
+
+        # Plot the raw correlation coefficients
+        ax.scatter(x_labels, r_raw_n, label='raw_n', color='blue')
+
+        ax.scatter(x_labels, r_raw_s, label='raw_s', color='blue', marker='x')
+
+        # Plot the lagged correlation coefficients
+        ax.scatter(x_labels, r_lagged_n, label='lagged_n', color='orange')
+
+        ax.scatter(x_labels, r_lagged_s, label='lagged_s', color='orange', marker='x')
+
+        # Plot the nao-matched correlation coefficients
+        ax.scatter(x_labels, r_nao_matched_n, label='nao-matched_n', color='green')
+
+        ax.scatter(x_labels, r_nao_matched_s, label='nao-matched_s', color='green', marker='x')
+
+    # Add a legend
+    ax.legend()
+
+    # Set the x-axis label
+    ax.set_xlabel('season')
+
+    # Set the y-axis label
+    ax.set_ylabel('correlation coefficient')
+
+    # Set the x-axis ticks
+    ax.set_xticks(x_labels)
+
+    # Set up the pathname for saving the figure
+    fig_name = f"{plots_dir}/corr_coeff_{variable}_{region}_" + \
+    f"{forecast_range}_different_methods_{no_bootstraps}.png"
+
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
+
+    return None
 
 # Write a new function to plot the time series of the forecasts
 # for the initialized, uninitialized and observed data
