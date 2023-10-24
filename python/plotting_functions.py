@@ -1200,8 +1200,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
 
     # Set the number of bootstraps to 1
     # to extract the time series
-    if variable != 'ua':
-        no_bootstraps = 1
+    # if variable != 'ua':
+    no_bootstraps = 1
 
     # Initialize a list for the paths to the time series files
     paths_list_ts = []
