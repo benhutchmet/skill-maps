@@ -1626,6 +1626,9 @@ def load_files_and_plot_corr(variable: str, region: str, seasons_list: list,
     # Set the x-axis label
     ax.set_xlabel('season')
 
+    # Add in a faint grey line for the zero correlation
+    ax.axhline(y=0, color='grey', linestyle='--', alpha=0.5)
+
     # Set the y-axis label
     ax.set_ylabel('correlation coefficient')
 
