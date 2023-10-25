@@ -1310,13 +1310,13 @@ def load_files_and_plot_corr(variable: str, region: str, seasons_list: list,
         s_gridbox = gridbox['south'] ; n_gridbox = gridbox['north']
 
         # Extract the gridbox values
-        lon1_n = n_gridbox['lon1_n'] ; lon2_n = n_gridbox['lon2_n']
+        lon1_n = n_gridbox['lon1'] ; lon2_n = n_gridbox['lon2']
 
-        lat1_n = n_gridbox['lat1_n'] ; lat2_n = n_gridbox['lat2_n']
+        lat1_n = n_gridbox['lat1'] ; lat2_n = n_gridbox['lat2']
 
-        lon1_s = s_gridbox['lon1_s'] ; lon2_s = s_gridbox['lon2_s']
+        lon1_s = s_gridbox['lon1'] ; lon2_s = s_gridbox['lon2']
 
-        lat1_s = s_gridbox['lat1_s'] ; lat2_s = s_gridbox['lat2_s']
+        lat1_s = s_gridbox['lat1'] ; lat2_s = s_gridbox['lat2']
 
     # Form the paths for the different methods
     for season in seasons_list:
