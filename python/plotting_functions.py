@@ -1585,19 +1585,19 @@ def load_files_and_plot_corr(variable: str, region: str, seasons_list: list,
         partial_r_nao_matched_s = partial_r_list_s[2::3] ; partial_r_p_nao_matched_s = partial_r_p_list_s[2::3]
 
         # Plot the raw correlation coefficients
-        ax.scatter(x_labels, r_raw_n, label='raw_n', color='blue', marker='^')
+        ax.scatter(x_labels, r_raw_n, label='raw', color='blue', marker='^')
 
-        ax.scatter(x_labels, r_raw_s, label='raw_s', color='blue', marker='v')
+        ax.scatter(x_labels, r_raw_s, color='blue', marker='v')
 
         # Plot the lagged correlation coefficients
-        ax.scatter(x_labels, r_lagged_n, label='lagged_n', color='orange', marker='^')
+        ax.scatter(x_labels, r_lagged_n, label='lagged', color='orange', marker='^')
 
-        ax.scatter(x_labels, r_lagged_s, label='lagged_s', color='orange', marker='v')
+        ax.scatter(x_labels, r_lagged_s, color='orange', marker='v')
 
         # Plot the nao-matched correlation coefficients
-        ax.scatter(x_labels, r_nao_matched_n, label='nao-matched_n', color='green', marker='^')
+        ax.scatter(x_labels, r_nao_matched_n, label='nao-matched', color='green', marker='^')
 
-        ax.scatter(x_labels, r_nao_matched_s, label='nao-matched_s', color='green', marker='v')
+        ax.scatter(x_labels, r_nao_matched_s, color='green', marker='v')
 
         # Plot the partial raw correlation coefficients
         ax.scatter(x_labels, partial_r_raw_n, color='blue', marker='^', edgecolors='red')
@@ -1615,7 +1615,6 @@ def load_files_and_plot_corr(variable: str, region: str, seasons_list: list,
         ax.scatter(x_labels, partial_r_nao_matched_s, color='green', marker='v', edgecolors='red')
     else:
         raise ValueError("gridbox must contain either south and north or neither")
-
 
     # Add a legend
     ax.legend()
