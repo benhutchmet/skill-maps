@@ -401,7 +401,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                             gridbox: dict = None,
                                             figsize_x: int = 10, figsize_y: int = 12,
                                             plot_gridbox: dict = None,
-                                            ts_arrays: list = None) -> None:
+                                            ts_arrays: list = None,
+                                            region_name: str = None) -> None:
     """
     Plots a 3 x 2 matrix of subplots. The first column is the total correlation
     skill and the second column is the residual correlation. The rows are for
@@ -468,6 +469,9 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                             obs_ts (array): time series of the observations
                             fcst1_em_resid (array): residuals of the initialized forecast
                             obs_resid (array): residuals of the observations
+
+        region_name (str): name of the region to plot. Default is None.
+
     Returns:
 
         None
@@ -1127,7 +1131,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     # Set up the pathname for saving the figure
     fig_name = f"{plots_dir}/raw_init_impact_{variable}_{season}_" + \
     f"{forecast_range}_different_methods_{no_bootstraps}_{start_year}" + \
-    f"_{finish_year}.png"
+    f"_{finish_year}_{region_name}.png"
 
     fig_path = os.path.join(plots_dir, fig_name)
 
@@ -1142,7 +1146,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 def load_files_and_plot(variable: str, region: str, season: str, forecast_range: str, methods_list: list,
                         no_bootstraps: int, plots_dir: str, bootstrap_base_dir: str,
                         gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 10,
-                        plot_gridbox: dict = None) -> None:
+                        plot_gridbox: dict = None, region_name: str = None) -> None:
     
     """
     Wrapper function which loads the required files and plots the different
@@ -1184,6 +1188,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                             'lon2': upper longitude bound
                             'lat1': lower latitude bound
                             'lat2': upper latitude bound
+
+        region_name (str): name of the region to plot. Default is None.
         
     Returns:
     
@@ -1262,7 +1268,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                                             plots_dir, gridbox=gridbox,
                                             figsize_x=figsize_x, figsize_y=figsize_y,
                                             plot_gridbox=plot_gridbox,
-                                            ts_arrays=ts_arrays_list)
+                                            ts_arrays=ts_arrays_list,
+                                            region_name=region_name)
     
     return None
 
