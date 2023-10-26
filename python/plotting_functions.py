@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from scipy.stats import pearsonr
 import matplotlib as mpl
 
@@ -625,6 +626,11 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # Set up the axes for the total skill
         ax1 = axs[i, 0]
         ax1.coastlines()
+
+        # If the region_grid is China, add borders
+        if region_name == 'china':
+            ax1.add_feature(cfeature.BORDERS, linestyle=':')
+
         if plot_gridbox is not None:
             cf = ax1.contourf(lons_cs, lats_cs, corr1_cs, clevs, cmap='RdBu_r', transform=proj)
         else:
@@ -871,6 +877,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # Set up the axes for the residual correlation
         ax2 = axs[i, 1]
         ax2.coastlines()
+
+        # if the region_grid is China, add borders
+        if region_name == 'china':
+            ax2.add_feature(cfeature.BORDERS, linestyle=':')
 
         if plot_gridbox is not None:
             cf = ax2.contourf(lons_cs, lats_cs, partial_r_cs, clevs, cmap='RdBu_r',
