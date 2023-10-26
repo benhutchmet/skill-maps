@@ -66,8 +66,8 @@ def extract_values_from_txt(path, variable):
     # Extract the values from the txt file
     files = glob.glob(f'{path}/*.txt')
 
-    # # Print the files
-    # print(files)
+    # Print the files
+    print(files)
 
     # find the file containing nens1
     nens1_file = [file for file in files if 'nens1' in file][0]
@@ -150,8 +150,8 @@ def load_arrays_from_npy(path, variable, timeseries=False):
     # extract the .npy files using glob
     files = glob.glob(f'{path}/*.npy')
 
-    # # Print the files
-    # print(files)
+    # Print the files
+    print(files)
 
     # find the file containing corr1
     corr1_file = [file for file in files if f'corr1_{variable}' in file][0]

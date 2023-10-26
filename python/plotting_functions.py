@@ -12,8 +12,8 @@ import cartopy.crs as ccrs
 from scipy.stats import pearsonr
 import matplotlib as mpl
 
-# Use LaTeX for rendering
-mpl.rcParams['text.usetex'] = True
+# # Use LaTeX for rendering
+# mpl.rcParams['text.usetex'] = True
 
 # Import functions from plot_init_benefit
 # sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
@@ -483,8 +483,20 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     # Set up the projection
     proj = ccrs.PlateCarree()
 
+    # Depending on the number of methods in the method_list
+    # Set up the number of rows
+    if len(method_list) == 2:
+        nrows = 2
+    elif len(method_list) == 3:
+        nrows = 3
+    elif len(method_list) == 1:
+        nrows = 1
+    else:
+        print("Number of methods not supported")
+        sys.exit()
+
     # Set up the figure size
-    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(figsize_x, figsize_y),
+    fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(figsize_x, figsize_y),
                             subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
@@ -501,7 +513,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         ' using different methods' + 'no_bootstraps = ' + str(no_bootstraps)
     
     # set up the supertitle
-    fig.suptitle(title, fontsize=8, y=0.90)
+    fig.suptitle(title, fontsize=8, y=0.92)
 
     # If the gridbox is not None
     if gridbox is not None and 'south' not in gridbox and 'north' not in gridbox:
@@ -1181,14 +1193,24 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     # Set up the lists
     paths_list = []
 
+    # Set up the base dir
+    base_dir_1d = r"C:\Users\Ben Hutchins\OneDrive - University of Reading\back_up_data\bootstrapping"
+
     # Form the paths for the different methods
     for method in methods_list:
 
-        # Set up the path to the file
-        path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
-                f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
+        # List the directories within
+        # /c/Users/Ben Hutchins/OneDrive - University of Reading/back_up_data/bootstrapping/
+        # for f in sorted(os.listdir(base_dir_1d)):
+        #     print(f)
+
+        # Use os.path.join to join the paths
+        path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
         
-        # Assert that the path exists
+        # Print the path
+        print(path)
+
+        # # Assert that the path exists
         assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
         f" and no_bootstraps {no_bootstraps}"
 
@@ -1212,9 +1234,12 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     # Form the paths for the different methods
     for method in methods_list:
 
-        # Set up the path to the file
-        path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
-                f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
+        # Set up the path to the file using os.path.join
+        path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
+
+        # # Set up the path to the file
+        # path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
+        #         f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
         
         print(path)
 

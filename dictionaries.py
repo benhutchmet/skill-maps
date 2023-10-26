@@ -241,6 +241,22 @@ north_atlantic_grid_plot = {
     'lat2': 90
 }
 
+# Define a grid to plot for China
+china_grid_plot = {
+    'lon1': 75,
+    'lon2': 135,
+    'lat1': 15,
+    'lat2': 55
+}
+
+# Define a smaller gridbox within the bounds of china_grid_plot
+eastern_china_gridbox = {
+    'lon1': 115,
+    'lon2': 125,
+    'lat1': 25,
+    'lat2': 35
+}
+
 # Define the dimensions for another central europe grid for RSDS correlations
 central_europe_grid_rsds = {
     'lon1': 165,
