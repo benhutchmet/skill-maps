@@ -1336,14 +1336,22 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     # Reset the number of bootstraps
     no_bootstraps = 1000
 
-    # Plot the different methods
-    plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
-                                            forecast_range, methods_list, no_bootstraps,
-                                            plots_dir, gridbox=gridbox,
-                                            figsize_x=figsize_x, figsize_y=figsize_y,
-                                            plot_gridbox=plot_gridbox,
-                                            ts_arrays=ts_arrays_list,
-                                            region_name=region_name)
+    # If plot_different_methods is True
+    if plot_different_methods:
+        # Plot the different methods
+        plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
+                                                forecast_range, methods_list, no_bootstraps,
+                                                plots_dir, gridbox=gridbox,
+                                                figsize_x=figsize_x, figsize_y=figsize_y,
+                                                plot_gridbox=plot_gridbox,
+                                                ts_arrays=ts_arrays_list,
+                                                region_name=region_name)
+    elif plot_different_seasons:
+        plot_raw_init_impact_subplots(arrays_list, values_list, variable, 
+                                        seasons_list, forecast_range, methods_list[0],
+                                        no_bootstraps, plots_dir) 
+    else:
+        raise ValueError("plot_different_methods and plot_different_seasons cannot both be False")
     
     return None
 
