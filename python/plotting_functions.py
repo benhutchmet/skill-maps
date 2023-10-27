@@ -483,7 +483,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     """
 
     # Set up the axis labels
-    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F']
+    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
     # Set up the plot_names
     plot_names = ['total skill', 'residual corr']
@@ -495,6 +495,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     if seasons_list is not None:
         # Set up the list
         row_list = seasons_list
+        season = "DJFM-SON"
     else:
         # Set up the list
         row_list = method_list
@@ -531,7 +532,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         ' using different methods' + 'no_bootstraps = ' + str(no_bootstraps)
 
     # set up the supertitle
-    fig.suptitle(title, fontsize=8, y=0.92)
+    fig.suptitle(title, fontsize=4, y=0.92)
 
     # If the gridbox is not None
     if gridbox is not None and 'south' not in gridbox and 'north' not in gridbox:
