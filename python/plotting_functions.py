@@ -1365,9 +1365,19 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                                                 ts_arrays=ts_arrays_list,
                                                 region_name=region_name)
     elif plot_different_seasons:
-        plot_raw_init_impact_subplots(arrays_list, values_list, variable, 
-                                        seasons_list, forecast_range, methods_list[0],
-                                        no_bootstraps, plots_dir) 
+        # Set the season to None
+        season=None
+
+        # Call the function to plot the different seasons
+        plot_different_methods_same_season_var(arrays_list, values_list, variable, season,
+                                                forecast_range, methods_list,
+                                                no_bootstraps, plots_dir,
+                                                gridbox=gridbox,
+                                                figsize_x=figsize_x, figsize_y=figsize_y,
+                                                plot_gridbox=plot_gridbox,
+                                                ts_arrays=ts_arrays_list,
+                                                region_name=region_name,
+                                                seasons_list=seasons_list)
     else:
         raise ValueError("plot_different_methods and plot_different_seasons cannot both be False")
     
