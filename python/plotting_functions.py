@@ -1156,7 +1156,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 def load_files_and_plot(variable: str, region: str, season: str, forecast_range: str, methods_list: list,
                         no_bootstraps: int, plots_dir: str, bootstrap_base_dir: str,
                         gridbox: dict = None, figsize_x: int = 10, figsize_y: int = 10,
-                        plot_gridbox: dict = None, region_name: str = None) -> None:
+                        plot_gridbox: dict = None, region_name: str = None,
+                        plot_different_methods: bool = True,
+                        plot_different_seasons: bool = False,
+                        seasons_list: list = None) -> None:
     
     """
     Wrapper function which loads the required files and plots the different
@@ -1201,6 +1204,15 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
 
         region_name (str): name of the region to plot. Default is None.
         
+        plot_different_methods (bool): whether to plot the different methods for the
+                                        same season and variable. Default is True.
+
+        plot_different_seasons (bool): whether to plot the different seasons for the
+                                        same variable and method. Default is False.
+
+        seasons_list (list): list of seasons to plot. Default is None.
+                            Needed only if plot_different_seasons is True.
+
     Returns:
     
         None
@@ -1212,26 +1224,55 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     # Set up the base dir
     base_dir_1d = r"C:\Users\Ben Hutchins\OneDrive - University of Reading\back_up_data\bootstrapping"
 
-    # Form the paths for the different methods
-    for method in methods_list:
+    # Assert that if one of the boolean flags is True, the other is False
+    assert (plot_different_methods and not plot_different_seasons) or \
+            (plot_different_seasons and not plot_different_methods), \
+            "One of plot_different_methods and plot_different_seasons must be True, " + \
+            "and the other must be False"
 
-        # List the directories within
-        # /c/Users/Ben Hutchins/OneDrive - University of Reading/back_up_data/bootstrapping/
-        # for f in sorted(os.listdir(base_dir_1d)):
-        #     print(f)
+    # Assert that if plot_different_seasons is True, seasons_list is not None
+    assert (plot_different_seasons and seasons_list is not None) or \
+            (not plot_different_seasons and seasons_list is None), \
+            "If plot_different_seasons is True, seasons_list must not be None"
 
-        # Use os.path.join to join the paths
-        path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
+    # If plot_different_methods is True
+    if plot_different_methods:
+        # Form the paths for the different methods
+        for method in methods_list:
+
+            # Use os.path.join to join the paths
+            path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
+            
+            # Print the path
+            print(path)
+
+            # # Assert that the path exists
+            assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
+            f" and no_bootstraps {no_bootstraps}"
+
+            # Append the path to the list
+            paths_list.append(path)
         
-        # Print the path
-        print(path)
+    elif plot_different_seasons:
+        # Form the paths for the different seasons
+        for season in seasons_list:
 
-        # # Assert that the path exists
-        assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
-        f" and no_bootstraps {no_bootstraps}"
+            # Use os.path.join to join the paths
+            path = os.path.join(base_dir_1d, variable, region, season, 
+                                forecast_range, methods_list[0], 
+                                f"no_bootstraps_{no_bootstraps}")
+            
+            # Print the path
+            # print(path)
 
-        # Append the path to the list
-        paths_list.append(path)
+            # # Assert that the path exists
+            assert os.path.exists(path), f"Path {path} does not exist for season {season}" + \
+            f" and no_bootstraps {no_bootstraps}"
+
+            # Append the path to the list
+            paths_list.append(path)
+    else:
+        raise ValueError("plot_different_methods and plot_different_seasons cannot both be False")
 
     # Loop over the paths to get the values
     values_list = [extract_values_from_txt(path, variable) for path in paths_list]
@@ -1247,24 +1288,47 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     # Initialize a list for the paths to the time series files
     paths_list_ts = []
 
-    # Form the paths for the different methods
-    for method in methods_list:
+    # If plot_different_methods is True
+    if plot_different_methods:
+        # Form the paths for the different methods
+        for method in methods_list:
 
-        # Set up the path to the file using os.path.join
-        path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
+            # Set up the path to the file using os.path.join
+            path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
 
-        # # Set up the path to the file
-        # path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
-        #         f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
-        
-        print(path)
+            # # Set up the path to the file
+            # path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
+            #         f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
+            
+            print(path)
 
-        # Assert that the path exists
-        assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
-        f" and no_bootstraps {no_bootstraps}"
+            # Assert that the path exists
+            assert os.path.exists(path), f"Path {path} does not exist for method {method}" + \
+            f" and no_bootstraps {no_bootstraps}"
 
-        # Append the path to the list
-        paths_list_ts.append(path)
+            # Append the path to the list
+            paths_list_ts.append(path)
+    elif plot_different_seasons:
+        # Form the paths for the different seasons
+        for season in seasons_list:
+
+            # Set up the path to the file using os.path.join
+            path = os.path.join(base_dir_1d, variable, region, season, 
+                                forecast_range, methods_list[0], 
+                                f"no_bootstraps_{no_bootstraps}")
+
+            # # Set up the path to the file
+            # path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
+            #         f"{forecast_range}/{method}/no_bootstraps_{no_bootstraps}"
+            
+            print(path)
+
+            # Assert that the path exists
+            assert os.path.exists(path), f"Path {path} does not exist for season {season}" + \
+            f" and no_bootstraps {no_bootstraps}"
+
+            # Append the path to the list
+            paths_list_ts.append(path)
 
     # Loop over the paths to get the timeseries arrays
     ts_arrays_list = [load_arrays_from_npy(path, variable, timeseries=True) for path in paths_list_ts]
