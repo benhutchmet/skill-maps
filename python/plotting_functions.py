@@ -403,7 +403,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                             figsize_x: int = 10, figsize_y: int = 12,
                                             plot_gridbox: dict = None,
                                             ts_arrays: list = None,
-                                            region_name: str = None) -> None:
+                                            region_name: str = None,
+                                            seasons_list: list = None) -> None:
     """
     Plots a 3 x 2 matrix of subplots. The first column is the total correlation
     skill and the second column is the residual correlation. The rows are for
@@ -473,6 +474,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         region_name (str): name of the region to plot. Default is None.
 
+        seasons_list (list): list of seasons to plot. Default is None.
+
     Returns:
 
         None
@@ -488,14 +491,24 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     # Set up the projection
     proj = ccrs.PlateCarree()
 
+    # If seasons_list is not None
+    if seasons_list is not None:
+        # Set up the list
+        row_list = seasons_list
+    else:
+        # Set up the list
+        row_list = method_list
+
     # Depending on the number of methods in the method_list
     # Set up the number of rows
-    if len(method_list) == 2:
+    if len(row_list) == 2:
         nrows = 2
-    elif len(method_list) == 3:
+    elif len(row_list) == 3:
         nrows = 3
-    elif len(method_list) == 1:
+    elif len(row_list) == 1:
         nrows = 1
+    elif len(row_list) == 4:
+        nrows = 4
     else:
         print("Number of methods not supported")
         sys.exit()
@@ -516,7 +529,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     title = 'Total skill and impact of initialization for ' + variable + ' in ' + season + ' for ' + forecast_range + \
         ' between ' + str(start_year) + ' and ' + str(finish_year) + \
         ' using different methods' + 'no_bootstraps = ' + str(no_bootstraps)
-    
+
     # set up the supertitle
     fig.suptitle(title, fontsize=8, y=0.92)
 
@@ -558,7 +571,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     cf_list = []
 
     # Loop over the methods
-    for i, method in enumerate(method_list):
+    for i, method in enumerate(row_list):
         # print("plotting index: ", i, " for method: ", method)
 
         # Extract the dictionaries for this method
@@ -1138,10 +1151,15 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         aspect=50, shrink=0.8)
     cbar.set_label('correlation coefficient')
 
+    # if seasons_list is not None
+    if seasons_list is not None:
+        seasons_list_str = '_'.join(seasons_list)
+        seasons_list = seasons_list_str
+
     # Set up the pathname for saving the figure
     fig_name = f"{plots_dir}/raw_init_impact_{variable}_{season}_" + \
     f"{forecast_range}_different_methods_{no_bootstraps}_{start_year}" + \
-    f"_{finish_year}_{region_name}.png"
+    f"_{finish_year}_{region_name}_seasons_{seasons_list}.png"
 
     fig_path = os.path.join(plots_dir, fig_name)
 
