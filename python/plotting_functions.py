@@ -20,7 +20,7 @@ import matplotlib as mpl
 # sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
 # Modify this for working away from JASMIN
 # Import functions from plot_init_benefit
-sys.path.append("C:/Users/Ben Hutchins/OneDrive - University of Reading/Documents/GitHub/skill-maps-1/rose-suite-matching")
+sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
 from plot_init_benefit import extract_values_from_txt, load_arrays_from_npy
 
 # Define a function for plotting the values
