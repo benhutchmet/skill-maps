@@ -151,7 +151,7 @@ def load_arrays_from_npy(path, variable, timeseries=False):
         'fcst2_ts': None,
         'obs_ts': None,
         'fcst1_em_resid': None,
-        'obs_resid': None
+        'obs_resid': None,
         'corr_diff': None,
         'corr_diff_p': None
     }
