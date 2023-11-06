@@ -1254,16 +1254,17 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         verticalalignment='top', horizontalalignment='right',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
             
-            # Add a colorbar for the correlation difference
-            cbar_diff = fig.colorbar(cf, ax=ax3, orientation='horizontal', pad = 0.05,
-                                    aspect=50, shrink=0.8)
-            # Set the label for the colorbar
-            cbar_diff.set_label('correlation difference')           
-            
     # Add a colorbar for the correlation
     cbar = fig.colorbar(cf_list[0], ax=axs[:, :2], orientation='horizontal', pad = 0.05,
                         aspect=50, shrink=0.8)
     cbar.set_label('correlation coefficient')
+
+    # If plot_corr_diff is True
+    if plot_corr_diff:
+        # Add a colorbar for the correlation difference
+        cbar_diff = fig.colorbar(cf_list[-1], ax=axs[:, 2], orientation='horizontal', pad = 0.05,
+                                aspect=50, shrink=0.8)
+        cbar_diff.set_label('correlation difference')
 
     # if seasons_list is not None
     if seasons_list is not None:
