@@ -1281,7 +1281,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                         plot_gridbox: dict = None, region_name: str = None,
                         plot_different_methods: bool = True,
                         plot_different_seasons: bool = False,
-                        seasons_list: list = None) -> None:
+                        seasons_list: list = None,
+                        plot_corr_diff: bool = False) -> None:
     
     """
     Wrapper function which loads the required files and plots the different
@@ -1334,6 +1335,10 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
 
         seasons_list (list): list of seasons to plot. Default is None.
                             Needed only if plot_different_seasons is True.
+
+        plot_corr_diff (bool): whether to plot the difference in correlation between
+                                the initialized forecast and the observations. Default  
+                                is False.
 
     Returns:
     
@@ -1464,7 +1469,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                                                 figsize_x=figsize_x, figsize_y=figsize_y,
                                                 plot_gridbox=plot_gridbox,
                                                 ts_arrays=ts_arrays_list,
-                                                region_name=region_name)
+                                                region_name=region_name,
+                                                plot_corr_diff=plot_corr_diff)
     elif plot_different_seasons:
         # Set the season to None
         season=None
@@ -1478,7 +1484,8 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
                                                 plot_gridbox=plot_gridbox,
                                                 ts_arrays=ts_arrays_list,
                                                 region_name=region_name,
-                                                seasons_list=seasons_list)
+                                                seasons_list=seasons_list,
+                                                plot_corr_diff=plot_corr_diff)
     else:
         raise ValueError("plot_different_methods and plot_different_seasons cannot both be False")
     
