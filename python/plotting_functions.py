@@ -1187,15 +1187,19 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
             ax3 = axs[i, 2]
             ax3.coastlines()
 
+            # Set up the clevs for the difference in correlation
+            # Set up the contour levels
+            clevs_diff = np.arange(-0.5, 0.6, 0.1)
+
             # if the region_grid is China, add borders
             if region_name == 'china':
                 ax3.add_feature(cfeature.BORDERS, linestyle=':')
 
             if plot_gridbox is not None:
-                cf = ax3.contourf(lons_cs, lats_cs, corr_diff_cs, clevs, cmap='RdBu_r',
+                cf = ax3.contourf(lons_cs, lats_cs, corr_diff_cs, clevs_diff, cmap='RdBu_r',
                                     transform=proj)
             else:
-                cf = ax3.contourf(lons, lats, corr_diff, clevs, cmap='RdBu_r',
+                cf = ax3.contourf(lons, lats, corr_diff, clevs_diff, cmap='RdBu_r',
                                     transform=proj)
 
             # Append the contourf object to the list
@@ -1250,8 +1254,14 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                         verticalalignment='top', horizontalalignment='right',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
             
+            # Add a colorbar for the correlation difference
+            cbar_diff = fig.colorbar(cf, ax=ax3, orientation='horizontal', pad = 0.05,
+                                    aspect=50, shrink=0.8)
+            # Set the label for the colorbar
+            cbar_diff.set_label('correlation difference')           
+            
     # Add a colorbar for the correlation
-    cbar = fig.colorbar(cf_list[0], ax=axs, orientation='horizontal', pad = 0.05,
+    cbar = fig.colorbar(cf_list[0], ax=axs[:, :2], orientation='horizontal', pad = 0.05,
                         aspect=50, shrink=0.8)
     cbar.set_label('correlation coefficient')
 
