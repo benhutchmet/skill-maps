@@ -870,6 +870,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                 # set the corr1_p value to NaN at those points
                 corr1_p_cs[corr1_cs == np.nan] = np.nan
 
+            # If the variable is ua or va
+            if variable == 'ua' or variable == 'va':
+                print("checking for sign. values where corr1_cs is 0.0"
+                        "for u/v wind components")
+                # If any of the corr1 values are 0.0
+                corr1_p_cs[corr1_cs == 0.0] = np.nan
+
             # If any of the corr1_p values are greater than the significance
             # threshold - set them to NaN
             corr1_p_cs[corr1_p_cs > sig_threshold] = np.nan
@@ -887,6 +894,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                 print("corr1 contains NaNs")
                 # set the corr1_p value to NaN at those points
                 corr1_p[corr1 == np.nan] = np.nan
+
+            # If the variable is ua or va
+            if variable == 'ua' or variable == 'va':
+                print("checking for sign. values where corr1 is 0.0"
+                        "for u/v wind components")
+                # If any of the corr1 values are 0.0
+                corr1_p[corr1 == 0.0] = np.nan
 
             # If any of the corr1_p values are greater than the significance
             # threshold - set them to NaN
@@ -1135,6 +1149,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                 # Set the partial_r_p values to NaN at those points
                 partial_r_p_cs[partial_r_cs == np.nan] = np.nan
 
+            # If the variable is ua or va
+            if variable == 'ua' or variable == 'va':
+                print("checking for sign. values where partial_r_cs is 0.0"
+                        "for u/v wind components")
+                # If any of the partial_r values are 0.0
+                partial_r_p_cs[partial_r_cs == 0.0] = np.nan
+
             # If any of the partial_r_p values are greater than the significance
             # threshold - set them to NaN
             partial_r_p_cs[partial_r_p_cs > sig_threshold] = np.nan
@@ -1150,6 +1171,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                 print("there are NaNs in the partial_r array")
                 # Set the partial_r_p values to NaN at those points
                 partial_r_p[partial_r == np.nan] = np.nan
+
+            # If the variable is ua or va
+            if variable == 'ua' or variable == 'va':
+                print("checking for sign. values where partial_r is 0.0"
+                        "for u/v wind components")
+                # If any of the partial_r values are 0.0
+                partial_r_p[partial_r == 0.0] = np.nan
 
             # If any of the partial_r_p values are greater than the significance
             # threshold - set them to NaN
@@ -1218,6 +1246,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                     # Set the corr_diff_p values to NaN at those points
                     corr_diff_p_cs[corr_diff_cs == np.nan] = np.nan
 
+                if variable == 'ua' or variable == 'va':
+                    print("checking for sign. values where corr_diff_cs is 0.0"
+                            "for u/v wind components")
+                    # If any of the corr_diff values are 0.0
+                    corr_diff_p_cs[corr_diff_cs == 0.0] = np.nan
+
                 # If any of the corr_diff_p values are greater than the significance
                 # threshold - set them to NaN
                 corr_diff_p_cs[corr_diff_p_cs > sig_threshold] = np.nan
@@ -1232,6 +1266,13 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                     print("there are NaNs in the corr_diff_p array")
                     # Set the corr_diff_p values to NaN at those points
                     corr_diff_p[corr_diff == np.nan] = np.nan
+
+                # If the variable is ua or va
+                if variable == 'ua' or variable == 'va':
+                    print("checking for sign. values where corr_diff is 0.0"
+                            "for u/v wind components")
+                    # If any of the corr_diff values are 0.0
+                    corr_diff_p[corr_diff == 0.0] = np.nan
 
                 # If any of the corr_diff_p values are greater than the significance
                 # threshold - set them to NaN
