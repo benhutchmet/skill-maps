@@ -853,14 +853,16 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
             # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
-            ax1.text(0.05, 0.05, 
-                    f"r$_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
-                    f"r$_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
-                    transform=ax1.transAxes,
-                    verticalalignment='bottom',
-                    horizontalalignment='left',
-                    bbox=dict(facecolor='white', alpha=0.5),
-                    fontsize=10)
+            # Only if plot_corr_diff is False
+            if plot_corr_diff is False:
+                ax1.text(0.05, 0.05, 
+                        f"r$_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
+                        f"r$_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
+                        transform=ax1.transAxes,
+                        verticalalignment='bottom',
+                        horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5),
+                        fontsize=10)
         
         if plot_gridbox is not None:
             if np.isnan(corr1_cs).any():
@@ -1115,14 +1117,16 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Show these values e.g. r_{n} = 0.50, p_{n} = 0.01 in the lower left textbox
             # and r_{s} = 0.50, p_{s} = 0.01 in the same textbox, but on the next line
-            ax2.text(0.05, 0.05, 
-                        f"r$'_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
-                        f"r$'_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
-                        transform=ax2.transAxes,
-                        verticalalignment='bottom',
-                        horizontalalignment='left',
-                        bbox=dict(facecolor='white', alpha=0.5),
-                        fontsize=10)        # Append the contourf object to the list
+            # Only if plot_corr_diff is False
+            if plot_corr_diff is False:
+                ax2.text(0.05, 0.05, 
+                            f"r$'_{{n}}$ = {r_n:.2f}, p$_{{n}}$ = {p_n:.2f}\n" + \
+                            f"r$'_{{s}}$ = {r_s:.2f}, p$_{{s}}$ = {p_s:.2f}",
+                            transform=ax2.transAxes,
+                            verticalalignment='bottom',
+                            horizontalalignment='left',
+                            bbox=dict(facecolor='white', alpha=0.5),
+                            fontsize=10)        # Append the contourf object to the list
         cf_list.append(cf)
 
         if plot_gridbox is not None:
@@ -1189,7 +1193,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Set up the clevs for the difference in correlation
             # Set up the contour levels
-            clevs_diff = np.arange(-0.5, 0.6, 0.1)
+            clevs_diff = np.arange(-0.6, 0.7, 0.1)
 
             # if the region_grid is China, add borders
             if region_name == 'china':
@@ -1197,10 +1201,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             if plot_gridbox is not None:
                 cf = ax3.contourf(lons_cs, lats_cs, corr_diff_cs, clevs_diff, cmap='RdBu_r',
-                                    transform=proj)
+                                    transform=proj, extend='both')
             else:
                 cf = ax3.contourf(lons, lats, corr_diff, clevs_diff, cmap='RdBu_r',
-                                    transform=proj)
+                                    transform=proj, extend='both')
 
             # Append the contourf object to the list
             cf_list.append(cf)
