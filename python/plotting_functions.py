@@ -1240,9 +1240,6 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
     # Set up the lists
     paths_list = []
 
-    # Set up the base dir
-    base_dir_1d = r"C:\Users\Ben Hutchins\OneDrive - University of Reading\back_up_data\bootstrapping"
-
     # Assert that if one of the boolean flags is True, the other is False
     assert (plot_different_methods and not plot_different_seasons) or \
             (plot_different_seasons and not plot_different_methods), \
@@ -1260,7 +1257,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         for method in methods_list:
 
             # Use os.path.join to join the paths
-            path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
+            path = os.path.join(bootstrap_base_dir, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
             
             # Print the path
             print(path)
@@ -1277,7 +1274,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         for season in seasons_list:
 
             # Use os.path.join to join the paths
-            path = os.path.join(base_dir_1d, variable, region, season, 
+            path = os.path.join(bootstrap_base_dir, variable, region, season, 
                                 forecast_range, methods_list[0], 
                                 f"no_bootstraps_{no_bootstraps}")
             
@@ -1313,7 +1310,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         for method in methods_list:
 
             # Set up the path to the file using os.path.join
-            path = os.path.join(base_dir_1d, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
+            path = os.path.join(bootstrap_base_dir, variable, region, season, forecast_range, method, f"no_bootstraps_{no_bootstraps}")
 
             # # Set up the path to the file
             # path = f"{bootstrap_base_dir}/{variable}/{region}/{season}/" + \
@@ -1332,7 +1329,7 @@ def load_files_and_plot(variable: str, region: str, season: str, forecast_range:
         for season in seasons_list:
 
             # Set up the path to the file using os.path.join
-            path = os.path.join(base_dir_1d, variable, region, season, 
+            path = os.path.join(bootstrap_base_dir, variable, region, season, 
                                 forecast_range, methods_list[0], 
                                 f"no_bootstraps_{no_bootstraps}")
 
