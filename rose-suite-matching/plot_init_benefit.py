@@ -128,8 +128,15 @@ def load_arrays_from_npy(path, variable, timeseries=False):
                 - 'fcst1_em_resid (np.ndarray)': residuals of the first
                                                     ensemble (initialized)
                 - 'obs_resid (np.ndarray)': residuals of the observations
+                - 'corr_diff (np.ndarray)': difference in correlation between
+                                                the first ensemble (initialized)
+                                                and the second ensemble
+                                                (uninitialized)
+                - 'corr_diff_p (np.ndarray)': p-value of the difference in
+                                                correlation between the first
+                                                ensemble (initialized) and the
+                                                second ensemble (uninitialized)
             
-    
     """
 
     # Set up the dictionary
@@ -145,6 +152,8 @@ def load_arrays_from_npy(path, variable, timeseries=False):
         'obs_ts': None,
         'fcst1_em_resid': None,
         'obs_resid': None
+        'corr_diff': None,
+        'corr_diff_p': None
     }
 
     # extract the .npy files using glob
@@ -190,6 +199,12 @@ def load_arrays_from_npy(path, variable, timeseries=False):
     # find the file containing obs_resid
     obs_resid_file = [file for file in files if f'obs_resid_{variable}' in file][0]
 
+    # find the file containing corr_diff
+    corr_diff_file = [file for file in files if f'corr_diff_{variable}' in file][0]
+
+    # find the file containing corr_diff_p
+    corr_diff_p_file = [file for file in files if f'corr_diff_p_{variable}' in file][0]
+
     # Load the arrays from the files
     arrays['corr1'] = np.load(corr1_file)
     arrays['corr1_p'] = np.load(corr1_p_file)
@@ -205,6 +220,8 @@ def load_arrays_from_npy(path, variable, timeseries=False):
         arrays['obs_ts'] = np.load(obs_ts_file)
     arrays['fcst1_em_resid'] = np.load(fcst1_em_resid_file)
     arrays['obs_resid'] = np.load(obs_resid_file)
+    arrays['corr_diff'] = np.load(corr_diff_file)
+    arrays['corr_diff_p'] = np.load(corr_diff_p_file)
 
     # Return the arrays
     return arrays
