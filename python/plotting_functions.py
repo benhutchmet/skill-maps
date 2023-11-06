@@ -496,7 +496,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     """
 
     # Set up the axis labels
-    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
 
     # Set up the plot_names
     plot_names = ['total skill', 'residual corr', 'corr diff']
@@ -896,7 +896,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                             transform=proj)
 
         # Add a textbox with the figure label
-        ax1.text(0.95, 0.05, ax_labels[2 * i], transform=ax1.transAxes,
+        ax1.text(0.95, 0.05, ax_labels[ncols * i], transform=ax1.transAxes,
                     verticalalignment='bottom', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
@@ -1158,7 +1158,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                             transform=proj)
         
         # Add a textbox with the figure label
-        ax2.text(0.95, 0.05, ax_labels[(2*i)+1], transform=ax2.transAxes,
+        ax2.text(0.95, 0.05, ax_labels[(ncols*i)+1], transform=ax2.transAxes,
                     verticalalignment='bottom', horizontalalignment='right',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
         
@@ -1239,7 +1239,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                 transform=proj)
                 
             # Add a textbox with the figure label
-            ax3.text(0.95, 0.05, ax_labels[(2*i)+2], transform=ax3.transAxes,
+            ax3.text(0.95, 0.05, ax_labels[(ncols*i)+2], transform=ax3.transAxes,
                         verticalalignment='bottom', horizontalalignment='right',
                         bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
             
@@ -1263,7 +1263,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     if plot_corr_diff:
         # Add a colorbar for the correlation difference
         cbar_diff = fig.colorbar(cf_list[-1], ax=axs[:, 2], orientation='horizontal', pad = 0.05,
-                                aspect=50, shrink=0.8)
+                                aspect=50)
         cbar_diff.set_label('correlation difference')
 
     # if seasons_list is not None
