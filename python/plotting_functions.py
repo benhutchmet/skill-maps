@@ -404,7 +404,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                                             plot_gridbox: dict = None,
                                             ts_arrays: list = None,
                                             region_name: str = None,
-                                            seasons_list: list = None) -> None:
+                                            seasons_list: list = None,
+                                            plot_corr_diff: bool = False) -> None:
     """
     Plots a 3 x 2 matrix of subplots. The first column is the total correlation
     skill and the second column is the residual correlation. The rows are for
@@ -419,6 +420,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                             corr1_p (array): p-value for the correlation between the initialized forecast and the observations
                             partial_r (array): partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
                             partial_r_p (array): p-value for the partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
+                            corr_diff (array): difference between the initialized forecast and the uninitialized forecast
+                            corr_diff_p (array): p-value for the difference between the initialized forecast and the uninitialized forecast
 
         values (list): list of dicts containing the values to plot.
                         Indexed by the methods in method_list.
@@ -466,6 +469,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
                             corr1_p (array): p-value for the correlation between the initialized forecast and the observations
                             partial_r (array): partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
                             partial_r_p (array): p-value for the partial correlation between the initialized forecast and the observations after removing the influence of the uninitialized forecast
+                            corr_diff (array): difference between the initialized forecast and the uninitialized forecast
+                            corr_diff_p (array): p-value for the difference between the initialized forecast and the uninitialized forecast
                             fcst1_ts (array): time series of the initialized forecast
                             fcst2_ts (array): time series of the uninitialized forecast
                             obs_ts (array): time series of the observations
@@ -476,6 +481,14 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
         seasons_list (list): list of seasons to plot. Default is None.
 
+        plot_corr_diff (bool): whether to plot the difference between the
+                                initialized forecast and the uninitialized
+                                forecast. Default is False. If set to true, 
+                                plots three columns: total skill, residual
+                                correlation and difference between the
+                                initialized forecast and the uninitialized
+                                forecast fields.
+
     Returns:
 
         None
@@ -483,10 +496,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
     """
 
     # Set up the axis labels
-    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+    ax_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
 
     # Set up the plot_names
-    plot_names = ['total skill', 'residual corr']
+    plot_names = ['total skill', 'residual corr', 'corr diff']
 
     # Set up the projection
     proj = ccrs.PlateCarree()
@@ -514,8 +527,17 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         print("Number of methods not supported")
         sys.exit()
 
+
+    # If the plot_corr_diff is True
+    if plot_corr_diff:
+        # Set up the number of columns
+        ncols = 3
+    else:
+        # Set up the number of columns
+        ncols = 2
+
     # Set up the figure size
-    fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(figsize_x, figsize_y),
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(figsize_x, figsize_y),
                             subplot_kw={'projection': proj}, 
                             gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
     
@@ -586,6 +608,10 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         partial_r = method_arrays['partial_r']
         partial_r_p = method_arrays['partial_r_p']
 
+        # Extract the arrays for the corr_diff
+        corr_diff = method_arrays['corr_diff']
+        corr_diff_p = method_arrays['corr_diff_p']
+
         # TODO: Once cylc suite has processed for 1 bootstrap case
         # Extract the time series arrays to calculate correlations
         fcst1_ts = method_arrays_ts['fcst1_ts']
@@ -624,6 +650,12 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # Constrain the partial_r_p array to the gridbox
             partial_r_p_cs = partial_r_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constrain the corr_diff array to the gridbox
+            corr_diff_cs = corr_diff[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
+
+            # Constrain the corr_diff_p array to the gridbox
+            corr_diff_p_cs = corr_diff_p[lat1_idx:lat2_idx, lon1_idx:lon2_idx]
 
             # Constraint the fcst1_ts array to the gridbox
             fcst1_ts_cs = fcst1_ts[:, lat1_idx:lat2_idx, lon1_idx:lon2_idx]
@@ -1146,7 +1178,78 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
         # ax2.text(0.05, 0.05, season, transform=ax2.transAxes,
         #             verticalalignment='bottom', horizontalalignment='left',
         #             bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
-        
+
+        # If plot_corr_diff is True
+        if plot_corr_diff:
+            print("plotting the difference in correlation - including third column")
+
+            # Set up the axes for the difference in correlation
+            ax3 = axs[i, 2]
+            ax3.coastlines()
+
+            # if the region_grid is China, add borders
+            if region_name == 'china':
+                ax3.add_feature(cfeature.BORDERS, linestyle=':')
+
+            if plot_gridbox is not None:
+                cf = ax3.contourf(lons_cs, lats_cs, corr_diff_cs, clevs, cmap='RdBu_r',
+                                    transform=proj)
+            else:
+                cf = ax3.contourf(lons, lats, corr_diff, clevs, cmap='RdBu_r',
+                                    transform=proj)
+
+            # Append the contourf object to the list
+            cf_list.append(cf)
+
+            # if the gridbox is not None
+            # Set up the p field
+            if plot_gridbox is not None:
+                # If any of the corr_diff_p values are situated at NaNs
+                if np.isnan(corr_diff_cs).any():
+                    print("there are NaNs in the corr_diff_p_cs array")
+                    # Set the corr_diff_p values to NaN at those points
+                    corr_diff_p_cs[corr_diff_cs == np.nan] = np.nan
+
+                # If any of the corr_diff_p values are greater than the significance
+                # threshold - set them to NaN
+                corr_diff_p_cs[corr_diff_p_cs > sig_threshold] = np.nan
+
+                # Plot the p-values for the difference in correlation between the
+                # initialized forecast and the observations
+                ax3.contourf(lons_cs, lats_cs, corr_diff_p_cs, hatches=['....'], alpha=0.,
+                                transform=proj)
+            else:
+                # If any of the corr_diff_p values are situated at NaNs
+                if np.isnan(corr_diff).any():
+                    print("there are NaNs in the corr_diff_p array")
+                    # Set the corr_diff_p values to NaN at those points
+                    corr_diff_p[corr_diff == np.nan] = np.nan
+
+                # If any of the corr_diff_p values are greater than the significance
+                # threshold - set them to NaN
+                corr_diff_p[corr_diff_p > sig_threshold] = np.nan
+
+                # Plot the p-values for the difference in correlation between the
+                # initialized forecast and the observations
+                ax3.contourf(lons, lats, corr_diff_p, hatches=['....'], alpha=0.,
+                                transform=proj)
+                
+            # Add a textbox with the figure label
+            ax3.text(0.95, 0.05, ax_labels[(2*i)+2], transform=ax3.transAxes,
+                        verticalalignment='bottom', horizontalalignment='right',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+            
+            # Add a textbox with the plot name
+            ax3.text(0.05, 0.95, plot_names[2], transform=ax3.transAxes,
+                        verticalalignment='top', horizontalalignment='left',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+            
+            # Add a textbox with the method
+            # to the top right of the plot
+            ax3.text(0.95, 0.95, method, transform=ax3.transAxes,
+                        verticalalignment='top', horizontalalignment='right',
+                        bbox=dict(facecolor='white', alpha=0.5), fontsize = 8)
+            
     # Add a colorbar for the correlation
     cbar = fig.colorbar(cf_list[0], ax=axs, orientation='horizontal', pad = 0.05,
                         aspect=50, shrink=0.8)
@@ -1857,7 +1960,7 @@ def plot_diff_methods_same_season_var_timeseries(ts_arrays: list, values: list,
     ax_labels = ['A', 'B', 'C', 'D', 'E', 'F']
 
     # Set up the plot_names
-    plot_names = ['total skill', 'residual corr']
+    plot_names = ['total skill', 'residual corr', 'corr diff']
 
     # Assert that gridbox is not None
     # as gridbox is needed to collapse 3D array into time series
