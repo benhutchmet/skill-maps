@@ -21,6 +21,9 @@ test_model_cesm = [ "CESM1-1-CAM5-CMIP5" ]
 # List of the full models
 models = [ "BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1" ]
 
+# List of the test model
+test_model = [ "MIROC6" ]
+
 # define the paths for the observations
 obs_psl = "/home/users/benhutch/ERA5_psl/long-ERA5-full.nc"
 

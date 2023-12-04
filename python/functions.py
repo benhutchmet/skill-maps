@@ -1691,43 +1691,43 @@ def remove_years_with_nans_nao(observed_data, model_data, models, NAO_matched=Fa
                 # Extract the years
                 model_years = member.time.dt.year.values
 
-            # If the years has duplicate values
-            if len(model_years) != len(set(model_years)):
-                # Raise a value error
-                print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
-                # continue with the loop
-                continue
+                # If the years has duplicate values
+                if len(model_years) != len(set(model_years)):
+                    # Raise a value error
+                    print("The models years has duplicate values for model " + model + "member " + member.attrs['variant_label'])
+                    # continue with the loop
+                    continue
 
-            # Only if there are no NaN values in the model data
-            # Will we loop over the years
-            if not np.isnan(member.values).any():
-                print("No NaN values in the model data")
-                # continue with the loop
-                continue
+                # Only if there are no NaN values in the model data
+                # Will we loop over the years
+                if not np.isnan(member.values).any():
+                    print("No NaN values in the model data")
+                    # continue with the loop
+                    continue
 
-            print("NaN values in the model data")
-            print("Model:", model)
-            print("Member:", member)
-            print("Looping over the years")
-            # Loop over the years
-            for year in model_years:
-                # Extract the data for the year
-                data = member.sel(time=f"{year}")
+                print("NaN values in the model data")
+                print("Model:", model)
+                print("Member:", member)
+                print("Looping over the years")
+                # Loop over the years
+                for year in model_years:
+                    # Extract the data for the year
+                    data = member.sel(time=f"{year}")
 
-                if np.isnan(data.values).any():
-                    print("NaN values in the model data for this year")
-                    print("Model:", model)
-                    print("Year:", year)
-                    if np.isnan(data.values).all():
-                        print("All NaN values in the model data for this year")
+                    if np.isnan(data.values).any():
+                        print("NaN values in the model data for this year")
                         print("Model:", model)
                         print("Year:", year)
-                        # De-Select the year from the observed data
-                        member = member.sel(time=member.time.dt.year != year)
+                        if np.isnan(data.values).all():
+                            print("All NaN values in the model data for this year")
+                            print("Model:", model)
+                            print("Year:", year)
+                            # De-Select the year from the observed data
+                            member = member.sel(time=member.time.dt.year != year)
 
-                        print(year, "all NaN values for this year")
-                else:
-                    print(year, "no NaN values for this year")
+                            print(year, "all NaN values for this year")
+                    else:
+                        print(year, "no NaN values for this year")
 
         # Extract the model years
         model_years = member.time.dt.year.values
