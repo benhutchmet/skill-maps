@@ -33,16 +33,21 @@ import iris.quickplot as qplt
 from typing import Dict, List, Union
 
 # Local imports
+# Functions
+from functions import calculate_obs_nao
+
+# Import the dictionaries
 sys.path.append('/home/users/benhutch/skill-maps')
 import dictionaries as dic
+
 
 # Define a function for the NAO stats
 def nao_stats(obs: DataArray, 
             hindcast: Dict[str, List[DataArray]],
             models_list: List[str],
             lag: int = 3,
-            short_period: tuple = (1965, 2010)),
-            season: str = 'DJFM') -> Dict[str, Dict]
+            short_period: tuple = (1965, 2010),
+            season: str = 'DJFM') -> Dict[str, Dict]:
 
     """
     Assess and compare the skill of the NAO index between different models
@@ -80,7 +85,7 @@ def nao_stats(obs: DataArray,
     Outputs:
     --------
 
-    nao_stats: dict[dict]
+    nao_stats_dict: dict[dict]
 
         A dictionary containing the NAO stats for each model. The keys are
         the model names and the values are a dictionary containing the NAO
@@ -99,6 +104,9 @@ def nao_stats(obs: DataArray,
         
         model_nao_ts: array[time]
             The ensemble mean NAO index for the model.
+
+        model_nao_ts_members: array[member, time]
+            The NAO index for each ensemble member of the model.
 
         model_nao_ts_min, model_nao_ts_max: array[time]
             The 5% and 95% percentiles of the model NAO index.
@@ -194,6 +202,9 @@ def nao_stats(obs: DataArray,
     azores_grid = dic.azores_grid_corrected
     iceland_grid = dic.iceland_grid_corrected
 
+    # Create a dictionary to store the NAO stats for each model
+    nao_stats_dict = {}
+
     # Set up the missing data indicator
     mdi = -9999.0
 
@@ -202,9 +213,11 @@ def nao_stats(obs: DataArray,
         print("Setting up the NAO stats for the {} model".format(model))
 
         # Create a dictionary for the NAO stats for this model
-        nao_stats[model] = {
+        nao_stats_dict[model] = {
 
             'years': [], 'years_lag': [], 'obs_nao_ts': [], 'model_nao_ts': [],
+
+            'model_nao_ts_members': [], 
 
             'model_nao_ts_min': [], 'model_nao_ts_max': [], 
 
@@ -266,10 +279,101 @@ def nao_stats(obs: DataArray,
                 "There are less than 10 years in the hindcast data for the {} model".format(model)
 
             # If years1 and years2 are not the same then raise a value error
-            if years != years2:
-                print("years1", years1)
-                print("years2", years2)
-                raise ValueError("The years in the hindcast data for the {} model are not the same".format(model))
+            assert np.all(years1 == years2), \
+                "The years in the hindcast data for the {} model are not the same".format(model)
+            
+        print("years checking complete for the {} model".format(model))
 
         # Ensure that the observations and the hindcast have the same time axis
-        print("years checking complete for the {} model".format(model))
+        # Extract the years for the observations
+        years_obs = obs.time.dt.year.values
+
+        # Assert that this doesn't have any duplicate values
+        assert len(years_obs) == len(set(years_obs)), \
+            "The years in the observations are not unique"
+        
+        # Assert that there are no gaps of more than one year between the years
+        assert np.all(np.diff(years_obs) <= 1), \
+            "There is a gap of more than one year in the observations"
+        
+        # Assert that there are at least 10 years in the observations
+        assert len(years_obs) >= 10, \
+            "There are less than 10 years in the observations"
+        
+        # Assert that there are no NaNs in the observations
+        assert np.all(np.isnan(obs) == False), \
+            "There are NaNs in the observations"
+        
+        # Create a temporary copy of the observations
+        obs_tmp = obs.copy()
+        
+        # If the values in years1 and years_obs are not the same then raise a value error
+        if np.array_equal(years1, years_obs) == False:
+            print("The years in the observations are not the same as the years in the hindcast data for the {} model".format(model))
+            print("Obs first year: {}".format(years_obs[0]))
+            print("Hindcast first year: {}".format(years1[0]))
+            print("Obs last year: {}".format(years_obs[-1]))
+            print("Hindcast last year: {}".format(years1[-1]))
+
+            # assert that the obs is longer than the hindcast
+            assert len(years_obs) > len(years1), \
+                "The observations are shorter than the hindcast data for the {} model".format(model)
+
+            # TODO: obs getting shorter
+            # Extract only the hindcast years from the observations
+            obs_tmp = obs_tmp.sel(time=obs_tmp.time.dt.year.isin(years1))
+
+        # Assert that year 1 of the observations is the same as year 1 of the hindcast
+        assert obs_tmp.time.dt.year.values[0] == years1[0], \
+            "The first year of the observations is not the same as the first year of the hindcast data for the {} model".format(model)
+
+        # Assert that year -1 of the observations is the same as year -1 of the hindcast
+        assert obs_tmp.time.dt.year.values[-1] == years1[-1], \
+            "The last year of the observations is not the same as the last year of the hindcast data for the {} model".format(model)
+
+        # Assert that the length of the observations is the same as the length of the hindcast
+        assert len(obs_tmp.time.dt.year.values) == len(years1), \
+            "The length of the observations is not the same as the length of the hindcast data for the {} model".format(model)
+        
+        print("years checking complete for the observations and the {} model".format(model))
+
+        # Append the years to the dictionary
+        nao_stats_dict[model]['years'] = years1
+
+        # Append the nens to the dictionary
+        nao_stats_dict[model]['nens'] = len(hindcast_list)
+
+        # Calculate the observed NAO index
+        obs_nao = calculate_obs_nao(obs_anomaly=obs_tmp,
+                                    south_grid=azores_grid,
+                                    north_grid=iceland_grid)
+        
+        # Append the observed NAO index to the dictionary
+        nao_stats_dict[model]['obs_nao_ts'] = obs_nao
+
+        # Create an empty array to store the NAO index for each member
+        nao_members = np.zeros((len(hindcast_list), len(years1)))
+
+        # Loop over the hindcast members to calculate the NAO index
+        for member in hindcast_list:
+
+            # Calculate the NAO index for this member
+            nao_member = calculate_obs_nao(obs_anomaly=member,
+                                    south_grid=azores_grid,
+                                    north_grid=iceland_grid)
+
+            # Append the NAO index to the members array
+            nao_members[hindcast_list.index(member), :] = nao_member
+
+        # Calculate the ensemble mean NAO index
+        nao_mean = np.mean(nao_members, axis=0)
+
+        # Append the ensemble mean NAO index to the dictionary
+        nao_stats_dict[model]['model_nao_ts'] = nao_mean
+
+        # Append the ensemble members NAO index to the dictionary
+        nao_stats_dict[model]['model_nao_ts_members'] = nao_members
+        
+        print("NAO index calculated for the {} model".format(model))
+
+    print("NAO stats dictionary created")
