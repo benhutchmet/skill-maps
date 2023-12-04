@@ -32,17 +32,22 @@ import pdb
 import iris.quickplot as qplt
 from typing import Dict, List, Union
 
+# Local imports
+sys.path.append('/home/users/benhutch/skill-maps')
+import dictionaries as dic
 
 # Define a function for the NAO stats
 def nao_stats(obs: DataArray, 
             hindcast: Dict[str, List[DataArray]],
             models_list: List[str],
             lag: int = 3,
-            short_period: tuple = (1965, 2010)):
+            short_period: tuple = (1965, 2010)),
+            season: str = 'DJFM') -> Dict[str, Dict]
 
     """
     Assess and compare the skill of the NAO index between different models
-    and observations.
+    and observations during the winter season (DJFM). The skill is assessed
+    using the correlation, p-value and RPC.
     
     Based on Doug Smith's 'fcsts_assess' function.
     
@@ -67,6 +72,10 @@ def nao_stats(obs: DataArray,
     short_period: tuple
         A tuple containing the start and end years of the short period to
         assess the skill of the NAO index. Default is (1965, 2010).
+
+    season: str
+        The season to use when assessing the skill of the NAO index.
+        Default is 'DJFM'.
         
     Outputs:
     --------
@@ -177,6 +186,14 @@ def nao_stats(obs: DataArray,
 
     """
 
+    # Assert that the season is DJFM
+    assert season == 'DJFM', "The season must be DJFM"
+
+    # Hard code in the dictionaries containing
+    # the grid boxes for the NAO index
+    azores_grid = dic.azores_grid_corrected
+    iceland_grid = dic.iceland_grid_corrected
+
     # Set up the missing data indicator
     mdi = -9999.0
 
@@ -186,7 +203,7 @@ def nao_stats(obs: DataArray,
 
         # Create a dictionary for the NAO stats for this model
         nao_stats[model] = {
-            
+
             'years': [], 'years_lag': [], 'obs_nao_ts': [], 'model_nao_ts': [],
 
             'model_nao_ts_min': [], 'model_nao_ts_max': [], 
@@ -210,3 +227,49 @@ def nao_stats(obs: DataArray,
             'nens': mdi, 'nens_lag': mdi
 
         }
+
+        # Extract the list of hindcast DataArrays for this model
+        hindcast_list = hindcast[model]
+
+        # Ensure that each of the data arrays has the same time axis
+        # Extract the years for the first member
+        years1 = hindcast_list[0].time.dt.year.values
+
+        # Assert that this doesn't have any duplicate values
+        assert len(years1) == len(set(years1)), \
+            "The years in the hindcast data for the {} model are not unique".format(model)
+        
+        # Assert that there are no gaps of more than one year between the years
+        assert np.all(np.diff(years1) <= 1), \
+            "There is a gap of more than one year in the hindcast data for the {} model".format(model)
+        
+        # Assert that there are at least 10 years in the hindcast data
+        assert len(years1) >= 10, \
+            "There are less than 10 years in the hindcast data for the {} model".format(model)
+
+        # Loop over the remaining members
+        for member in hindcast_list[1:]:
+
+            # Extract the years for this member
+            years2 = member.time.dt.year.values
+
+            # Assert that this doesn't have any duplicate values
+            assert len(years2) == len(set(years2)), \
+                "The years in the hindcast data for the {} model are not unique".format(model)
+            
+            # Assert that there are no gaps of more than one year between the years
+            assert np.all(np.diff(years2) <= 1), \
+                "There is a gap of more than one year in the hindcast data for the {} model".format(model)
+
+            # Assert that there are at least 10 years in the hindcast data
+            assert len(years2) >= 10, \
+                "There are less than 10 years in the hindcast data for the {} model".format(model)
+
+            # If years1 and years2 are not the same then raise a value error
+            if years != years2:
+                print("years1", years1)
+                print("years2", years2)
+                raise ValueError("The years in the hindcast data for the {} model are not the same".format(model))
+
+        # Ensure that the observations and the hindcast have the same time axis
+        print("years checking complete for the {} model".format(model))
