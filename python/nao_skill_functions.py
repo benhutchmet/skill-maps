@@ -340,6 +340,12 @@ def nao_stats(obs: DataArray,
         # Append the years to the dictionary
         nao_stats_dict[model]['years'] = years1
 
+        # Append the short period to the dictionary
+        nao_stats_dict[model]['short_period'] = short_period
+
+        # Append the long period to the dictionary
+        nao_stats_dict[model]['long_period'] = (years1[0], years1[-1])
+
         # Append the nens to the dictionary
         nao_stats_dict[model]['nens'] = len(hindcast_list)
 
@@ -348,14 +354,21 @@ def nao_stats(obs: DataArray,
                                     south_grid=azores_grid,
                                     north_grid=iceland_grid)
         
+        # Convert the observed NAO index to a numpy array
+        obs_nao = obs_nao.values
+
         # Append the observed NAO index to the dictionary
         nao_stats_dict[model]['obs_nao_ts'] = obs_nao
 
         # Create an empty array to store the NAO index for each member
         nao_members = np.zeros((len(hindcast_list), len(years1)))
 
+        # Form an array of years for the short period
+        years_short = np.arange(short_period[0], short_period[1] + 1)
+        print("years_short: {}".format(years_short))
+
         # Loop over the hindcast members to calculate the NAO index
-        for member in hindcast_list:
+        for i, member in enumerate(hindcast_list):
 
             # Calculate the NAO index for this member
             nao_member = calculate_obs_nao(obs_anomaly=member,
@@ -363,7 +376,10 @@ def nao_stats(obs: DataArray,
                                     north_grid=iceland_grid)
 
             # Append the NAO index to the members array
-            nao_members[hindcast_list.index(member), :] = nao_member
+            nao_members[i, :] = nao_member
+
+            # Constrain to the short period
+            nao_member = nao_member.sel(time=nao_member.time.dt.year.isin(years_short))
 
         # Calculate the ensemble mean NAO index
         nao_mean = np.mean(nao_members, axis=0)
@@ -373,6 +389,30 @@ def nao_stats(obs: DataArray,
 
         # Append the ensemble members NAO index to the dictionary
         nao_stats_dict[model]['model_nao_ts_members'] = nao_members
+
+        # Extract the 5th and 95th percentiles of the NAO index
+        model_nao_ts_min = np.percentile(nao_members, 5, axis=0)
+
+        # and the 95th percentile
+        model_nao_ts_max = np.percentile(nao_members, 95, axis=0)
+
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_min'] = model_nao_ts_min
+
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_max'] = model_nao_ts_max
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1 = pearsonr(nao_mean, obs_nao)[0]
+
+        # Append the correlation to the dictionary
+        nao_stats_dict[model]['corr1'] = corr1
+
+        # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
+        p1 = pearsonr(nao_mean, obs_nao)[1]
+
+        # Append the p-value to the dictionary
+        nao_stats_dict[model]['p1'] = p1
         
         print("NAO index calculated for the {} model".format(model))
 
