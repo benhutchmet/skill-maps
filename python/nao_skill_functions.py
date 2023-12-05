@@ -850,13 +850,24 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
         else:
             raise ValueError("The boolean flags are not set up correctly")
 
-            # Set the axhline
-            ax.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+        # Set the axhline
+        ax.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
 
-            ax.set_ylim([-10, 10])
+        ax.set_ylim([-10, 10])
 
-            ax.set_ylabel('NAO (hPa)')
+        ax.set_ylabel('NAO (hPa)')
 
-            # Set the x-axis label for the bottom row
-            if i >= 10:
-                ax.set_xlabel('year')
+    # Set the x-axis label for the bottom row
+    if i >= 10:
+        ax.set_xlabel('year')
+
+    # Adjust the layout
+    plt.tight_layout()
+
+    # Save the figure
+    fig.savefig(os.path.join("/gws/nopw/j04/canari/users/benhutch/plots/NAO_skill",
+                f"NAO_skill_short_period_{short_period}_lag_and_var_adjust_{lag_and_var_adjust}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"),
+                dpi=300)
+    
+    # Show the figure
+    plt.show()
