@@ -449,7 +449,22 @@ def nao_stats(obs: DataArray,
                         # Calculate the lagged ensemble member
                         nao_members_lag[i + (lag_index * nens), year] = nao_member[year - lag_index]
 
-                        # Same for the short period
+            # For the short period
+            for year in range(len(years_short)):
+                # If the year index is less than the lag index
+                if year < lag - 1:
+                    # Set the lagged ensemble member to NaN
+                    nao_members_lag_short[i, year] = np.nan
+
+                    # Also set the lagged ensemble member to NaN
+                    for lag_index in range(lag):
+                        nao_members_lag_short[i + (lag_index * nens), year] = np.nan
+
+                # Otherwise
+                else:
+                    # Loop over the lag indices
+                    for lag_index in range(lag):
+                        # Calculate the lagged ensemble member
                         nao_members_lag_short[i + (lag_index * nens), year] = nao_member_short[year - lag_index]
 
             # # Now remove the first lag - 1 years from the NAO index
