@@ -221,7 +221,9 @@ def nao_stats(obs: DataArray,
 
             'model_nao_ts_min': [], 'model_nao_ts_max': [], 
 
-            'model_nao_ts_var_adjust': [], 'model_nao_ts_lag_var_adjust': [],
+            'model_nao_ts_var_adjust': [], 'model_nao_ts_var_adjust_short': [],
+             
+            'model_nao_ts_lag_var_adjust': [],
 
             'model_nao_ts_lag_var_adjust_min': [],
 
@@ -354,6 +356,10 @@ def nao_stats(obs: DataArray,
                                     south_grid=azores_grid,
                                     north_grid=iceland_grid)
         
+        # Form an array of years for the short period
+        years_short = np.arange(years1[0], short_period[1] + 1)
+        print("years_short: {}".format(years_short))
+
         # Constrain to the short period
         obs_nao_short = obs_nao.sel(time=obs_nao.time.dt.year.isin(years_short))
         
@@ -369,13 +375,18 @@ def nao_stats(obs: DataArray,
         # Create an empty array to store the NAO index for each member
         nao_members = np.zeros((len(hindcast_list), len(years1)))
 
-        # Form an array of years for the short period
-        years_short = np.arange(short_period[0], short_period[1] + 1)
-        print("years_short: {}".format(years_short))
-
         # Create an empty array to store the NAO index for each member
         # for the short period
         nao_members_short = np.zeros((len(hindcast_list), len(years_short)))
+
+        # Set up the number of ensemble members
+        nens = len(hindcast_list)
+
+        # Set up the number of lagged members
+        nens_lag = len(hindcast_list) * lag
+
+        # Set up the lagged ensemble
+        nao_members_lag = np.zeros([nens_lag, len(years1)])
 
         # Loop over the hindcast members to calculate the NAO index
         for i, member in enumerate(hindcast_list):
@@ -384,6 +395,30 @@ def nao_stats(obs: DataArray,
             nao_member = calculate_obs_nao(obs_anomaly=member,
                                     south_grid=azores_grid,
                                     north_grid=iceland_grid)
+            
+            # Loop over the years
+            for year in range(len(years1)):
+                # if the year index is less than the lag index
+                if year < lag - 1:
+                    # Set the lagged ensemble member to NaN
+                    nao_members_lag[i, year] = np.nan
+
+                    # Also set the lagged ensemble member to NaN
+                    for lag_index in range(lag):
+                        nao_members_lag[i + (lag_index * nens), year] = np.nan
+
+                # Otherwise
+                else:
+                    # Loop over the lag indices
+                    for lag_index in range(lag):
+                        # Calculate the lagged ensemble member
+                        nao_members_lag[i + (lag_index * nens), year] = nao_member[year - lag_index]
+
+            # Now remove the first lag - 1 years from the NAO index
+            nao_members_lag[i, lag - 1:] = np.nan
+
+            # Form the lagged obs
+            obs_nao_lag = obs_nao[lag - 1:]
 
             # Constrain to the short period
             nao_member_short = nao_member.sel(time=nao_member.time.dt.year.isin(years_short))
@@ -442,6 +477,18 @@ def nao_stats(obs: DataArray,
 
         # Calculate the ratio of predictable signals (RPS) for the short period
         rps1_short = rpc1_short * (np.std(obs_nao_short) / np.std(nao_members_short, axis=0))
+
+        # Adjust the variance of the model NAO index
+        nao_var_adjust = nao_mean * rps1
+
+        # Adjust the variance of the model NAO index for the short period
+        nao_var_adjust_short = nao_mean_short * rps1_short
+
+        # Append the adjusted variance to the dictionary
+        nao_stats_dict[model]['model_nao_ts_var_adjust'] = nao_var_adjust
+
+        # Append the adjusted variance to the dictionary
+        nao_stats_dict[model]['model_nao_ts_var_adjust_short'] = nao_var_adjust_short
 
         # Append the correlation to the dictionary
         nao_stats_dict[model]['corr1'] = corr1
