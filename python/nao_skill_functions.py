@@ -354,8 +354,14 @@ def nao_stats(obs: DataArray,
                                     south_grid=azores_grid,
                                     north_grid=iceland_grid)
         
+        # Constrain to the short period
+        obs_nao_short = obs_nao.sel(time=obs_nao.time.dt.year.isin(years_short))
+        
         # Convert the observed NAO index to a numpy array
         obs_nao = obs_nao.values
+
+        # Convert the observed NAO index for the short period to a numpy array
+        obs_nao_short = obs_nao_short.values
 
         # Append the observed NAO index to the dictionary
         nao_stats_dict[model]['obs_nao_ts'] = obs_nao
@@ -367,6 +373,10 @@ def nao_stats(obs: DataArray,
         years_short = np.arange(short_period[0], short_period[1] + 1)
         print("years_short: {}".format(years_short))
 
+        # Create an empty array to store the NAO index for each member
+        # for the short period
+        nao_members_short = np.zeros((len(hindcast_list), len(years_short)))
+
         # Loop over the hindcast members to calculate the NAO index
         for i, member in enumerate(hindcast_list):
 
@@ -375,14 +385,20 @@ def nao_stats(obs: DataArray,
                                     south_grid=azores_grid,
                                     north_grid=iceland_grid)
 
+            # Constrain to the short period
+            nao_member_short = nao_member.sel(time=nao_member.time.dt.year.isin(years_short))
+
             # Append the NAO index to the members array
             nao_members[i, :] = nao_member
 
-            # Constrain to the short period
-            nao_member = nao_member.sel(time=nao_member.time.dt.year.isin(years_short))
+            # Append the NAO index to the members array
+            nao_members_short[i, :] = nao_member_short
 
         # Calculate the ensemble mean NAO index
         nao_mean = np.mean(nao_members, axis=0)
+
+        # Calculate the ensemble mean NAO index for the short period
+        nao_mean_short = np.mean(nao_members_short, axis=0)
 
         # Append the ensemble mean NAO index to the dictionary
         nao_stats_dict[model]['model_nao_ts'] = nao_mean
@@ -405,14 +421,45 @@ def nao_stats(obs: DataArray,
         # Calculate the correlation between the model NAO index and the observed NAO index
         corr1 = pearsonr(nao_mean, obs_nao)[0]
 
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1_short = pearsonr(nao_mean_short, obs_nao_short)[0]
+
+        # Calculate the standard deviation of the model NAO index
+        nao_std = np.std(nao_mean)
+
+        # Calculate the standard deviation of the model NAO index for the short period
+        nao_std_short = np.std(nao_mean_short)
+
+        # Calculate the rpc between the model NAO index and the observed NAO index
+        rpc1 = corr1 / (nao_std / np.std(nao_members, axis=0))
+
+        # Calculate the rpc between the model NAO index and the observed NAO index
+        # for the short period
+        rpc1_short = corr1_short / (nao_std_short / np.std(nao_members_short, axis=0))
+
         # Append the correlation to the dictionary
         nao_stats_dict[model]['corr1'] = corr1
+
+        # Append the correlation to the dictionary
+        nao_stats_dict[model]['corr1_short'] = corr1_short
+
+        # Append the rpc to the dictionary
+        nao_stats_dict[model]['RPC1'] = rpc1
+
+        # Append the rpc to the dictionary
+        nao_stats_dict[model]['RPC1_short'] = rpc1_short
 
         # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
         p1 = pearsonr(nao_mean, obs_nao)[1]
 
+        # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
+        p1_short = pearsonr(nao_mean_short, obs_nao_short)[1]
+
         # Append the p-value to the dictionary
         nao_stats_dict[model]['p1'] = p1
+
+        # Append the p-value to the dictionary
+        nao_stats_dict[model]['p1_short'] = p1_short
         
         print("NAO index calculated for the {} model".format(model))
 
