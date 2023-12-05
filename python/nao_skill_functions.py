@@ -437,6 +437,12 @@ def nao_stats(obs: DataArray,
         # for the short period
         rpc1_short = corr1_short / (nao_std_short / np.std(nao_members_short, axis=0))
 
+        # Calculate the ratio of predictable signals (RPS)
+        rps1 = rpc1 * (np.std(obs_nao) / np.std(nao_members, axis=0))
+
+        # Calculate the ratio of predictable signals (RPS) for the short period
+        rps1_short = rpc1_short * (np.std(obs_nao_short) / np.std(nao_members_short, axis=0))
+
         # Append the correlation to the dictionary
         nao_stats_dict[model]['corr1'] = corr1
 
