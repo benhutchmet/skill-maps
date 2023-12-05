@@ -414,8 +414,8 @@ def nao_stats(obs: DataArray,
                         # Calculate the lagged ensemble member
                         nao_members_lag[i + (lag_index * nens), year] = nao_member[year - lag_index]
 
-            # Now remove the first lag - 1 years from the NAO index
-            nao_members_lag[i, lag - 1:] = np.nan
+            # # Now remove the first lag - 1 years from the NAO index
+            # nao_members_lag[i, lag - 1:] = np.nan
 
             # Form the lagged obs
             obs_nao_lag = obs_nao[lag - 1:]
@@ -428,6 +428,9 @@ def nao_stats(obs: DataArray,
 
             # Append the NAO index to the members array
             nao_members_short[i, :] = nao_member_short
+
+        # Remove the first lag - 1 years from the NAO index
+        nao_members_lag = nao_members_lag[:, lag - 1:]
 
         # Calculate the ensemble mean NAO index
         nao_mean = np.mean(nao_members, axis=0)
