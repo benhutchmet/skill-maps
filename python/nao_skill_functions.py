@@ -215,13 +215,19 @@ def nao_stats(obs: DataArray,
         # Create a dictionary for the NAO stats for this model
         nao_stats_dict[model] = {
 
-            'years': [], 'years_lag': [], 'obs_nao_ts': [], 'obs_nao_ts_short': [],
+            'years': [], 'years_lag': [], 'years_lag_short': [], 'years_short': [],
+            
+            'obs_nao_ts': [], 'obs_nao_ts_short': [],
             
             'obs_nao_ts_lag': [],
 
             'obs_nao_ts_lag_short': [], 'model_nao_ts': [], 'model_nao_ts_short': [],
 
-            'model_nao_ts_members': [], 
+            'model_nao_ts_members': [], 'model_nao_ts_members_short': [],
+
+            'model_nao_ts_short_min': [],
+
+            'model_nao_ts_short_max': [],
 
             'model_nao_ts_min': [], 'model_nao_ts_max': [], 
 
@@ -233,7 +239,9 @@ def nao_stats(obs: DataArray,
 
             'model_nao_ts_lag_var_adjust_min': [], 
 
-            'model_nao_ts_lag_var_adjust_max': [], 'model_nao_ts_lag_var_adjust_min_short': [],
+            'model_nao_ts_lag_var_adjust_max': [],
+            
+            'model_nao_ts_lag_var_adjust_min_short': [],
 
             'model_nao_ts_lag_var_adjust_max_short': [],
             
@@ -356,6 +364,12 @@ def nao_stats(obs: DataArray,
         # Append the years to the dictionary
         nao_stats_dict[model]['years'] = years1
 
+        # Create the years for the short period
+        years_short = np.arange(years1[0], short_period[1] + 1)
+
+        # Append the years for the short period to the dictionary
+        nao_stats_dict[model]['years_short'] = years_short
+
         # Append the short period to the dictionary
         nao_stats_dict[model]['short_period'] = short_period
 
@@ -373,6 +387,12 @@ def nao_stats(obs: DataArray,
 
         # Append the years lag to the dictionary
         nao_stats_dict[model]['years_lag'] = years_lag
+
+        # Create the years lag for the dictionary
+        years_lag_short = np.arange(years1[0] + lag - 1, short_period[1] + 1)
+
+        # Append the years lag to the dictionary
+        nao_stats_dict[model]['years_lag_short'] = years_lag_short
 
         # Append the nens to the dictionary
         nao_stats_dict[model]['nens'] = len(hindcast_list)
@@ -518,14 +538,26 @@ def nao_stats(obs: DataArray,
         # Append the ensemble mean NAO index to the dictionary
         nao_stats_dict[model]['model_nao_ts'] = nao_mean
 
+        # Append the ensemble mean NAO index to the dictionary
+        nao_stats_dict[model]['model_nao_ts_short'] = nao_mean_short
+
         # Append the ensemble members NAO index to the dictionary
         nao_stats_dict[model]['model_nao_ts_members'] = nao_members
+
+        # Append the ensemble members NAO index to the dictionary
+        nao_stats_dict[model]['model_nao_ts_members_short'] = nao_members_short
 
         # Extract the 5th and 95th percentiles of the NAO index
         model_nao_ts_min = np.percentile(nao_members, 5, axis=0)
 
         # and the 95th percentile
         model_nao_ts_max = np.percentile(nao_members, 95, axis=0)
+
+        # Extract the 5th and 95th percentiles of the NAO index
+        model_nao_ts_short_min = np.percentile(nao_members_short, 5, axis=0)
+
+        # and the 95th percentile
+        model_nao_ts_short_max = np.percentile(nao_members_short, 95, axis=0)
 
         # Append the 5th and 95th percentiles to the dictionary
         nao_stats_dict[model]['model_nao_ts_min'] = model_nao_ts_min
@@ -700,3 +732,131 @@ def nao_stats(obs: DataArray,
 
     # Return the dictionary
     return nao_stats_dict
+
+# Define a plotting function for creating the 2 columns x 6 rows plot
+def plot_subplots_ind_models(nao_stats_dict: dict,
+                            models_list: List[str],
+                            short_period: bool = False,
+                            lag_and_var_adjust: bool = False
+                            ) -> None:
+    
+    """
+    Creates a series of subplots for the NAO index for each model for the
+    different models during the winter season (DJFM). The skill is assessed
+    using the correlation, p-value and RPC.
+
+    Plots can be determined by a series of boolean flags.
+
+    Inputs:
+    -------
+
+    nao_stats_dict: dict[dict]
+        A dictionary containing the NAO stats for each model. The keys are
+        the model names and the values are a dictionary containing the NAO
+        stats for that model.
+
+    models_list: List[str]
+        A list of the model names to be plotted.
+
+    short_period: bool
+        If True then the short period is plotted. Default is False.
+
+    lag_and_var_adjust: bool
+        If True then the lag and variance adjusted NAO index is plotted.
+        Default is False.
+
+    Outputs:
+    --------
+    None
+
+    """
+
+    # Print statements indicating the boolean flags
+    if short_period == True:
+        print("Plotting the short period")
+    else:
+        print("Plotting the long period")
+
+    if lag_and_var_adjust == True:
+        print("Plotting the lag and variance adjusted NAO index")
+    else:
+        print("Plotting the raw NAO index")
+
+    # Set up the figure
+    fig, axes = plt.subplots(nrows=6, ncols=2, figsize=(10, 12),
+                            sharex=True, sharey=True)
+    axes = axes.flatten()
+
+    # Iterate over the models
+    for i, model in enumerate(models_list):
+        print("Plotting the {} model".format(model))
+        print("At index {} of the axes".format(i))
+
+        # Set up the axes
+        ax = axes[i]
+
+        # Extract the NAO stats for this model
+        nao_stats_model = nao_stats_dict[model]
+
+        # Set up the boolean flags
+        if short_period == True and lag_and_var_adjust == False:
+            print("Plotting the short period and the raw NAO index")
+
+            # Loop over the members
+            for i in range(nao_stats_model['nens']):
+                print("Plotting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member_short = nao_stats_model['model_nao_ts_members_short'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # Plot this member
+                ax.plot(nao_stats_model['years_short'], nao_member_short, 
+                        color='grey', alpha=0.2)    
+            
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years_short'], nao_stats_model['model_nao_ts_short'],
+                    color='red', label='dcppA')
+            
+            # Plot the 5th and 95th percentiles
+            ax.fill_between(nao_stats_model['years_short'], nao_stats_model['model_nao_ts_short_min'],
+                            nao_stats_model['model_nao_ts_short_max'], color='red', alpha=0.2)
+            
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years_short'], nao_stats_model['obs_nao_ts_short'],
+                    color='black', label='ERA5')
+        
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1_short']:.2f} "
+                            f"(p = {nao_stats_model['p1_short']:.2f}), "
+                            f"RPC = {nao_stats_model['RPC1_short']:.2f}"
+                            f"N = {nao_stats_model['nens']}")
+            
+            # Format the model name in the top left of the figure
+            ax.text(0.02, 0.98, f{model}, transform=ax.transAxes, ha = 'left', va = 'top')
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
+            
+        elif short_period == False and lag_and_var_adjust == False:
+            print("Plotting the long period and the raw NAO index")
+
+        elif short_period == True and lag_and_var_adjust == True:
+            print("Plotting the short period and the lag and variance adjusted NAO index")
+
+        elif short_period == False and lag_and_var_adjust == True:
+            print("Plotting the long period and the lag and variance adjusted NAO index")
+
+        else:
+            raise ValueError("The boolean flags are not set up correctly")
+
+            # Set the axhline
+            ax.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+
+            ax.set_ylim([-10, 10])
+
+            ax.set_ylabel('NAO (hPa)')
+
+            # Set the x-axis label for the bottom row
+            if i >= 10:
+                ax.set_xlabel('year')
