@@ -219,7 +219,7 @@ def nao_stats(obs: DataArray,
             
             'obs_nao_ts_lag': [],
 
-            'obs_nao_ts_lag_short': [], 'model_nao_ts': [],
+            'obs_nao_ts_lag_short': [], 'model_nao_ts': [], 'model_nao_ts_short': [],
 
             'model_nao_ts_members': [], 
 
@@ -397,6 +397,9 @@ def nao_stats(obs: DataArray,
 
         # Append the observed NAO index to the dictionary
         nao_stats_dict[model]['obs_nao_ts'] = obs_nao
+
+        # Append the observed NAO index to the dictionary
+        nao_stats_dict[model]['obs_nao_ts_short'] = obs_nao_short
 
         # Create an empty array to store the NAO index for each member
         nao_members = np.zeros((len(hindcast_list), len(years1)))
@@ -694,3 +697,6 @@ def nao_stats(obs: DataArray,
         print("NAO index calculated for the {} model".format(model))
 
     print("NAO stats dictionary created")
+
+    # Return the dictionary
+    return nao_stats_dict
