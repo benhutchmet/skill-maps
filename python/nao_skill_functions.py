@@ -549,30 +549,30 @@ def nao_stats(obs: DataArray,
         nao_std_short = np.std(nao_mean_short) ; nao_lag_std_short = np.std(nao_mean_lag_short)
 
         # Calculate the rpc between the model NAO index and the observed NAO index
-        rpc1 = corr1 / (nao_std / np.std(nao_members, axis=0))
+        rpc1 = corr1 / (nao_std / np.std(nao_members))
 
         # Calculate the rpc between the model NAO index and the observed NAO index
-        rpc1_lag = corr1_lag / (nao_lag_std / np.std(nao_members_lag, axis=0))
-
-        # Calculate the rpc between the model NAO index and the observed NAO index
-        # for the short period
-        rpc1_short = corr1_short / (nao_std_short / np.std(nao_members_short, axis=0))
+        rpc1_lag = corr1_lag / (nao_lag_std / np.std(nao_members_lag))
 
         # Calculate the rpc between the model NAO index and the observed NAO index
         # for the short period
-        rpc1_lag_short = corr1_lag_short / (nao_lag_std_short / np.std(nao_members_lag_short, axis=0))
+        rpc1_short = corr1_short / (nao_std_short / np.std(nao_members_short))
+
+        # Calculate the rpc between the model NAO index and the observed NAO index
+        # for the short period
+        rpc1_lag_short = corr1_lag_short / (nao_lag_std_short / np.std(nao_members_lag_short))
 
         # Calculate the ratio of predictable signals (RPS)
-        rps1 = rpc1 * (np.std(obs_nao) / np.std(nao_members, axis=0))
+        rps1 = rpc1 * (np.std(obs_nao) / np.std(nao_members))
 
         # Calculate the ratio of predictable signals (RPS) for the lag
-        rps1_lag = rpc1_lag * (np.std(obs_nao_lag) / np.std(nao_members_lag, axis=0))
+        rps1_lag = rpc1_lag * (np.std(obs_nao_lag) / np.std(nao_members_lag))
 
         # Calculate the ratio of predictable signals (RPS) for the short period
-        rps1_short = rpc1_short * (np.std(obs_nao_short) / np.std(nao_members_short, axis=0))
+        rps1_short = rpc1_short * (np.std(obs_nao_short) / np.std(nao_members_short))
 
         # Calculate the ratio of predictable signals (RPS) for the short period
-        rps1_lag_short = rpc1_lag_short * (np.std(obs_nao_lag_short) / np.std(nao_members_lag_short, axis=0))
+        rps1_lag_short = rpc1_lag_short * (np.std(obs_nao_lag_short) / np.std(nao_members_lag_short))
 
         # Adjust the variance of the model NAO index
         nao_var_adjust = nao_mean * rps1 ; nao_var_adjust_lag = nao_mean_lag * rps1_lag
