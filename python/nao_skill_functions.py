@@ -368,6 +368,12 @@ def nao_stats(obs: DataArray,
         # Append the long period with the lag applied to the dictionary
         nao_stats_dict[model]['long_period_lag'] = (years1[0] + lag - 1, years1[-1])
 
+        # Create the years lag for the dictionary
+        years_lag = np.arange(years1[0] + lag - 1, years1[-1] + 1)
+
+        # Append the years lag to the dictionary
+        nao_stats_dict[model]['years_lag'] = years_lag
+
         # Append the nens to the dictionary
         nao_stats_dict[model]['nens'] = len(hindcast_list)
 
@@ -404,6 +410,9 @@ def nao_stats(obs: DataArray,
 
         # Set up the number of lagged members
         nens_lag = len(hindcast_list) * lag
+
+        # Append the nens_lag to the dictionary
+        nao_stats_dict[model]['nens_lag'] = nens_lag
 
         # Set up the lagged ensemble
         nao_members_lag = np.zeros([nens_lag, len(years1)])
