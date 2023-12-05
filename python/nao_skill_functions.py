@@ -565,6 +565,12 @@ def nao_stats(obs: DataArray,
         # Append the 5th and 95th percentiles to the dictionary
         nao_stats_dict[model]['model_nao_ts_max'] = model_nao_ts_max
 
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_short_min'] = model_nao_ts_short_min
+
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_short_max'] = model_nao_ts_short_max
+
         # Calculate the correlation between the model NAO index and the observed NAO index
         corr1 = pearsonr(nao_mean, obs_nao)[0]
 
@@ -811,30 +817,31 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
                 print("NAO index extracted for member {}".format(i))
 
                 # Plot this member
-                ax.plot(nao_stats_model['years_short'], nao_member_short, 
+                ax.plot(nao_stats_model['years_short'] - 5, nao_member_short / 100, 
                         color='grey', alpha=0.2)    
             
             # Plot the ensemble mean
-            ax.plot(nao_stats_model['years_short'], nao_stats_model['model_nao_ts_short'],
+            ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short'] / 100,
                     color='red', label='dcppA')
             
             # Plot the 5th and 95th percentiles
-            ax.fill_between(nao_stats_model['years_short'], nao_stats_model['model_nao_ts_short_min'],
-                            nao_stats_model['model_nao_ts_short_max'], color='red', alpha=0.2)
+            ax.fill_between(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short_min'] / 100,
+                            nao_stats_model['model_nao_ts_short_max'] / 100, color='red', alpha=0.2)
             
             # Plot the observed NAO index
-            ax.plot(nao_stats_model['years_short'], nao_stats_model['obs_nao_ts_short'],
+            ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['obs_nao_ts_short'] / 100,
                     color='black', label='ERA5')
         
             # Set the title with the ACC and RPC scores
             ax.set_title(f"ACC = {nao_stats_model['corr1_short']:.2f} "
                             f"(p = {nao_stats_model['p1_short']:.2f}), "
-                            f"RPC = {nao_stats_model['RPC1_short']:.2f}"
+                            f"RPC = {nao_stats_model['RPC1_short']:.2f}, "
                             f"N = {nao_stats_model['nens']}")
             
             # Format the model name in the top left of the figure
-            ax.text(0.02, 0.98, f{model}, transform=ax.transAxes, ha = 'left', va = 'top')
-
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict( facecolor='white', alpha=0.5), fontsize=10)
+            
             # Add the legend in the bottom right corner
             ax.legend(loc='lower right')
             
@@ -855,11 +862,13 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
 
         ax.set_ylim([-10, 10])
 
+    # Set the y-axis label for the left column
+    for ax in axes[0::2]:
         ax.set_ylabel('NAO (hPa)')
 
     # Set the x-axis label for the bottom row
     if i >= 10:
-        ax.set_xlabel('year')
+        ax.set_xlabel('initialisation year')
 
     # Adjust the layout
     plt.tight_layout()
