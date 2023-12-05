@@ -215,27 +215,41 @@ def nao_stats(obs: DataArray,
         # Create a dictionary for the NAO stats for this model
         nao_stats_dict[model] = {
 
-            'years': [], 'years_lag': [], 'obs_nao_ts': [], 'model_nao_ts': [],
+            'years': [], 'years_lag': [], 'obs_nao_ts': [], 'obs_nao_ts_short': [],
+            
+            'obs_nao_ts_lag': [],
+
+            'obs_nao_ts_lag_short': [], 'model_nao_ts': [],
 
             'model_nao_ts_members': [], 
 
             'model_nao_ts_min': [], 'model_nao_ts_max': [], 
 
             'model_nao_ts_var_adjust': [], 'model_nao_ts_var_adjust_short': [],
-             
-            'model_nao_ts_lag_var_adjust': [],
 
-            'model_nao_ts_lag_var_adjust_min': [],
+            'model_nao_ts_lag_var_adjust': [], 'model_nao_ts_lag_var_adjust_short': [],
+            
+            'model_nao_ts_lag_members': [], 'model_nao_ts_lag_members_short': [], 
 
-            'model_nao_ts_lag_var_adjust_max': [], 'corr1': mdi, 
+            'model_nao_ts_lag_var_adjust_min': [], 
 
-            'corr1_short': mdi, 'corr1_lag': mdi, 'corr1_lag_short': mdi,
+            'model_nao_ts_lag_var_adjust_max': [], 'model_nao_ts_lag_var_adjust_min_short': [],
 
-            'p1': mdi, 'p1_short': mdi, 'p1_lag': mdi, 'p1_lag_short': mdi,
+            'model_nao_ts_lag_var_adjust_max_short': [],
+            
+            'corr1': mdi, 
+
+            'corr1_short': mdi, 'corr1_lag_var_adjust': mdi, 'corr1_lag_var_adjust_short': mdi,
+
+            'p1': mdi, 'p1_short': mdi, 'p1_lag_var_adjust': mdi, 'p1_lag_var_adjust_short': mdi,
 
             'RPC1': mdi, 'RPC1_short': mdi, 'RPC1_lag': mdi,
 
-            'RPC1_lag_short': mdi, 'short_period': short_period,
+            'RPC1_lag_short': mdi, 'RPS1': mdi, 'RPS1_short': mdi,
+
+            'RPS1_lag': mdi, 'RPS1_lag_short': mdi,
+            
+            'short_period': short_period,
 
             'long_period': (), 'short_period_lag': (), 'long_period_lag': (),
 
@@ -348,6 +362,12 @@ def nao_stats(obs: DataArray,
         # Append the long period to the dictionary
         nao_stats_dict[model]['long_period'] = (years1[0], years1[-1])
 
+        # Append the short period with the lag applied to the dictionary
+        nao_stats_dict[model]['short_period_lag'] = (years1[0] + lag - 1, short_period[1])
+
+        # Append the long period with the lag applied to the dictionary
+        nao_stats_dict[model]['long_period_lag'] = (years1[0] + lag - 1, years1[-1])
+
         # Append the nens to the dictionary
         nao_stats_dict[model]['nens'] = len(hindcast_list)
 
@@ -388,6 +408,9 @@ def nao_stats(obs: DataArray,
         # Set up the lagged ensemble
         nao_members_lag = np.zeros([nens_lag, len(years1)])
 
+        # Create the NAO members lag for the short period
+        nao_members_lag_short = np.zeros([nens_lag, len(years_short)])
+
         # Loop over the hindcast members to calculate the NAO index
         for i, member in enumerate(hindcast_list):
 
@@ -396,6 +419,9 @@ def nao_stats(obs: DataArray,
                                     south_grid=azores_grid,
                                     north_grid=iceland_grid)
             
+            # Constrain to the short period
+            nao_member_short = nao_member.sel(time=nao_member.time.dt.year.isin(years_short))
+
             # Loop over the years
             for year in range(len(years1)):
                 # if the year index is less than the lag index
@@ -414,14 +440,11 @@ def nao_stats(obs: DataArray,
                         # Calculate the lagged ensemble member
                         nao_members_lag[i + (lag_index * nens), year] = nao_member[year - lag_index]
 
+                        # Same for the short period
+                        nao_members_lag_short[i + (lag_index * nens), year] = nao_member_short[year - lag_index]
+
             # # Now remove the first lag - 1 years from the NAO index
             # nao_members_lag[i, lag - 1:] = np.nan
-
-            # Form the lagged obs
-            obs_nao_lag = obs_nao[lag - 1:]
-
-            # Constrain to the short period
-            nao_member_short = nao_member.sel(time=nao_member.time.dt.year.isin(years_short))
 
             # Append the NAO index to the members array
             nao_members[i, :] = nao_member
@@ -432,11 +455,38 @@ def nao_stats(obs: DataArray,
         # Remove the first lag - 1 years from the NAO index
         nao_members_lag = nao_members_lag[:, lag - 1:]
 
+        # Form the lagged obs
+        obs_nao_lag = obs_nao[lag - 1:]
+
+        # Form the lagged obs for the short period
+        obs_nao_lag_short = obs_nao_short[lag - 1:]
+
+        # Remove the first lag - 1 years from the NAO index
+        nao_members_lag_short = nao_members_lag_short[:, lag - 1:]
+
         # Calculate the ensemble mean NAO index
         nao_mean = np.mean(nao_members, axis=0)
 
         # Calculate the ensemble mean NAO index for the short period
         nao_mean_short = np.mean(nao_members_short, axis=0)
+
+        # Calculate the ensemble mean NAO index for the lagged ensemble
+        nao_mean_lag = np.mean(nao_members_lag, axis=0)
+
+        # Calculate the ensemble mean NAO index for the lagged ensemble
+        nao_mean_lag_short = np.mean(nao_members_lag_short, axis=0)
+
+        # Add the observed NAO index to the dictionary
+        nao_stats_dict[model]['obs_nao_ts'] = obs_nao
+
+        # Add the observed NAO index to the dictionary
+        nao_stats_dict[model]['obs_nao_ts_short'] = obs_nao_short
+
+        # Add the lagged observed NAO index to the dictionary
+        nao_stats_dict[model]['obs_nao_ts_lag'] = obs_nao_lag
+
+        # Add the lagged observed NAO index to the dictionary
+        nao_stats_dict[model]['obs_nao_ts_lag_short'] = obs_nao_lag_short
 
         # Append the ensemble mean NAO index to the dictionary
         nao_stats_dict[model]['model_nao_ts'] = nao_mean
@@ -460,38 +510,120 @@ def nao_stats(obs: DataArray,
         corr1 = pearsonr(nao_mean, obs_nao)[0]
 
         # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1_lag = pearsonr(nao_mean_lag, obs_nao_lag)[0]
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
         corr1_short = pearsonr(nao_mean_short, obs_nao_short)[0]
 
+        # And for the lagged NAO index
+        corr1_lag_short = pearsonr(nao_mean_lag_short, obs_nao_lag_short)[0]
+
         # Calculate the standard deviation of the model NAO index
-        nao_std = np.std(nao_mean)
+        nao_std = np.std(nao_mean) ; nao_lag_std = np.std(nao_mean_lag)
 
         # Calculate the standard deviation of the model NAO index for the short period
-        nao_std_short = np.std(nao_mean_short)
+        nao_std_short = np.std(nao_mean_short) ; nao_lag_std_short = np.std(nao_mean_lag_short)
 
         # Calculate the rpc between the model NAO index and the observed NAO index
         rpc1 = corr1 / (nao_std / np.std(nao_members, axis=0))
 
         # Calculate the rpc between the model NAO index and the observed NAO index
+        rpc1_lag = corr1_lag / (nao_lag_std / np.std(nao_members_lag, axis=0))
+
+        # Calculate the rpc between the model NAO index and the observed NAO index
         # for the short period
         rpc1_short = corr1_short / (nao_std_short / np.std(nao_members_short, axis=0))
+
+        # Calculate the rpc between the model NAO index and the observed NAO index
+        # for the short period
+        rpc1_lag_short = corr1_lag_short / (nao_lag_std_short / np.std(nao_members_lag_short, axis=0))
 
         # Calculate the ratio of predictable signals (RPS)
         rps1 = rpc1 * (np.std(obs_nao) / np.std(nao_members, axis=0))
 
+        # Calculate the ratio of predictable signals (RPS) for the lag
+        rps1_lag = rpc1_lag * (np.std(obs_nao_lag) / np.std(nao_members_lag, axis=0))
+
         # Calculate the ratio of predictable signals (RPS) for the short period
         rps1_short = rpc1_short * (np.std(obs_nao_short) / np.std(nao_members_short, axis=0))
 
+        # Calculate the ratio of predictable signals (RPS) for the short period
+        rps1_lag_short = rpc1_lag_short * (np.std(obs_nao_lag_short) / np.std(nao_members_lag_short, axis=0))
+
         # Adjust the variance of the model NAO index
-        nao_var_adjust = nao_mean * rps1
+        nao_var_adjust = nao_mean * rps1 ; nao_var_adjust_lag = nao_mean_lag * rps1_lag
 
         # Adjust the variance of the model NAO index for the short period
         nao_var_adjust_short = nao_mean_short * rps1_short
+
+        # Adjust the variance of the model NAO index for the short period
+        nao_var_adjust_lag_short = nao_mean_lag_short * rps1_lag_short
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1_lag_var_adjust = pearsonr(nao_var_adjust_lag, obs_nao_lag)[0]
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1_lag_var_adjust_short = pearsonr(nao_var_adjust_lag_short, obs_nao_lag_short)[0]
+
+        # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
+        p1_lag_var_adjust = pearsonr(nao_var_adjust_lag, obs_nao_lag)[1]
+
+        # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
+        p1_lag_var_adjust_short = pearsonr(nao_var_adjust_lag_short, obs_nao_lag_short)[1]
+
+        # Append the correlation to the dictionary
+        nao_stats_dict[model]['corr1_lag_var_adjust'] = corr1_lag_var_adjust
+
+        # Append the correlation to the dictionary
+        nao_stats_dict[model]['corr1_lag_var_adjust_short'] = corr1_lag_var_adjust_short
+
+        # Append the p-value to the dictionary
+        nao_stats_dict[model]['p1_lag_var_adjust'] = p1_lag_var_adjust
+
+        # Append the p-value to the dictionary
+        nao_stats_dict[model]['p1_lag_var_adjust_short'] = p1_lag_var_adjust_short
+
+        # Calculate the 5th and 95th percentiles of the lagged NAO index
+        nao_var_adjust_lag_min = np.percentile(nao_members_lag * rps1_lag, 5, axis=0)
+
+        # Calculate the 5th and 95th percentiles of the lagged NAO index
+        nao_var_adjust_lag_max = np.percentile(nao_members_lag * rps1_lag, 95, axis=0)
+
+        # And for the short period
+        nao_var_adjust_lag_min_short = np.percentile(nao_members_lag_short * rps1_lag_short, 5, axis=0)
+
+        # And for the short period
+        nao_var_adjust_lag_max_short = np.percentile(nao_members_lag_short * rps1_lag_short, 95, axis=0)
+
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_var_adjust_min'] = nao_var_adjust_lag_min
+
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_var_adjust_max'] = nao_var_adjust_lag_max
+
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_var_adjust_min_short'] = nao_var_adjust_lag_min_short
+
+        # Append the 5th and 95th percentiles to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_var_adjust_max_short'] = nao_var_adjust_lag_max_short
 
         # Append the adjusted variance to the dictionary
         nao_stats_dict[model]['model_nao_ts_var_adjust'] = nao_var_adjust
 
         # Append the adjusted variance to the dictionary
         nao_stats_dict[model]['model_nao_ts_var_adjust_short'] = nao_var_adjust_short
+
+        # Append the adjusted variance to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_var_adjust'] = nao_var_adjust_lag
+
+        # Append the adjusted variance to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_var_adjust_short'] = nao_var_adjust_lag_short
+
+        # Append the ensemble members NAO index to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_members'] = nao_members_lag
+
+        # Append the ensemble members NAO index to the dictionary
+        nao_stats_dict[model]['model_nao_ts_lag_members_short'] = nao_members_lag_short
 
         # Append the correlation to the dictionary
         nao_stats_dict[model]['corr1'] = corr1
@@ -505,6 +637,12 @@ def nao_stats(obs: DataArray,
         # Append the rpc to the dictionary
         nao_stats_dict[model]['RPC1_short'] = rpc1_short
 
+        # Append the rpc to the dictionary
+        nao_stats_dict[model]['RPC1_lag'] = rpc1_lag
+
+        # Append the rpc to the dictionary
+        nao_stats_dict[model]['RPC1_lag_short'] = rpc1_lag_short
+
         # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
         p1 = pearsonr(nao_mean, obs_nao)[1]
 
@@ -516,6 +654,18 @@ def nao_stats(obs: DataArray,
 
         # Append the p-value to the dictionary
         nao_stats_dict[model]['p1_short'] = p1_short
+
+        # Append the rps to the dictionary
+        nao_stats_dict[model]['RPS1'] = rps1
+
+        # Append the rps to the dictionary
+        nao_stats_dict[model]['RPS1_short'] = rps1_short
+
+        # Append the rps to the dictionary
+        nao_stats_dict[model]['RPS1_lag'] = rps1_lag
+
+        # Append the rps to the dictionary
+        nao_stats_dict[model]['RPS1_lag_short'] = rps1_lag_short
         
         print("NAO index calculated for the {} model".format(model))
 
