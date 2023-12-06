@@ -920,22 +920,23 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
             print("Plotting the short period and the lag and variance adjusted NAO index")
 
             # Loop over the members
-            for i in range(nao_stats_model['nens_lag']):
-                print("Plotting member {}".format(i))
+            # for i in range(nao_stats_model['nens_lag']):
+            #     print("Plotting member {}".format(i))
 
-                # Extract the NAO index for this member
-                nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
-                print("NAO index extracted for member {}".format(i))
+            #     # Extract the NAO index for this member
+            #     nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
+            #     print("NAO index extracted for member {}".format(i))
 
-                # Plot this member
-                ax.plot(nao_stats_model['years_lag_short'] - 5, nao_member_short / 100,
-                        color='grey', alpha=0.2)
+            #     # Plot this member
+            #     ax.plot(nao_stats_model['years_lag_short'] - 5, nao_member_short / 100,
+            #             color='grey', alpha=0.2)
 
             # Plot the ensemble mean
             ax.plot(nao_stats_model['years_lag_short'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_short'] / 100,
                     color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
+            # TODO: Compute RMSE confidence intervals here
             ax.fill_between(nao_stats_model['years_lag_short'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_min_short'] / 100,
                             nao_stats_model['model_nao_ts_lag_var_adjust_max_short'] / 100, color='red', alpha=0.2)
             
@@ -960,22 +961,23 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
             print("Plotting the long period and the lag and variance adjusted NAO index")
 
             # Loop over the members
-            for i in range(nao_stats_model['nens_lag']):
-                print("Plotting member {}".format(i))
+            # for i in range(nao_stats_model['nens_lag']):
+            #     print("Plotting member {}".format(i))
 
-                # Extract the NAO index for this member
-                nao_member = nao_stats_model['model_nao_ts_lag_members'][i, :]
-                print("NAO index extracted for member {}".format(i))
+            #     # Extract the NAO index for this member
+            #     nao_member = nao_stats_model['model_nao_ts_lag_members'][i, :]
+            #     print("NAO index extracted for member {}".format(i))
 
-                # Plot this member
-                ax.plot(nao_stats_model['years_lag'] - 5, nao_member / 100,
-                        color='grey', alpha=0.2)
+            #     # Plot this member
+            #     ax.plot(nao_stats_model['years_lag'] - 5, nao_member / 100,
+            #             color='grey', alpha=0.2)
 
             # Plot the ensemble mean
             ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust'] / 100,
                     color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
+            # TODO: Compute RMSE confidence intervals here
             ax.fill_between(nao_stats_model['years_lag'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_min'] / 100,
                             nao_stats_model['model_nao_ts_lag_var_adjust_max'] / 100, color='red', alpha=0.2)
 
