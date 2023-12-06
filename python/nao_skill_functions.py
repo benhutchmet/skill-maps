@@ -276,6 +276,16 @@ def nao_stats(obs: DataArray,
             "The years in the hindcast data for the {} model are not unique".format(
                 model)
 
+        # If there is a gap of more than one year between the years then raise a value error
+        if np.any(np.diff(years1) > 1):
+            print("There is a gap of more than one year in the hindcast data for the {} model".format(
+                model))
+            # Find the indices of the gaps
+            gap_indices = np.where(np.diff(years1) > 1)[0]
+
+            # print the years of the gaps
+            print(f"The years of the gaps are: {years1[gap_indices-1]} and {years1[gap_indices]} and {years1[gap_indices+1]}")
+
         # Assert that there are no gaps of more than one year between the years
         assert np.all(np.diff(years1) <= 1), \
             "There is a gap of more than one year in the hindcast data for the {} model".format(
