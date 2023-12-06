@@ -1129,7 +1129,7 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         nao_members_short = np.zeros([total_nens, nyears_short])
 
     # Set up the figure
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 4),
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(16, 4),
                              sharex=True, sharey=True)
     
     # Set up the axes
@@ -1259,8 +1259,6 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
         model = "BCC-CSM2-MR"
 
-        # TODO: Swap AX1 and AX2
-
         # Extract the NAO stats for this model
         ax2.plot(nao_stats_dict[model]['years'] - 5, nao_stats_dict[model]['obs_nao_ts'] / 100,
                  color='black', label='ERA5')
@@ -1307,26 +1305,34 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         # Calculate the RPC between the model NAO index and the observed NAO index
         rpc1_short = corr1_short / (np.std(nao_mean_short) / np.std(lagged_nao_members_short))
 
-        # Calculate the 5th and 95th percentiles
-        nao_mean_min = np.percentile(lagged_nao_members, 5, axis=0)
-        nao_mean_max = np.percentile(lagged_nao_members, 95, axis=0)
+        # Calculate the RPS between the model NAO index and the observed NAO index
+        rps1 = rpc1 * (np.std(nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'])/ np.std(lagged_nao_members))
+
+        # Calculate the RPS between the model NAO index and the observed NAO index
+        rps1_short = rpc1_short * (np.std(nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag_short'])/ np.std(lagged_nao_members_short))
+
+        # Adjust the variance of the lagged NAO index
+        nao_var_adjust = nao_mean * rps1
+
+        # Adjust the variance of the lagged NAO index
+        nao_var_adjust_short = nao_mean_short * rps1_short
 
         # Calculate the RMSE between the ensemble mean and observations
-        rmse = np.sqrt(np.mean((nao_mean
+        rmse = np.sqrt(np.mean((nao_var_adjust
                                 - nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'])**2))
         
         # Calculate the rmse for the short period
-        rmse_short = np.sqrt(np.mean((nao_mean_short
+        rmse_short = np.sqrt(np.mean((nao_var_adjust_short
                                 - nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag_short'])**2))
         
         # Calculate the upper and lower confidence intervals
-        ci_lower = nao_mean - (rmse) ; ci_upper = nao_mean + (rmse)
+        ci_lower = nao_var_adjust - (rmse) ; ci_upper = nao_var_adjust + (rmse)
 
         # Calculate the upper and lower confidence intervals
-        ci_lower_short = nao_mean_short - (rmse_short) ; ci_upper_short = nao_mean_short + (rmse_short)
+        ci_lower_short = nao_var_adjust_short - (rmse_short) ; ci_upper_short = nao_var_adjust_short + (rmse_short)
 
         # Plot the ensemble mean
-        ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, nao_mean / 100,
+        ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, nao_var_adjust / 100,
                  color='red', label='dcppA')
         
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
@@ -1341,7 +1347,7 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                          ci_upper / 100, color='red', alpha=0.2)
         
         # Plot the ensemble mean
-        ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, nao_mean_short / 100,
+        ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, nao_var_adjust_short / 100,
                  color='red', label='dcppA')
         
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
@@ -1379,4 +1385,22 @@ def plot_multi_model_mean(nao_stats_dict: dict,
 
     # Add the legend in the bottom right corner
     ax2.legend(loc='lower right')
+
+    # Set the axhline
+    ax1.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+
+    # Set the axhline
+    ax2.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+
+    # Set the y-axis label for the left column
+    ax1.set_ylabel('NAO (hPa)')
+
+    # Set the ylims
+    ax1.set_ylim([-10, 10])
+
+    # Set the x-axis label for the bottom row
+    plt.xlabel('initialisation year')
+
+    # Adjust the layout
+    plt.tight_layout()
 
