@@ -1042,3 +1042,112 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
 
     # Show the figure
     plt.show()
+
+    # Write a figure to plot the multi-model mean NAO
+    # As two subplots
+    # Left shows the short period, right shows the long period
+    # With and without the lag and variance adjustment
+def plot_multi_model_mean(nao_stats_dict: dict,
+                          models_list: List[str],
+                          lag_and_var_adjust: bool = False
+                          ) -> None:
+    
+    """
+    Plots the multi-model mean NAO time series for the short period (left plot)
+    and long period (right plot) during the winter season (DJFM).
+    The skill is assessed using the correlation, p-value and RPC.
+    
+    Plots can be determined by a series of boolean flags.
+    
+    Inputs:
+    -------
+    
+    nao_stats_dict: dict[dict]
+        A dictionary containing the NAO stats for each model. The keys are
+        the model names and the values are a dictionary containing the NAO
+        stats for that model.
+        
+    models_list: List[str]
+        A list of the model names which are used to calculate the multi-model
+        mean.
+        
+    lag_and_var_adjust: bool
+        If True then the lag and variance adjusted NAO index is plotted.
+        Default is False.
+        
+    Outputs:
+    --------
+    None
+    
+    """
+
+    # Set up the length of the time series for raw and lagged
+    nyears_short = len(np.arange(1966, 2010 + 1)) ; nyears_long = len(np.arange(1966, 2019 + 1))
+
+    # lagged time series
+    nyears_short_lag = len(np.arange(1969, 2010 + 1)) ; nyears_long_lag = len(np.arange(1969, 2019 + 1))
+
+    # Print statements indicating the boolean flags
+    if lag_and_var_adjust is True:
+        print("Plotting the lag and variance adjusted NAO index")
+
+        # Set up a counter for the number of lagged ensemble members
+        total_lagged_nens = 0
+
+        # Loop over the models
+        for model in models_list:
+            # Extract the NAO stats for this model
+            nao_stats_model = nao_stats_dict[model]
+
+            # Add the number of lagged ensemble members to the counter
+            total_lagged_nens += nao_stats_model['nens_lag']
+
+        # Create an empty array to store the lagged ensemble members
+        lagged_nao_members = np.zeros([total_lagged_nens, nyears_long_lag])
+
+        # Create an empty array to store the lagged ensemble members
+        lagged_nao_members_short = np.zeros([total_lagged_nens, nyears_short_lag])
+        
+    else:
+        print("Plotting the raw NAO index")
+
+        # Set up a counter for the number of ensemble members
+        total_nens = 0
+
+        # Loop over the models
+        for model in models_list:
+            # Extract the NAO stats for this model
+            nao_stats_model = nao_stats_dict[model]
+
+            # Add the number of ensemble members to the counter
+            total_nens += nao_stats_model['nens']
+
+        # Create an empty array to store the ensemble members
+        nao_members = np.zeros([total_nens, nyears_long])
+
+        # Create an empty array to store the ensemble members
+        nao_members_short = np.zeros([total_nens, nyears_short])
+
+    # Set up the figure
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 4),
+                             sharex=True, sharey=True)
+    
+    # Set up the axes
+    ax1 = axes[0]
+    ax2 = axes[1]
+
+    # Create an empty two dimensional array to store 
+    # all of the NAO time series in
+    nao_members = np.zeros([,])
+
+    # Iterate over the models
+    for i, model in enumerate(models_list):
+        print("Extracting ensemble members from the {} model".format(model))
+
+        # Extract the NAO stats for this model
+        nao_stats_model = nao_stats_dict[model]
+
+        # Set up the boolean flags
+        if lag_and_var_adjust is False:
+            print("Extracting members for the raw NAO index")
+
