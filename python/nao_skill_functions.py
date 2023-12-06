@@ -1166,10 +1166,10 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    nao_members[current_index, 1:] = nao_member[1:]
+                    nao_members[current_index, :] = nao_member[1:]
 
                     # Append this member to the array
-                    nao_members_short[current_index, 1:] = nao_member_short[1:]
+                    nao_members_short[current_index, :] = nao_member_short[1:]
                 else:
                     # Append this member to the array
                     nao_members[current_index, :] = nao_member
@@ -1199,10 +1199,10 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    lagged_nao_members[current_index, 1:] = nao_member[1:]
+                    lagged_nao_members[current_index, :] = nao_member[1:]
 
                     # Append this member to the array
-                    lagged_nao_members_short[current_index, 1:] = nao_member_short[1:]
+                    lagged_nao_members_short[current_index, :] = nao_member_short[1:]
                 else:
                     # Append this member to the array
                     lagged_nao_members[current_index, :] = nao_member
@@ -1253,30 +1253,32 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         nao_mean_short_max = np.percentile(nao_members_short, 95, axis=0)
 
         # Plot the ensemble mean
-        ax1.plot(nao_stats_model['years'] - 5, nao_mean / 100,
+        ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - 5, nao_mean / 100,
                  color='red', label='dcppA')
         
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
         model = "BCC-CSM2-MR"
 
+        # TODO: Swap AX1 and AX2
+
         # Extract the NAO stats for this model
-        ax1.plot(nao_stats_dict[model]['years'] - 5, nao_stats_dict[model]['obs_nao_ts'] / 100,
+        ax2.plot(nao_stats_dict[model]['years'] - 5, nao_stats_dict[model]['obs_nao_ts'] / 100,
                  color='black', label='ERA5')
 
         # Plot the 5th and 95th percentiles
-        ax1.fill_between(nao_stats_model['years'] - 5, nao_mean_min / 100,
+        ax2.fill_between(nao_stats_dict['BCC-CSM2-MR']['years'] - 5, nao_mean_min / 100,
                          nao_mean_max / 100, color='red', alpha=0.2)
 
         # Plot the ensemble mean
-        ax2.plot(nao_stats_model['years_short'] - 5, nao_mean_short / 100,
+        ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_short'] - 5, nao_mean_short / 100,
                  color='red', label='dcppA')
         
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
-        ax2.plot(nao_stats_dict[model]['years_short'] - 5, nao_stats_dict[model]['obs_nao_ts_short'] / 100,
+        ax1.plot(nao_stats_dict[model]['years_short'] - 5, nao_stats_dict[model]['obs_nao_ts_short'] / 100,
                  color='black', label='ERA5')
 
         # Plot the 5th and 95th percentiles
-        ax2.fill_between(nao_stats_model['years_short'] - 5, nao_mean_short_min / 100,
+        ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_short'] - 5, nao_mean_short_min / 100,
                          nao_mean_short_max / 100, color='red', alpha=0.2)
 
     elif lag_and_var_adjust is True:
@@ -1324,31 +1326,31 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         ci_lower_short = nao_mean_short - (rmse_short) ; ci_upper_short = nao_mean_short + (rmse_short)
 
         # Plot the ensemble mean
-        ax1.plot(nao_stats_model['years_lag'] - 5, nao_mean / 100,
+        ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, nao_mean / 100,
                  color='red', label='dcppA')
         
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
         model = "BCC-CSM2-MR"
 
         # Extract the NAO stats for this model
-        ax1.plot(nao_stats_dict[model]['years_lag'] - 5, nao_stats_dict[model]['obs_nao_ts_lag'] / 100,
+        ax2.plot(nao_stats_dict[model]['years_lag'] - 5, nao_stats_dict[model]['obs_nao_ts_lag'] / 100,
                  color='black', label='ERA5')
         
         # Plot the 5th and 95th percentiles
-        ax1.fill_between(nao_stats_model['years_lag'] - 5, ci_lower / 100,
+        ax2.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, ci_lower / 100,
                          ci_upper / 100, color='red', alpha=0.2)
         
         # Plot the ensemble mean
-        ax2.plot(nao_stats_model['years_lag_short'] - 5, nao_mean_short / 100,
+        ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, nao_mean_short / 100,
                  color='red', label='dcppA')
         
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
-        ax2.plot(nao_stats_dict[model]['years_lag_short'] - 5,
+        ax1.plot(nao_stats_dict[model]['years_lag_short'] - 5,
                 nao_stats_dict[model]['obs_nao_ts_lag_short'] / 100,
                     color='black', label='ERA5')
         
         # Plot the 5th and 95th percentiles
-        ax2.fill_between(nao_stats_model['years_lag_short'] - 5, ci_lower_short / 100,
+        ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, ci_lower_short / 100,
                          ci_upper_short / 100, color='red', alpha=0.2)
 
     else:
