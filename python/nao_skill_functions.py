@@ -932,13 +932,23 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
             #             color='grey', alpha=0.2)
 
             # Plot the ensemble mean
-            ax.plot(nao_stats_model['years_lag_short'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_short'] / 100,
+            ax.plot(nao_stats_model['years_lag_short'] - 5, 
+                    nao_stats_model['model_nao_ts_lag_var_adjust_short'] / 100,
                     color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
             # TODO: Compute RMSE confidence intervals here
-            ax.fill_between(nao_stats_model['years_lag_short'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_min_short'] / 100,
-                            nao_stats_model['model_nao_ts_lag_var_adjust_max_short'] / 100, color='red', alpha=0.2)
+            # RMSE between the ensemble mean and observations
+            rmse = np.sqrt(np.mean((nao_stats_model['model_nao_ts_lag_var_adjust_short']
+                                    - nao_stats_model['obs_nao_ts_lag_short'])**2))
+
+            # Calculate the upper and lower confidence intervals
+            ci_lower = nao_stats_model['model_nao_ts_lag_var_adjust_short'] - (rmse)
+            ci_upper = nao_stats_model['model_nao_ts_lag_var_adjust_short'] + (rmse)
+
+            # Plot the confidence intervals
+            ax.fill_between(nao_stats_model['years_lag_short'] - 5, ci_lower / 100,
+                            ci_upper / 100, color='red', alpha=0.2)
             
             # Plot the observed NAO index
             ax.plot(nao_stats_model['years_lag_short'] - 5, nao_stats_model['obs_nao_ts_lag_short'] / 100,
@@ -977,9 +987,17 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
                     color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
-            # TODO: Compute RMSE confidence intervals here
-            ax.fill_between(nao_stats_model['years_lag'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_min'] / 100,
-                            nao_stats_model['model_nao_ts_lag_var_adjust_max'] / 100, color='red', alpha=0.2)
+            # RMSE between the ensemble mean and observations
+            rmse = np.sqrt(np.mean((nao_stats_model['model_nao_ts_lag_var_adjust']
+                                    - nao_stats_model['obs_nao_ts_lag'])**2))
+            
+            # Calculate the upper and lower confidence intervals
+            ci_lower = nao_stats_model['model_nao_ts_lag_var_adjust'] - (rmse)
+            ci_upper = nao_stats_model['model_nao_ts_lag_var_adjust'] + (rmse)
+
+            # Plot the confidence intervals
+            ax.fill_between(nao_stats_model['years_lag'] - 5, ci_lower / 100,
+                            ci_upper / 100, color='red', alpha=0.2)
 
             # Plot the observed NAO index
             ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['obs_nao_ts_lag'] / 100,
