@@ -1166,10 +1166,10 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    nao_members[current_index, 1:] = nao_member
+                    nao_members[current_index, 1:] = nao_member[1:]
 
                     # Append this member to the array
-                    nao_members_short[current_index, 1:] = nao_member_short
+                    nao_members_short[current_index, 1:] = nao_member_short[1:]
                 else:
                     # Append this member to the array
                     nao_members[current_index, :] = nao_member
@@ -1199,10 +1199,10 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    lagged_nao_members[current_index, 1:] = nao_member
+                    lagged_nao_members[current_index, 1:] = nao_member[1:]
 
                     # Append this member to the array
-                    lagged_nao_members_short[current_index, 1:] = nao_member_short
+                    lagged_nao_members_short[current_index, 1:] = nao_member_short[1:]
                 else:
                     # Append this member to the array
                     lagged_nao_members[current_index, :] = nao_member
