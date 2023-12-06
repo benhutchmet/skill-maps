@@ -1170,12 +1170,12 @@ def plot_multi_model_mean(nao_stats_dict: dict,
 
                     # Append this member to the array
                     nao_members_short[current_index, 1:] = nao_member_short
+                else:
+                    # Append this member to the array
+                    nao_members[current_index, :] = nao_member
 
-                # Append this member to the array
-                nao_members[current_index, :] = nao_member
-
-                # Append this member to the array
-                nao_members_short[current_index, :] = nao_member_short
+                    # Append this member to the array
+                    nao_members_short[current_index, :] = nao_member_short
 
                 # Increment the counter
                 current_index += 1
@@ -1203,12 +1203,12 @@ def plot_multi_model_mean(nao_stats_dict: dict,
 
                     # Append this member to the array
                     lagged_nao_members_short[current_index, 1:] = nao_member_short
+                else:
+                    # Append this member to the array
+                    lagged_nao_members[current_index, :] = nao_member
 
-                # Append this member to the array
-                lagged_nao_members[current_index, :] = nao_member
-
-                # Append this member to the array
-                lagged_nao_members_short[current_index, :] = nao_member_short
+                    # Append this member to the array
+                    lagged_nao_members_short[current_index, :] = nao_member_short
 
                 # Increment the counter
                 current_index += 1
