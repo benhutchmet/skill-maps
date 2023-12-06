@@ -1,5 +1,6 @@
 # Functions for exploring the NAO skill
 # Imports
+import dictionaries as dic
 import argparse
 import os
 import sys
@@ -38,35 +39,33 @@ from functions import calculate_obs_nao
 
 # Import the dictionaries
 sys.path.append('/home/users/benhutch/skill-maps')
-import dictionaries as dic
 
 
 # Define a function for the NAO stats
-def nao_stats(obs: DataArray, 
-            hindcast: Dict[str, List[DataArray]],
-            models_list: List[str],
-            lag: int = 3,
-            short_period: tuple = (1965, 2010),
-            season: str = 'DJFM') -> Dict[str, Dict]:
-
+def nao_stats(obs: DataArray,
+              hindcast: Dict[str, List[DataArray]],
+              models_list: List[str],
+              lag: int = 3,
+              short_period: tuple = (1965, 2010),
+              season: str = 'DJFM') -> Dict[str, Dict]:
     """
     Assess and compare the skill of the NAO index between different models
     and observations during the winter season (DJFM). The skill is assessed
     using the correlation, p-value and RPC.
-    
+
     Based on Doug Smith's 'fcsts_assess' function.
-    
+
     Inputs:
     -------
-    
+
     obs[time, lat, lon]: DataArray
         Observations of the NAO index.
-        
+
     hindcast: Dict[str, List[DataArray]]
         A dictionary containing the hindcasts for each model. The keys are
         the model names and the values are a list of DataArrays containing
         the hindcast data.
-        
+
     models_list: List[str]
         A list of the model names
 
@@ -81,7 +80,7 @@ def nao_stats(obs: DataArray,
     season: str
         The season to use when assessing the skill of the NAO index.
         Default is 'DJFM'.
-        
+
     Outputs:
     --------
 
@@ -92,7 +91,7 @@ def nao_stats(obs: DataArray,
         stats for that model.
 
         The keys of the nested dictionary are:
-        
+
         years: list[int]
             The years of the hindcast e.g. [1966, 1982, ..., 2019]
 
@@ -101,7 +100,7 @@ def nao_stats(obs: DataArray,
 
         obs_nao_ts: array[time]
             The NAO index for the observations.
-        
+
         model_nao_ts: array[time]
             The ensemble mean NAO index for the model.
 
@@ -216,9 +215,9 @@ def nao_stats(obs: DataArray,
         nao_stats_dict[model] = {
 
             'years': [], 'years_lag': [], 'years_lag_short': [], 'years_short': [],
-            
+
             'obs_nao_ts': [], 'obs_nao_ts_short': [],
-            
+
             'obs_nao_ts_lag': [],
 
             'obs_nao_ts_lag_short': [], 'model_nao_ts': [], 'model_nao_ts_short': [],
@@ -229,23 +228,23 @@ def nao_stats(obs: DataArray,
 
             'model_nao_ts_short_max': [],
 
-            'model_nao_ts_min': [], 'model_nao_ts_max': [], 
+            'model_nao_ts_min': [], 'model_nao_ts_max': [],
 
             'model_nao_ts_var_adjust': [], 'model_nao_ts_var_adjust_short': [],
 
             'model_nao_ts_lag_var_adjust': [], 'model_nao_ts_lag_var_adjust_short': [],
-            
-            'model_nao_ts_lag_members': [], 'model_nao_ts_lag_members_short': [], 
 
-            'model_nao_ts_lag_var_adjust_min': [], 
+            'model_nao_ts_lag_members': [], 'model_nao_ts_lag_members_short': [],
+
+            'model_nao_ts_lag_var_adjust_min': [],
 
             'model_nao_ts_lag_var_adjust_max': [],
-            
+
             'model_nao_ts_lag_var_adjust_min_short': [],
 
             'model_nao_ts_lag_var_adjust_max_short': [],
-            
-            'corr1': mdi, 
+
+            'corr1': mdi,
 
             'corr1_short': mdi, 'corr1_lag_var_adjust': mdi, 'corr1_lag_var_adjust_short': mdi,
 
@@ -256,7 +255,7 @@ def nao_stats(obs: DataArray,
             'RPC1_lag_short': mdi, 'RPS1': mdi, 'RPS1_short': mdi,
 
             'RPS1_lag': mdi, 'RPS1_lag_short': mdi,
-            
+
             'short_period': short_period,
 
             'long_period': (), 'short_period_lag': (), 'long_period_lag': (),
@@ -274,15 +273,18 @@ def nao_stats(obs: DataArray,
 
         # Assert that this doesn't have any duplicate values
         assert len(years1) == len(set(years1)), \
-            "The years in the hindcast data for the {} model are not unique".format(model)
-        
+            "The years in the hindcast data for the {} model are not unique".format(
+                model)
+
         # Assert that there are no gaps of more than one year between the years
         assert np.all(np.diff(years1) <= 1), \
-            "There is a gap of more than one year in the hindcast data for the {} model".format(model)
-        
+            "There is a gap of more than one year in the hindcast data for the {} model".format(
+                model)
+
         # Assert that there are at least 10 years in the hindcast data
         assert len(years1) >= 10, \
-            "There are less than 10 years in the hindcast data for the {} model".format(model)
+            "There are less than 10 years in the hindcast data for the {} model".format(
+                model)
 
         # Loop over the remaining members
         for member in hindcast_list[1:]:
@@ -292,20 +294,24 @@ def nao_stats(obs: DataArray,
 
             # Assert that this doesn't have any duplicate values
             assert len(years2) == len(set(years2)), \
-                "The years in the hindcast data for the {} model are not unique".format(model)
-            
+                "The years in the hindcast data for the {} model are not unique".format(
+                    model)
+
             # Assert that there are no gaps of more than one year between the years
             assert np.all(np.diff(years2) <= 1), \
-                "There is a gap of more than one year in the hindcast data for the {} model".format(model)
+                "There is a gap of more than one year in the hindcast data for the {} model".format(
+                    model)
 
             # Assert that there are at least 10 years in the hindcast data
             assert len(years2) >= 10, \
-                "There are less than 10 years in the hindcast data for the {} model".format(model)
+                "There are less than 10 years in the hindcast data for the {} model".format(
+                    model)
 
             # If years1 and years2 are not the same then raise a value error
             assert np.all(years1 == years2), \
-                "The years in the hindcast data for the {} model are not the same".format(model)
-            
+                "The years in the hindcast data for the {} model are not the same".format(
+                    model)
+
         print("years checking complete for the {} model".format(model))
 
         # Ensure that the observations and the hindcast have the same time axis
@@ -315,22 +321,22 @@ def nao_stats(obs: DataArray,
         # Assert that this doesn't have any duplicate values
         assert len(years_obs) == len(set(years_obs)), \
             "The years in the observations are not unique"
-        
+
         # Assert that there are no gaps of more than one year between the years
         assert np.all(np.diff(years_obs) <= 1), \
             "There is a gap of more than one year in the observations"
-        
+
         # Assert that there are at least 10 years in the observations
         assert len(years_obs) >= 10, \
             "There are less than 10 years in the observations"
-        
+
         # Assert that there are no NaNs in the observations
         assert np.all(np.isnan(obs) == False), \
             "There are NaNs in the observations"
-        
+
         # Create a temporary copy of the observations
         obs_tmp = obs.copy()
-        
+
         # If the values in years1 and years_obs are not the same then raise a value error
         if np.array_equal(years1, years_obs) == False:
             print("The years in the observations are not the same as the years in the hindcast data for the {} model".format(model))
@@ -341,7 +347,8 @@ def nao_stats(obs: DataArray,
 
             # assert that the obs is longer than the hindcast
             assert len(years_obs) > len(years1), \
-                "The observations are shorter than the hindcast data for the {} model".format(model)
+                "The observations are shorter than the hindcast data for the {} model".format(
+                    model)
 
             # TODO: obs getting shorter
             # Extract only the hindcast years from the observations
@@ -349,16 +356,19 @@ def nao_stats(obs: DataArray,
 
         # Assert that year 1 of the observations is the same as year 1 of the hindcast
         assert obs_tmp.time.dt.year.values[0] == years1[0], \
-            "The first year of the observations is not the same as the first year of the hindcast data for the {} model".format(model)
+            "The first year of the observations is not the same as the first year of the hindcast data for the {} model".format(
+                model)
 
         # Assert that year -1 of the observations is the same as year -1 of the hindcast
         assert obs_tmp.time.dt.year.values[-1] == years1[-1], \
-            "The last year of the observations is not the same as the last year of the hindcast data for the {} model".format(model)
+            "The last year of the observations is not the same as the last year of the hindcast data for the {} model".format(
+                model)
 
         # Assert that the length of the observations is the same as the length of the hindcast
         assert len(obs_tmp.time.dt.year.values) == len(years1), \
-            "The length of the observations is not the same as the length of the hindcast data for the {} model".format(model)
-        
+            "The length of the observations is not the same as the length of the hindcast data for the {} model".format(
+                model)
+
         print("years checking complete for the observations and the {} model".format(model))
 
         # Append the years to the dictionary
@@ -377,10 +387,12 @@ def nao_stats(obs: DataArray,
         nao_stats_dict[model]['long_period'] = (years1[0], years1[-1])
 
         # Append the short period with the lag applied to the dictionary
-        nao_stats_dict[model]['short_period_lag'] = (years1[0] + lag - 1, short_period[1])
+        nao_stats_dict[model]['short_period_lag'] = (
+            years1[0] + lag - 1, short_period[1])
 
         # Append the long period with the lag applied to the dictionary
-        nao_stats_dict[model]['long_period_lag'] = (years1[0] + lag - 1, years1[-1])
+        nao_stats_dict[model]['long_period_lag'] = (
+            years1[0] + lag - 1, years1[-1])
 
         # Create the years lag for the dictionary
         years_lag = np.arange(years1[0] + lag - 1, years1[-1] + 1)
@@ -401,14 +413,15 @@ def nao_stats(obs: DataArray,
         obs_nao = calculate_obs_nao(obs_anomaly=obs_tmp,
                                     south_grid=azores_grid,
                                     north_grid=iceland_grid)
-        
+
         # Form an array of years for the short period
         years_short = np.arange(years1[0], short_period[1] + 1)
         print("years_short: {}".format(years_short))
 
         # Constrain to the short period
-        obs_nao_short = obs_nao.sel(time=obs_nao.time.dt.year.isin(years_short))
-        
+        obs_nao_short = obs_nao.sel(
+            time=obs_nao.time.dt.year.isin(years_short))
+
         # Convert the observed NAO index to a numpy array
         obs_nao = obs_nao.values
 
@@ -448,11 +461,12 @@ def nao_stats(obs: DataArray,
 
             # Calculate the NAO index for this member
             nao_member = calculate_obs_nao(obs_anomaly=member,
-                                    south_grid=azores_grid,
-                                    north_grid=iceland_grid)
-            
+                                           south_grid=azores_grid,
+                                           north_grid=iceland_grid)
+
             # Constrain to the short period
-            nao_member_short = nao_member.sel(time=nao_member.time.dt.year.isin(years_short))
+            nao_member_short = nao_member.sel(
+                time=nao_member.time.dt.year.isin(years_short))
 
             # Loop over the years
             for year in range(len(years1)):
@@ -470,7 +484,8 @@ def nao_stats(obs: DataArray,
                     # Loop over the lag indices
                     for lag_index in range(lag):
                         # Calculate the lagged ensemble member
-                        nao_members_lag[i + (lag_index * nens), year] = nao_member[year - lag_index]
+                        nao_members_lag[i + (lag_index * nens),
+                                        year] = nao_member[year - lag_index]
 
             # For the short period
             for year in range(len(years_short)):
@@ -481,14 +496,16 @@ def nao_stats(obs: DataArray,
 
                     # Also set the lagged ensemble member to NaN
                     for lag_index in range(lag):
-                        nao_members_lag_short[i + (lag_index * nens), year] = np.nan
+                        nao_members_lag_short[i +
+                                              (lag_index * nens), year] = np.nan
 
                 # Otherwise
                 else:
                     # Loop over the lag indices
                     for lag_index in range(lag):
                         # Calculate the lagged ensemble member
-                        nao_members_lag_short[i + (lag_index * nens), year] = nao_member_short[year - lag_index]
+                        nao_members_lag_short[i + (lag_index * nens),
+                                              year] = nao_member_short[year - lag_index]
 
             # # Now remove the first lag - 1 years from the NAO index
             # nao_members_lag[i, lag - 1:] = np.nan
@@ -584,10 +601,12 @@ def nao_stats(obs: DataArray,
         corr1_lag_short = pearsonr(nao_mean_lag_short, obs_nao_lag_short)[0]
 
         # Calculate the standard deviation of the model NAO index
-        nao_std = np.std(nao_mean) ; nao_lag_std = np.std(nao_mean_lag)
+        nao_std = np.std(nao_mean)
+        nao_lag_std = np.std(nao_mean_lag)
 
         # Calculate the standard deviation of the model NAO index for the short period
-        nao_std_short = np.std(nao_mean_short) ; nao_lag_std_short = np.std(nao_mean_lag_short)
+        nao_std_short = np.std(nao_mean_short)
+        nao_lag_std_short = np.std(nao_mean_lag_short)
 
         # Calculate the rpc between the model NAO index and the observed NAO index
         rpc1 = corr1 / (nao_std / np.std(nao_members))
@@ -601,7 +620,8 @@ def nao_stats(obs: DataArray,
 
         # Calculate the rpc between the model NAO index and the observed NAO index
         # for the short period
-        rpc1_lag_short = corr1_lag_short / (nao_lag_std_short / np.std(nao_members_lag_short))
+        rpc1_lag_short = corr1_lag_short / \
+            (nao_lag_std_short / np.std(nao_members_lag_short))
 
         # Calculate the ratio of predictable signals (RPS)
         rps1 = rpc1 * (np.std(obs_nao) / np.std(nao_members))
@@ -610,13 +630,16 @@ def nao_stats(obs: DataArray,
         rps1_lag = rpc1_lag * (np.std(obs_nao_lag) / np.std(nao_members_lag))
 
         # Calculate the ratio of predictable signals (RPS) for the short period
-        rps1_short = rpc1_short * (np.std(obs_nao_short) / np.std(nao_members_short))
+        rps1_short = rpc1_short * \
+            (np.std(obs_nao_short) / np.std(nao_members_short))
 
         # Calculate the ratio of predictable signals (RPS) for the short period
-        rps1_lag_short = rpc1_lag_short * (np.std(obs_nao_lag_short) / np.std(nao_members_lag_short))
+        rps1_lag_short = rpc1_lag_short * \
+            (np.std(obs_nao_lag_short) / np.std(nao_members_lag_short))
 
         # Adjust the variance of the model NAO index
-        nao_var_adjust = nao_mean * rps1 ; nao_var_adjust_lag = nao_mean_lag * rps1_lag
+        nao_var_adjust = nao_mean * rps1
+        nao_var_adjust_lag = nao_mean_lag * rps1_lag
 
         # Adjust the variance of the model NAO index for the short period
         nao_var_adjust_short = nao_mean_short * rps1_short
@@ -628,13 +651,15 @@ def nao_stats(obs: DataArray,
         corr1_lag_var_adjust = pearsonr(nao_var_adjust_lag, obs_nao_lag)[0]
 
         # Calculate the correlation between the model NAO index and the observed NAO index
-        corr1_lag_var_adjust_short = pearsonr(nao_var_adjust_lag_short, obs_nao_lag_short)[0]
+        corr1_lag_var_adjust_short = pearsonr(
+            nao_var_adjust_lag_short, obs_nao_lag_short)[0]
 
         # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
         p1_lag_var_adjust = pearsonr(nao_var_adjust_lag, obs_nao_lag)[1]
 
         # Calculate the p-value for the correlation between the model NAO index and the observed NAO index
-        p1_lag_var_adjust_short = pearsonr(nao_var_adjust_lag_short, obs_nao_lag_short)[1]
+        p1_lag_var_adjust_short = pearsonr(
+            nao_var_adjust_lag_short, obs_nao_lag_short)[1]
 
         # Append the correlation to the dictionary
         nao_stats_dict[model]['corr1_lag_var_adjust'] = corr1_lag_var_adjust
@@ -649,16 +674,20 @@ def nao_stats(obs: DataArray,
         nao_stats_dict[model]['p1_lag_var_adjust_short'] = p1_lag_var_adjust_short
 
         # Calculate the 5th and 95th percentiles of the lagged NAO index
-        nao_var_adjust_lag_min = np.percentile(nao_members_lag * rps1_lag, 5, axis=0)
+        nao_var_adjust_lag_min = np.percentile(
+            nao_members_lag * rps1_lag, 5, axis=0)
 
         # Calculate the 5th and 95th percentiles of the lagged NAO index
-        nao_var_adjust_lag_max = np.percentile(nao_members_lag * rps1_lag, 95, axis=0)
+        nao_var_adjust_lag_max = np.percentile(
+            nao_members_lag * rps1_lag, 95, axis=0)
 
         # And for the short period
-        nao_var_adjust_lag_min_short = np.percentile(nao_members_lag_short * rps1_lag_short, 5, axis=0)
+        nao_var_adjust_lag_min_short = np.percentile(
+            nao_members_lag_short * rps1_lag_short, 5, axis=0)
 
         # And for the short period
-        nao_var_adjust_lag_max_short = np.percentile(nao_members_lag_short * rps1_lag_short, 95, axis=0)
+        nao_var_adjust_lag_max_short = np.percentile(
+            nao_members_lag_short * rps1_lag_short, 95, axis=0)
 
         # Append the 5th and 95th percentiles to the dictionary
         nao_stats_dict[model]['model_nao_ts_lag_var_adjust_min'] = nao_var_adjust_lag_min
@@ -731,7 +760,7 @@ def nao_stats(obs: DataArray,
 
         # Append the rps to the dictionary
         nao_stats_dict[model]['RPS1_lag_short'] = rps1_lag_short
-        
+
         print("NAO index calculated for the {} model".format(model))
 
     print("NAO stats dictionary created")
@@ -740,12 +769,13 @@ def nao_stats(obs: DataArray,
     return nao_stats_dict
 
 # Define a plotting function for creating the 2 columns x 6 rows plot
+
+
 def plot_subplots_ind_models(nao_stats_dict: dict,
-                            models_list: List[str],
-                            short_period: bool = False,
-                            lag_and_var_adjust: bool = False
-                            ) -> None:
-    
+                             models_list: List[str],
+                             short_period: bool = False,
+                             lag_and_var_adjust: bool = False
+                             ) -> None:
     """
     Creates a series of subplots for the NAO index for each model for the
     different models during the winter season (DJFM). The skill is assessed
@@ -790,7 +820,7 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
 
     # Set up the figure
     fig, axes = plt.subplots(nrows=6, ncols=2, figsize=(10, 12),
-                            sharex=True, sharey=True)
+                             sharex=True, sharey=True)
     axes = axes.flatten()
 
     # Iterate over the models
@@ -817,42 +847,154 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
                 print("NAO index extracted for member {}".format(i))
 
                 # Plot this member
-                ax.plot(nao_stats_model['years_short'] - 5, nao_member_short / 100, 
-                        color='grey', alpha=0.2)    
-            
+                ax.plot(nao_stats_model['years_short'] - 5, nao_member_short / 100,
+                        color='grey', alpha=0.2)
+
             # Plot the ensemble mean
             ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short'] / 100,
                     color='red', label='dcppA')
-            
+
             # Plot the 5th and 95th percentiles
             ax.fill_between(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short_min'] / 100,
                             nao_stats_model['model_nao_ts_short_max'] / 100, color='red', alpha=0.2)
-            
+
             # Plot the observed NAO index
             ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['obs_nao_ts_short'] / 100,
                     color='black', label='ERA5')
-        
+
             # Set the title with the ACC and RPC scores
             ax.set_title(f"ACC = {nao_stats_model['corr1_short']:.2f} "
-                            f"(p = {nao_stats_model['p1_short']:.2f}), "
-                            f"RPC = {nao_stats_model['RPC1_short']:.2f}, "
-                            f"N = {nao_stats_model['nens']}")
-            
+                         f"(p = {nao_stats_model['p1_short']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1_short']:.2f}, "
+                         f"N = {nao_stats_model['nens']}")
+
             # Format the model name in the top left of the figure
             ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
-                    bbox=dict( facecolor='white', alpha=0.5), fontsize=10)
-            
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
             # Add the legend in the bottom right corner
             ax.legend(loc='lower right')
-            
+
         elif short_period == False and lag_and_var_adjust == False:
+
             print("Plotting the long period and the raw NAO index")
+
+            # Loop over the members
+            for i in range(nao_stats_model['nens']):
+                print("Plotting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member = nao_stats_model['model_nao_ts_members'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # Plot this member
+                ax.plot(nao_stats_model['years'] - 5, nao_member / 100,
+                        color='grey', alpha=0.2)
+
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years'] - 5, nao_stats_model['model_nao_ts'] / 100,
+                    color='red', label='dcppA')
+
+            # Plot the 5th and 95th percentiles
+            ax.fill_between(nao_stats_model['years'] - 5, nao_stats_model['model_nao_ts_min'] / 100,
+                            nao_stats_model['model_nao_ts_max'] / 100, color='red', alpha=0.2)
+
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years'] - 5, nao_stats_model['obs_nao_ts'] / 100,
+                    color='black', label='ERA5')
+
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1']:.2f} "
+                         f"(p = {nao_stats_model['p1']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1']:.2f}, "
+                         f"N = {nao_stats_model['nens']}")
+
+            # Format the model name in the top left of the figure
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
 
         elif short_period == True and lag_and_var_adjust == True:
             print("Plotting the short period and the lag and variance adjusted NAO index")
 
+            # Loop over the members
+            for i in range(nao_stats_model['nens_lag']):
+                print("Plotting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # Plot this member
+                ax.plot(nao_stats_model['years_lag_short'] - 5, nao_member_short / 100,
+                        color='grey', alpha=0.2)
+
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years_lag_short'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_short'] / 100,
+                    color='red', label='dcppA')
+
+            # Plot the 5th and 95th percentiles
+            ax.fill_between(nao_stats_model['years_lag_short'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_min_short'] / 100,
+                            nao_stats_model['model_nao_ts_lag_var_adjust_max_short'] / 100, color='red', alpha=0.2)
+            
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years_lag_short'] - 5, nao_stats_model['obs_nao_ts_lag_short'] / 100,
+                    color='black', label='ERA5')
+
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1_lag_var_adjust_short']:.2f} "
+                         f"(p = {nao_stats_model['p1_lag_var_adjust_short']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1_lag_short']:.2f}, "
+                         f"N = {nao_stats_model['nens_lag']}")
+            
+            # Format the model name in the top left of the figure
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
+
         elif short_period == False and lag_and_var_adjust == True:
             print("Plotting the long period and the lag and variance adjusted NAO index")
+
+            # Loop over the members
+            for i in range(nao_stats_model['nens_lag']):
+                print("Plotting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member = nao_stats_model['model_nao_ts_lag_members'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # Plot this member
+                ax.plot(nao_stats_model['years_lag'] - 5, nao_member / 100,
+                        color='grey', alpha=0.2)
+
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust'] / 100,
+                    color='red', label='dcppA')
+
+            # Plot the 5th and 95th percentiles
+            ax.fill_between(nao_stats_model['years_lag'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust_min'] / 100,
+                            nao_stats_model['model_nao_ts_lag_var_adjust_max'] / 100, color='red', alpha=0.2)
+
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['obs_nao_ts_lag'] / 100,
+                    color='black', label='ERA5')
+
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1_lag_var_adjust']:.2f} "
+                         f"(p = {nao_stats_model['p1_lag_var_adjust']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1_lag']:.2f}, "
+                         f"N = {nao_stats_model['nens_lag']}")
+
+            # Format the model name in the top left of the figure
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
 
         else:
             raise ValueError("The boolean flags are not set up correctly")
@@ -877,6 +1019,6 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
     fig.savefig(os.path.join("/gws/nopw/j04/canari/users/benhutch/plots/NAO_skill",
                 f"NAO_skill_short_period_{short_period}_lag_and_var_adjust_{lag_and_var_adjust}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"),
                 dpi=300)
-    
+
     # Show the figure
     plt.show()
