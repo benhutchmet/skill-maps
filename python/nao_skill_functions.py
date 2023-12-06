@@ -1136,9 +1136,8 @@ def plot_multi_model_mean(nao_stats_dict: dict,
     ax1 = axes[0]
     ax2 = axes[1]
 
-    # Create an empty two dimensional array to store 
-    # all of the NAO time series in
-    nao_members = np.zeros([,])
+    # Initialise the counter
+    current_index = 0
 
     # Iterate over the models
     for i, model in enumerate(models_list):
@@ -1150,4 +1149,134 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         # Set up the boolean flags
         if lag_and_var_adjust is False:
             print("Extracting members for the raw NAO index")
+
+            # Loop over the members
+            for i in range(nao_stats_model['nens']):
+                print("Extracting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member = nao_stats_model['model_nao_ts_members'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # extract the short period
+                nao_member_short = nao_stats_model['model_nao_ts_members_short'][i, :]
+                print("NAO index extracted for short period for member {}".format(i))
+
+                # Append this member to the array
+                nao_members[current_index, :] = nao_member
+
+                # Append this member to the array
+                nao_members_short[current_index, :] = nao_member_short
+
+                # Increment the counter
+                current_index += 1
+
+        elif lag_and_var_adjust is True:
+            print("Extracting members for the lag and variance adjusted NAO index")
+
+            # Loop over the members
+            for i in range(nao_stats_model['nens_lag']):
+                print("Extracting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member = nao_stats_model['model_nao_ts_lag_members'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # extract the short period
+                nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
+                print("NAO index extracted for short period for member {}".format(i))
+
+                # Append this member to the array
+                lagged_nao_members[current_index, :] = nao_member
+
+                # Append this member to the array
+                lagged_nao_members_short[current_index, :] = nao_member_short
+
+                # Increment the counter
+                current_index += 1
+
+        else:
+            raise ValueError("The boolean flags are not set up correctly")
+        
+    # Now for the plotting
+    # Set up the boolean flags
+    if lag_and_var_adjust is False:
+        print("Plotting the raw NAO index")
+
+        # count the number of ensemble members
+        total_nens = nao_members.shape[0]
+
+        # Calculate the ensemble mean
+        nao_mean = np.mean(nao_members, axis=0)
+
+        # Calculate the ensemble mean for the short period
+        nao_mean_short = np.mean(nao_members_short, axis=0)
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1, p1 = pearsonr(nao_mean,
+                            nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts'])
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1_short, p1_short = pearsonr(nao_mean_short,
+                                        nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_short'])
+
+        # Calculate the RPC between the model NAO index and the observed NAO index
+        rpc1 = corr1 / (np.std(nao_mean) / np.std(nao_members))
+
+        # Calculate the RPC between the model NAO index and the observed NAO index
+        rpc1_short = corr1_short / (np.std(nao_mean_short) / np.std(nao_members_short))
+
+        # Calculate the 5th and 95th percentiles
+        nao_mean_min = np.percentile(nao_members, 5, axis=0)
+        nao_mean_max = np.percentile(nao_members, 95, axis=0)
+
+        # Calculate the 5th and 95th percentiles
+        nao_mean_short_min = np.percentile(nao_members_short, 5, axis=0)
+        nao_mean_short_max = np.percentile(nao_members_short, 95, axis=0)
+
+        # Plot the ensemble mean
+        ax1.plot(nao_stats_model['years'] - 5, nao_mean / 100,
+                 color='red', label='dcppA')
+        
+        # Plot the observed NAO index - time valid for BCC-CSM2-MR
+        model = "BCC-CSM2-MR"
+
+        # Extract the NAO stats for this model
+        ax1.plot(nao_stats_dict[model]['years'] - 5, nao_stats_dict[model]['obs_nao_ts'] / 100,
+                 color='black', label='ERA5')
+
+        # Plot the 5th and 95th percentiles
+        ax1.fill_between(nao_stats_model['years'] - 5, nao_mean_min / 100,
+                         nao_mean_max / 100, color='red', alpha=0.2)
+
+        # Plot the ensemble mean
+        ax2.plot(nao_stats_model['years_short'] - 5, nao_mean_short / 100,
+                 color='red', label='dcppA')
+        
+        # Plot the observed NAO index - time valid for BCC-CSM2-MR
+        ax2.plot(nao_stats_dict[model]['years_short'] - 5, nao_stats_dict[model]['obs_nao_ts_short'] / 100,
+                 color='black', label='ERA5')
+
+        # Plot the 5th and 95th percentiles
+        ax2.fill_between(nao_stats_model['years_short'] - 5, nao_mean_short_min / 100,
+                         nao_mean_short_max / 100, color='red', alpha=0.2)
+
+        # Set the title with the ACC and RPC scores
+        ax1.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
+                      f"RPC = {rpc1:.2f}, "
+                      f"N = {total_nens}")
+
+        # Set the title with the ACC and RPC scores
+        ax2.set_title(f"ACC = {corr1_short:.2f} (p = {p1_short:.2f}), "
+                      f"RPC = {rpc1_short:.2f}, "
+                      f"N = {total_nens}")
+        
+        # Format the initialisation year range in the top left of the figure
+        ax1.text(0.05, 0.95, f"1961-2005", transform=ax1.transAxes, ha='left', va='top',
+                 bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+        
+        # Format the initialisation year range in the top left of the figure
+        ax2.text(0.05, 0.95, f"1961-2014", transform=ax2.transAxes, ha='left', va='top',
+                 bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
 
