@@ -690,6 +690,10 @@ def nao_stats(obs_psl: DataArray,
                                            south_grid=azores_grid,
                                            north_grid=iceland_grid)
 
+            # Constrain to the long period
+            nao_member = nao_member.sel(
+                time=nao_member.time.dt.year.isin(years1))
+
             # Constrain to the short period
             nao_member_short = nao_member.sel(
                 time=nao_member.time.dt.year.isin(years_short))
