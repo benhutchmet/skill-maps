@@ -388,7 +388,9 @@ def nao_stats(obs_psl: DataArray,
                 assert np.array_equal(years1_tas, np.arange(1965, 2020)), \
                     "The years for {} are not 1965 to 2019".format(model)
 
-        print("years checking complete for the {} model".format(model))
+        # Extract the list of tas hindcast DataArrays for this model
+        if hindcast_tas is not None:
+            hindcast_list_tas = hindcast_tas[model]
 
         # Loop over the remaining members
         for member in hindcast_list[1:]:
@@ -415,6 +417,48 @@ def nao_stats(obs_psl: DataArray,
             assert np.all(years1 == years2), \
                 "The years in the hindcast data for the {} model are not the same".format(
                     model)
+            
+        # If hindcast_tas is not None then assert that the length of hindcast_psl and hindcast_tas are the same
+        if hindcast_tas is not None:
+            # Loop over the remaining members
+            for member_tas in hindcast_list_tas[1:]:
+
+                # print that we are checking the rest of the members
+                print("checking that the length of hindcast_psl and hindcast_tas are the same for the rest of the members")
+
+                # Extract the years for this member
+                years2_tas = member_tas.time.dt.year.values
+
+                # Limit years to those below 2020
+                years2_tas = years2_tas[years2_tas < 2020]
+
+                # Assert that this doesn't have any duplicate values
+                assert len(years2_tas) == len(set(years2_tas)), \
+                    "The years in the hindcast data for the {} model are not unique".format(
+                        model)
+                
+                # Assert that there are no gaps of more than one year between the years
+                assert np.all(np.diff(years2_tas) <= 1), \
+                    "There is a gap of more than one year in the hindcast data for the {} model".format(
+                        model)
+                
+                # Assert that there are at least 10 years in the hindcast data
+                assert len(years2_tas) >= 10, \
+                    "There are less than 10 years in the hindcast data for the {} model".format(
+                        model)
+                
+                # if the model is BCC-CSM2-MR
+                # then check years2_tas has years 1966 to 2019
+                if model == 'BCC-CSM2-MR':
+                    print("checking that the years for BCC-CSM2-MR are 1966 to 2019")
+                    assert np.array_equal(years2_tas, np.arange(1966, 2020)), \
+                        "The years for BCC-CSM2-MR are not 1966 to 2019"
+                    
+                else:
+                    # Check that years 1965 to 2019 are in years2_tas
+                    print("checking that the years for {} are 1965 to 2019".format(model))
+                    assert np.array_equal(years2_tas, np.arange(1965, 2020)), \
+                        "The years for {} are not 1965 to 2019".format(model)
 
         print("years checking complete for the {} model".format(model))
 
