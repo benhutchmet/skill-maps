@@ -311,6 +311,9 @@ def nao_stats(obs_psl: DataArray,
         # Extract the years for the first member
         years1 = hindcast_list[0].time.dt.year.values
 
+        # Limit years to those below 2020
+        years1 = years1[years1 < 2020]
+
         # Assert that this doesn't have any duplicate values
         assert len(years1) == len(set(years1)), \
             "The years in the hindcast data for the {} model are not unique".format(
@@ -398,6 +401,9 @@ def nao_stats(obs_psl: DataArray,
             # Extract the years for this member
             years2 = member.time.dt.year.values
 
+            # Limit years to those below 2020
+            years2 = years2[years2 < 2020]
+
             # Assert that this doesn't have any duplicate values
             assert len(years2) == len(set(years2)), \
                 "The years in the hindcast data for the {} model are not unique".format(
@@ -460,7 +466,8 @@ def nao_stats(obs_psl: DataArray,
                     assert np.array_equal(years2_tas, np.arange(1965, 2020)), \
                         "The years for {} are not 1965 to 2019".format(model)
 
-        print("years checking complete for the {} model".format(model))
+        # print("years checking complete for the {} model".format(model))
+        # continue
 
         # Ensure that the observations and the hindcast have the same time axis
         # Extract the years for the observations
@@ -501,6 +508,13 @@ def nao_stats(obs_psl: DataArray,
             # TODO: obs getting shorter
             # Extract only the hindcast years from the observations
             obs_tmp = obs_tmp.sel(time=obs_tmp.time.dt.year.isin(years1))
+
+        # if hindcast_tas is not None then assert that the length of hindcast_psl and hindcast_tas are the same
+        if hindcast_tas is not None:
+            print("comparing tas data to psl data and obs data")
+            # print years1_tas and years1
+            print("years1_tas first year: {}".format(years1_tas[0]))
+            print("years1 first year: {}".format(years1[0]))
 
         # Assert that year 1 of the observations is the same as year 1 of the hindcast
         assert obs_tmp.time.dt.year.values[0] == years1[0], \
