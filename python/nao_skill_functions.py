@@ -42,9 +42,11 @@ sys.path.append('/home/users/benhutch/skill-maps')
 
 
 # Define a function for the NAO stats
-def nao_stats(obs: DataArray,
-              hindcast: Dict[str, List[DataArray]],
+def nao_stats(obs_psl: DataArray,
+              hindcast_psl: Dict[str, List[DataArray]],
               models_list: List[str],
+              obs_tas: DataArray = None,
+              hindcast_tas: Dict[str, List[DataArray]] = None,
               lag: int = 3,
               short_period: tuple = (1965, 2010),
               season: str = 'DJFM') -> Dict[str, Dict]:
@@ -58,16 +60,24 @@ def nao_stats(obs: DataArray,
     Inputs:
     -------
 
-    obs[time, lat, lon]: DataArray
-        Observations of the NAO index.
+    obs_psl[time, lat, lon]: DataArray
+        Observations of the psl anomaly fields.
 
-    hindcast: Dict[str, List[DataArray]]
-        A dictionary containing the hindcasts for each model. The keys are
+    hindcast_psl: Dict[str, List[DataArray]]
+        A dictionary containing the psl hindcasts for each model. The keys are
         the model names and the values are a list of DataArrays containing
         the hindcast data.
 
     models_list: List[str]
         A list of the model names
+
+    obs_tas[time, lat, lon]: DataArray
+        Observations of the tas anomaly fields. Default is None.
+
+    hindcast_tas: Dict[str, List[DataArray]]
+        A dictionary containing the tas hindcasts for each model. The keys are
+        the model names and the values are a list of DataArrays containing
+        the hindcast data. Default is None.
 
     lag: int
             The lag to use when assessing the skill of the NAO index.
@@ -196,6 +206,10 @@ def nao_stats(obs: DataArray,
     # Assert that the season is DJFM
     assert season == 'DJFM', "The season must be DJFM"
 
+    # Assert that either both obs_tas and hindcast_tas are None or both are not None
+    assert (obs_tas is None and hindcast_tas is None) or (obs_tas is not None and hindcast_tas is not None), \
+        "Either both obs_tas and hindcast_tas must be None or both must be not None"
+
     # Hard code in the dictionaries containing
     # the grid boxes for the NAO index
     azores_grid = dic.azores_grid_corrected
@@ -260,7 +274,33 @@ def nao_stats(obs: DataArray,
 
             'long_period': (), 'short_period_lag': (), 'long_period_lag': (),
 
-            'nens': mdi, 'nens_lag': mdi
+            'nens': mdi, 'nens_lag': mdi,
+
+            'obs_spna': [], 'obs_spna_short': [],
+
+            'model_spna_members': [], 'model_spna_members_short': [],
+
+            'model_spna': [], 'model_spna_short': [],
+
+            'model_spna_min': [], 'model_spna_max': [],
+
+            'model_spna_short_min': [], 'model_spna_short_max': [],
+
+            'corr1_spna': mdi, 'corr1_spna_short': mdi,
+
+            'p1_spna': mdi, 'p1_spna_short': mdi,
+
+            'RPC1_spna': mdi, 'RPC1_spna_short': mdi,
+
+            'corr_spna_nao_obs': mdi, 'corr_spna_nao_short_obs': mdi,
+
+            'p_spna_nao_obs': mdi, 'p_spna_nao_short_obs': mdi,
+
+            'corr_spna_nao_model': mdi, 'corr_spna_nao_short_model': mdi,
+
+            'p_spna_nao_model': mdi, 'p_spna_nao_short_model': mdi,
+
+            'tas_nens': mdi
 
         }
 
