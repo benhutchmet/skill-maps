@@ -222,8 +222,9 @@ def nao_stats(obs_psl: DataArray,
     mdi = -9999.0
 
     # Loop over the models
-    for model in models_list:
+    for i, model in enumerate(models_list):
         print("Setting up the NAO stats for the {} model".format(model))
+        print("model number: {}".format(i))
 
         # Create a dictionary for the NAO stats for this model
         nao_stats_dict[model] = {
@@ -640,7 +641,7 @@ def nao_stats(obs_psl: DataArray,
 
             # TODO: function for calculating SPNA index
             # Calculate the observed SPNA index
-            obs_spna = calculate_spna_index(obs_anomaly=obs_tas)
+            obs_spna = calculate_spna_index(t_anom=obs_tas)
 
             # Constrain to the short period
             obs_spna_short = obs_spna.sel(
@@ -731,7 +732,7 @@ def nao_stats(obs_psl: DataArray,
             for i, member in enumerate(hindcast_list_tas):
 
                 # Calculate the SPNA index for this member
-                spna_member = calculate_spna_index(obs_anomaly=member)
+                spna_member = calculate_spna_index(t_anom=member)
 
                 # Constrain to the short period
                 spna_member_short = spna_member.sel(
