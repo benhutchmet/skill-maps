@@ -1442,10 +1442,288 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
     # Show the figure
     plt.show()
 
-    # Write a figure to plot the multi-model mean NAO
-    # As two subplots
-    # Left shows the short period, right shows the long period
-    # With and without the lag and variance adjustment
+# Function for the plots including the SPNA index
+def plot_subplots_ind_models_spna(nao_stats_dict: dict,
+                                  models_list: List[str],
+                                  short_period: bool = False,
+                                  lag_and_var_adjust: bool = False
+                                  ) -> None:
+    """
+    Creates a series of subplots for the NAO index and SPNA index for each model for the
+    different models during the winter season (DJFM). The skill is assessed
+    using the correlation, p-value and RPC.
+
+    Plots can be determined by a series of boolean flags.
+
+    Inputs:
+    -------
+
+    nao_stats_dict: dict[dict]
+        A dictionary containing the NAO and SPNA stats for each model. The keys are
+        the model names and the values are a dictionary containing the NAO
+        stats for that model.
+
+    models_list: List[str]
+        A list of the model names to be plotted.
+
+    short_period: bool
+        If True then the short period is plotted. Default is False.
+
+    lag_and_var_adjust: bool
+        If True then the lag and variance adjusted NAO index is plotted.
+        Default is False.
+
+    Outputs:
+    --------
+    None
+
+    """
+
+    # Print statements indicating the boolean flags
+    if short_period == True:
+        print("Plotting the short period")
+    else:
+        print("Plotting the long period")
+
+    if lag_and_var_adjust == True:
+        raise ValueError("The lag and variance adjusted NAO index is not available for the SPNA index")
+    else:
+        print("Plotting the raw NAO index")
+
+    # Set up the figure
+    fig, axes = plt.subplots(nrows=6, ncols=2, figsize=(10, 12),
+                             sharex=True, sharey=True)
+    axes = axes.flatten()
+
+    # Iterate over the models
+    for i, model in enumerate(models_list):
+        print("Plotting the {} model".format(model))
+        print("At index {} of the axes".format(i))
+
+        # Set up the axes
+        ax = axes[i]
+
+        # Extract the NAO stats for this model
+        nao_stats_model = nao_stats_dict[model]
+
+        # Set up the boolean flags
+        if short_period == True and lag_and_var_adjust == False:
+            print("Plotting the short period and the raw NAO index")
+            print("Plotting the short period and the raw SPNA index")
+
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short'] / 100,
+                    color='red', label='dcppA NAO')
+
+            # Plot the 5th and 95th percentiles
+            ax.fill_between(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short_min'] / 100,
+                            nao_stats_model['model_nao_ts_short_max'] / 100, color='red', alpha=0.2)
+
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['obs_nao_ts_short'] / 100,
+                    color='black', label='ERA5')
+            
+            # create a twin axes
+            ax2 = ax.twinx()
+
+            # Plot the ensemble mean
+            ax2.plot(nao_stats_model['years_short'] - 5, nao_stats_model['model_spna_ts_short'],
+                    color='red', linestyle='--')
+
+            # Plot the 5th and 95th percentiles
+            # ax2.fill_between(nao_stats_model['years_short'] - 5, nao_stats_model['model_spna_ts_short_min'],
+            #                 nao_stats_model['model_spna_ts_short_max'], color='blue', alpha=0.2)
+            
+            # Plot the observed NAO index
+            ax2.plot(nao_stats_model['years_short'] - 5, nao_stats_model['obs_spna_ts_short'],
+                    color='black', linestyle='--')
+
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1_short']:.2f} ({nao_stats_model['corr1_spna_short']:.2f}) "
+                         f"(p = {nao_stats_model['p1_short']:.2f}, {nao_stats_model['p1_spna_short']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1_short']:.2f} ({nao_stats_model['RPC1_spna_short']:.2f}), "
+                         f"N = {nao_stats_model['nens']} ({nao_stats_model['nens_spna']})")
+
+            # Format the model name in the top left of the figure
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
+
+        elif short_period == False and lag_and_var_adjust == False:
+            print("Plotting the long period and the raw NAO index")
+            print("Plotting the long period and the raw SPNA index")
+
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years'] - 5, nao_stats_model['model_nao_ts'] / 100,
+                    color='red', label='dcppA')
+
+            # Plot the 5th and 95th percentiles
+            ax.fill_between(nao_stats_model['years'] - 5, nao_stats_model['model_nao_ts_min'] / 100,
+                            nao_stats_model['model_nao_ts_max'] / 100, color='red', alpha=0.2)
+
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years'] - 5, nao_stats_model['obs_nao_ts'] / 100,
+                    color='black', label='ERA5')
+            
+            # create a twin axes
+            ax2 = ax.twinx()
+
+            # Plot the ensemble mean
+            ax2.plot(nao_stats_model['years'] - 5, nao_stats_model['model_spna_ts'],
+                    color='red', linestyle='--')
+            
+            # Plot the observed NAO index
+            ax2.plot(nao_stats_model['years'] - 5, nao_stats_model['obs_spna_ts'],
+                    color='black', linestyle='--')
+            
+            # Plot the 5th and 95th percentiles
+            # ax2.fill_between(nao_stats_model['years'] - 5, nao_stats_model['model_spna_ts_min'],
+            #                 nao_stats_model['model_spna_ts_max'], color='blue', alpha=0.2)
+
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1']:.2f} ({nao_stats_model['corr1_spna']:.2f}) "
+                         f"(p = {nao_stats_model['p1']:.2f}, {nao_stats_model['p1_spna']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1']:.2f} ({nao_stats_model['RPC1_spna']:.2f}), "
+                         f"N = {nao_stats_model['nens']} ({nao_stats_model['nens_spna']})")
+
+            # Format the model name in the top left of the figure
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
+
+        elif short_period == True and lag_and_var_adjust == True:
+            print("Plotting the short period and the lag and variance adjusted NAO index")
+
+            # Loop over the members
+            # for i in range(nao_stats_model['nens_lag']):
+            #     print("Plotting member {}".format(i))
+
+            #     # Extract the NAO index for this member
+            #     nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
+            #     print("NAO index extracted for member {}".format(i))
+
+            #     # Plot this member
+            #     ax.plot(nao_stats_model['years_lag_short'] - 5, nao_member_short / 100,
+            #             color='grey', alpha=0.2)
+
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years_lag_short'] - 5,
+                    nao_stats_model['model_nao_ts_lag_var_adjust_short'] / 100,
+                    color='red', label='dcppA')
+
+            # Plot the 5th and 95th percentiles
+            # TODO: Compute RMSE confidence intervals here
+            # RMSE between the ensemble mean and observations
+            rmse = np.sqrt(np.mean((nao_stats_model['model_nao_ts_lag_var_adjust_short']
+                                    - nao_stats_model['obs_nao_ts_lag_short'])**2))
+
+            # Calculate the upper and lower confidence intervals
+            ci_lower = nao_stats_model['model_nao_ts_lag_var_adjust_short'] - (
+                rmse)
+            ci_upper = nao_stats_model['model_nao_ts_lag_var_adjust_short'] + (
+                rmse)
+
+            # Plot the confidence intervals
+            ax.fill_between(nao_stats_model['years_lag_short'] - 5, ci_lower / 100,
+                            ci_upper / 100, color='red', alpha=0.2)
+
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years_lag_short'] - 5, nao_stats_model['obs_nao_ts_lag_short'] / 100,
+                    color='black', label='ERA5')
+
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1_lag_var_adjust_short']:.2f} "
+                         f"(p = {nao_stats_model['p1_lag_var_adjust_short']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1_lag_short']:.2f}, "
+                         f"N = {nao_stats_model['nens_lag']}")
+
+            # Format the model name in the top left of the figure
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
+
+        elif short_period == False and lag_and_var_adjust == True:
+            print("Plotting the long period and the lag and variance adjusted NAO index")
+
+            # Loop over the members
+            # for i in range(nao_stats_model['nens_lag']):
+            #     print("Plotting member {}".format(i))
+
+            #     # Extract the NAO index for this member
+            #     nao_member = nao_stats_model['model_nao_ts_lag_members'][i, :]
+            #     print("NAO index extracted for member {}".format(i))
+
+            #     # Plot this member
+            #     ax.plot(nao_stats_model['years_lag'] - 5, nao_member / 100,
+            #             color='grey', alpha=0.2)
+
+            # Plot the ensemble mean
+            ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust'] / 100,
+                    color='red', label='dcppA')
+
+            # Plot the 5th and 95th percentiles
+            # RMSE between the ensemble mean and observations
+            rmse = np.sqrt(np.mean((nao_stats_model['model_nao_ts_lag_var_adjust']
+                                    - nao_stats_model['obs_nao_ts_lag'])**2))
+
+            # Calculate the upper and lower confidence intervals
+            ci_lower = nao_stats_model['model_nao_ts_lag_var_adjust'] - (rmse)
+            ci_upper = nao_stats_model['model_nao_ts_lag_var_adjust'] + (rmse)
+
+            # Plot the confidence intervals
+            ax.fill_between(nao_stats_model['years_lag'] - 5, ci_lower / 100,
+                            ci_upper / 100, color='red', alpha=0.2)
+
+            # Plot the observed NAO index
+            ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['obs_nao_ts_lag'] / 100,
+                    color='black', label='ERA5')
+
+            # Set the title with the ACC and RPC scores
+            ax.set_title(f"ACC = {nao_stats_model['corr1_lag_var_adjust']:.2f} "
+                         f"(p = {nao_stats_model['p1_lag_var_adjust']:.2f}), "
+                         f"RPC = {nao_stats_model['RPC1_lag']:.2f}, "
+                         f"N = {nao_stats_model['nens_lag']}")
+
+            # Format the model name in the top left of the figure
+            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+                    bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+            # Add the legend in the bottom right corner
+            ax.legend(loc='lower right')
+
+        else:
+            raise ValueError("The boolean flags are not set up correctly")
+
+        # Set the axhline
+        ax.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+
+        ax.set_ylim([-10, 10])
+
+    # Set the y-axis label for the left column
+    for ax in axes[0::2]:
+        ax.set_ylabel('NAO (hPa)')
+
+    # Set the x-axis label for the bottom row
+    if i >= 10:
+        ax.set_xlabel('initialisation year')
+
+    # Adjust the layout
+    plt.tight_layout()
+
+    # Save the figure
+    fig.savefig(os.path.join("/gws/nopw/j04/canari/users/benhutch/plots/NAO_skill",
+                f"NAO_skill_short_period_{short_period}_lag_and_var_adjust_{lag_and_var_adjust}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"),
+                dpi=300)
+
+    # Show the figure
+    plt.show()
+
 
 
 def plot_multi_model_mean(nao_stats_dict: dict,
