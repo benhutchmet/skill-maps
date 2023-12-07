@@ -1513,7 +1513,7 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
 
             # Plot the ensemble mean
             ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short'] / 100,
-                    color='red', label='dcppA NAO')
+                    color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
             ax.fill_between(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short_min'] / 100,
@@ -1538,18 +1538,24 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             ax2.plot(nao_stats_model['years_short'] - 5, -nao_stats_model['obs_spna_short'],
                     color='black', linestyle='--')
 
+            # Every odd index: 1, 3, 5, 7, 9, 11
+            # will have a y-axis on the right
+            if i % 2 == 1:
+                ax2.set_ylabel('SPNA index (-celsius)')
+
             # Set the title with the ACC and RPC scores
             ax.set_title(f"ACC = {nao_stats_model['corr1_short']:.2f} ({nao_stats_model['corr1_spna_short']:.2f}) "
                          f"(p = {nao_stats_model['p1_short']:.2f}, {nao_stats_model['p1_spna_short']:.2f}), "
                          f"RPC = {nao_stats_model['RPC1_short']:.2f} ({nao_stats_model['RPC1_spna_short']:.2f}), "
-                         f"N = {nao_stats_model['nens']} ({nao_stats_model['tas_nens']})")
+                         f"N = {nao_stats_model['nens']} ({nao_stats_model['tas_nens']})",
+                         fontsize=9)
 
             # Format the model name in the top left of the figure
-            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+            ax.text(0.95, 0.95, f"{model}", transform=ax.transAxes, ha='right', va='top',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
 
             # Add the legend in the bottom right corner
-            ax.legend(loc='lower right')
+            ax.legend(loc='lower left')
 
         elif short_period == False and lag_and_var_adjust == False:
             print("Plotting the long period and the raw NAO index")
@@ -1578,6 +1584,11 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             ax2.plot(nao_stats_model['years'] - 5, -nao_stats_model['obs_spna'],
                     color='black', linestyle='--')
             
+            # Every odd index: 1, 3, 5, 7, 9, 11
+            # will have a y-axis on the right
+            if i % 2 == 1:
+                ax2.set_ylabel('SPNA index (-celsius)')
+            
             # Plot the 5th and 95th percentiles
             # ax2.fill_between(nao_stats_model['years'] - 5, nao_stats_model['model_spna_ts_min'],
             #                 nao_stats_model['model_spna_ts_max'], color='blue', alpha=0.2)
@@ -1586,14 +1597,15 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             ax.set_title(f"ACC = {nao_stats_model['corr1']:.2f} ({nao_stats_model['corr1_spna']:.2f}) "
                          f"(p = {nao_stats_model['p1']:.2f}, {nao_stats_model['p1_spna']:.2f}), "
                          f"RPC = {nao_stats_model['RPC1']:.2f} ({nao_stats_model['RPC1_spna']:.2f}), "
-                         f"N = {nao_stats_model['nens']} ({nao_stats_model['tas_nens']})")
+                         f"N = {nao_stats_model['nens']} ({nao_stats_model['tas_nens']})",
+                         fontsize=9)
 
             # Format the model name in the top left of the figure
-            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+            ax.text(0.95, 0.95, f"{model}", transform=ax.transAxes, ha='right', va='top',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
 
             # Add the legend in the bottom right corner
-            ax.legend(loc='lower right')
+            ax.legend(loc='lower left')
 
         elif short_period == True and lag_and_var_adjust == True:
             print("Plotting the short period and the lag and variance adjusted NAO index")
@@ -1642,7 +1654,7 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
                          f"N = {nao_stats_model['nens_lag']}")
 
             # Format the model name in the top left of the figure
-            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+            ax.text(0.95, 0.95, f"{model}", transform=ax.transAxes, ha='right', va='top',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
 
             # Add the legend in the bottom right corner
@@ -1691,7 +1703,7 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
                          f"N = {nao_stats_model['nens_lag']}")
 
             # Format the model name in the top left of the figure
-            ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
+            ax.text(0.95, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
                     bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
 
             # Add the legend in the bottom right corner
@@ -1712,10 +1724,6 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
     # Set the x-axis label for the bottom row
     if i >= 10:
         ax.set_xlabel('initialisation year')
-
-    # Set the y-axis label for the right column
-    for ax in axes[1::2]:
-        ax.set_ylabel('SPNA index (-Celsius)')
 
     # Adjust the layout
     plt.tight_layout()
