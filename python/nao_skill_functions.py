@@ -492,6 +492,20 @@ def nao_stats(obs_psl: DataArray,
         # Create a temporary copy of the observations
         obs_tmp = obs_psl.copy()
 
+        # if hindcast_tas is not None then assert that the length of hindcast_psl and hindcast_tas are the same
+        if hindcast_tas is not None:
+            print("comparing tas data to psl data and obs data")
+            # print years1_tas and years1
+            print("years1_tas first year: {}".format(years1_tas[0]))
+            print("years1 first year: {}".format(years1[0]))
+            print("years1_tas last year: {}".format(years1_tas[-1]))
+            print("years1 last year: {}".format(years1[-1]))
+
+            # assert that years1_tas and years1 are the same
+            assert np.array_equal(years1_tas, years1), \
+                "The years in the hindcast data for the {} model are not the same as the years in the hindcast tas data".format(
+                    model)
+            
         # If the values in years1 and years_obs are not the same then raise a value error
         if np.array_equal(years1, years_obs) == False:
             print("The years in the observations are not the same as the years in the hindcast data for the {} model".format(model))
@@ -509,12 +523,8 @@ def nao_stats(obs_psl: DataArray,
             # Extract only the hindcast years from the observations
             obs_tmp = obs_tmp.sel(time=obs_tmp.time.dt.year.isin(years1))
 
-        # if hindcast_tas is not None then assert that the length of hindcast_psl and hindcast_tas are the same
-        if hindcast_tas is not None:
-            print("comparing tas data to psl data and obs data")
-            # print years1_tas and years1
-            print("years1_tas first year: {}".format(years1_tas[0]))
-            print("years1 first year: {}".format(years1[0]))
+        print("years checking complete for the observations and the {} model".format(model))
+        continue
 
         # Assert that year 1 of the observations is the same as year 1 of the hindcast
         assert obs_tmp.time.dt.year.values[0] == years1[0], \
