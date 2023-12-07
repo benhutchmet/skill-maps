@@ -1527,7 +1527,7 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             ax2 = ax.twinx()
 
             # Plot the ensemble mean
-            ax2.plot(nao_stats_model['years_short'] - 5, nao_stats_model['model_spna_short'],
+            ax2.plot(nao_stats_model['years_short'] - 5, -nao_stats_model['model_spna_short'],
                     color='red', linestyle='--')
 
             # Plot the 5th and 95th percentiles
@@ -1535,14 +1535,14 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             #                 nao_stats_model['model_spna_ts_short_max'], color='blue', alpha=0.2)
             
             # Plot the observed NAO index
-            ax2.plot(nao_stats_model['years_short'] - 5, nao_stats_model['obs_spna_short'],
+            ax2.plot(nao_stats_model['years_short'] - 5, -nao_stats_model['obs_spna_short'],
                     color='black', linestyle='--')
 
             # Set the title with the ACC and RPC scores
             ax.set_title(f"ACC = {nao_stats_model['corr1_short']:.2f} ({nao_stats_model['corr1_spna_short']:.2f}) "
                          f"(p = {nao_stats_model['p1_short']:.2f}, {nao_stats_model['p1_spna_short']:.2f}), "
                          f"RPC = {nao_stats_model['RPC1_short']:.2f} ({nao_stats_model['RPC1_spna_short']:.2f}), "
-                         f"N = {nao_stats_model['nens']} ({nao_stats_model['nens_spna']})")
+                         f"N = {nao_stats_model['nens']} ({nao_stats_model['tas_nens']})")
 
             # Format the model name in the top left of the figure
             ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
@@ -1571,11 +1571,11 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             ax2 = ax.twinx()
 
             # Plot the ensemble mean
-            ax2.plot(nao_stats_model['years'] - 5, nao_stats_model['model_spna'],
+            ax2.plot(nao_stats_model['years'] - 5, -nao_stats_model['model_spna'],
                     color='red', linestyle='--')
             
             # Plot the observed NAO index
-            ax2.plot(nao_stats_model['years'] - 5, nao_stats_model['obs_spna'],
+            ax2.plot(nao_stats_model['years'] - 5, -nao_stats_model['obs_spna'],
                     color='black', linestyle='--')
             
             # Plot the 5th and 95th percentiles
@@ -1586,7 +1586,7 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             ax.set_title(f"ACC = {nao_stats_model['corr1']:.2f} ({nao_stats_model['corr1_spna']:.2f}) "
                          f"(p = {nao_stats_model['p1']:.2f}, {nao_stats_model['p1_spna']:.2f}), "
                          f"RPC = {nao_stats_model['RPC1']:.2f} ({nao_stats_model['RPC1_spna']:.2f}), "
-                         f"N = {nao_stats_model['nens']} ({nao_stats_model['nens_spna']})")
+                         f"N = {nao_stats_model['nens']} ({nao_stats_model['tas_nens']})")
 
             # Format the model name in the top left of the figure
             ax.text(0.05, 0.95, f"{model}", transform=ax.transAxes, ha='left', va='top',
@@ -1712,6 +1712,10 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
     # Set the x-axis label for the bottom row
     if i >= 10:
         ax.set_xlabel('initialisation year')
+
+    # Set the y-axis label for the right column
+    for ax in axes[1::2]:
+        ax.set_ylabel('SPNA index (-Celsius)')
 
     # Adjust the layout
     plt.tight_layout()
