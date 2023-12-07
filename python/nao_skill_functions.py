@@ -735,6 +735,12 @@ def nao_stats(obs_psl: DataArray,
 
             # # Now remove the first lag - 1 years from the NAO index
             # nao_members_lag[i, lag - 1:] = np.nan
+            # Logging the shapes of the arrays
+            print("nao_members shape: {}".format(nao_members.shape))
+            print("nao_members_short shape: {}".format(
+                nao_members_short.shape))
+            print("nao_member shape: {}".format(nao_member.shape))
+            print("nao_member_short shape: {}".format(nao_member_short.shape))
 
             # Append the NAO index to the members array
             nao_members[i, :] = nao_member
