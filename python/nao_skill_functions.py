@@ -2107,9 +2107,447 @@ def plot_multi_model_mean(nao_stats_dict: dict,
     # Adjust the layout
     plt.tight_layout()
 
+# Define a function for SPNA and NAO MM means
+def plot_multi_model_mean(nao_stats_dict: dict,
+                          models_list: List[str],
+                          lag_and_var_adjust: bool = False
+                          ) -> None:
+    """
+    Plots the multi-model mean NAO time series for the short period (left plot)
+    and long period (right plot) during the winter season (DJFM).
+    The skill is assessed using the correlation, p-value and RPC.
+
+    Plots can be determined by a series of boolean flags.
+
+    Inputs:
+    -------
+
+    nao_stats_dict: dict[dict]
+        A dictionary containing the NAO stats for each model. The keys are
+        the model names and the values are a dictionary containing the NAO
+        stats for that model.
+
+    models_list: List[str]
+        A list of the model names which are used to calculate the multi-model
+        mean.
+
+    lag_and_var_adjust: bool
+        If True then the lag and variance adjusted NAO index is plotted.
+        Default is False.
+
+    Outputs:
+    --------
+    None
+
+    """
+
+    # Set up the length of the time series for raw and lagged
+    nyears_short = len(np.arange(1966, 2010 + 1))
+    nyears_long = len(np.arange(1966, 2019 + 1))
+
+    # lagged time series
+    nyears_short_lag = len(np.arange(1969, 2010 + 1))
+    nyears_long_lag = len(np.arange(1969, 2019 + 1))
+
+    # Print statements indicating the boolean flags
+    if lag_and_var_adjust is True:
+        print("Plotting the lag and variance adjusted NAO index")
+
+        # Set up a counter for the number of lagged ensemble members
+        total_lagged_nens = 0
+
+        # Set up a counter for the number of lagged ensemble members
+        total_tas_nens = 0
+
+        # Loop over the models
+        for model in models_list:
+            # Extract the NAO stats for this model
+            nao_stats_model = nao_stats_dict[model]
+
+            # Add the number of lagged ensemble members to the counter
+            total_lagged_nens += nao_stats_model['nens_lag']
+
+            # Total tas nens
+            total_tas_nens += nao_stats_model['tas_nens']
+
+        # Create an empty array to store the lagged ensemble members
+        lagged_nao_members = np.zeros([total_lagged_nens, nyears_long_lag])
+
+        # Create an empty array to store the lagged ensemble members
+        lagged_nao_members_short = np.zeros(
+            [total_lagged_nens, nyears_short_lag])
+
+    else:
+        print("Plotting the raw NAO index")
+
+        # Set up a counter for the number of ensemble members
+        total_nens = 0
+
+        # Set up a counter for the number of ensemble members
+        total_tas_nens = 0
+
+        # Loop over the models
+        for model in models_list:
+            # Extract the NAO stats for this model
+            nao_stats_model = nao_stats_dict[model]
+
+            # Add the number of ensemble members to the counter
+            total_nens += nao_stats_model['nens']
+
+            # Total tas nens
+            total_tas_nens += nao_stats_model['tas_nens']
+
+        # Create an empty array to store the ensemble members
+        nao_members = np.zeros([total_nens, nyears_long])
+
+        # Create an empty array to store the ensemble members
+        nao_members_short = np.zeros([total_nens, nyears_short])
+
+    # Set up the empty arrays for the SPNA
+    spna_members = np.zeros([total_tas_nens, nyears_long])
+
+    # Set up the empty arrays for the SPNA
+    spna_members_short = np.zeros([total_tas_nens, nyears_short])
+
+    # Set up the figure
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(16, 4),
+                             sharex=True, sharey=True)
+
+    # Set up the axes
+    ax1 = axes[0]
+    ax2 = axes[1]
+
+    # Initialise the counter
+    current_index = 0
+
+    # Iterate over the models
+    for i, model in enumerate(models_list):
+        print("Extracting ensemble members from the {} model".format(model))
+
+        # Extract the NAO stats for this model
+        nao_stats_model = nao_stats_dict[model]
+
+        # Set up the boolean flags
+        if lag_and_var_adjust is False:
+            print("Extracting members for the raw NAO index")
+
+            # Loop over the members
+            for i in range(nao_stats_model['nens']):
+                print("Extracting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member = nao_stats_model['model_nao_ts_members'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # extract the short period
+                nao_member_short = nao_stats_model['model_nao_ts_members_short'][i, :]
+                print("NAO index extracted for short period for member {}".format(i))
+
+                # Extract the SPNA index for this member
+                spna_member = nao_stats_model['model_spna_members'][i, :]
+                print("SPNA index extracted for member {}".format(i))
+
+                # extract the short period
+                spna_member_short = nao_stats_model['model_spna_members_short'][i, :]
+                print("SPNA index extracted for short period for member {}".format(i))
+
+                # If the model is not BCC-CSM2-MR
+                # then we need to skip over the 0th time index
+                if model != "BCC-CSM2-MR":
+                    # Append this member to the array
+                    nao_members[current_index, :] = nao_member[1:]
+
+                    # Append this member to the array
+                    nao_members_short[current_index, :] = nao_member_short[1:]
+
+                    # Append this member to the array
+                    spna_members[current_index, :] = spna_member[1:]
+
+                    # Append this member to the array
+                    spna_members_short[current_index, :] = spna_member_short[1:]
+                else:
+                    # Append this member to the array
+                    nao_members[current_index, :] = nao_member
+
+                    # Append this member to the array
+                    nao_members_short[current_index, :] = nao_member_short
+
+                    # Append this member to the array
+                    spna_members[current_index, :] = spna_member
+
+                    # Append this member to the array
+                    spna_members_short[current_index, :] = spna_member_short
+
+                # Increment the counter
+                current_index += 1
+
+        elif lag_and_var_adjust is True:
+            print("Extracting members for the lag and variance adjusted NAO index")
+
+            # Loop over the members
+            for i in range(nao_stats_model['nens_lag']):
+                print("Extracting member {}".format(i))
+
+                # Extract the NAO index for this member
+                nao_member = nao_stats_model['model_nao_ts_lag_members'][i, :]
+                print("NAO index extracted for member {}".format(i))
+
+                # extract the short period
+                nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
+                print("NAO index extracted for short period for member {}".format(i))
+
+                # Extract the SPNA index for this member
+                spna_member = nao_stats_model['model_spna_members'][i, :]
+
+                # extract the short period
+                spna_member_short = nao_stats_model['model_spna_members_short'][i, :]
+
+                # If the model is not BCC-CSM2-MR
+                # then we need to skip over the 0th time index
+                if model != "BCC-CSM2-MR":
+                    # Append this member to the array
+                    lagged_nao_members[current_index, :] = nao_member[1:]
+
+                    # Append this member to the array
+                    lagged_nao_members_short[current_index,
+                                             :] = nao_member_short[1:]
+                    
+                    # Append this member to the array
+                    spna_members[current_index, :] = spna_member[1:]
+
+                    # Append this member to the array
+                    spna_members_short[current_index, :] = spna_member_short[1:]
+                else:
+                    # Append this member to the array
+                    lagged_nao_members[current_index, :] = nao_member
+
+                    # Append this member to the array
+                    lagged_nao_members_short[current_index,
+                                             :] = nao_member_short
+                    
+                    # Append this member to the array
+                    spna_members[current_index, :] = spna_member
+
+                    # Append this member to the array
+                    spna_members_short[current_index, :] = spna_member_short
+
+                # Increment the counter
+                current_index += 1
+
+        else:
+            raise ValueError("The boolean flags are not set up correctly")
+
+    # Now for the plotting
+    # Set up the boolean flags
+    if lag_and_var_adjust is False:
+        print("Plotting the raw NAO index")
+
+        # count the number of ensemble members
+        total_nens = nao_members.shape[0]
+
+        # Count the total tas nens
+        total_tas_nens = spna_members.shape[0]
+
+        # Calculate the ensemble mean
+        nao_mean = np.mean(nao_members, axis=0)
+
+        # Calculate the ensemble mean for the short period
+        nao_mean_short = np.mean(nao_members_short, axis=0)
+
+        # Calculate the SPNA index ensemble mean
+        spna_mean = np.mean(spna_members, axis=0)
+
+        # Calculate the SPNA index ensemble mean for the short period
+        spna_mean_short = np.mean(spna_members_short, axis=0)
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1, p1 = pearsonr(nao_mean,
+                             nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts'])
+        
+        
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1_short, p1_short = pearsonr(nao_mean_short,
+                                         nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_short'])
+
+        # Calculate the RPC between the model NAO index and the observed NAO index
+        rpc1 = corr1 / (np.std(nao_mean) / np.std(nao_members))
+
+        # Calculate the RPC between the model NAO index and the observed NAO index
+        rpc1_short = corr1_short / \
+            (np.std(nao_mean_short) / np.std(nao_members_short))
+
+        # Calculate the 5th and 95th percentiles
+        nao_mean_min = np.percentile(nao_members, 5, axis=0)
+        nao_mean_max = np.percentile(nao_members, 95, axis=0)
+
+        # Calculate the 5th and 95th percentiles
+        nao_mean_short_min = np.percentile(nao_members_short, 5, axis=0)
+        nao_mean_short_max = np.percentile(nao_members_short, 95, axis=0)
+
+        # Plot the ensemble mean
+        ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - 5, nao_mean / 100,
+                 color='red', label='dcppA')
+
+        # Plot the observed NAO index - time valid for BCC-CSM2-MR
+        model = "BCC-CSM2-MR"
+
+        # Extract the NAO stats for this model
+        ax2.plot(nao_stats_dict[model]['years'] - 5, nao_stats_dict[model]['obs_nao_ts'] / 100,
+                 color='black', label='ERA5')
+
+        # Plot the 5th and 95th percentiles
+        ax2.fill_between(nao_stats_dict['BCC-CSM2-MR']['years'] - 5, nao_mean_min / 100,
+                         nao_mean_max / 100, color='red', alpha=0.2)
+
+        # Plot the ensemble mean
+        ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_short'] - 5, nao_mean_short / 100,
+                 color='red', label='dcppA')
+
+        # Plot the observed NAO index - time valid for BCC-CSM2-MR
+        ax1.plot(nao_stats_dict[model]['years_short'] - 5, nao_stats_dict[model]['obs_nao_ts_short'] / 100,
+                 color='black', label='ERA5')
+
+        # Plot the 5th and 95th percentiles
+        ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_short'] - 5, nao_mean_short_min / 100,
+                         nao_mean_short_max / 100, color='red', alpha=0.2)
+
+    elif lag_and_var_adjust is True:
+        print("Plotting the lag and variance adjusted NAO index")
+
+        # count the number of ensemble members
+        total_nens = lagged_nao_members.shape[0]
+
+        # Calculate the ensemble mean
+        nao_mean = np.mean(lagged_nao_members, axis=0)
+
+        # Calculate the ensemble mean for the short period
+        nao_mean_short = np.mean(lagged_nao_members_short, axis=0)
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1, p1 = pearsonr(nao_mean,
+                             nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'])
+
+        # Calculate the correlation between the model NAO index and the observed NAO index
+        corr1_short, p1_short = pearsonr(nao_mean_short,
+                                         nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag_short'])
+
+        # Calculate the RPC between the model NAO index and the observed NAO index
+        rpc1 = corr1 / (np.std(nao_mean) / np.std(lagged_nao_members))
+
+        # Calculate the RPC between the model NAO index and the observed NAO index
+        rpc1_short = corr1_short / \
+            (np.std(nao_mean_short) / np.std(lagged_nao_members_short))
+
+        # Calculate the RPS between the model NAO index and the observed NAO index
+        rps1 = rpc1 * \
+            (np.std(nao_stats_dict['BCC-CSM2-MR']
+             ['obs_nao_ts_lag']) / np.std(lagged_nao_members))
+
+        # Calculate the RPS between the model NAO index and the observed NAO index
+        rps1_short = rpc1_short * \
+            (np.std(nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag_short']
+                    ) / np.std(lagged_nao_members_short))
+
+        # Adjust the variance of the lagged NAO index
+        nao_var_adjust = nao_mean * rps1
+
+        # Adjust the variance of the lagged NAO index
+        nao_var_adjust_short = nao_mean_short * rps1_short
+
+        # Calculate the RMSE between the ensemble mean and observations
+        rmse = np.sqrt(np.mean((nao_var_adjust
+                                - nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'])**2))
+
+        # Calculate the rmse for the short period
+        rmse_short = np.sqrt(np.mean((nao_var_adjust_short
+                                      - nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag_short'])**2))
+
+        # Calculate the upper and lower confidence intervals
+        ci_lower = nao_var_adjust - (rmse)
+        ci_upper = nao_var_adjust + (rmse)
+
+        # Calculate the upper and lower confidence intervals
+        ci_lower_short = nao_var_adjust_short - (rmse_short)
+        ci_upper_short = nao_var_adjust_short + (rmse_short)
+
+        # Plot the ensemble mean
+        ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, nao_var_adjust / 100,
+                 color='red', label='dcppA')
+
+        # Plot the observed NAO index - time valid for BCC-CSM2-MR
+        model = "BCC-CSM2-MR"
+
+        # Extract the NAO stats for this model
+        ax2.plot(nao_stats_dict[model]['years_lag'] - 5, nao_stats_dict[model]['obs_nao_ts_lag'] / 100,
+                 color='black', label='ERA5')
+
+        # Plot the 5th and 95th percentiles
+        ax2.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, ci_lower / 100,
+                         ci_upper / 100, color='red', alpha=0.2)
+
+        # Plot the ensemble mean
+        ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, nao_var_adjust_short / 100,
+                 color='red', label='dcppA')
+
+        # Plot the observed NAO index - time valid for BCC-CSM2-MR
+        ax1.plot(nao_stats_dict[model]['years_lag_short'] - 5,
+                 nao_stats_dict[model]['obs_nao_ts_lag_short'] / 100,
+                 color='black', label='ERA5')
+
+        # Plot the 5th and 95th percentiles
+        ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, ci_lower_short / 100,
+                         ci_upper_short / 100, color='red', alpha=0.2)
+
+    else:
+        raise ValueError("The boolean flags are not set up correctly")
+
+        # Set the title with the ACC and RPC scores
+    ax1.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
+                  f"RPC = {rpc1:.2f}, "
+                  f"N = {total_nens}")
+
+    # Set the title with the ACC and RPC scores
+    ax2.set_title(f"ACC = {corr1_short:.2f} (p = {p1_short:.2f}), "
+                  f"RPC = {rpc1_short:.2f}, "
+                  f"N = {total_nens}")
+
+    # Format the initialisation year range in the top left of the figure
+    ax1.text(0.05, 0.95, "1961-2005", transform=ax1.transAxes, ha='left', va='top',
+             bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+    # Format the initialisation year range in the top left of the figure
+    ax2.text(0.05, 0.95, "1961-2014", transform=ax2.transAxes, ha='left', va='top',
+             bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+
+    # Add the legend in the bottom right corner
+    ax1.legend(loc='lower right')
+
+    # Add the legend in the bottom right corner
+    ax2.legend(loc='lower right')
+
+    # Set the axhline
+    ax1.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+
+    # Set the axhline
+    ax2.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+
+    # Set the y-axis label for the left column
+    ax1.set_ylabel('NAO (hPa)')
+
+    # Set the ylims
+    ax1.set_ylim([-10, 10])
+
+    # Set the x-axis label for the bottom row
+    plt.xlabel('initialisation year')
+
+    # Adjust the layout
+    plt.tight_layout()
+
+
+
+
 # Define a function to calculate the SPNA temperature index
-
-
 def calculate_spna_index(t_anom,
                          gridbox=dic.spna_grid):
     """
