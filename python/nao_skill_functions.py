@@ -305,7 +305,7 @@ def nao_stats(obs_psl: DataArray,
         }
 
         # Extract the list of hindcast DataArrays for this model
-        hindcast_list = hindcast[model]
+        hindcast_list = hindcast_psl[model]
 
         # Ensure that each of the data arrays has the same time axis
         # Extract the years for the first member
@@ -335,6 +335,60 @@ def nao_stats(obs_psl: DataArray,
         assert len(years1) >= 10, \
             "There are less than 10 years in the hindcast data for the {} model".format(
                 model)
+        
+        # If hindcast_tas is not None then assert that the length of hindcast_psl and hindcast_tas are the same
+        if hindcast_tas is not None:
+            print("checking that the length of hindcast_psl and hindcast_tas are the same")
+
+            # Extract the list of hindcast DataArrays for this model
+            hindcast_list_tas = hindcast_tas[model]
+
+            # Extract the years for the first member
+            years1_tas = hindcast_list_tas[0].time.dt.year.values
+
+            # Limit years to those below 2020
+            years1_tas = years1_tas[years1_tas < 2020]
+
+            # Assert that this doesn't have any duplicate values
+            assert len(years1_tas) == len(set(years1_tas)), \
+                "The years in the hindcast data for the {} model are not unique".format(
+                    model)
+            
+            # If there is a gap of more than one year between the years then raise a value error
+            if np.any(np.diff(years1_tas) > 1):
+                print("There is a gap of more than one year in the hindcast data for the {} model".format(
+                    model))
+                # Find the indices of the gaps
+                gap_indices = np.where(np.diff(years1_tas) > 1)[0]
+
+                # print the years of the gaps
+                print(f"The years of the gaps are: {years1_tas[gap_indices-1]} and {years1_tas[gap_indices]} and {years1_tas[gap_indices+1]}")
+
+
+            # Assert that there are no gaps of more than one year between the years
+            assert np.all(np.diff(years1_tas) <= 1), \
+                "There is a gap of more than one year in the hindcast data for the {} model".format(
+                    model)
+            
+            # Assert that there are at least 10 years in the hindcast data
+            assert len(years1_tas) >= 10, \
+                "There are less than 10 years in the hindcast data for the {} model".format(
+                    model)
+
+            # if the model is BCC-CSM2-MR
+            # then check years1_tas has years 1966 to 2019
+            if model == 'BCC-CSM2-MR':
+                print("checking that the years for BCC-CSM2-MR are 1966 to 2019")
+                assert np.array_equal(years1_tas, np.arange(1966, 2020)), \
+                    "The years for BCC-CSM2-MR are not 1966 to 2019"
+                
+            else:
+                # Check that years 1965 to 2019 are in years1_tas
+                print("checking that the years for {} are 1965 to 2019".format(model))
+                assert np.array_equal(years1_tas, np.arange(1965, 2020)), \
+                    "The years for {} are not 1965 to 2019".format(model)
+
+        print("years checking complete for the {} model".format(model))
 
         # Loop over the remaining members
         for member in hindcast_list[1:]:
@@ -366,7 +420,7 @@ def nao_stats(obs_psl: DataArray,
 
         # Ensure that the observations and the hindcast have the same time axis
         # Extract the years for the observations
-        years_obs = obs.time.dt.year.values
+        years_obs = obs_psl.time.dt.year.values
 
         # Assert that this doesn't have any duplicate values
         assert len(years_obs) == len(set(years_obs)), \
@@ -381,11 +435,11 @@ def nao_stats(obs_psl: DataArray,
             "There are less than 10 years in the observations"
 
         # Assert that there are no NaNs in the observations
-        assert np.all(np.isnan(obs) == False), \
+        assert np.all(np.isnan(obs_psl) == False), \
             "There are NaNs in the observations"
 
         # Create a temporary copy of the observations
-        obs_tmp = obs.copy()
+        obs_tmp = obs_psl.copy()
 
         # If the values in years1 and years_obs are not the same then raise a value error
         if np.array_equal(years1, years_obs) == False:
