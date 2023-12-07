@@ -149,12 +149,15 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
             # Load the dataset.
             dataset = xr.open_dataset(file, chunks = {"time":50, "lat":100, "lon":100})
 
+            # Hard code psl to be extracted from the dataset
+            dataset = dataset[variable]
+
             # Extract the years from the dataset.
-            years = dataset["time.year"]
+            years = dataset["time.year"].values
 
             # Assert that years does not have any duplicates.
-            assert len(years) == len(set(years), \
-                f"Duplicate years found in {file}")
+            assert len(years) == len(set(years)), \
+                f"Duplicate years found in {file}"
             
             # Check if there are any gaps of more than one year between the years
             if not np.all(np.diff(years) <= 1):
