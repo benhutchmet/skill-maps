@@ -180,6 +180,16 @@ iceland_grid_corrected = {
     'lat2': 70
 }
 
+# SPNA grid box
+# 49 - 57 * N
+# 50 - 25 * W
+spna_grid = {
+    'lon1': -50,
+    'lon2': -25,
+    'lat1': 49,
+    'lat2': 57
+}
+
 # Create a dictionary containing both azores grid corrected
 # and iceland grid corrected
 nao_skill_grid = {

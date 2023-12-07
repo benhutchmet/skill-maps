@@ -523,8 +523,8 @@ def nao_stats(obs_psl: DataArray,
             # Extract only the hindcast years from the observations
             obs_tmp = obs_tmp.sel(time=obs_tmp.time.dt.year.isin(years1))
 
-        print("years checking complete for the observations and the {} model".format(model))
-        continue
+        # print("years checking complete for the observations and the {} model".format(model))
+        # continue
 
         # Assert that year 1 of the observations is the same as year 1 of the hindcast
         assert obs_tmp.time.dt.year.values[0] == years1[0], \
@@ -580,6 +580,14 @@ def nao_stats(obs_psl: DataArray,
 
         # Append the nens to the dictionary
         nao_stats_dict[model]['nens'] = len(hindcast_list)
+
+        # If hindcast_tas is not None
+        if hindcast_tas is not None:
+
+            # Append the nens to the dictionary
+            nao_stats_dict[model]['tas_nens'] = len(hindcast_list_tas)
+
+            # TODO: function for calculating SPNA index
 
         # Calculate the observed NAO index
         obs_nao = calculate_obs_nao(obs_anomaly=obs_tmp,
@@ -1575,4 +1583,37 @@ def plot_multi_model_mean(nao_stats_dict: dict,
 
     # Adjust the layout
     plt.tight_layout()
+
+# Define a function to calculate the SPNA temperature index
+def calculate_spna_index(t_anom,
+                         gridbox = dic.spna_grid):
+    """
+    Calculates the SPNA index from a given temperature anomaly field.
+
+    Inputs:
+    -------
+
+    t_anom: DataArray
+        A 3D array of temperature anomalies with dimensions (time, lat, lon).
+
+    gridbox: dict
+        A dictionary containing the lat/lon bounds for the SPNA region.
+
+    Outputs:
+    --------
+
+    spna_index: DataArray
+        A 1D array of the SPNA index with dimensions (time).
+
+    """
+
+    # Extract the lat/lon bounds
+    lon1, lon2 = gridbox['lon1'], gridbox['lon2']
+    lat1, lat2 = gridbox['lat1'], gridbox['lat2']
+
+    # Take the mean over the lat/lon bounds
+    spna_index = t_anom.sel(lat=slice(lat1, lat2), lon=slice(lon1, lon2)).mean(dim=['lat', 'lon'])
+
+    # Return the SPNA index
+    return spna_index
 
