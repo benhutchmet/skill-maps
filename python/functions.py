@@ -150,10 +150,17 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
             dataset = xr.open_dataset(file, chunks = {"time":50, "lat":100, "lon":100})
 
             # Hard code psl to be extracted from the dataset
-            dataset = dataset[variable]
+            dataset_var = dataset[variable]
 
             # Extract the years from the dataset.
-            years = dataset["time.year"].values
+            years = dataset_var["time.year"].values
+
+            # If time range is 2-9
+            # then remove 2020 and years following 2020 from the dataset
+            if forecast_range == "2-9":
+                #print("Removing 2020 and years following 2020 from the years array")
+                #print("Years before removing 2020 and years following 2020: ", years)
+                years = years[years < 2020]
 
             # Assert that years does not have any duplicates.
             assert len(years) == len(set(years)), \
@@ -161,14 +168,17 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
             
             # Check if there are any gaps of more than one year between the years
             if not np.all(np.diff(years) <= 1):
+                print(f"Non-consecutive years found in {file}: {years}")
                 # Find where the years are not consecutive
                 index = np.where(np.diff(years) != 1)[0]
                 
                 # Print the years where the years are not consecutive
                 print(f"Non-consecutive years found in {file}: {years[index - 1]}-{years[index]}-{years[index + 1]}")
                 
-                # Raise an exception with the error message
-                raise ValueError("There is a gap of more than one year in the data.")
+                # print a warning and exit the program
+                print(f"Member: {file} has non-consecutive years")
+                print("Will not be included in the analysis")
+                continue
 
             # Append the dataset to the list of datasets for this model.
             datasets_by_model[model].append(dataset)
