@@ -2389,15 +2389,32 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
                          nao_stats_dict['BCC-CSM2-MR']['obs_spna'])
 
     # Calculate the correlation between the model SPNA index and the observed SPNA index
+    # sKip out the first 3 years of the SPNA index for the laggged period
+    corr2_lag, p2_lag = pearsonr(spna_mean[3:],
+                                 nao_stats_dict['BCC-CSM2-MR']['obs_spna'][3:])
+
+    # Calculate the correlation between the model SPNA index and the observed SPNA index
     corr2_short, p2_short = pearsonr(spna_mean_short,
                                      nao_stats_dict['BCC-CSM2-MR']['obs_spna_short'])
+
+    # Skip out the first 3 years of the SPNA index for the laggged period
+    corr2_short_lag, p2_short_lag = pearsonr(spna_mean_short[3:],
+                                             nao_stats_dict['BCC-CSM2-MR']['obs_spna_short'][3:])
 
     # Calculate the RPC between the model SPNA index and the observed SPNA index
     rpc2 = corr2 / (np.std(spna_mean) / np.std(spna_members))
 
     # Calculate the RPC between the model SPNA index and the observed SPNA index
+    # for the lagged period
+    rpc2_lag = corr2_lag / (np.std(spna_mean[3:]) / np.std(spna_members[3:]))
+
+    # Calculate the RPC between the model SPNA index and the observed SPNA index
     rpc2_short = corr2_short / \
         (np.std(spna_mean_short) / np.std(spna_members_short))
+
+    # Calculate the RPC between the model SPNA index and the observed SPNA index
+    rpc2_short_lag = corr2_short_lag / \
+        (np.std(spna_mean_short[3:]) / np.std(spna_members_short[3:]))
 
     # Calculate the 5th and 95th percentiles
     # spna_mean_min = np.percentile(spna_members, 5, axis=0)
@@ -2615,37 +2632,46 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
     else:
         raise ValueError("The boolean flags are not set up correctly")
 
-
-
-
     if lag_and_var_adjust is False:
         # Set the title with the ACC and RPC scores
         ax1.set_title(f"ACC = {corr1_short:.2f} ({corr2_short:.2f}), "
-                    f"p = {p1_short:.2f}, {p2_short:.2f}, "
-                    f"RPC = {rpc1_short:.2f}, ({rpc2_short:.2f}) "
-                    f"N = {total_nens} ({total_tas_nens})")
+                      f"p = {p1_short:.2f}, {p2_short:.2f}, "
+                      f"RPC = {rpc1_short:.2f}, ({rpc2_short:.2f}) "
+                      f"N = {total_nens} ({total_tas_nens})")
 
         # Set the title with the ACC and RPC scores
         ax2.set_title(f"ACC = {corr1:.2f} ({corr2:.2f}), "
-                    f"p = {p1:.2f}, {p2:.2f}, "
-                    f"RPC = {rpc1:.2f}, ({rpc2:.2f}) "
-                    f"N = {total_nens} ({total_tas_nens})")
+                      f"p = {p1:.2f}, {p2:.2f}, "
+                      f"RPC = {rpc1:.2f}, ({rpc2:.2f}) "
+                      f"N = {total_nens} ({total_tas_nens})")
 
         # Format the initialisation year range in the top left of the figure
         ax1.text(0.05, 0.95, "1961-2005", transform=ax1.transAxes, ha='left', va='top',
-                bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+                 bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
 
         # Format the initialisation year range in the top left of the figure
         ax2.text(0.05, 0.95, "1961-2014", transform=ax2.transAxes, ha='left', va='top',
-                bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+                 bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
     elif lag_and_var_adjust is True:
+        # Set the title with the ACC and RPC scores
+        ax1.set_title(f"ACC = {corr1_short:.2f} ({corr2_short_lag:.2f}), "
+                        f"p = {p1_short:.2f}, {p2_short_lag:.2f}, "
+                        f"RPC = {rpc1_short:.2f}, ({rpc2_short_lag:.2f}) "
+                        f"N = {total_nens} ({total_tas_nens})")
+        
+        # Set the title with the ACC and RPC scores
+        ax2.set_title(f"ACC = {corr1:.2f} ({corr2_lag:.2f}), "
+                        f"p = {p1:.2f}, {p2_lag:.2f}, "
+                        f"RPC = {rpc1:.2f}, ({rpc2_lag:.2f}) "
+                        f"N = {total_nens} ({total_tas_nens})")
+
         # Format the initialisation year range in the top left of the figure
         ax1.text(0.05, 0.95, "1964-2005", transform=ax1.transAxes, ha='left', va='top',
-                bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+                 bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
 
         # Format the initialisation year range in the top left of the figure
         ax2.text(0.05, 0.95, "1964-2014", transform=ax2.transAxes, ha='left', va='top',
-                bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
+                 bbox=dict(facecolor='white', alpha=0.5), fontsize=10)
     else:
         raise ValueError("The boolean flags are not set up correctly")
 
