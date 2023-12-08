@@ -497,8 +497,9 @@ def nao_stats(obs_psl: DataArray,
         # Create a temporary copy of the observations
         obs_tmp = obs_psl.copy()
 
-        # Create a temporary copy of the observations
-        obs_tmp_tas = obs_tas.copy()
+        if hindcast_tas is not None:
+            # Create a temporary copy of the observations
+            obs_tmp_tas = obs_tas.copy()
 
         # if hindcast_tas is not None then assert that the length of hindcast_psl and hindcast_tas are the same
         if hindcast_tas is not None:
