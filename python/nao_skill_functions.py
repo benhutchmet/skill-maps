@@ -2607,7 +2607,7 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
 
         # Plot the ensemble mean
         ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, nao_var_adjust_short / 100,
-                 color='red')
+                 color='red', label='dcppA')
 
         # Plot the observed NAO index - time valid for BCC-CSM2-MR
         ax1.plot(nao_stats_dict[model]['years_lag_short'] - 5,
