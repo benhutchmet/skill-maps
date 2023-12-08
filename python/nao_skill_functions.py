@@ -2527,10 +2527,28 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Extract the NAO stats for this model
         ax2.plot(nao_stats_dict[model]['years_lag'] - 5, nao_stats_dict[model]['obs_nao_ts_lag'] / 100,
                  color='black', label='ERA5')
+        
+        # Plot the ensemble mean
+        ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, nao_var_adjust / 100,
+                    color='red', label='dcppA')
 
         # Plot the 5th and 95th percentiles
         ax2.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, ci_lower / 100,
                          ci_upper / 100, color='red', alpha=0.2)
+        
+        # Create a twin axis
+        ax2b = ax2.twinx()
+
+        # Plot the ensemble mean SPNA
+        ax2b.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, -spna_mean[3:],
+                    color='red', linestyle='--')
+        
+        # Plot the observed SPNA index - time valid for BCC-CSM2-MR
+        ax2b.plot(nao_stats_dict[model]['years_lag'] - 5, -nao_stats_dict[model]['obs_spna'][3:],
+                    color='black', linestyle='--')
+        
+        # Set up the y-axis label
+        ax2b.set_ylabel('SPNA index (-celsius)')
 
         # Plot the ensemble mean
         ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, nao_var_adjust_short / 100,
@@ -2544,19 +2562,32 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Plot the 5th and 95th percentiles
         ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, ci_lower_short / 100,
                          ci_upper_short / 100, color='red', alpha=0.2)
+        
+        # Create a twin axis
+        ax1b = ax1.twinx()
+
+        # Plot the ensemble mean SPNA
+        ax1b.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, -spna_mean_short[3:],
+                    color='red', linestyle='--')
+        
+        # Plot the observed SPNA index - time valid for BCC-CSM2-MR
+        ax1b.plot(nao_stats_dict[model]['years_lag_short'] - 5, -nao_stats_dict[model]['obs_spna_short'][3:],
+                    color='black', linestyle='--')
 
     else:
         raise ValueError("The boolean flags are not set up correctly")
 
         # Set the title with the ACC and RPC scores
-    ax1.set_title(f"ACC = {corr1_short:.2f} (p = {p1_short:.2f}), "
-                  f"RPC = {rpc1_short:.2f}, "
-                  f"N = {total_nens}")
+    ax1.set_title(f"ACC = {corr1_short:.2f} ({corr2_short:.2f}), "
+                  f"p = {p1_short:.2f}, {p2_short:.2f}, "
+                  f"RPC = {rpc1_short:.2f}, ({rpc2_short:.2f}) "
+                  f"N = {total_nens} ({total_tas_nens})")
 
     # Set the title with the ACC and RPC scores
-    ax2.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
-                  f"RPC = {rpc1:.2f}, "
-                  f"N = {total_nens}")
+    ax2.set_title(f"ACC = {corr1:.2f} ({corr2:.2f}), "
+                  f"p = {p1:.2f}, {p2:.2f}, "
+                  f"RPC = {rpc1:.2f}, ({rpc2:.2f}) "
+                  f"N = {total_nens} ({total_tas_nens})")
 
     # Format the initialisation year range in the top left of the figure
     ax1.text(0.05, 0.95, "1961-2005", transform=ax1.transAxes, ha='left', va='top',
