@@ -2549,13 +2549,13 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         raise ValueError("The boolean flags are not set up correctly")
 
         # Set the title with the ACC and RPC scores
-    ax1.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
-                  f"RPC = {rpc1:.2f}, "
+    ax1.set_title(f"ACC = {corr1_short:.2f} (p = {p1_short:.2f}), "
+                  f"RPC = {rpc1_short:.2f}, "
                   f"N = {total_nens}")
 
     # Set the title with the ACC and RPC scores
-    ax2.set_title(f"ACC = {corr1_short:.2f} (p = {p1_short:.2f}), "
-                  f"RPC = {rpc1_short:.2f}, "
+    ax2.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
+                  f"RPC = {rpc1:.2f}, "
                   f"N = {total_nens}")
 
     # Format the initialisation year range in the top left of the figure
