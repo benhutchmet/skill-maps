@@ -2221,6 +2221,9 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
     # Initialise the counter
     current_index = 0
 
+    # Initialise the counter
+    current_index_tas = 0
+
     # Iterate over the models
     for i, model in enumerate(models_list):
         print("Extracting ensemble members from the {} model".format(model))
@@ -2244,6 +2247,29 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
                 nao_member_short = nao_stats_model['model_nao_ts_members_short'][i, :]
                 print("NAO index extracted for short period for member {}".format(i))
 
+                # If the model is not BCC-CSM2-MR
+                # then we need to skip over the 0th time index
+                if model != "BCC-CSM2-MR":
+                    # Append this member to the array
+                    nao_members[current_index, :] = nao_member[1:]
+
+                    # Append this member to the array
+                    nao_members_short[current_index, :] = nao_member_short[1:]
+
+                else:
+                    # Append this member to the array
+                    nao_members[current_index, :] = nao_member
+
+                    # Append this member to the array
+                    nao_members_short[current_index, :] = nao_member_short
+
+                # Increment the counter
+                current_index += 1
+
+            # Seperate loop for the tas members
+            for i in range(nao_stats_model['tas_nens']):
+                print("Extracting tas member {}".format(i))
+
                 # Extract the SPNA index for this member
                 spna_member = nao_stats_model['model_spna_members'][i, :]
                 print("SPNA index extracted for member {}".format(i))
@@ -2256,31 +2282,20 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    nao_members[current_index, :] = nao_member[1:]
+                    spna_members[current_index_tas, :] = spna_member[1:]
 
                     # Append this member to the array
-                    nao_members_short[current_index, :] = nao_member_short[1:]
+                    spna_members_short[current_index_tas, :] = spna_member_short[1:]
 
-                    # Append this member to the array
-                    spna_members[current_index, :] = spna_member[1:]
-
-                    # Append this member to the array
-                    spna_members_short[current_index, :] = spna_member_short[1:]
                 else:
                     # Append this member to the array
-                    nao_members[current_index, :] = nao_member
+                    spna_members[current_index_tas, :] = spna_member
 
                     # Append this member to the array
-                    nao_members_short[current_index, :] = nao_member_short
-
-                    # Append this member to the array
-                    spna_members[current_index, :] = spna_member
-
-                    # Append this member to the array
-                    spna_members_short[current_index, :] = spna_member_short
+                    spna_members_short[current_index_tas, :] = spna_member_short
 
                 # Increment the counter
-                current_index += 1
+                current_index_tas += 1
 
         elif lag_and_var_adjust is True:
             print("Extracting members for the lag and variance adjusted NAO index")
