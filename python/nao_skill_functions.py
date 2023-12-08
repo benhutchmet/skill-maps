@@ -931,7 +931,7 @@ def nao_stats(obs_psl: DataArray,
             # Append the correlation between the SPNA index and the NAO index
             # for the model
             nao_stats_dict[model]['p_spna_nao_short_model'] = p_spna_nao_short_model
-        
+
         # Calculate the ensemble mean NAO index for the lagged ensemble
         nao_mean_lag = np.mean(nao_members_lag, axis=0)
 
@@ -1444,6 +1444,8 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
     plt.show()
 
 # Function for the plots including the SPNA index
+
+
 def plot_subplots_ind_models_spna(nao_stats_dict: dict,
                                   models_list: List[str],
                                   short_period: bool = False,
@@ -1487,7 +1489,8 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
         print("Plotting the long period")
 
     if lag_and_var_adjust == True:
-        raise ValueError("The lag and variance adjusted NAO index is not available for the SPNA index")
+        raise ValueError(
+            "The lag and variance adjusted NAO index is not available for the SPNA index")
     else:
         print("Plotting the raw NAO index")
 
@@ -1523,21 +1526,21 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             # Plot the observed NAO index
             ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['obs_nao_ts_short'] / 100,
                     color='black', label='ERA5')
-            
+
             # create a twin axes
             ax2 = ax.twinx()
 
             # Plot the ensemble mean
             ax2.plot(nao_stats_model['years_short'] - 5, -nao_stats_model['model_spna_short'],
-                    color='red', linestyle='--')
+                     color='red', linestyle='--')
 
             # Plot the 5th and 95th percentiles
             # ax2.fill_between(nao_stats_model['years_short'] - 5, nao_stats_model['model_spna_ts_short_min'],
             #                 nao_stats_model['model_spna_ts_short_max'], color='blue', alpha=0.2)
-            
+
             # Plot the observed NAO index
             ax2.plot(nao_stats_model['years_short'] - 5, -nao_stats_model['obs_spna_short'],
-                    color='black', linestyle='--')
+                     color='black', linestyle='--')
 
             # Every odd index: 1, 3, 5, 7, 9, 11
             # will have a y-axis on the right
@@ -1573,23 +1576,23 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
             # Plot the observed NAO index
             ax.plot(nao_stats_model['years'] - 5, nao_stats_model['obs_nao_ts'] / 100,
                     color='black', label='ERA5')
-            
+
             # create a twin axes
             ax2 = ax.twinx()
 
             # Plot the ensemble mean
             ax2.plot(nao_stats_model['years'] - 5, -nao_stats_model['model_spna'],
-                    color='red', linestyle='--')
-            
+                     color='red', linestyle='--')
+
             # Plot the observed NAO index
             ax2.plot(nao_stats_model['years'] - 5, -nao_stats_model['obs_spna'],
-                    color='black', linestyle='--')
-            
+                     color='black', linestyle='--')
+
             # Every odd index: 1, 3, 5, 7, 9, 11
             # will have a y-axis on the right
             if i % 2 == 1:
                 ax2.set_ylabel('SPNA index (-celsius)')
-            
+
             # Plot the 5th and 95th percentiles
             # ax2.fill_between(nao_stats_model['years'] - 5, nao_stats_model['model_spna_ts_min'],
             #                 nao_stats_model['model_spna_ts_max'], color='blue', alpha=0.2)
@@ -1736,7 +1739,6 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
 
     # Show the figure
     plt.show()
-
 
 
 def plot_multi_model_mean(nao_stats_dict: dict,
@@ -2109,10 +2111,12 @@ def plot_multi_model_mean(nao_stats_dict: dict,
     plt.tight_layout()
 
 # Define a function for SPNA and NAO MM means
+
+
 def plot_multi_model_mean_spna(nao_stats_dict: dict,
-                          models_list: List[str],
-                          lag_and_var_adjust: bool = False
-                          ) -> None:
+                               models_list: List[str],
+                               lag_and_var_adjust: bool = False
+                               ) -> None:
     """
     Plots the multi-model mean NAO time series for the short period (left plot)
     and long period (right plot) during the winter season (DJFM).
@@ -2285,14 +2289,16 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
                     spna_members[current_index_tas, :] = spna_member[1:]
 
                     # Append this member to the array
-                    spna_members_short[current_index_tas, :] = spna_member_short[1:]
+                    spna_members_short[current_index_tas,
+                                       :] = spna_member_short[1:]
 
                 else:
                     # Append this member to the array
                     spna_members[current_index_tas, :] = spna_member
 
                     # Append this member to the array
-                    spna_members_short[current_index_tas, :] = spna_member_short
+                    spna_members_short[current_index_tas,
+                                       :] = spna_member_short
 
                 # Increment the counter
                 current_index_tas += 1
@@ -2312,12 +2318,6 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
                 nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
                 print("NAO index extracted for short period for member {}".format(i))
 
-                # Extract the SPNA index for this member
-                spna_member = nao_stats_model['model_spna_members'][i, :]
-
-                # extract the short period
-                spna_member_short = nao_stats_model['model_spna_members_short'][i, :]
-
                 # If the model is not BCC-CSM2-MR
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
@@ -2327,12 +2327,7 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
                     # Append this member to the array
                     lagged_nao_members_short[current_index,
                                              :] = nao_member_short[1:]
-                    
-                    # Append this member to the array
-                    spna_members[current_index, :] = spna_member[1:]
 
-                    # Append this member to the array
-                    spna_members_short[current_index, :] = spna_member_short[1:]
                 else:
                     # Append this member to the array
                     lagged_nao_members[current_index, :] = nao_member
@@ -2340,15 +2335,42 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
                     # Append this member to the array
                     lagged_nao_members_short[current_index,
                                              :] = nao_member_short
-                    
-                    # Append this member to the array
-                    spna_members[current_index, :] = spna_member
-
-                    # Append this member to the array
-                    spna_members_short[current_index, :] = spna_member_short
 
                 # Increment the counter
                 current_index += 1
+
+            # Loop over the members for tas
+            for i in range(nao_stats_model['tas_nens']):
+                print("Extracting tas member {}".format(i))
+
+                # Extract the SPNA index for this member
+                spna_member = nao_stats_model['model_spna_members'][i, :]
+                print("SPNA index extracted for member {}".format(i))
+
+                # extract the short period
+                spna_member_short = nao_stats_model['model_spna_members_short'][i, :]
+                print("SPNA index extracted for short period for member {}".format(i))
+
+                # If the model is not BCC-CSM2-MR
+                # then we need to skip over the 0th time index
+                if model != "BCC-CSM2-MR":
+                    # Append this member to the array
+                    spna_members[current_index_tas, :] = spna_member[1:]
+
+                    # Append this member to the array
+                    spna_members_short[current_index_tas,
+                                       :] = spna_member_short[1:]
+
+                else:
+                    # Append this member to the array
+                    spna_members[current_index_tas, :] = spna_member
+
+                    # Append this member to the array
+                    spna_members_short[current_index_tas,
+                                       :] = spna_member_short
+
+                # Increment the counter
+                current_index_tas += 1
 
         else:
             raise ValueError("The boolean flags are not set up correctly")
@@ -2383,14 +2405,14 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Calculate the correlation between the model NAO index and the observed NAO index
         corr1_short, p1_short = pearsonr(nao_mean_short,
                                          nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_short'])
-        
+
         # Calculate the correlation between the model SPNA index and the observed SPNA index
         corr2, p2 = pearsonr(spna_mean,
-                                nao_stats_dict['BCC-CSM2-MR']['obs_spna'])
-        
+                             nao_stats_dict['BCC-CSM2-MR']['obs_spna'])
+
         # Calculate the correlation between the model SPNA index and the observed SPNA index
         corr2_short, p2_short = pearsonr(spna_mean_short,
-                                            nao_stats_dict['BCC-CSM2-MR']['obs_spna_short'])
+                                         nao_stats_dict['BCC-CSM2-MR']['obs_spna_short'])
 
         # Calculate the RPC between the model NAO index and the observed NAO index
         rpc1 = corr1 / (np.std(nao_mean) / np.std(nao_members))
@@ -2398,7 +2420,7 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Calculate the RPC between the model NAO index and the observed NAO index
         rpc1_short = corr1_short / \
             (np.std(nao_mean_short) / np.std(nao_members_short))
-        
+
         # Calculate the RPC between the model SPNA index and the observed SPNA index
         rpc2 = corr2 / (np.std(spna_mean) / np.std(spna_members))
 
@@ -2442,11 +2464,11 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
 
         # Plot the ensemble mean SPNA
         ax2b.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - 5, -spna_mean,
-                    color='red', linestyle='--')
-        
+                  color='red', linestyle='--')
+
         # Plot the observed SPNA index - time valid for BCC-CSM2-MR
         ax2b.plot(nao_stats_dict[model]['years'] - 5, -nao_stats_dict[model]['obs_spna'],
-                    color='black', linestyle='--')
+                  color='black', linestyle='--')
 
         # Include the y-axis label
         ax2b.set_ylabel('SPNA index (-celsius)')
@@ -2462,17 +2484,17 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Plot the 5th and 95th percentiles
         ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_short'] - 5, nao_mean_short_min / 100,
                          nao_mean_short_max / 100, color='red', alpha=0.2)
-        
+
         # Create a twin axis
         ax1b = ax1.twinx()
 
         # Plot the ensemble mean SPNA
         ax1b.plot(nao_stats_dict['BCC-CSM2-MR']['years_short'] - 5, -spna_mean_short,
-                    color='red', linestyle='--')
-        
+                  color='red', linestyle='--')
+
         # Plot the observed SPNA index - time valid for BCC-CSM2-MR
         ax1b.plot(nao_stats_dict[model]['years_short'] - 5, -nao_stats_dict[model]['obs_spna_short'],
-                    color='black', linestyle='--')
+                  color='black', linestyle='--')
 
     elif lag_and_var_adjust is True:
         print("Plotting the lag and variance adjusted NAO index")
@@ -2543,26 +2565,26 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Extract the NAO stats for this model
         ax2.plot(nao_stats_dict[model]['years_lag'] - 5, nao_stats_dict[model]['obs_nao_ts_lag'] / 100,
                  color='black', label='ERA5')
-        
+
         # Plot the ensemble mean
         ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, nao_var_adjust / 100,
-                    color='red', label='dcppA')
+                 color='red', label='dcppA')
 
         # Plot the 5th and 95th percentiles
         ax2.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, ci_lower / 100,
                          ci_upper / 100, color='red', alpha=0.2)
-        
+
         # Create a twin axis
         ax2b = ax2.twinx()
 
         # Plot the ensemble mean SPNA
         ax2b.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - 5, -spna_mean[3:],
-                    color='red', linestyle='--')
-        
+                  color='red', linestyle='--')
+
         # Plot the observed SPNA index - time valid for BCC-CSM2-MR
         ax2b.plot(nao_stats_dict[model]['years_lag'] - 5, -nao_stats_dict[model]['obs_spna'][3:],
-                    color='black', linestyle='--')
-        
+                  color='black', linestyle='--')
+
         # Set up the y-axis label
         ax2b.set_ylabel('SPNA index (-celsius)')
 
@@ -2578,17 +2600,17 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Plot the 5th and 95th percentiles
         ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, ci_lower_short / 100,
                          ci_upper_short / 100, color='red', alpha=0.2)
-        
+
         # Create a twin axis
         ax1b = ax1.twinx()
 
         # Plot the ensemble mean SPNA
         ax1b.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag_short'] - 5, -spna_mean_short[3:],
-                    color='red', linestyle='--')
-        
+                  color='red', linestyle='--')
+
         # Plot the observed SPNA index - time valid for BCC-CSM2-MR
         ax1b.plot(nao_stats_dict[model]['years_lag_short'] - 5, -nao_stats_dict[model]['obs_spna_short'][3:],
-                    color='black', linestyle='--')
+                  color='black', linestyle='--')
 
     else:
         raise ValueError("The boolean flags are not set up correctly")
@@ -2636,8 +2658,6 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
 
     # Adjust the layout
     plt.tight_layout()
-
-
 
 
 # Define a function to calculate the SPNA temperature index
