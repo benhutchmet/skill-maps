@@ -2065,13 +2065,13 @@ def plot_multi_model_mean(nao_stats_dict: dict,
     else:
         raise ValueError("The boolean flags are not set up correctly")
 
-        # Set the title with the ACC and RPC scores
-    ax1.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
+        # Set the title with the ACC and RPC scores ax2 = long period
+    ax2.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
                   f"RPC = {rpc1:.2f}, "
                   f"N = {total_nens}")
 
-    # Set the title with the ACC and RPC scores
-    ax2.set_title(f"ACC = {corr1_short:.2f} (p = {p1_short:.2f}), "
+    # Set the title with the ACC and RPC scores ax1 = short period
+    ax1.set_title(f"ACC = {corr1_short:.2f} (p = {p1_short:.2f}), "
                   f"RPC = {rpc1_short:.2f}, "
                   f"N = {total_nens}")
 
