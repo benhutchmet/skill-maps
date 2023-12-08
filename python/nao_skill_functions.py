@@ -2375,6 +2375,38 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         else:
             raise ValueError("The boolean flags are not set up correctly")
 
+    # Count the total tas nens
+    total_tas_nens = spna_members.shape[0]
+
+    # Calculate the SPNA index ensemble mean
+    spna_mean = np.mean(spna_members, axis=0)
+
+    # Calculate the SPNA index ensemble mean for the short period
+    spna_mean_short = np.mean(spna_members_short, axis=0)
+
+    # Calculate the correlation between the model SPNA index and the observed SPNA index
+    corr2, p2 = pearsonr(spna_mean,
+                            nao_stats_dict['BCC-CSM2-MR']['obs_spna'])
+
+    # Calculate the correlation between the model SPNA index and the observed SPNA index
+    corr2_short, p2_short = pearsonr(spna_mean_short,
+                                        nao_stats_dict['BCC-CSM2-MR']['obs_spna_short'])
+
+    # Calculate the RPC between the model SPNA index and the observed SPNA index
+    rpc2 = corr2 / (np.std(spna_mean) / np.std(spna_members))
+
+    # Calculate the RPC between the model SPNA index and the observed SPNA index
+    rpc2_short = corr2_short / \
+        (np.std(spna_mean_short) / np.std(spna_members_short))
+
+    # Calculate the 5th and 95th percentiles
+    # spna_mean_min = np.percentile(spna_members, 5, axis=0)
+    # spna_mean_max = np.percentile(spna_members, 95, axis=0)
+
+    # Calculate the 5th and 95th percentiles
+    # spna_mean_short_min = np.percentile(spna_members_short, 5, axis=0)
+    # spna_mean_short_max = np.percentile(spna_members_short, 95, axis=0)
+
     # Now for the plotting
     # Set up the boolean flags
     if lag_and_var_adjust is False:
@@ -2383,20 +2415,11 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # count the number of ensemble members
         total_nens = nao_members.shape[0]
 
-        # Count the total tas nens
-        total_tas_nens = spna_members.shape[0]
-
         # Calculate the ensemble mean
         nao_mean = np.mean(nao_members, axis=0)
 
         # Calculate the ensemble mean for the short period
         nao_mean_short = np.mean(nao_members_short, axis=0)
-
-        # Calculate the SPNA index ensemble mean
-        spna_mean = np.mean(spna_members, axis=0)
-
-        # Calculate the SPNA index ensemble mean for the short period
-        spna_mean_short = np.mean(spna_members_short, axis=0)
 
         # Calculate the correlation between the model NAO index and the observed NAO index
         corr1, p1 = pearsonr(nao_mean,
@@ -2406,27 +2429,12 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         corr1_short, p1_short = pearsonr(nao_mean_short,
                                          nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_short'])
 
-        # Calculate the correlation between the model SPNA index and the observed SPNA index
-        corr2, p2 = pearsonr(spna_mean,
-                             nao_stats_dict['BCC-CSM2-MR']['obs_spna'])
-
-        # Calculate the correlation between the model SPNA index and the observed SPNA index
-        corr2_short, p2_short = pearsonr(spna_mean_short,
-                                         nao_stats_dict['BCC-CSM2-MR']['obs_spna_short'])
-
         # Calculate the RPC between the model NAO index and the observed NAO index
         rpc1 = corr1 / (np.std(nao_mean) / np.std(nao_members))
 
         # Calculate the RPC between the model NAO index and the observed NAO index
         rpc1_short = corr1_short / \
             (np.std(nao_mean_short) / np.std(nao_members_short))
-
-        # Calculate the RPC between the model SPNA index and the observed SPNA index
-        rpc2 = corr2 / (np.std(spna_mean) / np.std(spna_members))
-
-        # Calculate the RPC between the model SPNA index and the observed SPNA index
-        rpc2_short = corr2_short / \
-            (np.std(spna_mean_short) / np.std(spna_members_short))
 
         # Calculate the 5th and 95th percentiles
         nao_mean_min = np.percentile(nao_members, 5, axis=0)
@@ -2435,14 +2443,6 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
         # Calculate the 5th and 95th percentiles
         nao_mean_short_min = np.percentile(nao_members_short, 5, axis=0)
         nao_mean_short_max = np.percentile(nao_members_short, 95, axis=0)
-
-        # Calculate the 5th and 95th percentiles
-        # spna_mean_min = np.percentile(spna_members, 5, axis=0)
-        # spna_mean_max = np.percentile(spna_members, 95, axis=0)
-
-        # Calculate the 5th and 95th percentiles
-        # spna_mean_short_min = np.percentile(spna_members_short, 5, axis=0)
-        # spna_mean_short_max = np.percentile(spna_members_short, 95, axis=0)
 
         # Plot the ensemble mean
         ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - 5, nao_mean / 100,
