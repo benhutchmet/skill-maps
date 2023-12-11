@@ -1272,7 +1272,7 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
     # Set up the initialisation offset
     if forecast_range == "2-9":
         init_offset = 5
-    elif forecast_range == "2-9":
+    elif forecast_range == "2-5":
         init_offset = 2
     else:
         raise ValueError("forecast_range must be either 2-9 or 2-5")
