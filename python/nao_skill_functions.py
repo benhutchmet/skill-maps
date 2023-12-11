@@ -318,9 +318,20 @@ def nao_stats(obs_psl: DataArray,
         else:
             raise ValueError('forecast_range must be 2-9 or 2-5')
 
-        # Ensure that each of the data arrays has the same time axis
+        # For years 1, we want to extract the years
+        # for the member with the shortest time axis
+        # find the length of the time axis for each member
+        time_lengths = [len(member.time.values) for member in hindcast_list]
+
+        # find the index of the member with the shortest time axis
+        min_index = np.argmin(time_lengths)
+
         # Extract the years for the first member
-        years1 = hindcast_list[0].time.dt.year.values
+        years1 = hindcast_list[min_index].time.dt.year.values
+
+        # # Ensure that each of the data arrays has the same time axis
+        # # Extract the years for the first member
+        # years1 = hindcast_list[0].time.dt.year.values
 
         # Limit years to those below 2020
         years1 = years1[years1 < nan_year]
@@ -416,6 +427,12 @@ def nao_stats(obs_psl: DataArray,
 
             # Limit years to those below 2020
             years2 = years2[years2 < nan_year]
+
+            # If the length of years2 is not the same as the length of years1 then raise a value error
+            if len(years2) != len(years1):
+                print("The length of years2 is not the same as the length of years1")
+                print("years1 length: {}".format(len(years1)))
+                print("years2 length: {}".format(len(years2)))
 
             # Assert that this doesn't have any duplicate values
             assert len(years2) == len(set(years2)), \
