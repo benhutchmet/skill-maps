@@ -363,7 +363,7 @@ def nao_stats(obs_psl: DataArray,
             years1_tas = hindcast_list_tas[0].time.dt.year.values
 
             # Limit years to those below 2020
-            years1_tas = years1_tas[years1_tas < 2020]
+            years1_tas = years1_tas[years1_tas < nan_year]
 
             # Assert that this doesn't have any duplicate values
             assert len(years1_tas) == len(set(years1_tas)), \
@@ -415,7 +415,7 @@ def nao_stats(obs_psl: DataArray,
             years2 = member.time.dt.year.values
 
             # Limit years to those below 2020
-            years2 = years2[years2 < 2020]
+            years2 = years2[years2 < nan_year]
 
             # Assert that this doesn't have any duplicate values
             assert len(years2) == len(set(years2)), \
@@ -450,7 +450,7 @@ def nao_stats(obs_psl: DataArray,
                 years2_tas = member_tas.time.dt.year.values
 
                 # Limit years to those below 2020
-                years2_tas = years2_tas[years2_tas < 2020]
+                years2_tas = years2_tas[years2_tas < nan_year]
 
                 # Assert that this doesn't have any duplicate values
                 assert len(years2_tas) == len(set(years2_tas)), \
