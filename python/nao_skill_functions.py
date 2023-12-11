@@ -1872,6 +1872,8 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         nyears_short_lag = len(np.arange(1966, 2010 + 1))
         nyears_long_lag = len(np.arange(1966, 2016 + 1))
 
+        
+
     else:
 
         raise ValueError("forecast_range must be either 2-9 or 2-5 or 2-3")
