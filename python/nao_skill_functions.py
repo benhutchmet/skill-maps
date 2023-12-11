@@ -432,6 +432,15 @@ def nao_stats(obs_psl: DataArray,
                 "There are less than 10 years in the hindcast data for the {} model".format(
                     model)
 
+            # If years 1 and years 2 are not the same then raise a value error
+            if np.array_equal(years1, years2) is False:
+                print("The years in the hindcast data for the {} model are not the same".format(
+                    model))
+                print("years1 first year: {}".format(years1[0]))
+                print("years2 first year: {}".format(years2[0]))
+                print("years1 last year: {}".format(years1[-1]))
+                print("years2 last year: {}".format(years2[-1]))
+
             # If years1 and years2 are not the same then raise a value error
             assert np.all(years1 == years2), \
                 "The years in the hindcast data for the {} model are not the same".format(
