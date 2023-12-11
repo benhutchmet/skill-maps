@@ -317,6 +317,8 @@ def nao_stats(obs_psl: DataArray,
             nan_year = 2022
         elif forecast_range == '2-3':
             nan_year = 2023
+        elif forecast_range == '2-2':
+            nan_year = 2023
         else:
             raise ValueError('forecast_range must be 2-9 or 2-5 or 2-3')
 
@@ -1278,6 +1280,8 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
         init_offset = 2
     elif forecast_range == "2-3":
         init_offset = 1
+    elif forecast_range == "2-2":
+        init_offset = 0
     else:
         raise ValueError("forecast_range must be either 2-9 or 2-5")
 
