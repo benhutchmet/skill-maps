@@ -1799,8 +1799,8 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
 
 def plot_multi_model_mean(nao_stats_dict: dict,
                           models_list: List[str],
-                          lag_and_var_adjust: bool = False
-                          ) -> None:
+                          lag_and_var_adjust: bool = False,
+                          forecast_range: str = "2-9") -> None:
     """
     Plots the multi-model mean NAO time series for the short period (left plot)
     and long period (right plot) during the winter season (DJFM).
@@ -1824,19 +1824,39 @@ def plot_multi_model_mean(nao_stats_dict: dict,
         If True then the lag and variance adjusted NAO index is plotted.
         Default is False.
 
+    forecast_range: str
+        The forecast range to plot. Either 2-9 or 2-5.
+
     Outputs:
     --------
     None
 
     """
 
-    # Set up the length of the time series for raw and lagged
-    nyears_short = len(np.arange(1966, 2010 + 1))
-    nyears_long = len(np.arange(1966, 2019 + 1))
+    # Set up the forecast range
+    if forecast_range == "2-9":
 
-    # lagged time series
-    nyears_short_lag = len(np.arange(1969, 2010 + 1))
-    nyears_long_lag = len(np.arange(1969, 2019 + 1))
+        # Set up the length of the time series for raw and lagged
+        nyears_short = len(np.arange(1966, 2010 + 1))
+        nyears_long = len(np.arange(1966, 2019 + 1))
+
+        # lagged time series
+        nyears_short_lag = len(np.arange(1969, 2010 + 1))
+        nyears_long_lag = len(np.arange(1969, 2019 + 1))
+
+    elif forecast_range == "2-5":
+
+        # Set up the length of the time series for raw and lagged
+        nyears_short = len(np.arange(1964, 2010 + 1))
+        nyears_long = len(np.arange(1964, 2017 + 1))
+
+        # lagged time series
+        nyears_short_lag = len(np.arange(1967, 2010 + 1))
+        nyears_long_lag = len(np.arange(1967, 2017 + 1))
+
+    else:
+
+        raise ValueError("forecast_range must be either 2-9 or 2-5")
 
     # Print statements indicating the boolean flags
     if lag_and_var_adjust is True:
@@ -1933,16 +1953,16 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                     skip_years = nyears_BCC - nyears
                     
                     # Assert that the new len is correct
-                    assert len(nao_member[1:-skip_years]) == nyears_BCC, "Length of nao_member is not equal to nyears_BCC"
+                    assert len(nao_member[1:skip_years]) == nyears_BCC, "Length of nao_member is not equal to nyears_BCC"
 
                 # If the model is not BCC-CSM2-MR
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    nao_members[current_index, :] = nao_member[1: -skip_years]
+                    nao_members[current_index, :] = nao_member[1: skip_years]
 
                     # Append this member to the array
-                    nao_members_short[current_index, :] = nao_member_short[1: -skip_years]
+                    nao_members_short[current_index, :] = nao_member_short[1: skip_years]
                 else:
                     # Append this member to the array
                     nao_members[current_index, :] = nao_member
@@ -1987,17 +2007,17 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                     skip_years = nyears_BCC - nyears
                     
                     # Assert that the new len is correct
-                    assert len(nao_member[1:-skip_years]) == nyears_BCC, "Length of nao_member is not equal to nyears_BCC"
+                    assert len(nao_member[1:skip_years]) == nyears_BCC, "Length of nao_member is not equal to nyears_BCC"
 
                 # If the model is not BCC-CSM2-MR
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    lagged_nao_members[current_index, :] = nao_member[1: -skip_years]
+                    lagged_nao_members[current_index, :] = nao_member[1: skip_years]
 
                     # Append this member to the array
                     lagged_nao_members_short[current_index,
-                                             :] = nao_member_short[1: -skip_years]
+                                             :] = nao_member_short[1: skip_years]
                 else:
                     # Append this member to the array
                     lagged_nao_members[current_index, :] = nao_member
