@@ -420,7 +420,7 @@ def nao_stats(obs_psl: DataArray,
             hindcast_list_tas = hindcast_tas[model]
 
         # Loop over the remaining members
-        for member in hindcast_list[1:]:
+        for member in hindcast_list:
 
             # Extract the years for this member
             years2 = member.time.dt.year.values
@@ -457,6 +457,15 @@ def nao_stats(obs_psl: DataArray,
                 print("years2 first year: {}".format(years2[0]))
                 print("years1 last year: {}".format(years1[-1]))
                 print("years2 last year: {}".format(years2[-1]))
+                print("Constraining years2 to years1")
+
+                # Ensure that years2 is longer than years1
+                assert len(years2) > len(years1), \
+                    "The hindcast data for the {} model is shorter than the observations".format(
+                        model)
+                
+                # Extract only the years in years1 from years2
+                member = member.sel(time=member.time.dt.year.isin(years1))
 
             # If years1 and years2 are not the same then raise a value error
             assert np.all(years1 == years2), \
