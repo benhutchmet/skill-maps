@@ -1914,14 +1914,35 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                 nao_member_short = nao_stats_model['model_nao_ts_members_short'][i, :]
                 print("NAO index extracted for short period for member {}".format(i))
 
+                # Set up the length of the correct time series
+                nyears_BCC = len(nao_stats_dict['BCC-CSM2-MR']['years'])
+
+                if model != "BCC-CSM2-MR":
+                    # Extract the length of the time series for this model
+                    nyears = len(nao_stats_model['years'][1:])
+                else:
+                    # Extract the length of the time series for this model
+                    nyears = len(nao_stats_model['years'])
+
+                # if these lens are not equal then we need to skip over the 0th time index
+                if nyears != nyears_BCC:
+                    print("The length of the time series for {} is not equal to the length of the time series for BCC-CSM2-MR".format(
+                        model))
+                    
+                    # Figure out how many years to skip over at the end
+                    skip_years = nyears_BCC - nyears
+                    
+                    # Assert that the new len is correct
+                    assert len(nao_member[1:-skip_years]) == nyears_BCC, "Length of nao_member is not equal to nyears_BCC"
+
                 # If the model is not BCC-CSM2-MR
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    nao_members[current_index, :] = nao_member[1:]
+                    nao_members[current_index, :] = nao_member[1: -skip_years]
 
                     # Append this member to the array
-                    nao_members_short[current_index, :] = nao_member_short[1:]
+                    nao_members_short[current_index, :] = nao_member_short[1: -skip_years]
                 else:
                     # Append this member to the array
                     nao_members[current_index, :] = nao_member
@@ -1947,15 +1968,36 @@ def plot_multi_model_mean(nao_stats_dict: dict,
                 nao_member_short = nao_stats_model['model_nao_ts_lag_members_short'][i, :]
                 print("NAO index extracted for short period for member {}".format(i))
 
+                # Set up the length of the correct time series
+                nyears_BCC = len(nao_stats_dict['BCC-CSM2-MR']['years_lag'])
+
+                if model != "BCC-CSM2-MR":
+                    # Extract the length of the time series for this model
+                    nyears = len(nao_stats_model['years_lag'][1:])
+                else:
+                    # Extract the length of the time series for this model
+                    nyears = len(nao_stats_model['years_lag'])
+
+                # if these lens are not equal then we need to skip over the 0th time index
+                if nyears != nyears_BCC:
+                    print("The length of the time series for {} is not equal to the length of the time series for BCC-CSM2-MR".format(
+                        model))
+                    
+                    # Figure out how many years to skip over at the end
+                    skip_years = nyears_BCC - nyears
+                    
+                    # Assert that the new len is correct
+                    assert len(nao_member[1:-skip_years]) == nyears_BCC, "Length of nao_member is not equal to nyears_BCC"
+
                 # If the model is not BCC-CSM2-MR
                 # then we need to skip over the 0th time index
                 if model != "BCC-CSM2-MR":
                     # Append this member to the array
-                    lagged_nao_members[current_index, :] = nao_member[1:]
+                    lagged_nao_members[current_index, :] = nao_member[1: -skip_years]
 
                     # Append this member to the array
                     lagged_nao_members_short[current_index,
-                                             :] = nao_member_short[1:]
+                                             :] = nao_member_short[1: -skip_years]
                 else:
                     # Append this member to the array
                     lagged_nao_members[current_index, :] = nao_member
