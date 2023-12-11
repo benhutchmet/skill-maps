@@ -49,7 +49,8 @@ def nao_stats(obs_psl: DataArray,
               hindcast_tas: Dict[str, List[DataArray]] = None,
               lag: int = 3,
               short_period: tuple = (1965, 2010),
-              season: str = 'DJFM') -> Dict[str, Dict]:
+              season: str = 'DJFM',
+              forecast_range: str = '2-9') -> Dict[str, Dict]:
     """
     Assess and compare the skill of the NAO index between different models
     and observations during the winter season (DJFM). The skill is assessed
@@ -308,12 +309,21 @@ def nao_stats(obs_psl: DataArray,
         # Extract the list of hindcast DataArrays for this model
         hindcast_list = hindcast_psl[model]
 
+        # set up the nan year
+        # first year in the obs with nans   
+        if forecast_range == '2-9':
+            nan_year = 2020
+        elif forecast_range == '2-5':
+            nan_year = 2022
+        else:
+            raise ValueError('forecast_range must be 2-9 or 2-5')
+
         # Ensure that each of the data arrays has the same time axis
         # Extract the years for the first member
         years1 = hindcast_list[0].time.dt.year.values
 
         # Limit years to those below 2020
-        years1 = years1[years1 < 2020]
+        years1 = years1[years1 < nan_year]
 
         # Assert that this doesn't have any duplicate values
         assert len(years1) == len(set(years1)), \
@@ -385,13 +395,13 @@ def nao_stats(obs_psl: DataArray,
             # then check years1_tas has years 1966 to 2019
             if model == 'BCC-CSM2-MR':
                 print("checking that the years for BCC-CSM2-MR are 1966 to 2019")
-                assert np.array_equal(years1_tas, np.arange(1966, 2020)), \
+                assert np.array_equal(years1_tas, np.arange(1966, nan_year)), \
                     "The years for BCC-CSM2-MR are not 1966 to 2019"
 
             else:
                 # Check that years 1965 to 2019 are in years1_tas
                 print("checking that the years for {} are 1965 to 2019".format(model))
-                assert np.array_equal(years1_tas, np.arange(1965, 2020)), \
+                assert np.array_equal(years1_tas, np.arange(1965, nan_year)), \
                     "The years for {} are not 1965 to 2019".format(model)
 
         # Extract the list of tas hindcast DataArrays for this model
@@ -461,14 +471,14 @@ def nao_stats(obs_psl: DataArray,
                 # then check years2_tas has years 1966 to 2019
                 if model == 'BCC-CSM2-MR':
                     print("checking that the years for BCC-CSM2-MR are 1966 to 2019")
-                    assert np.array_equal(years2_tas, np.arange(1966, 2020)), \
+                    assert np.array_equal(years2_tas, np.arange(1966, nan_year)), \
                         "The years for BCC-CSM2-MR are not 1966 to 2019"
 
                 else:
                     # Check that years 1965 to 2019 are in years2_tas
                     print(
                         "checking that the years for {} are 1965 to 2019".format(model))
-                    assert np.array_equal(years2_tas, np.arange(1965, 2020)), \
+                    assert np.array_equal(years2_tas, np.arange(1965, nan_year)), \
                         "The years for {} are not 1965 to 2019".format(model)
 
         # print("years checking complete for the {} model".format(model))
@@ -1172,8 +1182,8 @@ def nao_stats(obs_psl: DataArray,
 def plot_subplots_ind_models(nao_stats_dict: dict,
                              models_list: List[str],
                              short_period: bool = False,
-                             lag_and_var_adjust: bool = False
-                             ) -> None:
+                             lag_and_var_adjust: bool = False,
+                             forecast_range: str = "2-9") -> None:
     """
     Creates a series of subplots for the NAO index for each model for the
     different models during the winter season (DJFM). The skill is assessed
@@ -1221,6 +1231,14 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
                              sharex=True, sharey=True)
     axes = axes.flatten()
 
+    # Set up the initialisation offset
+    if forecast_range == "2-9":
+        init_offset = 5
+    elif forecast_range == "2-9":
+        init_offset = 2
+    else:
+        raise ValueError("forecast_range must be either 2-9 or 2-5")
+
     # Iterate over the models
     for i, model in enumerate(models_list):
         print("Plotting the {} model".format(model))
@@ -1245,19 +1263,19 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
                 print("NAO index extracted for member {}".format(i))
 
                 # Plot this member
-                ax.plot(nao_stats_model['years_short'] - 5, nao_member_short / 100,
+                ax.plot(nao_stats_model['years_short'] - init_offset, nao_member_short / 100,
                         color='grey', alpha=0.2)
 
             # Plot the ensemble mean
-            ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short'] / 100,
+            ax.plot(nao_stats_model['years_short'] - init_offset, nao_stats_model['model_nao_ts_short'] / 100,
                     color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
-            ax.fill_between(nao_stats_model['years_short'] - 5, nao_stats_model['model_nao_ts_short_min'] / 100,
+            ax.fill_between(nao_stats_model['years_short'] - init_offset, nao_stats_model['model_nao_ts_short_min'] / 100,
                             nao_stats_model['model_nao_ts_short_max'] / 100, color='red', alpha=0.2)
 
             # Plot the observed NAO index
-            ax.plot(nao_stats_model['years_short'] - 5, nao_stats_model['obs_nao_ts_short'] / 100,
+            ax.plot(nao_stats_model['years_short'] - init_offset, nao_stats_model['obs_nao_ts_short'] / 100,
                     color='black', label='ERA5')
 
             # Set the title with the ACC and RPC scores
@@ -1286,19 +1304,19 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
                 print("NAO index extracted for member {}".format(i))
 
                 # Plot this member
-                ax.plot(nao_stats_model['years'] - 5, nao_member / 100,
+                ax.plot(nao_stats_model['years'] - init_offset, nao_member / 100,
                         color='grey', alpha=0.2)
 
             # Plot the ensemble mean
-            ax.plot(nao_stats_model['years'] - 5, nao_stats_model['model_nao_ts'] / 100,
+            ax.plot(nao_stats_model['years'] - init_offset, nao_stats_model['model_nao_ts'] / 100,
                     color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
-            ax.fill_between(nao_stats_model['years'] - 5, nao_stats_model['model_nao_ts_min'] / 100,
+            ax.fill_between(nao_stats_model['years'] - init_offset, nao_stats_model['model_nao_ts_min'] / 100,
                             nao_stats_model['model_nao_ts_max'] / 100, color='red', alpha=0.2)
 
             # Plot the observed NAO index
-            ax.plot(nao_stats_model['years'] - 5, nao_stats_model['obs_nao_ts'] / 100,
+            ax.plot(nao_stats_model['years'] - init_offset, nao_stats_model['obs_nao_ts'] / 100,
                     color='black', label='ERA5')
 
             # Set the title with the ACC and RPC scores
@@ -1326,11 +1344,11 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
             #     print("NAO index extracted for member {}".format(i))
 
             #     # Plot this member
-            #     ax.plot(nao_stats_model['years_lag_short'] - 5, nao_member_short / 100,
+            #     ax.plot(nao_stats_model['years_lag_short'] - init_offset, nao_member_short / 100,
             #             color='grey', alpha=0.2)
 
             # Plot the ensemble mean
-            ax.plot(nao_stats_model['years_lag_short'] - 5,
+            ax.plot(nao_stats_model['years_lag_short'] - init_offset,
                     nao_stats_model['model_nao_ts_lag_var_adjust_short'] / 100,
                     color='red', label='dcppA')
 
@@ -1347,11 +1365,11 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
                 rmse)
 
             # Plot the confidence intervals
-            ax.fill_between(nao_stats_model['years_lag_short'] - 5, ci_lower / 100,
+            ax.fill_between(nao_stats_model['years_lag_short'] - init_offset, ci_lower / 100,
                             ci_upper / 100, color='red', alpha=0.2)
 
             # Plot the observed NAO index
-            ax.plot(nao_stats_model['years_lag_short'] - 5, nao_stats_model['obs_nao_ts_lag_short'] / 100,
+            ax.plot(nao_stats_model['years_lag_short'] - init_offset, nao_stats_model['obs_nao_ts_lag_short'] / 100,
                     color='black', label='ERA5')
 
             # Set the title with the ACC and RPC scores
@@ -1379,11 +1397,11 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
             #     print("NAO index extracted for member {}".format(i))
 
             #     # Plot this member
-            #     ax.plot(nao_stats_model['years_lag'] - 5, nao_member / 100,
+            #     ax.plot(nao_stats_model['years_lag'] - init_offset, nao_member / 100,
             #             color='grey', alpha=0.2)
 
             # Plot the ensemble mean
-            ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['model_nao_ts_lag_var_adjust'] / 100,
+            ax.plot(nao_stats_model['years_lag'] - init_offset, nao_stats_model['model_nao_ts_lag_var_adjust'] / 100,
                     color='red', label='dcppA')
 
             # Plot the 5th and 95th percentiles
@@ -1396,11 +1414,11 @@ def plot_subplots_ind_models(nao_stats_dict: dict,
             ci_upper = nao_stats_model['model_nao_ts_lag_var_adjust'] + (rmse)
 
             # Plot the confidence intervals
-            ax.fill_between(nao_stats_model['years_lag'] - 5, ci_lower / 100,
+            ax.fill_between(nao_stats_model['years_lag'] - init_offset, ci_lower / 100,
                             ci_upper / 100, color='red', alpha=0.2)
 
             # Plot the observed NAO index
-            ax.plot(nao_stats_model['years_lag'] - 5, nao_stats_model['obs_nao_ts_lag'] / 100,
+            ax.plot(nao_stats_model['years_lag'] - init_offset, nao_stats_model['obs_nao_ts_lag'] / 100,
                     color='black', label='ERA5')
 
             # Set the title with the ACC and RPC scores

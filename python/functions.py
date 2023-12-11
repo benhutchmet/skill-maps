@@ -87,6 +87,9 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
     # Create an empty dictionary to store the datasets.
     datasets_by_model = {}
     
+    # initialise a counter
+    counter = 0
+
     # Loop over the models.
     for model in models:
         
@@ -169,7 +172,7 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
             # Assert that years does not have any duplicates.
             assert len(years) == len(set(years)), \
                 f"Duplicate years found in {file}"
-            
+
             # Check if there are any gaps of more than one year between the years
             if not np.all(np.diff(years) <= 1):
                 print(f"Non-consecutive years found in {file}: {years}")
@@ -182,6 +185,11 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
                 # print a warning and exit the program
                 print(f"Member: {file} has non-consecutive years")
                 print("Will not be included in the analysis")
+
+                # increment the counter
+                counter += 1
+
+                print(f"Counter: {counter}")
                 continue
 
             # Append the dataset to the list of datasets for this model.
