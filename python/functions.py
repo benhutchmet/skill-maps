@@ -162,6 +162,10 @@ def load_data(base_directory, models, variable, region, forecast_range, season, 
                 #print("Years before removing 2020 and years following 2020: ", years)
                 years = years[years < 2020]
 
+            # Assert that there are at least 10 years in the dataset.
+            assert len(years) >= 10, \
+                f"Less than 10 years found in {file}"
+
             # Assert that years does not have any duplicates.
             assert len(years) == len(set(years)), \
                 f"Duplicate years found in {file}"
