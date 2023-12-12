@@ -183,7 +183,7 @@ iceland_grid_corrected = {
 # SPNA grid box
 # 49 - 57 * N
 # 50 - 25 * W
-spna_grid = {
+spna_grid_strommen = {
     'lon1': -50,
     'lon2': -25,
     'lat1': 49,
@@ -279,7 +279,7 @@ central_europe_grid_rsds = {
 }
 
 # Define a gribox for the SPNA region as in Smith et al. 2019
-spna_grid = {
+spna_grid_smith = {
     'lon1': -60,
     'lon2': -10,
     'lat1': 50,
