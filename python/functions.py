@@ -3479,8 +3479,8 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
     assert variable == "tas", "The variable is not tas. SPNA index is only defined for tas."
 
     # calculate the SPNA index for the observations
-    obs_spna = calculate_obs_spna(t_anom=obs_anom,
-                                  gridbox=spna_grid)
+    obs_spna = calculate_spna_index(t_anom=obs_anom,
+                                    gridbox=spna_grid)
 
     # Initialize a dictionary to store the model SPNA index
     model_spna = {}
@@ -3493,9 +3493,102 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
         model_anom_by_model = model_anom[model]
 
         # TODO: Finish off the SPNA calculation function here
+        # Loop over the members for this model
+        for member in model_anom_by_model:
+            # Calculate the SPNA index for this member
+            model_spna_member = calculate_spna_index(
+                t_anom=member, gridbox=spna_grid)
 
+            # Add the member to the model_spna dictionary
+            if model not in model_spna:
+                model_spna[model] = []
 
+            # Append the member to the model_spna dictionary
+            model_spna[model].append(model_spna_member)
 
+    # If the plot_graphics flag is set to True
+    if plot_graphics:
+        print("Plotting SPNA index")
+
+        # First calculate the ensemble mean SPNA index
+        ensemble_mean_spna, \
+            ensemble_members_spna = calculate_ensemble_mean(model_var=model_spna,
+                                                            models=models,
+                                                            lag=None)
+
+        # Assert that ensemble_mean_spna has one dimension
+        assert len(ensemble_mean_spna.dims) == 1, \
+            "ensemble_mean_spna does not have one dimension."
+
+        # Assert that ensemble members spna has 2 dimensions
+        assert len(ensemble_members_spna.dims) == 2, \
+            "ensemble_members_spna does not have two dimensions."
+
+        # Set up the figure
+        fig = plt.figure(figsize=(10, 6))
+
+        # Extract the years
+        obs_years = obs_spna.time.dt.year.values
+        model_years = ensemble_mean_spna.time.dt.year.values
+
+        # Assert that the obs_years and model_years are the same
+        # using np.array_equal
+        assert np.array_equal(obs_years, model_years), \
+            "The obs_years and model_years are not the same."
+
+        # FIXME: Hardcoded for years 2-9 forecast range
+        # Plot the obs and the model data
+        plt.plot(obs_years - 5, obs_spna, label="ERA5", color="black")
+
+        # Plot the ensemble mean
+        plt.plot(model_years - 5, ensemble_mean_spna,
+                 label="dcppA", color="red")
+
+        # Add a horizontal line at y=0
+        plt.axhline(y=0, color="black", linestyle="--", linewidth=1)
+
+        # Set the ylabel
+        plt.ylabel("SPNA index (K)")
+        plt.xlabel("initialisation year")
+
+        # Set up a textbox with the season name in the top left corner
+        plt.text(0.05, 0.95, season, transform=fig.transFigure, fontsize=10,
+                 verticalalignment='top',
+                 bbox=dict(facecolor='white', alpha=0.5))
+
+        # Calculate the correlation coefficients
+        corr1, p1 = pearsonr(obs_spna, ensemble_mean_spna)
+
+        # Calculate the RPC for the SPNA index
+        rpc1 = corr1 / \
+            (np.std(ensemble_mean_spna) / np.std(ensemble_members_spna))
+
+        # Extract the start and finish initialisation years
+        # FIXME: hardcoded for years 2-9 forecast range
+        start_year = obs_years[0] - 5
+        finish_year = obs_years[-1] - 5
+
+        # Extract the number of ensemble members
+        no_ensemble_members = ensemble_members_spna.shape[0]
+
+        # Set up the title for the plot
+        plt.title(
+            f"ACC = {corr1:.2f}, (p = {p1:.2f})"
+            f"\nRPC = {rpc1:.2f}, n = {no_ensemble_members},"
+            f"\nyears_{start_year}_{finish_year}, {season},"
+            f" {forecast_range}, dcppA-hindcast",
+            fontsize=10)
+
+        # Set up the figure name
+        fig_name = f"{variable}_{forecast_range}_{season}"
+                    f"_dcppA-hindcast_SPNA_index_"
+                    f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+        
+        # Save the figure
+        plt.savefig(output_dir + "/" + fig_name, dpi=300, bbox_inches="tight")
+
+        # Show the figure
+        plt.show()
 
 # Define a function for plotting the NAO index
 def plot_nao_index(obs_nao, ensemble_mean_nao, variable, season, forecast_range, r, p, output_dir,
