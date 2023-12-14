@@ -3478,6 +3478,22 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
     # Assert that the variable is tas
     assert variable == "tas", "The variable is not tas. SPNA index is only defined for tas."
 
+    # calculate the SPNA index for the observations
+    obs_spna = calculate_obs_spna(t_anom=obs_anom,
+                                  gridbox=spna_grid)
+
+    # Initialize a dictionary to store the model SPNA index
+    model_spna = {}
+
+    # calculate the SPNA index for the model data
+    for model in models:
+        print("Calculating SPNA index for model:", model)
+
+        # Extract the model data
+        model_anom_by_model = model_anom[model]
+
+        # TODO: Finish off the SPNA calculation function here
+
 
 
 
