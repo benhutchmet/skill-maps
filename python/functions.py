@@ -3580,15 +3580,17 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
             fontsize=10)
 
         # Set up the figure name
-        fig_name = f"{variable}_{forecast_range}_{season}"
-                    f"_dcppA-hindcast_SPNA_index_"
-                    f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+        fig_name = (f"{variable}_{forecast_range}_{season}_"
+                    f"dcppA-hindcast_SPNA_index_"
+                    f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.png")
         
         # Save the figure
         plt.savefig(output_dir + "/" + fig_name, dpi=300, bbox_inches="tight")
 
         # Show the figure
         plt.show()
+
+    return obs_spna, model_spna
 
 # Define a function for plotting the NAO index
 def plot_nao_index(obs_nao, ensemble_mean_nao, variable, season, forecast_range, r, p, output_dir,

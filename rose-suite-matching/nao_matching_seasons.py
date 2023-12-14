@@ -281,7 +281,18 @@ def main():
         # print("obs_tas_anomaly.shape:", obs_tas_anomaly.shape)
 
         # Calculate the SPNA index and plot
+        obs_spna, model_spna = fnc.calculate_spna_index_and_plot(obs_tas_anomaly=obs_tas_anomaly,
+                                                                 model_data_tas=model_data_tas,
+                                                                 models=match_variable_models("tas"),
+                                                                 variable="tas",
+                                                                 season=season,
+                                                                 forecast_range=forecast_range,
+                                                                 output_directory=dic.canari_plots_dir,
+                                                                 plot_graphics=True)
         
+        # Print the SPNA index outputs for debugging
+        print("obs_spna:", obs_spna)
+        print("model_spna:", model_spna)
 
 
 
