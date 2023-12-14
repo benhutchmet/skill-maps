@@ -46,7 +46,6 @@ from cdo import *
 # Import specific functions
 from nao_skill_functions import calculate_spna_index
 
-
 # Install imageio
 # ! pip install imageio
 import imageio.v3 as iio
