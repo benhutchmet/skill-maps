@@ -44,6 +44,12 @@ Output:
 """
 
 # Local imports
+import xarray as xr
+import matplotlib.pyplot as plt
+import numpy as np
+import argparse
+import dictionaries as dic
+import functions as fnc
 import os
 import sys
 import glob
@@ -51,14 +57,8 @@ import re
 
 sys.path.append('/home/users/benhutch/skill-maps/python')
 # Imports
-import functions as fnc
-import dictionaries as dic
-import argparse
 
 # Third party imports
-import numpy as np
-import matplotlib.pyplot as plt
-import xarray as xr
 
 # Import the dictionaries and functions
 sys.path.append('/home/users/benhutch/skill-maps')
@@ -249,7 +249,7 @@ def main():
                                        observations_path=dic.obs,
                                        start_year=start_year,
                                        end_year=end_year)
-        
+
         # Load and process the model data for the SPNA index
         model_datasets_tas = fnc.load_data(base_directory=base_dir,
                                            models=match_variable_models("tas"),
@@ -257,22 +257,23 @@ def main():
                                            region=region,
                                            forecast_range=forecast_range,
                                            season=model_season)
-        
+
         # Process the model data - extract the tas variable
         model_data_tas, _ = fnc.process_data(datasets_by_model=model_datasets_tas,
                                              variable="tas")
-        
+
         # Make sure that the models have the same time period for tas
         model_data_tas = fnc.constrain_years(model_data=model_data_tas,
                                              models=match_variable_models("tas"))
 
         # Remove years containing Nan values from the obs and model data
         obs_tas_anomaly, \
-        model_data_tas, \
-        _ = fnc.remove_years_with_nans_nao(observed_data=obs_tas_anomaly,
-                                           model_data=model_data_tas,
-                                           models=match_variable_models("tas"),
-                                           NAO_matched=False)
+            model_data_tas, \
+            _ = fnc.remove_years_with_nans_nao(observed_data=obs_tas_anomaly,
+                                               model_data=model_data_tas,
+                                               models=match_variable_models(
+                                                   "tas"),
+                                               NAO_matched=False)
 
         # Print the model data for debugging
         print("model_data_tas:", model_data_tas)
@@ -281,19 +282,19 @@ def main():
         # print("obs_tas_anomaly.shape:", obs_tas_anomaly.shape)
 
         # Calculate the SPNA index and plot
-        obs_spna, model_spna = fnc.calculate_spna_index_and_plot(obs_tas_anomaly=obs_tas_anomaly,
-                                                                 model_data_tas=model_data_tas,
-                                                                 models=match_variable_models("tas"),
+        obs_spna, model_spna = fnc.calculate_spna_index_and_plot(obs_anom=obs_tas_anomaly,
+                                                                 model_anom=model_data_tas,
+                                                                 models=match_variable_models(
+                                                                     "tas"),
                                                                  variable="tas",
                                                                  season=season,
                                                                  forecast_range=forecast_range,
-                                                                 output_directory=dic.canari_plots_dir,
+                                                                 output_dir=dic.canari_plots_dir,
                                                                  plot_graphics=True)
-        
+
         # Print the SPNA index outputs for debugging
         print("obs_spna:", obs_spna)
         print("model_spna:", model_spna)
-
 
 
 if __name__ == '__main__':
