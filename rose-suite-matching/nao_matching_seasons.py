@@ -43,14 +43,17 @@ Output:
 
 """
 
-# Imports
-import functions as fnc
-import dictionaries as dic
-import argparse
+# Local imports
 import os
 import sys
 import glob
 import re
+
+sys.path.append('/home/users/benhutch/skill-maps/python')
+# Imports
+import functions as fnc
+import dictionaries as dic
+import argparse
 
 # Third party imports
 import numpy as np
@@ -248,7 +251,7 @@ def main():
                                        end_year=end_year)
         
         # Load and process the model data for the SPNA index
-        model_datasets_tas = fnc.load_data(base_dir=base_dir,
+        model_datasets_tas = fnc.load_data(base_directory=base_dir,
                                            models=match_variable_models("tas"),
                                            variable="tas",
                                            region=region,
@@ -273,9 +276,9 @@ def main():
 
         # Print the model data for debugging
         print("model_data_tas:", model_data_tas)
-        print("model_data_tas.shape:", model_data_tas.shape)
+        # print("model_data_tas.shape:", model_data_tas.shape)
         print("obs_tas_anomaly:", obs_tas_anomaly)
-        print("obs_tas_anomaly.shape:", obs_tas_anomaly.shape)
+        # print("obs_tas_anomaly.shape:", obs_tas_anomaly.shape)
 
         # Calculate the SPNA index and plot
         
