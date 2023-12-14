@@ -10,7 +10,7 @@ a new netCDF file with the ensemble mean of the NAO matched data for the given v
 Usage:
 ------
 
-    $ python nao_matching_seasons.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members> <level>
+    $ python nao_matching_seasons.py <match_var> <region> <season> <forecast_range> <start_year> <end_year> <lag> <no_subset_members> <level> <match_type>
 
 Parameters:
 ===========
@@ -33,6 +33,8 @@ Parameters:
         The number of ensemble members to subset to. Must be a number in the input files.
     level: int
         The level to perform the matching for. Must be a level in the input files.
+    match_type: str
+        The type of matching to perform. The two supported types are "nao" and "spna".
 
 Output:
 =======
@@ -42,6 +44,8 @@ Output:
 """
 
 # Imports
+import functions as fnc
+import dictionaries as dic
 import argparse
 import os
 import sys
@@ -55,13 +59,13 @@ import xarray as xr
 
 # Import the dictionaries and functions
 sys.path.append('/home/users/benhutch/skill-maps')
-import dictionaries as dic
 
 # Import the functions
 sys.path.append('/home/users/benhutch/skill-maps/python')
-import functions as fnc
 
 # Write a function which sets up the models for the matched variable
+
+
 def match_variable_models(match_var):
     """
     Matches up the matching variable to its models.
@@ -74,7 +78,7 @@ def match_variable_models(match_var):
         match_var_models = dic.sfcWind_models_noMIROC
     elif match_var in ["rsds", "ssrd"]:
         match_var_models = dic.rsds_models_noCMCC
-    elif match_var in ["psl", "msl" ]:
+    elif match_var in ["psl", "msl"]:
         match_var_models = dic.models
     elif match_var in ["ua", "va"]:
         match_var_models = dic.common_models_noIPSL_noCan
@@ -86,6 +90,8 @@ def match_variable_models(match_var):
     return match_var_models
 
 # write a function which sets up the observations path for the variable
+
+
 def find_obs_path(match_var):
     """
     Matches up the matching variable to its observations path.
@@ -110,7 +116,7 @@ def main():
     Main function which parses the command line arguments and performs the NAO matching.
     """
 
-    test_models = [ "BCC-CSM2-MR", "CMCC-CM2-SR5", "MIROC6" ]
+    test_models = ["BCC-CSM2-MR", "CMCC-CM2-SR5", "MIROC6"]
 
     # Set up the hardcoded variables
     psl_var = "psl"
@@ -124,15 +130,26 @@ def main():
 
     # Extract the command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('match_var', type=str, help='The variable to perform the matching for.')
-    parser.add_argument('region', type=str, help='The region to perform the matching for.')
-    parser.add_argument('season', type=str, help='The season to perform the matching for.')
-    parser.add_argument('forecast_range', type=str, help='The forecast range to perform the matching for.')
-    parser.add_argument('start_year', type=str, help='The start year to perform the matching for.')
-    parser.add_argument('end_year', type=str, help='The end year to perform the matching for.')
-    parser.add_argument('lag', type=int, help='The lag to perform the matching for.')
-    parser.add_argument('no_subset_members', type=int, help='The number of ensemble members to subset to.')
-    parser.add_argument('level', type=int, nargs='?', default=None, help='The level to perform the matching for.')
+    parser.add_argument('match_var', type=str,
+                        help='The variable to perform the matching for.')
+    parser.add_argument('region', type=str,
+                        help='The region to perform the matching for.')
+    parser.add_argument('season', type=str,
+                        help='The season to perform the matching for.')
+    parser.add_argument('forecast_range', type=str,
+                        help='The forecast range to perform the matching for.')
+    parser.add_argument('start_year', type=str,
+                        help='The start year to perform the matching for.')
+    parser.add_argument('end_year', type=str,
+                        help='The end year to perform the matching for.')
+    parser.add_argument(
+        'lag', type=int, help='The lag to perform the matching for.')
+    parser.add_argument('no_subset_members', type=int,
+                        help='The number of ensemble members to subset to.')
+    parser.add_argument('level', type=int, nargs='?', default=None,
+                        help='The level to perform the matching for.')
+    parser.add_argument('match_type', type=str, nargs='?',
+                        default="nao", help='The type of matching to perform.')
     args = parser.parse_args()
 
     # Set up the command line arguments
@@ -145,11 +162,13 @@ def main():
     lag = args.lag
     no_subset_members = args.no_subset_members
     level = args.level
+    match_type = args.match_type
 
     # If season conttains a number, convert it to the string
     if season in ["1", "2", "3", "4"]:
         season = dic.season_map[season]
-        print("NAO matching for variable:", match_var, "region:", region, "season:", season, "forecast range:", forecast_range,)
+        print("NAO matching for variable:", match_var, "region:", region,
+              "season:", season, "forecast range:", forecast_range,)
 
     # Set up the models for the matching variable
     match_var_models = match_variable_models(match_var)
@@ -163,10 +182,6 @@ def main():
     # extract the obs var name
     obs_var_name = dic.var_name_map[match_var]
 
-    # Process the psl observations for the nao index
-    obs_psl_anomaly = fnc.read_obs(psl_var, region, forecast_range, season,
-                                    obs_path_psl, start_year, end_year)
-    
     # Set up the model season
     if season == "MAM":
         model_season = "MAY"
@@ -174,40 +189,90 @@ def main():
         model_season = "ULG"
     else:
         model_season = season
-    
-    # Load and process the model data for the nao index
-    model_datasets_psl = fnc.load_data(base_dir, psl_models, psl_var, 
-                                        region, forecast_range, model_season)
-    # Process the model data
-    model_data_psl, _ = fnc.process_data(model_datasets_psl, psl_var)
 
-    # Make sure that the models have the same time period for psl
-    model_data_psl = fnc.constrain_years(model_data_psl, psl_models)
+    # If the match type is nao, perform the nao matching
+    if match_type == "nao":
+        print("NAO matching for variable:", match_var, "region:", region,
+              "season:", season, "forecast range:", forecast_range, "start year:",
+              start_year, "end year:", end_year, "lag:", lag, "no subset members:",
+              no_subset_members, "level:", level, "match type:", match_type)
 
-    # Remove years containing Nan values from the obs and model data
-    # Psl has not been NAO matched in this case
-    obs_psl_anomaly, model_data_psl, _ = fnc.remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl,
-                                                                        psl_models, NAO_matched=False)
-    
-    # Calculate the NAO index for the obs and model NAO
-    # NOTE: Corrected grids here
-    obs_nao, model_nao = fnc.calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, psl_models,
-                                                            psl_var, season, forecast_range, plots_dir,
-                                                            plot_graphics=False, azores_grid = dic.azores_grid_corrected,
-                                                            iceland_grid = dic.iceland_grid_corrected)
-    
-    # Perform the lagging of the ensemble and rescale the NAO index
-    rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = fnc.rescale_nao(obs_nao, model_nao, psl_models,
-                                                                                    season, forecast_range, plots_dir, lag=lag)
+        # Process the psl observations for the nao index
+        obs_psl_anomaly = fnc.read_obs(psl_var, region, forecast_range, season,
+                                       obs_path_psl, start_year, end_year)
 
-    # Perform the NAO matching for the target variable
-    match_var_ensemble_mean, _  = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
-                                                            base_dir, match_var_models, obs_path_match_var, region, model_season, forecast_range,
-                                                                start_year, end_year, plots_dir, save_dir, lagged_years = years,
-                                                                    lagged_nao=True, no_subset_members=no_subset_members, level=level,
-                                                                        ensemble_mean_nao=ensemble_mean_nao)
-    
+        # Load and process the model data for the nao index
+        model_datasets_psl = fnc.load_data(base_dir, psl_models, psl_var,
+                                           region, forecast_range, model_season)
+        # Process the model data
+        model_data_psl, _ = fnc.process_data(model_datasets_psl, psl_var)
+
+        # Make sure that the models have the same time period for psl
+        model_data_psl = fnc.constrain_years(model_data_psl, psl_models)
+
+        # Remove years containing Nan values from the obs and model data
+        # Psl has not been NAO matched in this case
+        obs_psl_anomaly, model_data_psl, _ = fnc.remove_years_with_nans_nao(obs_psl_anomaly, model_data_psl,
+                                                                            psl_models, NAO_matched=False)
+
+        # Calculate the NAO index for the obs and model NAO
+        # NOTE: Corrected grids here
+        obs_nao, model_nao = fnc.calculate_nao_index_and_plot(obs_psl_anomaly, model_data_psl, psl_models,
+                                                              psl_var, season, forecast_range, plots_dir,
+                                                              plot_graphics=False, azores_grid=dic.azores_grid_corrected,
+                                                              iceland_grid=dic.iceland_grid_corrected)
+
+        # Perform the lagging of the ensemble and rescale the NAO index
+        rescaled_nao, ensemble_mean_nao, ensemble_members_nao, years = fnc.rescale_nao(obs_nao, model_nao, psl_models,
+                                                                                       season, forecast_range, plots_dir, lag=lag)
+
+        # Perform the NAO matching for the target variable
+        match_var_ensemble_mean, _ = fnc.nao_matching_other_var(rescaled_nao, model_nao, psl_models, match_var, obs_var_name,
+                                                                base_dir, match_var_models, obs_path_match_var, region, model_season, forecast_range,
+                                                                start_year, end_year, plots_dir, save_dir, lagged_years=years,
+                                                                lagged_nao=True, no_subset_members=no_subset_members, level=level,
+                                                                ensemble_mean_nao=ensemble_mean_nao)
+    elif match_type == "spna":
+        print("SPNA matching for variable:", match_var, "region:", region,
+              "season:", season, "forecast range:", forecast_range, "start year:",
+              start_year, "end year:", end_year, "lag:", lag, "no subset members:",
+              no_subset_members, "level:", level, "match type:", match_type)
+
+        # Process the tas observations for the SPNA index
+        obs_tas_anomaly = fnc.read_obs(variable="tas",
+                                       region=region,
+                                       forecast_range=forecast_range,
+                                       season=season,
+                                       observations_path=dic.obs,
+                                       start_year=start_year,
+                                       end_year=end_year)
+        
+        # Load and process the model data for the SPNA index
+        model_datasets_tas = fnc.load_data(base_dir=base_dir,
+                                           models=match_variable_models("tas"),
+                                           variable="tas",
+                                           region=region,
+                                           forecast_range=forecast_range,
+                                           season=model_season)
+        
+        # Process the model data - extract the tas variable
+        model_data_tas, _ = fnc.process_data(datasets_by_model=model_datasets_tas,
+                                             variable="tas")
+        
+        # Make sure that the models have the same time period for tas
+        model_data_tas = fnc.constrain_years(model_data=model_data_tas,
+                                             models=match_variable_models("tas"))
+
+        # Remove years containing Nan values from the obs and model data
+        obs_tas_anomaly, \
+        model_data_tas, \
+        _ = fnc.remove_years_with_nans_nao(observed_data=obs_tas_anomaly,
+                                           model_data=model_data_tas,
+                                           models=match_variable_models("tas"),
+                                           NAO_matched=False)
+        
+        
+
 
 if __name__ == '__main__':
     main()
-
