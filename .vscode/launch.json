@@ -35,7 +35,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "ua",
+                "psl",
                 "global",
                 "1",
                 "2-9",
@@ -43,7 +43,8 @@
                 "1980",
                 "4",
                 "20",
-                "85000"
+                "100000",
+                "spna"
             ]
         },
         {

@@ -270,8 +270,16 @@ def main():
                                            model_data=model_data_tas,
                                            models=match_variable_models("tas"),
                                            NAO_matched=False)
+
+        # Print the model data for debugging
+        print("model_data_tas:", model_data_tas)
+        print("model_data_tas.shape:", model_data_tas.shape)
+        print("obs_tas_anomaly:", obs_tas_anomaly)
+        print("obs_tas_anomaly.shape:", obs_tas_anomaly.shape)
+
+        # Calculate the SPNA index and plot
         
-        
+
 
 
 if __name__ == '__main__':
