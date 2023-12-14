@@ -8,7 +8,6 @@
 #
 
 # Imports
-import dictionaries as dic
 import argparse
 import os
 import sys
@@ -55,7 +54,7 @@ rcParams['animation.convert_path'] = r'/usr/bin/convert'
 
 # Local imports
 sys.path.append('/home/users/benhutch/skill-maps')
-
+import dictionaries as dic
 # We want to write a function that takes a data directory and list of models
 # which loads all of the individual ensemble members into a dictionary of datasets /
 # grouped by models
@@ -3520,10 +3519,10 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
         assert len(ensemble_mean_spna.dims) == 1, \
             "ensemble_mean_spna does not have one dimension."
 
-        # Assert that ensemble members spna has 2 dimensions
-        assert len(ensemble_members_spna.dims) == 2, \
+        # Assert that ensemble members spna array has two dimensions
+        assert len(ensemble_members_spna.shape) == 2, \
             "ensemble_members_spna does not have two dimensions."
-
+        
         # Set up the figure
         fig = plt.figure(figsize=(10, 6))
 
@@ -3705,50 +3704,6 @@ def plot_nao_index(obs_nao, ensemble_mean_nao, variable, season, forecast_range,
     plt.show()
 
 # Calculate obs nao
-
-
-def calculate_obs_nao(obs_anomaly, south_grid, north_grid):
-    """
-    Calculates the North Atlantic Oscillation (NAO) index for the given
-    observations and gridboxes.
-
-    Parameters
-    ----------
-    obs_anomaly : xarray.Dataset
-        Anomaly field of the observations.
-    south_grid : dict
-        Dictionary containing the longitude and latitude values of the
-        southern gridbox.
-    north_grid : dict
-        Dictionary containing the longitude and latitude values of the
-        northern gridbox.
-
-    Returns
-    -------
-    obs_nao : xarray.DataArray
-        NAO index for the observations.
-
-    """
-
-    # Extract the lat and lon values
-    # from the gridbox dictionary
-    s_lon1, s_lon2 = south_grid["lon1"], south_grid["lon2"]
-    s_lat1, s_lat2 = south_grid["lat1"], south_grid["lat2"]
-
-    # second for the northern box
-    n_lon1, n_lon2 = north_grid["lon1"], north_grid["lon2"]
-    n_lat1, n_lat2 = north_grid["lat1"], north_grid["lat2"]
-
-    # Take the mean over the lat and lon values
-    south_grid_timeseries = obs_anomaly.sel(
-        lat=slice(s_lat1, s_lat2), lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
-    north_grid_timeseries = obs_anomaly.sel(
-        lat=slice(n_lat1, n_lat2), lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
-
-    # Calculate the NAO index for the observations
-    obs_nao = south_grid_timeseries - north_grid_timeseries
-
-    return obs_nao
 
 # Define a function to calculate the ensemble mean NAO index
 

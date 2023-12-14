@@ -1,6 +1,5 @@
 # Functions for exploring the NAO skill
 # Imports
-import dictionaries as dic
 import argparse
 import os
 import sys
@@ -33,13 +32,56 @@ import pdb
 import iris.quickplot as qplt
 from typing import Dict, List, Union
 
-# Local imports
-# Functions
-from functions import calculate_obs_nao
+# # Local imports
+# # Functions
+# from functions import calculate_obs_nao
 
 # Import the dictionaries
 sys.path.append('/home/users/benhutch/skill-maps')
+import dictionaries as dic
 
+def calculate_obs_nao(obs_anomaly, south_grid, north_grid):
+    """
+    Calculates the North Atlantic Oscillation (NAO) index for the given
+    observations and gridboxes.
+
+    Parameters
+    ----------
+    obs_anomaly : xarray.Dataset
+        Anomaly field of the observations.
+    south_grid : dict
+        Dictionary containing the longitude and latitude values of the
+        southern gridbox.
+    north_grid : dict
+        Dictionary containing the longitude and latitude values of the
+        northern gridbox.
+
+    Returns
+    -------
+    obs_nao : xarray.DataArray
+        NAO index for the observations.
+
+    """
+
+    # Extract the lat and lon values
+    # from the gridbox dictionary
+    s_lon1, s_lon2 = south_grid["lon1"], south_grid["lon2"]
+    s_lat1, s_lat2 = south_grid["lat1"], south_grid["lat2"]
+
+    # second for the northern box
+    n_lon1, n_lon2 = north_grid["lon1"], north_grid["lon2"]
+    n_lat1, n_lat2 = north_grid["lat1"], north_grid["lat2"]
+
+    # Take the mean over the lat and lon values
+    south_grid_timeseries = obs_anomaly.sel(
+        lat=slice(s_lat1, s_lat2), lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
+    north_grid_timeseries = obs_anomaly.sel(
+        lat=slice(n_lat1, n_lat2), lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
+
+    # Calculate the NAO index for the observations
+    obs_nao = south_grid_timeseries - north_grid_timeseries
+
+    return obs_nao
 
 # Define a function for the NAO stats
 def nao_stats(obs_psl: DataArray,

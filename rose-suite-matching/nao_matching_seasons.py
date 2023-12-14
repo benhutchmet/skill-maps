@@ -48,8 +48,6 @@ import xarray as xr
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import dictionaries as dic
-import functions as fnc
 import os
 import sys
 import glob
@@ -57,11 +55,13 @@ import re
 
 sys.path.append('/home/users/benhutch/skill-maps/python')
 # Imports
+import functions as fnc
 
 # Third party imports
 
 # Import the dictionaries and functions
 sys.path.append('/home/users/benhutch/skill-maps')
+import dictionaries as dic
 
 # Import the functions
 sys.path.append('/home/users/benhutch/skill-maps/python')
