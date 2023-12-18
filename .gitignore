@@ -7,3 +7,4 @@ python/__pycache__/*.pyc
 __pycache__/*.pyc
 rose-suite-matching/.ipynb_checkpoints/*
 python/__pycache__/*
+plots/*.png
