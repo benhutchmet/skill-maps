@@ -3437,7 +3437,7 @@ def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, s
 # Define a function to calculate and plot the spna index
 def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
                                   season, forecast_range, output_dir, plot_graphics=False,
-                                  spna_grid=dic.spna_grid_smith):
+                                  spna_grid=dic.spna_grid_strommen):
     """
     Calculates and (optionally) plots the SPNA index as in Strommen et al. 
     2023.
@@ -3494,6 +3494,10 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
         # TODO: Finish off the SPNA calculation function here
         # Loop over the members for this model
         for member in model_anom_by_model:
+
+            # Extract the attributes for this member
+            member_attributes = member.attrs
+
             # Calculate the SPNA index for this member
             model_spna_member = calculate_spna_index(
                 t_anom=member, gridbox=spna_grid)
@@ -3501,6 +3505,9 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
             # Add the member to the model_spna dictionary
             if model not in model_spna:
                 model_spna[model] = []
+
+            # Associate the attributes with the model_spna_member
+            model_spna_member.attrs = member_attributes
 
             # Append the member to the model_spna dictionary
             model_spna[model].append(model_spna_member)
