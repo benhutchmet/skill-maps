@@ -291,10 +291,68 @@ def main():
                                                                  forecast_range=forecast_range,
                                                                  output_dir=dic.canari_plots_dir,
                                                                  plot_graphics=True)
-
+        
+        # Happy with the SPNA index calculation
+        # Using the Strommen et al. (2023) grid box
+        # (Smaller box than Smith et al. (2019))
         # Print the SPNA index outputs for debugging
-        print("obs_spna:", obs_spna)
-        print("model_spna:", model_spna)
+        # print("obs_spna:", obs_spna)
+        # print("model_spna:", model_spna)
+
+        # Now perform the lagging for the SPNA index ensemble
+        # No need to rescale the SPNA index as RPC ~1
+        # Extract the data for a given model
+        # Initialize an empty array to store the data
+        model_spna_members = []
+
+        # Initialize a counter
+        counter = 0
+
+        # Loop over the models
+        for model in match_variable_models("tas"):
+            # Extract the data for the given model
+            model_spna_data = model_spna[model]
+
+            # Loop over the ensemble members
+            for member in model_spna_data:
+
+                # If the counter is 0
+                if counter == 0:
+                    # Extract the coordinates
+                    coords = member.coords
+
+                    # Extract the dimensions
+                    dims = member.dims
+
+                    # Extract the years
+                    years1 = member.time.dt.year.values
+
+                # Extract the years
+                years2 = member.time.dt.year.values
+
+                # Assert that the years are the same
+                assert np.all(years1 == years2), "The years are not the same."
+                
+                # Append the data to the list
+                model_spna_members.append(member)
+
+                # Increment the counter
+                counter += 1
+
+        # Convert the list to a numpy array
+        model_spna_members = np.array(model_spna_members)
+
+        # NOTE: Not going to lag the SPNA index for now - RPC ~1
+        # Don't have to go through the same process of variance adjust
+        # and lagging
+        # We are going to assume that this is our 'best guess' for the SPNA index
+        model_spna_mean = np.mean(model_spna_members, axis=0)
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
