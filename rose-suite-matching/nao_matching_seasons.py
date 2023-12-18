@@ -505,13 +505,31 @@ def main():
 
         # Set up the dimensions for the empty array
         # Extract the lats and lons
-        lats = model_spna_constrained["BCC-CSM2-MR"][0].lat.values
-        lons = model_spna_constrained["BCC-CSM2-MR"][0].lon.values
+        lats = model_data_match_var_constrained['BCC-CSM2-MR'][0].lat.values
+        lons = model_data_match_var_constrained['BCC-CSM2-MR'][0].lon.values
 
         # Set up the empty array
         model_spna_constrained_array = np.empty(
-            [len(years_in_both), len(no_subset_members), len(lats), len(lons)]
+            [len(years_in_both), no_subset_members, len(lats), len(lons)]
         )
+
+        # Form a list for the SPNA index members
+        # i.e. not constrained by the models dictionary structure
+        ensemble_members_list = []
+
+        # Loop over the models
+        # TODO: form this list here
+        for model in match_variable_models("tas"):
+            # Extract the data for the given model
+            model_spna_data = model_spna[model]
+
+            # Loop over the ensemble members
+            for member in model_spna_data:
+                
+                # If the type of the member is an xarray
+
+        # TODO: Loop over the years
+        # and calculate the SPNA members for each year
 
 
 if __name__ == "__main__":
