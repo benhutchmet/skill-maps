@@ -3537,10 +3537,10 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
 
         # FIXME: Hardcoded for years 2-9 forecast range
         # Plot the obs and the model data
-        plt.plot(obs_years - 5, obs_spna, label="ERA5", color="black")
+        plt.plot(obs_years - 5, -obs_spna, label="ERA5", color="black")
 
         # Plot the ensemble mean
-        plt.plot(model_years - 5, ensemble_mean_spna,
+        plt.plot(model_years - 5, -ensemble_mean_spna,
                  label="dcppA", color="red")
 
         # Add a horizontal line at y=0
