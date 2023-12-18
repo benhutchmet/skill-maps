@@ -3559,7 +3559,7 @@ def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
         corr1, p1 = pearsonr(obs_spna, ensemble_mean_spna)
 
         # Convert ensemble_members_spna to a numpy array
-        ensemble_members_spna = ensemble_members_spna.values
+        ensemble_mean_spna = ensemble_mean_spna.values
 
         # Calculate the RPC for the SPNA index
         rpc1 = corr1 / \
