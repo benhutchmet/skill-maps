@@ -3437,7 +3437,7 @@ def calculate_nao_index_and_plot(obs_anomaly, model_anomaly, models, variable, s
 # Define a function to calculate and plot the spna index
 def calculate_spna_index_and_plot(obs_anom, model_anom, models, variable,
                                   season, forecast_range, output_dir, plot_graphics=False,
-                                  spna_grid=dic.spna_grid_strommen):
+                                  spna_grid=dic.spna_grid_smith):
     """
     Calculates and (optionally) plots the SPNA index as in Strommen et al. 
     2023.

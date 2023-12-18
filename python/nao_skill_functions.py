@@ -513,8 +513,8 @@ def nao_stats(obs_psl: DataArray,
                 # Extract only the years in years1 from years2
                 member = member.sel(time=member.time.dt.year.isin(years1))
 
-            # Extract the years for this member
-            years2 = member.time.dt.year.values
+                # Extract the years for this member
+                years2 = member.time.dt.year.values
 
             # If years1 and years2 are not the same then raise a value error
             assert np.all(years1 == years2), \
