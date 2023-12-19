@@ -613,6 +613,8 @@ def main():
             for key, data in ensemble_members_dict.items():
                 # Print the key for debugging
                 print("Performing the SPNA matching for key:", key)
+                # # Print a few of the values of data for debugging
+                # print("data:", data)
 
                 # Extract the years for the given key
                 years = data["years"]
