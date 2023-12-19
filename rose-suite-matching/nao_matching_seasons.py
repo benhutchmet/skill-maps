@@ -606,8 +606,8 @@ def main():
                 match_var,
             )
 
-            # Initialize an empty dictionary for this year
-            spna_diff[year] = {}
+            # Initialize an empty list for this year
+            spna_diff[year] = []
 
             # Loop over the model, variant pairs and their corresponding data in the ensemble members dictionary
             for key, data in ensemble_members_dict.items():
@@ -637,10 +637,14 @@ def main():
                 spna_diff_year = np.abs(spna_value_year - spna_value_mean)
 
                 # Add the difference to the dictionary
-                spna_diff[year][key] = spna_diff_year
+                spna_diff[year].append((spna_diff_year,key))
 
             # Print
             print("Completed the SPNA matching for year:", year)
+            print("Now sorting the SPNA differences for year:", year)
+
+            # Sort the SPNA differences for the given year
+            spna_diff[year] = sorted(spna_diff[year])[:no_subset_members]
 
         # Print the spna_diff dictionary for debugging
         print("spna_diff:", spna_diff)
