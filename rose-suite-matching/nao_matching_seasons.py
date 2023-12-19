@@ -617,7 +617,7 @@ def main():
                 # print("data:", data)
 
                 # Extract the years for the given key
-                years = data["years"]
+                years = data["years"][0]
 
                 # Assert that the years are the same as years1
                 assert np.array_equal(
@@ -628,7 +628,7 @@ def main():
                 year_index = np.where(years == year)[0][0]
 
                 # Extract the SPNA index for the given key
-                spna_value_year = data["spna"][year_index]
+                spna_value_year = data["spna"][0][year_index]
 
                 # Extract the mean SPNA index for the given key
                 spna_value_mean = model_spna_mean[year_index]
