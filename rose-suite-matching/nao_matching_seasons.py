@@ -531,7 +531,7 @@ def main():
         # Set up a simple counter
         counter = 0
 
-        # TODO: Extract the match var arrays into a dictionary format
+        # Extract the match var arrays into a dictionary format
         for model in model_data_match_var_constrained:
             print("extracting the match var arrays for model:", model)
 
@@ -596,7 +596,6 @@ def main():
         counter = 0
 
         # Loop over the models
-        # TODO: form this list here
         for model in match_variable_models("tas"):
             # Extract the data for the given model
             model_spna_data = model_spna[model]
@@ -657,6 +656,9 @@ def main():
         # Initialize the dictionary of differences
         spna_diff = {}
 
+        # Initialize the dictionary of spna matched members
+        spna_matched_members = {}
+
         # TODO: Loop over the years
         # and calculate the SPNA members for each year
         for i, year in enumerate(years_test):
@@ -709,11 +711,34 @@ def main():
             # Sort the SPNA differences for the given year
             spna_diff[year] = sorted(spna_diff[year])[:no_subset_members]
 
+            # Print
+            print("Now extracting the SPNA matched members for year:",
+                   year, "from the match var",
+                     match_var, "data.")
+            # TODO: Select these members from the model data
+            # Extract the spna_diff for the given year
+            spna_diff_year = spna_diff[year]
+
+            # Create an empty list for the SPNA matched members
+            spna_matched_members[year] = []
+
+            # Loop over the spna_diff_year
+            for diff, (model, variant) in spna_diff_year:
+                # Print the model and variant for debugging
+                print("model:", model, "variant:", variant, "diff:", diff)
+
+                # Select the member from ensemble_members_mv_dict
+                # using the model and variant
+                spna_matched_member = ensemble_members_mv_dict[(model, variant)][f"{match_var}_field"][0][year_index]
+
+                # Append the member to the list
+                spna_matched_members[year].append(spna_matched_member)
+
         # Print the spna_diff dictionary for debugging
         print("spna_diff:", spna_diff)
 
-        # TODO: Select these members from the model data
-
+        # Print the spna_matched_members dictionary for debugging
+        print("spna_matched_members:", spna_matched_members)
 
 if __name__ == "__main__":
     main()
