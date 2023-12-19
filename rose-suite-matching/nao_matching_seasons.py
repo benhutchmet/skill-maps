@@ -582,6 +582,9 @@ def main():
                 # Increment the counter
                 counter += 1
 
+        # Print the ensemble_members_mv_dict for debugging
+        print("ensemble_members_mv_dict:", ensemble_members_mv_dict)
+
         # Form a list for the SPNA index members
         # i.e. not constrained by the models dictionary structure
         ensemble_members_dict = {}
