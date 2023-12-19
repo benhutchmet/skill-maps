@@ -565,6 +565,11 @@ def main():
                     # Extract the years
                     years_test = member.time.dt.year.values
 
+                    # Assert that the array years_test is the same as years1
+                    assert np.array_equal(
+                        years_test, years1
+                    ), "The years are not the same."
+
                 # Assert that the years are the same
                 assert np.array_equal(years_test, years1), "The years are not the same."
 
@@ -586,95 +591,57 @@ def main():
         # Print the ensemble members dictionary for debugging
         print("ensemble_members_dict:", ensemble_members_dict)
 
+        # Initialize the dictionary of differences
+        spna_diff = {}
 
-        # # TODO: Loop over the years
-        # # and calculate the SPNA members for each year
-        # for i, year in enumerate(years_in_both):
-        #     print(
-        #         "performing SPNA SST matching for year:",
-        #         year,
-        #         "i:",
-        #         i,
-        #         "matching variable:",
-        #         match_var,
-        #     )
+        # TODO: Loop over the years
+        # and calculate the SPNA members for each year
+        for i, year in enumerate(years_test):
+            print(
+                "performing SPNA SST matching for year:",
+                year,
+                "i:",
+                i,
+                "matching variable:",
+                match_var,
+            )
 
-        #     # Initialize an empty list to store the closest members
-        #     closest_SPNA_members = []
+            # Initialize an empty dictionary for this year
+            spna_diff[year] = {}
 
-        #     # Find the SPNA SST (tas) members with the closest
-        #     # Values of SPNA SSTs to the real SPNA SSTs for the given year
-        #     # Loop over the members in ensemble members list
-        #     for member in ensemble_members_list:
+            # Loop over the model, variant pairs and their corresponding data in the ensemble members dictionary
+            for key, data in ensemble_members_dict.items():
+                # Print the key for debugging
+                print("Performing the SPNA matching for key:", key)
 
-        #         # Assert that the member and model SPNA have the same years
-        #         assert np.all(
-        #             member.time.dt.year.values == years1
-        #         ), "The years are not the same."
+                # Extract the years for the given key
+                years = data["years"]
 
-        #         # Print the first year for debugging
-        #         print("member.time.dt.year.values[0]:", member.time.dt.year.values[0])
-        #         # Final value
-        #         print("member.time.dt.year.values[-1]:", member.time.dt.year.values[-1])
-        #         # Length
-        #         print("len(member.time.dt.year.values):", len(member.time.dt.year.values))
-
-        #         # Print the first year of years1
-        #         print("years1[0]:", years1[0])
-        #         # Final value
-        #         print("years1[-1]:", years1[-1])
-        #         # Length
-        #         print("len(years1):", len(years1))
-
-        #         # Extract the member attributes
-        #         member_attrs = member.attrs
-
-        #         # Extract the SPNA SST data for this year
-        #         # member value
-        #         model_SPNA_year = member.sel(time=f"{year}")
-
-        #         # Extract the mean SPNA SST for this year
-        #         # correct spna mean
-        #         # find the index of the year in years1
-        #         year_index = np.where(years1 == year)[0][0]
-
-        #         # Extract the SPNA SST for this year
-        #         model_SPNA_mean = model_spna_mean[year_index]
+                # Assert that the years are the same as years1
+                assert np.array_equal(
+                    years, years1
+                ), "The years are not the same as years1."
                 
-        #         # Take annual means for both
-        #         model_SPNA_year_mean = model_SPNA_year.groupby("time.year").mean(
-        #         )
+                # Find the index of the year
+                year_index = np.where(years == year)[0][0]
 
-        #         # # Take the mean of our 'correct' SPNA index
-        #         # model_SPNA_correct = model_SPNA_mean.groupby("time.year").mean(
-        #         # )
+                # Extract the SPNA index for the given key
+                spna_value_year = data["spna"][year_index]
 
-        #         # Calculate the difference between the two
-        #         spna_diff = np.abs(model_SPNA_mean - model_SPNA_year_mean)
+                # Extract the mean SPNA index for the given key
+                spna_value_mean = model_spna_mean[year_index]
 
-        #         # Assign the coordinates of the correct SPNA index
-        #         spna_diff = spna_diff.assign_coords(
-        #             coords=model_SPNA_year_mean.coords
-        #         )
-                
-        #         # Add the attributes back
-        #         spna_diff.attrs = member_attrs
+                # Calculate the difference between the SPNA index and the mean SPNA index
+                spna_diff_year = np.abs(spna_value_year - spna_value_mean)
 
-        #         # Append the member to the list
-        #         closest_SPNA_members.append(spna_diff)
+                # Add the difference to the dictionary
+                spna_diff[year][key] = spna_diff_year
 
-        #     # Sort the list of differences from smallest to largest
-        #     closest_SPNA_members.sort()
+            # Print
+            print("Completed the SPNA matching for year:", year)
 
-        #     # Select only the first no_subset_members members
-        #     closest_SPNA_members = closest_SPNA_members[:no_subset_members]
-
-        #     # Print the closest SPNA members for debugging
-        #     print("smallest SPNA differences:", [member.values for member in closest_SPNA_members])
-        #     print("Model and variant labels:", [member.attrs["source_id"] for member in closest_SPNA_members], [member.attrs["variant_label"] for member in closest_SPNA_members])
-
-        #     print("Closest SPNA members found for year:", year)
-
+        # Print the spna_diff dictionary for debugging
+        print("spna_diff:", spna_diff)
 
 if __name__ == "__main__":
     main()
