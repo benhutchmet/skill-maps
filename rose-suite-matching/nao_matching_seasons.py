@@ -415,6 +415,15 @@ def main():
 
             # Loop over the ensemble members
             for member in model_spna_data:
+
+                # If the type of the time is not a datetime64
+                if not isinstance(member.time.values[0], np.datetime64):
+                    # Extract the time values as a datetime64
+                    member_time = member.time.astype("datetime64[ns]")
+
+                    # Add the time values to the member
+                    member = member.assign_coords(time=member_time)
+
                 # If the counter is 0
                 if counter == 0:
                     # Extract the coordinates
@@ -438,16 +447,11 @@ def main():
                 # Increment the counter
                 counter += 1
 
-        # Concatenate the members
-        model_spna_members_combined = xr.concat(model_spna_members, dim="member")
-
-        # Take the mean over the members
-        model_spna_members_combined_mean = model_spna_members_combined.mean(
-            dim="member"
-        )
-
         # Convert the list to a numpy array
         model_spna_members_array = np.array(model_spna_members)
+
+        # Print the years for debugging
+        print("years1:", years1)
 
         # NOTE: Not going to lag the SPNA index for now - RPC ~1
         # Don't have to go through the same process of variance adjust
@@ -585,8 +589,22 @@ def main():
 
                 # Assert that the member and model SPNA have the same years
                 assert np.all(
-                    member.time.dt.year.values == model_spna_members_combined_mean.time.dt.year.values
+                    member.time.dt.year.values == years1
                 ), "The years are not the same."
+
+                # Print the first year for debugging
+                print("member.time.dt.year.values[0]:", member.time.dt.year.values[0])
+                # Final value
+                print("member.time.dt.year.values[-1]:", member.time.dt.year.values[-1])
+                # Length
+                print("len(member.time.dt.year.values):", len(member.time.dt.year.values))
+
+                # Print the first year of years1
+                print("years1[0]:", years1[0])
+                # Final value
+                print("years1[-1]:", years1[-1])
+                # Length
+                print("len(years1):", len(years1))
 
                 # Extract the member attributes
                 member_attrs = member.attrs
@@ -596,24 +614,28 @@ def main():
                 model_SPNA_year = member.sel(time=f"{year}")
 
                 # Extract the mean SPNA SST for this year
-                # mean value
-                model_SPNA_mean = model_spna_members_combined_mean.sel(
-                    time=f"{year}")
+                # correct spna mean
+                # find the index of the year in years1
+                year_index = np.where(years1 == year)[0][0]
+
+                # Extract the SPNA SST for this year
+                model_SPNA_mean = model_spna_mean[year_index]
                 
                 # Take annual means for both
                 model_SPNA_year_mean = model_SPNA_year.groupby("time.year").mean(
                 )
 
-                # Take the mean of our 'correct' SPNA index
-                model_SPNA_correct = model_SPNA_mean.groupby("time.year").mean(
-                )
+                # # Take the mean of our 'correct' SPNA index
+                # model_SPNA_correct = model_SPNA_mean.groupby("time.year").mean(
+                # )
 
                 # Calculate the difference between the two
-                spna_diff = np.abs(model_SPNA_correct - model_SPNA_year_mean)
+                spna_diff = np.abs(model_SPNA_mean - model_SPNA_year_mean)
 
                 # Assign the coordinates of the correct SPNA index
                 spna_diff = spna_diff.assign_coords(
-                    coords=model_SPNA_correct.coords)
+                    coords=model_SPNA_year_mean.coords
+                )
                 
                 # Add the attributes back
                 spna_diff.attrs = member_attrs
