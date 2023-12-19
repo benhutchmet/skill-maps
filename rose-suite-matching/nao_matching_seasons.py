@@ -438,14 +438,22 @@ def main():
                 # Increment the counter
                 counter += 1
 
+        # Concatenate the members
+        model_spna_members_combined = xr.concat(model_spna_members, dim="member")
+
+        # Take the mean over the members
+        model_spna_members_combined_mean = model_spna_members_combined.mean(
+            dim="member"
+        )
+
         # Convert the list to a numpy array
-        model_spna_members = np.array(model_spna_members)
+        model_spna_members_array = np.array(model_spna_members)
 
         # NOTE: Not going to lag the SPNA index for now - RPC ~1
         # Don't have to go through the same process of variance adjust
         # and lagging
         # We are going to assume that this is our 'best guess' for the SPNA index
-        model_spna_mean = np.mean(model_spna_members, axis=0)
+        model_spna_mean = np.mean(model_spna_members_array, axis=0)
 
         # Print which variable we are performing the matching for
         print("Performing the SPNA matching for:", match_var)
@@ -505,8 +513,8 @@ def main():
 
         # Set up the dimensions for the empty array
         # Extract the lats and lons
-        lats = model_data_match_var_constrained['BCC-CSM2-MR'][0].lat.values
-        lons = model_data_match_var_constrained['BCC-CSM2-MR'][0].lon.values
+        lats = model_data_match_var_constrained["BCC-CSM2-MR"][0].lat.values
+        lons = model_data_match_var_constrained["BCC-CSM2-MR"][0].lon.values
 
         # Set up the empty array
         model_spna_constrained_array = np.empty(
@@ -517,19 +525,113 @@ def main():
         # i.e. not constrained by the models dictionary structure
         ensemble_members_list = []
 
+        # Initialize a dictionary for counting the members for each model
+        member_counter = {}
+
         # Loop over the models
         # TODO: form this list here
         for model in match_variable_models("tas"):
             # Extract the data for the given model
             model_spna_data = model_spna[model]
 
+            # Initialize a counter
+            member_counter[model] = 0
+
             # Loop over the ensemble members
             for member in model_spna_data:
-                
-                # If the type of the member is an xarray
+                # If the type of the time is not a datetime64
+                if not isinstance(member.time.values[0], np.datetime64):
+                    # Extract the time values as a datetime64
+                    member_time = member.time.astype("datetime64[ns]")
+
+                    # Add the time values to the member
+                    member = member.assign_coords(time=member_time)
+
+            # Assert that the years are unique
+            assert len(np.unique(member.time.dt.year.values)) == len(
+                member.time.dt.year.values
+            ), "The years are not unique."
+
+            # Assert that the difference between the years is 1
+            assert np.all(
+                np.diff(member.time.dt.year.values) == 1
+            ), "The years are not consecutive."
+
+            # Append the data to the list
+            ensemble_members_list.append(member)
+
+            # Increment the counter
+            member_counter[model] += 1
 
         # TODO: Loop over the years
         # and calculate the SPNA members for each year
+        for i, year in enumerate(years_in_both):
+            print(
+                "performing SPNA SST matching for year:",
+                year,
+                "i:",
+                i,
+                "matching variable:",
+                match_var,
+            )
+
+            # Initialize an empty list to store the closest members
+            closest_SPNA_members = []
+
+            # Find the SPNA SST (tas) members with the closest
+            # Values of SPNA SSTs to the real SPNA SSTs for the given year
+            # Loop over the members in ensemble members list
+            for member in ensemble_members_list:
+
+                # Assert that the member and model SPNA have the same years
+                assert np.all(
+                    member.time.dt.year.values == model_spna_members_combined_mean.time.dt.year.values
+                ), "The years are not the same."
+
+                # Extract the member attributes
+                member_attrs = member.attrs
+
+                # Extract the SPNA SST data for this year
+                # member value
+                model_SPNA_year = member.sel(time=f"{year}")
+
+                # Extract the mean SPNA SST for this year
+                # mean value
+                model_SPNA_mean = model_spna_members_combined_mean.sel(
+                    time=f"{year}")
+                
+                # Take annual means for both
+                model_SPNA_year_mean = model_SPNA_year.groupby("time.year").mean(
+                )
+
+                # Take the mean of our 'correct' SPNA index
+                model_SPNA_correct = model_SPNA_mean.groupby("time.year").mean(
+                )
+
+                # Calculate the difference between the two
+                spna_diff = np.abs(model_SPNA_correct - model_SPNA_year_mean)
+
+                # Assign the coordinates of the correct SPNA index
+                spna_diff = spna_diff.assign_coords(
+                    coords=model_SPNA_correct.coords)
+                
+                # Add the attributes back
+                spna_diff.attrs = member_attrs
+
+                # Append the member to the list
+                closest_SPNA_members.append(spna_diff)
+
+            # Sort the list of differences from smallest to largest
+            closest_SPNA_members.sort()
+
+            # Select only the first no_subset_members members
+            closest_SPNA_members = closest_SPNA_members[:no_subset_members]
+
+            # Print the closest SPNA members for debugging
+            print("smallest SPNA differences:", [member.values for member in closest_SPNA_members])
+            print("Model and variant labels:", [member.attrs["source_id"] for member in closest_SPNA_members], [member.attrs["variant_label"] for member in closest_SPNA_members])
+
+            print("Closest SPNA members found for year:", year)
 
 
 if __name__ == "__main__":
