@@ -525,6 +525,63 @@ def main():
             [len(years_in_both), no_subset_members, len(lats), len(lons)]
         )
 
+        # Set up a dictionary for the ensemble members match var
+        ensemble_members_mv_dict = {}
+
+        # Set up a simple counter
+        counter = 0
+
+        # TODO: Extract the match var arrays into a dictionary format
+        for model in model_data_match_var_constrained:
+            print("extracting the match var arrays for model:", model)
+
+            # Extract the data for the given model
+            model_data = model_data_match_var_constrained[model]
+
+            # Loop over the ensemble members
+            for member in model_data:
+
+                # Create a key from the model and variant label
+                key = (member.attrs["source_id"], member.attrs["variant_label"])
+
+                # Assert that the years are unique
+                assert len(np.unique(member.time.dt.year.values)) == len(
+                    member.time.dt.year.values
+                ), "The years are not unique."
+
+                # Assert that the difference between the years is 1
+                assert np.all(
+                    np.diff(member.time.dt.year.values) == 1
+                ), "The years are not consecutive."
+
+                # If the counter is 0
+                if counter == 0:
+                    # Extract the years
+                    years_test = member.time.dt.year.values
+
+                    # Assert that the array years_test is the same as years1
+                    assert np.array_equal(
+                        years_test, years1
+                    ), "The years are not the same."
+
+                # Assert that the years are the same
+                assert np.array_equal(years_test, years1), "The years are not the same."
+
+                # If the key is not in the dictionary
+                if key not in ensemble_members_mv_dict:
+                    # Initialize an empty list
+                    ensemble_members_mv_dict[key] = {
+                        f"{match_var}_field": [],
+                        "years": []
+                    }
+
+                # Append the time series and years to the dictionary
+                ensemble_members_mv_dict[key][f"{match_var}_field"].append(member.values)
+                ensemble_members_mv_dict[key]["years"].append(member.time.dt.year.values)
+
+                # Increment the counter
+                counter += 1
+
         # Form a list for the SPNA index members
         # i.e. not constrained by the models dictionary structure
         ensemble_members_dict = {}
@@ -588,6 +645,9 @@ def main():
                 # Increment the counter
                 member_counter[model] += 1
 
+                # Increment the counter
+                counter += 1
+
         # Print the ensemble members dictionary for debugging
         print("ensemble_members_dict:", ensemble_members_dict)
 
@@ -648,6 +708,9 @@ def main():
 
         # Print the spna_diff dictionary for debugging
         print("spna_diff:", spna_diff)
+
+        # TODO: Select these members from the model data
+
 
 if __name__ == "__main__":
     main()
