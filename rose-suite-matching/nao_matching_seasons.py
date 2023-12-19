@@ -527,7 +527,7 @@ def main():
 
         # Form a list for the SPNA index members
         # i.e. not constrained by the models dictionary structure
-        ensemble_members_list = []
+        ensemble_members_dict = {}
 
         # Initialize a dictionary for counting the members for each model
         member_counter = {}
@@ -543,29 +543,38 @@ def main():
 
             # Loop over the ensemble members
             for member in model_spna_data:
-                # If the type of the time is not a datetime64
-                if not isinstance(member.time.values[0], np.datetime64):
-                    # Extract the time values as a datetime64
-                    member_time = member.time.astype("datetime64[ns]")
 
-                    # Add the time values to the member
-                    member = member.assign_coords(time=member_time)
+                # Create a key from the model and variant label
+                key = (member.attrs["source_id"], member.attrs["variant_label"])
 
-            # Assert that the years are unique
-            assert len(np.unique(member.time.dt.year.values)) == len(
-                member.time.dt.year.values
-            ), "The years are not unique."
+                # Assert that the years are unique
+                assert len(np.unique(member.time.dt.year.values)) == len(
+                    member.time.dt.year.values
+                ), "The years are not unique."
 
-            # Assert that the difference between the years is 1
-            assert np.all(
-                np.diff(member.time.dt.year.values) == 1
-            ), "The years are not consecutive."
+                # Assert that the difference between the years is 1
+                assert np.all(
+                    np.diff(member.time.dt.year.values) == 1
+                ), "The years are not consecutive."
 
-            # Append the data to the list
-            ensemble_members_list.append(member)
+                # If the key is not in the dictionary
+                if key not in ensemble_members_dict:
+                    # Initialize an empty list
+                    ensemble_members_dict[key] = {
+                        "spna": [],
+                        "years": []
+                    }
 
-            # Increment the counter
-            member_counter[model] += 1
+                # Append the time series and years to the dictionary
+                ensemble_members_dict[key]["spna"].append(member.values)
+                ensemble_members_dict[key]["years"].append(member.time.dt.year.values)
+
+                # Increment the counter
+                member_counter[model] += 1
+
+        # Print the ensemble members dictionary for debugging
+        print("ensemble_members_dict:", ensemble_members_dict)
+
 
         # TODO: Loop over the years
         # and calculate the SPNA members for each year
