@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=test
+#SBATCH --partition=short-serial
 #SBATCH --job-name=ben-array-regrid-test
 #SBATCH -o ./logs/%j.out
 #SBATCH -e ./logs/%j.err
