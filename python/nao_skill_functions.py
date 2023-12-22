@@ -2889,7 +2889,7 @@ def plot_multi_model_mean_spna(nao_stats_dict: dict,
 
 # Define a function to calculate the SPNA temperature index
 def calculate_spna_index(t_anom,
-                         gridbox=dic.spna_grid_smith):
+                         gridbox=dic.spna_grid_strommen):
     """
     Calculates the SPNA index from a given temperature anomaly field.
 
