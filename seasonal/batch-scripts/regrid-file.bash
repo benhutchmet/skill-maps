@@ -13,7 +13,7 @@
 usage="Usage: bash regrid-file.bash <experiment> <variable> <nens> <init_month> <year>"
 
 # Check if the correct number of arguments is passed
-if [ $# -ne 4 ]; then
+if [ $# -ne 5 ]; then
     echo ${usage}
     echo "Example: bash regrid-file.bash ASF20C SLP 50 Nov 1901"
     exit 1
@@ -24,7 +24,7 @@ experiment=$1
 variable=$2
 nens=$3
 init_month=$4
-year=$4
+year=$5
 
 # Set up the base path for the data to be processed
 base_path_20c="/badc/deposited2020/seasonal-forecasts-20thc/data"
@@ -33,7 +33,7 @@ base_path_20c="/badc/deposited2020/seasonal-forecasts-20thc/data"
 folder_name="${variable}monthly_${experiment}_${init_month}START_ENSmems"
 
 # Set up the path to the folder
-path_to_folder="${base_path_20c}/${folder_name}"
+path_to_folder="${base_path_20c}/${experiment}/${folder_name}"
 
 # Check if the folder exists
 if [ ! -d ${path_to_folder} ]; then
@@ -77,10 +77,14 @@ fi
 for file in ${files[@]}; do
     # Extract the filename
     filename=$(basename ${file})
-    # Extract the ensemble member
-    ens_member=$(echo ${filename} | cut -d'_' -f4 | cut -d'.' -f1)
+    # Cut the .nc extension from the filename
+    filename_no_nc=$(echo ${filename} | cut -d'.' -f1)
+
+    # Echo the filename
+    echo "Processing ${filename_no_nc}"
+
     # Set up the output file
-    output_file="${canari_folder}/${variable}monthly_${year}_${ens_member}.nc"
+    output_file="${canari_folder}/${filename_no_nc}_rg.nc"
     # Check if the output file exists
     if [ -f ${output_file} ]; then
         echo "The output file ${output_file} already exists"

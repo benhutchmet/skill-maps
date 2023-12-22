@@ -8,3 +8,7 @@ __pycache__/*.pyc
 rose-suite-matching/.ipynb_checkpoints/*
 python/__pycache__/*
 plots/*.png
+logs/*.log
+logs/*.txt
+logs/*.err
+logs/*.out
