@@ -16,8 +16,8 @@ echo "The desired number of arguments is: 3"
 
 # Check if the correct number of arguments is passed
 if [ $# -ne 3 ]; then
-    echo "Usage: sbatch submit-regrid-file.bash <experiment> <variable> <nens>"
-    echo "Example: sbatch submit-regrid-file.bash ASF20C SLP 50"
+    echo "Usage: sbatch submit-regrid-file.bash <experiment> <variable> <nens> <init_month>"
+    echo "Example: sbatch submit-regrid-file.bash ASF20C SLP 50 Nov"
     exit 1
 fi
 
@@ -25,18 +25,20 @@ fi
 experiment=$1
 variable=$2
 nens=$3
+init_month=$4
 
 # Print the arguments
 echo "My experiment: ${experiment}"
 echo "My variable: ${variable}"
 echo "My nens: ${nens}"
+echo "My init_month: ${init_month}"
 
 # Load cdo
 module load jaspy
 
 # Set up the process script
 # This script takes args:
-# <experiment> <variable> <nens> <year>
+# <experiment> <variable> <nens> <init_month> <SLURM_ARRAY_TASK_ID>
 process_script=$PWD/regrid-file.bash
 
 # Echo that we are running the process script
