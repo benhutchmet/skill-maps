@@ -21,7 +21,19 @@ if [ $# -ne 3 ]; then
     exit 1
 fi
 
+# Extract the arguments
+experiment=$1
+variable=$2
+init_month=$3
+
+# Print the arguments
+echo "My experiment: ${experiment}"
+echo "My variable: ${variable}"
+echo "My init_month: ${init_month}"
+echo "Year: ${SLURM_ARRAY_TASK_ID}"
+
 # Load cdo
+module load jaspy
 
 # Set up the process script
 process_script="/home/users/benhutch/skill-maps/seasonal/batch-scripts/calculate-climatology.bash"
