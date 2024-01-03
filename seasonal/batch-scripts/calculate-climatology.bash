@@ -78,31 +78,34 @@ for file in ${canari_folder}/*${year}*.nc; do
 
 done
 
-# # Echo that we are now calculating the climatology
-# echo "Calculating the climatology"
+# Echo that we are now calculating the climatology
+echo "Calculating the climatology"
 
-# # Set up the folder for the climatology
-# clim_folder="${canari_folder}/climatology"
+# Set up the folder for the climatology
+clim_folder="${canari_folder}/climatology"
 
-# # If this folder does not exist, create it
-# if [ ! -d ${clim_folder} ]; then
-#     echo "The folder ${clim_folder} does not exist"
-#     echo "Creating the folder"
-#     mkdir -p ${clim_folder}
-# fi
+# If this folder does not exist, create it
+if [ ! -d ${clim_folder} ]; then
+    echo "The folder ${clim_folder} does not exist"
+    echo "Creating the folder"
+    mkdir -p ${clim_folder}
+fi
 
-# # Set up the output file
-# output_file="${clim_folder}/${variable}_climatology.nc"
+# Echo the file name
+echo "Processing ensemble mean for ${year}"
 
-# # If the output file already exists, skip this file
-# if [ -f ${output_file} ]; then
-#     echo "The file ${output_file} already exists"
-#     echo "Skipping this file"
-#     continue
-# fi
+# Set up the output file name
+output_file="${clim_folder}/${year}_clim.nc"
 
-# # Set up the cdo command
-# cdo ensmean ${djf_folder}/*.nc ${output_file}
+# If the output file already exists, skip this file
+if [ -f ${output_file} ]; then
+    echo "The file ${output_file} already exists"
+    echo "Skipping this file"
+    continue
+fi
+
+# Calculate the ensemble mean
+cdo ensmean ${djf_folder}/*${year}*.nc ${output_file}
 
 # Echo that the script is finished
 echo "Finished"
