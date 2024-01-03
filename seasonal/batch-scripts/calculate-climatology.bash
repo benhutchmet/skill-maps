@@ -20,6 +20,9 @@ if [ $# -ne 4 ]; then
     exit 1
 fi
 
+# Load cdo
+module load jaspy
+
 # Extract the arguments
 experiment=$1
 variable=$2
