@@ -5,18 +5,18 @@
 # Removes the first time step (november) from the seasonal forecast data
 # and calculates the climatology over all of the ensemble members and years
 #
-# Usage: bash calculate-climatology.bash <experiment> <variable> <init_month>
+# Usage: bash calculate-climatology.bash <experiment> <variable> <init_month> <year>
 # 
-# Example: bash calculate-climatology.bash ASF20C SLP Nov
+# Example: bash calculate-climatology.bash ASF20C SLP Nov 1901
 #
 
 # Set up the usage message
-usage="Usage: bash calculate-climatology.bash <experiment> <variable> <init_month>"
+usage="Usage: bash calculate-climatology.bash <experiment> <variable> <init_month> <year>"
 
 # Check if the correct number of arguments is passed
-if [ $# -ne 3 ]; then
+if [ $# -ne 4 ]; then
     echo ${usage}
-    echo "Example: bash calculate-climatology.bash ASF20C SLP Nov"
+    echo "Example: bash calculate-climatology.bash ASF20C SLP Nov 1901"
     exit 1
 fi
 
@@ -24,6 +24,7 @@ fi
 experiment=$1
 variable=$2
 init_month=$3
+year=$4
 
 # Set up the base path for the data to be processed
 base_path_canari="/gws/nopw/j04/canari/users/benhutch/seasonal"
@@ -48,7 +49,7 @@ if [ ! -d ${djf_folder} ]; then
 fi
 
 # Loop over all the files in the canari folder
-for file in ${canari_folder}/*.nc; do
+for file in ${canari_folder}/*${year}*.nc; do
 
     # Extract the file name
     file_name=$(basename ${file})
