@@ -334,8 +334,8 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
         # Extract the values
         nens1 = forecast_stats["nens1"]
-        start_year = forecast_stats["start_year"]
-        end_year = forecast_stats["end_year"]
+        start_year = 1966 - 5
+        end_year = 2019 - 5
 
         # Print the start and end years
         print(f"start_year = {start_year}")
