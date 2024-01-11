@@ -104,6 +104,9 @@ def forecast_stats_var(variables: list,
         # Assign the obs variable name
         obs_var_name = dicts.var_name_map[variable]
 
+        # Print the obs variable name
+        print(f"obs_var_name = {obs_var_name}")
+
         # Set up the dcpp models for the variable
         dcpp_models = nao_match_fnc.match_variable_models(match_var=variable)
 
@@ -118,7 +121,7 @@ def forecast_stats_var(variables: list,
                                         forecast_range=forecast_range,
                                         season=season,
                                         observations_path=obs_path,
-                                        obs_var_name=obs_var_name)
+                                        obs_var_name=variable)
         
         # Load and process the dcpp model data
         dcpp_data = pbs_func.load_and_process_dcpp_data(base_dir=base_dir,
