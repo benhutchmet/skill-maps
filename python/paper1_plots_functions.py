@@ -422,3 +422,21 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         cf_list.append(cf)
 
     # Add a colorbar
+    cbar = fig.colorbar(cf_list[0], ax=axs, orientation="horizontal", pad=0.5,
+                         aspect=50, shrink=0.8)
+    cbar.set_label("correlation coefficient", fontsize=6)
+
+    # Set up the pathname for saving the figure
+    fig_name = f"different_variables_corr_{start_year}_{end_year}"
+
+    # Set up the plots directory
+    plots_dir = "/gws/nopw/j04/canari/users/benhutch/plots"
+
+    # Set up the path to the figure
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+
+    # Show the figure
+    plt.show()
