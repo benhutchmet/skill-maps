@@ -10,6 +10,7 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+from scipy.stats import pearsonr
 
 # Local imports
 sys.path.append("/home/users/benhutch/skill-maps")
@@ -273,11 +274,26 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # Set up the sup title
     fig.suptitle(sup_title, fontsize=6, y=0.93)
 
+    # Set up the lats and lons
+    lons = np.arange(-180, 180, 2.5) ; lats = np.arange(-90, 90, 2.5)
+
     # If the gridbox_corr is not None
     if gridbox_corr is not None:
         # Extract the lats and lons from the gridbox_corr
         lon1_corr, lon2_corr = gridbox_corr['lon1'], gridbox_corr['lon2']
         lat1_corr, lat2_corr = gridbox_corr['lat1'], gridbox_corr['lat2']
+
+        # find the indices of the lats which correspond to the gridbox
+        lat1_idx_corr = np.argmin(np.abs(lats - lat1_corr))
+        lat2_idx_corr = np.argmin(np.abs(lats - lat2_corr))
+
+        # find the indices of the lons which correspond to the gridbox
+        lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
+        lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+
+        # Constrain the lats and lons
+        # lats_corr = lats[lat1_idx_corr:lat2_idx_corr]
+        # lons_corr = lons[lon1_idx_corr:lon2_idx_corr]
 
     # Set up the extent
     # Using the gridbox plot here as this is the extent of the plot
@@ -285,12 +301,23 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         lon1_gb, lon2_gb = gridbox_plot['lon1'], gridbox_plot['lon2']
         lat1_gb, lat2_gb = gridbox_plot['lat1'], gridbox_plot['lat2']
 
-    # Set up the lats and lons
-    lons = np.arange(-180, 180, 2.5)
-    lats = np.arange(-90, 90, 2.5)
+        # find the indices of the lats which correspond to the gridbox
+        lat1_idx_gb = np.argmin(np.abs(lats - lat1_gb))
+        lat2_idx_gb = np.argmin(np.abs(lats - lat2_gb))
+
+        # find the indices of the lons which correspond to the gridbox
+        lon1_idx_gb = np.argmin(np.abs(lons - lon1_gb))
+        lon2_idx_gb = np.argmin(np.abs(lons - lon2_gb))
+
+        # Constrain the lats and lons
+        lats = lats[lat1_idx_gb:lat2_idx_gb]
+        lons = lons[lon1_idx_gb:lon2_idx_gb]
 
     # Set up the contour levels
     clevs = np.arange(-1.0, 1.1, 0.1)
+
+    # Set up a list to store the contourf objects
+    cf_list = []
 
     # Loop over the keys and forecast_stats_var_dic
     for i, (key, forecast_stats) in enumerate(forecast_stats_var_dic.items()):
@@ -315,3 +342,83 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         print(f"end_year = {end_year}")
         print(f"nens1 = {nens1}")
         print(f"for variable {key}")
+
+        # If grid_box_plot is not None
+        if gridbox_plot is not None:
+            # Print
+            print("Constraining data to gridbox_plot...")
+            print("As defined by gridbox_plot = ", gridbox_plot)
+
+            # Constrain the data to the gridbox_plot
+            corr = corr[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+            corr1_p = corr1_p[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+
+        # Set up the axes
+        ax = axs.flat[i]
+
+        # Include coastlines
+        ax.coastlines()
+
+        # Add borders (?)
+        ax1.add_feature(cfeature.BORDERS)
+
+        # Set up the cf object
+        cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
+
+        # If gridbox_corr is not None
+        if gridbox_corr is not None:
+            # Loggging
+            print("Calculating the correlations with a specific gridbox...")
+            print("As defined by gridbox_corr = ", gridbox_corr)
+
+            # Constrain the ts to the gridbox_corr
+            fcst1_ts = fcst1_ts[:, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
+            obs_ts = obs_ts[lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
+
+            # Calculate the mean of both time series
+            fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
+            obs_ts_mean = np.mean(obs_ts, axis=(0, 1))
+
+            # Calculate the correlation between the two time series
+            r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+
+            # Show these values on the plot
+            ax.text(0.05, 0.05, f"r={r:.2f}, p={p:.2f}", transform=ax.transAxes,
+                    va="bottom", ha="left", bbox=dict(facecolor="white", alpha=0.5),
+                    fontsize=6)
+            
+            # Add the gridbox to the plot
+            ax.plot([lon1_corr, lon2_corr, lon2_corr, lon1_corr, lon1_corr],
+                    [lat1_corr, lat1_corr, lat2_corr, lat2_corr, lat1_corr],
+                    color="green", linewidth=2, transform=proj)
+    
+        # If any of the corr1 values are NaNs
+        # then set the p values to NaNs at the same locations
+        corr1_p[np.isnan(corr)] = np.nan
+
+        # If any of the corr1_p values are greater than the sig_threshold
+        # then set the corr1 values to NaNs at the same locations
+        corr1_p[corr1_p > sig_threshold] = np.nan
+
+        # plot the p-values
+        ax.contourf(lons, lats, corr1_p, hatches=["...."], alpha=0., transform=proj)
+
+        # Add a text box with the axis label
+        ax.text(0.95, 0.05, f"{axis_labels[i]}", transform=ax.transAxes,
+                va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=6)
+        
+        # Add a textboc with the variable name in the top left
+        ax.text(0.05, 0.95, f"{key}", transform=ax.transAxes,
+                va="top", ha="left", bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=6)
+        
+        # Add a text box with the season in the top right
+        # ax.text(0.95, 0.95, f"{season}", transform=ax.transAxes,
+        #         va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+        #         fontsize=6)
+
+        # Add the contourf object to the list
+        cf_list.append(cf)
+
+    # Add a colorbar
