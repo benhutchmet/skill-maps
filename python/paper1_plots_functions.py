@@ -195,4 +195,24 @@ def forecast_stats_var(variables: list,
     # Return the forecast_stats_var dictionary
     return forecast_stats_var
 
+# Define a plotting function for this data
+def plot_forecast_stats_var(forecast_stats_var_dic: dict):
+    """
+    Plots the correlation fields for each variable in the forecast_stats_var.
+    
+    Inputs:
+    -------
+    
+    forecast_stats_var_dic: dict
+        Dictionary containing forecast statistics for each variable.
+        Dictionary keys are the variable names.
+        e.g. forecast_stats_var["tas"] = {"corr": corr, "rmse": rmse, "bias": bias}
 
+    Outputs:
+    --------
+    
+    None
+
+    """
+
+    
