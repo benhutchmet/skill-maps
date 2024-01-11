@@ -261,7 +261,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # Set up the figure
     fig, axs = plt.subplots(nrows=nrows,
                             ncols=2,
-                            figsize=(20, 20),
+                            figsize=(figsize_x, figsize_y),
                             subplot_kw={"projection": proj},
                             gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     
