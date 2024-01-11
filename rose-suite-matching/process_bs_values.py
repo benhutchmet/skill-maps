@@ -702,7 +702,10 @@ def main():
                                                                     dcpp_models,
                                                                     obs)
 
-    # Set up the                                                                
+    # Set up the
+    # TODO: Set up a run which for the raw data calculates the forecast stats
+    # for the longer time series (s1961-2014)
+    # Would have to test to see whether this breaks the bootstrapping first though                                                                
 
     # If the method is 'raw', process the forecast stats
     if method == "raw":                                                             
