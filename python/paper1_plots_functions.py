@@ -329,8 +329,8 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         corr1_p = forecast_stats["corr1_p"]
 
         # Extract the time series
-        fcst1_ts = forecast_stats["fcst1_ts"]
-        obs_ts = forecast_stats["obs_ts"]
+        fcst1_ts = forecast_stats["f1_ts"]
+        obs_ts = forecast_stats["o_ts"]
 
         # Extract the values
         nens1 = forecast_stats["nens1"]
