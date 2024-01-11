@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from scipy.stats import pearsonr
+import cartopy.feature as cfeature
 
 # Local imports
 sys.path.append("/home/users/benhutch/skill-maps")
@@ -360,7 +361,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         ax.coastlines()
 
         # Add borders (?)
-        ax1.add_feature(cfeature.BORDERS)
+        ax.add_feature(cfeature.BORDERS)
 
         # Set up the cf object
         cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
@@ -373,7 +374,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
             # Constrain the ts to the gridbox_corr
             fcst1_ts = fcst1_ts[:, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
-            obs_ts = obs_ts[lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
+            obs_ts = obs_ts[:, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
 
             # Calculate the mean of both time series
             fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
