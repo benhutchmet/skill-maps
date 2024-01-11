@@ -378,7 +378,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
             # Calculate the mean of both time series
             fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
-            obs_ts_mean = np.mean(obs_ts, axis=(0, 1))
+            obs_ts_mean = np.mean(obs_ts, axis=(1, 2))
 
             # Calculate the correlation between the two time series
             r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
