@@ -9,6 +9,7 @@ import glob
 # Third-Party Imports
 import numpy as np
 import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
 
 # Local imports
 sys.path.append("/home/users/benhutch/skill-maps")
@@ -196,7 +197,12 @@ def forecast_stats_var(variables: list,
     return forecast_stats_var
 
 # Define a plotting function for this data
-def plot_forecast_stats_var(forecast_stats_var_dic: dict):
+def plot_forecast_stats_var(forecast_stats_var_dic: dict,
+                            figsize_x: int = 10,
+                            figsize_y: int = 12,
+                            gridbox_corr: dict = None,
+                            gridbox_plot: dict = None,
+                            sig_threshold: float = 0.05):
     """
     Plots the correlation fields for each variable in the forecast_stats_var.
     
@@ -208,6 +214,27 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict):
         Dictionary keys are the variable names.
         e.g. forecast_stats_var["tas"] = {"corr": corr, "rmse": rmse, "bias": bias}
 
+    figsize_x: int
+        Figure size in x direction.
+        e.g. default is 10
+
+    figsize_y: int
+        Figure size in y direction.
+        e.g. default is 12
+
+    gridbox_corr: dict
+        Dictionary containing the gridbox which is used to calculate the correlation.
+        e.g. gridbox_corr = {"lat": lat, "lon": lon, "corr": corr}
+
+    gridbox_plot: dict
+        Dictionary containing the gridbox which is used to constrain
+        the domain of the plot.
+        e.g. gridbox_plot = {"lat": lat, "lon": lon, "corr": corr}
+
+    sig_threshold: float
+        Significance threshold for the correlation.
+        e.g. default is 0.05
+
     Outputs:
     --------
     
@@ -215,4 +242,76 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict):
 
     """
 
+    # Set up the axis labels
+    axis_labels = ["a", "b", "c", "d", "e", "f"]
+
+    # Set up the projection
+    proj = ccrs.PlateCarree()
+
+    # Count the number of keys in the forecast_stats_var_dic
+    no_keys = len(forecast_stats_var_dic.keys())
+
+    # Set up the nrows depending on whether the number of keys is even or odd
+    if no_keys % 2 == 0:
+        nrows = int(no_keys / 2)
+    else:
+        nrows = int((no_keys + 1) / 2)
+
+    # Set up the figure
+    fig, axs = plt.subplots(nrows=nrows,
+                            ncols=2,
+                            figsize=(20, 20),
+                            subplot_kw={"projection": proj},
+                            gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     
+    # Update the params for mathtext default rcParams
+    plt.rcParams.update({"mathtext.default": "regular"})
+
+    # Set up the sup title
+    sup_title = "Total correlation skill (r) for each variable"
+
+    # Set up the sup title
+    fig.suptitle(sup_title, fontsize=6, y=0.93)
+
+    # If the gridbox_corr is not None
+    if gridbox_corr is not None:
+        # Extract the lats and lons from the gridbox_corr
+        lon1_corr, lon2_corr = gridbox_corr['lon1'], gridbox_corr['lon2']
+        lat1_corr, lat2_corr = gridbox_corr['lat1'], gridbox_corr['lat2']
+
+    # Set up the extent
+    # Using the gridbox plot here as this is the extent of the plot
+    if gridbox_plot is not None:
+        lon1_gb, lon2_gb = gridbox_plot['lon1'], gridbox_plot['lon2']
+        lat1_gb, lat2_gb = gridbox_plot['lat1'], gridbox_plot['lat2']
+
+    # Set up the lats and lons
+    lons = np.arange(-180, 180, 2.5)
+    lats = np.arange(-90, 90, 2.5)
+
+    # Set up the contour levels
+    clevs = np.arange(-1.0, 1.1, 0.1)
+
+    # Loop over the keys and forecast_stats_var_dic
+    for i, (key, forecast_stats) in enumerate(forecast_stats_var_dic.items()):
+        # Logging
+        print(f"Plotting variable {key}...") ; print(f"Plotting index {i}...")
+
+        # Extract the correlation arrays from the forecast_stats dictionary
+        corr = forecast_stats["corr1"]
+        corr1_p = forecast_stats["corr1_p"]
+
+        # Extract the time series
+        fcst1_ts = forecast_stats["fcst1_ts"]
+        obs_ts = forecast_stats["obs_ts"]
+
+        # Extract the values
+        nens1 = forecast_stats["nens1"]
+        start_year = forecast_stats["start_year"]
+        end_year = forecast_stats["end_year"]
+
+        # Print the start and end years
+        print(f"start_year = {start_year}")
+        print(f"end_year = {end_year}")
+        print(f"nens1 = {nens1}")
+        print(f"for variable {key}")
