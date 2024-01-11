@@ -263,8 +263,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     fig, axs = plt.subplots(nrows=nrows,
                             ncols=2,
                             figsize=(figsize_x, figsize_y),
-                            subplot_kw={"projection": proj},
-                            gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+                            subplot_kw={"projection": proj})
     
     # Update the params for mathtext default rcParams
     plt.rcParams.update({"mathtext.default": "regular"})
@@ -423,7 +422,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         cf_list.append(cf)
 
     # Add a colorbar
-    cbar = fig.colorbar(cf_list[0], ax=axs, orientation="horizontal", pad=0.5,
+    cbar = fig.colorbar(cf_list[0], ax=axs, orientation="horizontal", pad=0.05,
                          aspect=50, shrink=0.8)
     cbar.set_label("correlation coefficient", fontsize=6)
 
@@ -438,6 +437,9 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
     # Save the figure
     plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+
+    # # Specify a tight layout
+    # plt.tight_layout()
 
     # Show the figure
     plt.show()
