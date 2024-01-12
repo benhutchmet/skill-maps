@@ -399,8 +399,12 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             # If the model is not BCC-CSM2-MR
             # then we need to skip over the 0th time index
             if model != "BCC-CSM2-MR":
-                # Append this member to the array
-                nao_members[current_index, :] = nao_member[1: skip_years]
+                # If skip_years is not None
+                if skip_years is not None:
+                    # Append this member to the array
+                    nao_members[current_index, :] = nao_member[1: skip_years]
+                else:
+                    nao_members[current_index, :] = nao_member[1:]
             else:
                 # Append this member to the array
                 nao_members[current_index, :] = nao_member
@@ -439,8 +443,12 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             # If the model is not BCC-CSM2-MR
             # then we need to skip over the 0th time index
             if model != "BCC-CSM2-MR":
-                # Append this member to the array
-                nao_members_lag[current_index, :] = nao_member[1: skip_years]
+                # If skip_years is not None
+                if skip_years is not None:
+                    # Append this member to the array
+                    nao_members_lag[current_index, :] = nao_member[1: skip_years]
+                else:
+                    nao_members_lag[current_index, :] = nao_member[1:]
             else:
                 # Append this member to the array
                 nao_members_lag[current_index, :] = nao_member
