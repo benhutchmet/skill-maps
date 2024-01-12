@@ -264,6 +264,9 @@ def forecast_stats_var(variables: list,
 
 # Define a plotting function for this data
 def plot_forecast_stats_var(forecast_stats_var_dic: dict,
+                            nao_stats_dict: dict,
+                            psl_models: list,
+                            forecast_range: str,
                             figsize_x: int = 10,
                             figsize_y: int = 12,
                             gridbox_corr: dict = None,
@@ -279,6 +282,16 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         Dictionary containing forecast statistics for each variable.
         Dictionary keys are the variable names.
         e.g. forecast_stats_var["tas"] = {"corr": corr, "rmse": rmse, "bias": bias}
+
+    nao_stats_dict: dict
+        Dictionary containing the NAO stats.
+        e.g. nao_stats_dict = {"corr": corr, "rmse": rmse, "bias": bias}
+
+    psl_models: list
+        List of models which are used to calculate the NAO index.
+
+    forecast_range: str
+        Forecast range to process.
 
     figsize_x: int
         Figure size in x direction.
@@ -307,6 +320,134 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     None
 
     """
+
+    # First do the processing for the NAO index
+    if forecast_range == "2-9":
+        # Set up the length of the time series for raw and lagged
+        nyears_long = len(np.arange(1966, 2019 + 1))
+        nyears_long_lag = len(np.arange(1969, 2019 + 1))
+    elif forecast_range == "2-5":
+        # Set up the length of the time series for raw and lagged
+        nyears_long = len(np.arange(1964, 2017 + 1))
+        nyears_long_lag = len(np.arange(1967, 2017 + 1))
+    elif forecast_range == "2-3":
+        # Set up the length of the time series for raw and lagged
+        nyears_long = len(np.arange(1963, 2016 + 1))
+        nyears_long_lag = len(np.arange(1966, 2016 + 1))
+    else:
+        raise ValueError("forecast_range must be either 2-9 or 2-5 or 2-3")
+
+    # Set up the arrays for plotting the NAO index
+    total_nens = 0 ; total_lagged_nens = 0
+
+    # Loop over the models
+    for model in psl_models:
+        # Extract the nao stats for this model
+        nao_stats = nao_stats_dict[model]
+
+        # Add the number of ensemble members to the total
+        total_nens += nao_stats['nens']
+
+        # And for the lagged ensemble
+        total_lagged_nens += nao_stats['nens_lag']
+
+    # Set up the arrays for the NAO index
+    nao_members = np.zeros([total_nens, nyears_long])
+
+    # Set up the lagged arrays for the NAO index
+    nao_members_lag = np.zeros([total_lagged_nens, nyears_long_lag])
+
+    # Set up the counter for the current index
+    current_index = 0 ; current_index_lag = 0
+
+    # Iterate over the models
+    for i, model in enumerate(psl_models):
+        print(f"Extracting ensemble members for model {model}...")
+
+        # Extract the nao stats for this model
+        nao_stats = nao_stats_dict[model]
+
+        # Loop over the ensemble members
+        for j in range(nao_stats['nens']):
+            print(f"Extracting member {j} from model {model}...")
+
+            # Extract the nao member
+            nao_member = nao_stats['model_nao_ts_members'][j, :]
+
+            # Set up the lnegth of the correct time series
+            nyears_bcc = len(nao_stats_dict['BCC-CSM2-MR']['years'])
+
+            # If the model is not BCC-CSM2-MR
+            if model != "BCC-CSM2-MR":
+                # Extract the len of the time series
+                nyears = len(nao_stats['years'][1:])
+            else:
+                # Extract the length of the time series for this model
+                nyears = len(nao_stats['years'])                
+
+            # if these lens are not equal then we need to skip over the 0th time index
+            if nyears != nyears_bcc:
+                print("The length of the time series for {} is not equal to the length of the time series for BCC-CSM2-MR".format(
+                    model))
+                
+                # Figure out how many years to skip over at the end
+                skip_years = nyears_bcc - nyears
+                
+                # Assert that the new len is correct
+                assert len(nao_member[1:skip_years]) == nyears_bcc, "Length of nao_member is not equal to nyears_bcc"
+
+            # If the model is not BCC-CSM2-MR
+            # then we need to skip over the 0th time index
+            if model != "BCC-CSM2-MR":
+                # Append this member to the array
+                nao_members[current_index, :] = nao_member[1: skip_years]
+            else:
+                # Append this member to the array
+                nao_members[current_index, :] = nao_member
+
+            # Increment the counter
+            current_index += 1
+
+        # Loop over the lagged ensemble members
+        for j in range(nao_stats['nens_lag']):
+
+            # Extract the NAO index for this member
+            nao_member = nao_stats['model_nao_ts_lag_members'][i, :]
+            print("NAO index extracted for member {}".format(i))
+
+            # Set up the length of the correct time series
+            nyears_bcc = len(nao_stats_dict['BCC-CSM2-MR']['years_lag'])
+
+            if model != "BCC-CSM2-MR":
+                # Extract the length of the time series for this model
+                nyears = len(nao_stats['years_lag'][1:])
+            else:
+                # Extract the length of the time series for this model
+                nyears = len(nao_stats['years_lag'])
+
+            # if these lens are not equal then we need to skip over the 0th time index
+            if nyears != nyears_bcc:
+                print("The length of the time series for {} is not equal to the length of the time series for BCC-CSM2-MR".format(
+                    model))
+                
+                # Figure out how many years to skip over at the end
+                skip_years = nyears_bcc - nyears
+                
+                # Assert that the new len is correct
+                assert len(nao_member[1:skip_years]) == nyears_bcc, "Length of nao_member is not equal to nyears_bcc"
+
+            # If the model is not BCC-CSM2-MR
+            # then we need to skip over the 0th time index
+            if model != "BCC-CSM2-MR":
+                # Append this member to the array
+                nao_members_lag[current_index, :] = nao_member[1: skip_years]
+            else:
+                # Append this member to the array
+                nao_members_lag[current_index, :] = nao_member
+
+            # Increment the counter
+            current_index_lag += 1
+
 
     # Set up the axis labels
     axis_labels = ["a", "b", "c", "d", "e", "f"]
