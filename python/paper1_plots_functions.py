@@ -383,7 +383,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
 
             # Show these values on the plot
-            ax.text(0.05, 0.05, f"r={r:.2f}, p={p:.2f}", transform=ax.transAxes,
+            ax.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax.transAxes,
                     va="bottom", ha="left", bbox=dict(facecolor="white", alpha=0.5),
                     fontsize=8)
             
@@ -411,6 +411,11 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         # Add a textboc with the variable name in the top left
         ax.text(0.05, 0.95, f"{key}", transform=ax.transAxes,
                 va="top", ha="left", bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8)
+        
+        # Include the number of ensemble members in the top right of the figure
+        ax.text(0.95, 0.95, f"n = {nens1}", transform=ax.transAxes,
+                va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
                 fontsize=8)
         
         # Add a text box with the season in the top right
