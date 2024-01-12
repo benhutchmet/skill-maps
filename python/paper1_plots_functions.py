@@ -694,6 +694,18 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # Include a legend
     ax.legend(loc="upper left", fontsize=8)
 
+    # Set a horizontal line at zero
+    ax.axhline(y=0, color="black", linestyle="--", linewidth=1)
+
+    # Set the y limits
+    ax.set_ylim([-10, 10])
+
+    # Set the y label
+    ax.set_ylabel("NAO (hPa)")
+
+    # Set the x label
+    ax.set_xlabel("Initialisation year")
+
     # Print that we are plotting the lag and variance adjusted NAO index
     print("Plotting the lag and variance adjusted NAO index...")
 
@@ -717,8 +729,37 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     nao_var_adjust = nao_members_mean_lag * rps1
 
     # Calculate the RMSE between the ensemble mean and observations
-    rmse = np.sqrt()
+    rmse = np.sqrt(np.mean((nao_var_adjust - nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'])**2))
 
+    # Calculate the upper and lower bounds
+    ci_lower = nao_var_adjust - rmse
+    ci_upper = nao_var_adjust + rmse
+
+    # Set up the axes
+    ax = axs.flat[-1]
+
+    # Plot the ensemble mean
+    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
+            nao_var_adjust / 100, color="red", label="dcppA")
+    
+    # Plot the obs
+    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
+            nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'] / 100, color="black",
+            label="ERA5")
+
+    # Plot the 5th and 95th percentiles
+    ax.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
+                    ci_lower / 100,
+                    ci_upper / 100,
+                    color="red", alpha=0.2)
+
+    # Add a text box with the axis label
+    ax.text(0.95, 0.05, f"{axis_labels[-1]}", transform=ax.transAxes,
+            va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+            fontsize=8)
+    
+    # Set a horizontal line at zero
+    ax.axhline(y=0, color="black", linestyle="--", linewidth=1)
 
     # Set up the pathname for saving the figure
     fig_name = f"different_variables_corr_{start_year}_{end_year}"
