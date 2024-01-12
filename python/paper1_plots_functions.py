@@ -250,7 +250,7 @@ def forecast_stats_var(variables: list,
         # Extract the nao stats
         nao_stats_dict = nao_fnc.nao_stats(obs_psl=obs_psl_anom,
                                            hindcast_psl=dcpp_data,
-                                           models=dcpp_models,
+                                           models_list=dcpp_models,
                                            lag=4,
                                            short_period=(1965,2010),
                                            season=season)
