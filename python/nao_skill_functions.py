@@ -246,17 +246,32 @@ def nao_stats(obs_psl: DataArray,
 
     """
 
-    # Assert that the season is DJFM
-    assert season == 'DJFM', "The season must be DJFM"
+    # # Assert that the season is DJFM
+    # assert season == 'DJFM', "The season must be DJFM"
 
     # Assert that either both obs_tas and hindcast_tas are None or both are not None
     assert (obs_tas is None and hindcast_tas is None) or (obs_tas is not None and hindcast_tas is not None), \
         "Either both obs_tas and hindcast_tas must be None or both must be not None"
 
-    # Hard code in the dictionaries containing
-    # the grid boxes for the NAO index
-    azores_grid = dic.azores_grid_corrected
-    iceland_grid = dic.iceland_grid_corrected
+    # If the season is DJF, DJFM or JFM or MAM
+    if season in ['DJF', 'DJFM', 'JFM', 'MAM']:
+        print("Using standard NAO definition")
+
+        # Hard code in the dictionaries containing
+        # the grid boxes for the NAO index
+        azores_grid = dic.azores_grid_corrected
+        iceland_grid = dic.iceland_grid_corrected
+    # elif season is JJA
+    elif season == 'JJA':
+        print("Using alternative NAO definition")
+
+        # Hard code in the dictionaries containing
+        # the grid boxes for the NAO index
+        azores_grid = dic.snao_south_grid
+        iceland_grid = dic.snao_north_grid
+    else:
+        raise ValueError(
+            'season must be DJF, DJFM, JFM, MAM or JJA')
 
     # Create a dictionary to store the NAO stats for each model
     nao_stats_dict = {}
