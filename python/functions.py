@@ -6457,6 +6457,8 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
     r_partial_p = np.zeros([n_lats, n_lons])
 
+    # TODO: Modify this to include significant negative correlations as well
+    # TODO: Read through Doug's paper to figure out what is going on here
     for lat in range(n_lats):
         for lon in range(n_lons):
             # Extract the forecasts and obs bootstrapped data for the cell

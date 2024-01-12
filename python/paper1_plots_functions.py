@@ -411,7 +411,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         # Add a textboc with the variable name in the top left
         ax.text(0.05, 0.95, f"{key}", transform=ax.transAxes,
                 va="top", ha="left", bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=8
+                fontsize=8)
         
         # Add a text box with the season in the top right
         # ax.text(0.95, 0.95, f"{season}", transform=ax.transAxes,
