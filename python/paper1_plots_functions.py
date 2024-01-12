@@ -418,8 +418,8 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         for j in range(nao_stats['nens_lag']):
 
             # Extract the NAO index for this member
-            nao_member = nao_stats['model_nao_ts_lag_members'][i, :]
-            print("NAO index extracted for member {}".format(i))
+            nao_member = nao_stats['model_nao_ts_lag_members'][j, :]
+            print("NAO index extracted for member {}".format(j))
 
             # Set up the length of the correct time series
             nyears_bcc = len(nao_stats_dict['BCC-CSM2-MR']['years_lag'])
@@ -450,12 +450,12 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
                 # If skip_years is not None
                 if skip_years is not None:
                     # Append this member to the array
-                    nao_members_lag[current_index, :] = nao_member[1: skip_years]
+                    nao_members_lag[current_index_lag, :] = nao_member[1: skip_years]
                 else:
-                    nao_members_lag[current_index, :] = nao_member[1:]
+                    nao_members_lag[current_index_lag, :] = nao_member[1:]
             else:
                 # Append this member to the array
-                nao_members_lag[current_index, :] = nao_member
+                nao_members_lag[current_index_lag, :] = nao_member
 
             # Increment the counter
             current_index_lag += 1
@@ -487,10 +487,9 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         nrows = int((no_keys + 1) / 2) + 1
 
     # Set up the figure
-    fig, axs = plt.subplots(nrows=nrows,
+    fig, axs = plt.subplots(nrows=3,
                             ncols=2,
-                            figsize=(figsize_x, figsize_y),
-                            subplot_kw={"projection": proj})
+                            figsize=(figsize_x, figsize_y))
     
     # Update the params for mathtext default rcParams
     plt.rcParams.update({"mathtext.default": "regular"})
@@ -546,6 +545,9 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # Set up a list to store the contourf objects
     cf_list = []
 
+    # Set up the axes
+    axes = []
+
     # Loop over the keys and forecast_stats_var_dic
     for i, (key, forecast_stats) in enumerate(forecast_stats_var_dic.items()):
         # Logging
@@ -581,7 +583,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             corr1_p = corr1_p[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
 
         # Set up the axes
-        ax = axs.flat[i]
+        ax = plt.subplot(nrows, 2, i + 1, projection=proj)
 
         # Include coastlines
         ax.coastlines()
@@ -656,8 +658,12 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         # Add the contourf object to the list
         cf_list.append(cf)
 
+        # Add the axes to the list
+        axes.append(ax)
+
     # Add a colorbar
-    cbar = fig.colorbar(cf_list[0], ax=[axs[1], axs[3]], orientation="vertical", pad=0.05)
+    cbar = fig.colorbar(cf_list[0], ax=axes, orientation="horizontal", pad=0.05,
+                        shrink=0.8)
     cbar.set_label("correlation coefficient", fontsize=10)
 
     # Now plot the NAO index
@@ -681,7 +687,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     nao_members_mean_max = np.percentile(nao_members, 95, axis=0)
 
     # Plot the ensemble mean
-    ax = axs.flat[-2]
+    ax = axs[2, 0]
 
     # Plot the ensemble mean
     ax.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
@@ -701,6 +707,11 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # Add a text box with the axis label
     ax.text(0.95, 0.05, f"{axis_labels[-2]}", transform=ax.transAxes,
             va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+            fontsize=8)
+    
+    # Include a textbox containing the total nens in the top right
+    ax.text(0.95, 0.95, f"n = {total_nens}", transform=ax.transAxes,
+            va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
     
     # Include a legend
@@ -735,7 +746,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     rpc1_lag = corr1_lag / (np.std(nao_members_mean_lag) /np.std(nao_members_lag))
 
     # Calculate the rps between the model nao index and the obs nao index
-    rps1 = rpc1 * (np.std(nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag']) / np.std(nao_members_lag))
+    rps1 = rpc1_lag * (np.std(nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag']) / np.std(nao_members_lag))
 
     # Var adjust the NAO
     nao_var_adjust = nao_members_mean_lag * rps1
@@ -748,7 +759,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     ci_upper = nao_var_adjust + rmse
 
     # Set up the axes
-    ax = axs.flat[-1]
+    ax = axs[2, 1]
 
     # Plot the ensemble mean
     ax.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
@@ -770,8 +781,16 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
     
+    # Include a textbox containing the total nens in the top right
+    ax.text(0.95, 0.95, f"n = {total_nens_lag}", transform=ax.transAxes,
+            va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+            fontsize=8)
+    
     # Set a horizontal line at zero
     ax.axhline(y=0, color="black", linestyle="--", linewidth=1)
+
+    # Set the y limits
+    ax.set_ylim([-10, 10])
 
     # Set up the pathname for saving the figure
     fig_name = f"different_variables_corr_{start_year}_{end_year}"
