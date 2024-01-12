@@ -395,6 +395,8 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
                 
                 # Assert that the new len is correct
                 assert len(nao_member[1:skip_years]) == nyears_bcc, "Length of nao_member is not equal to nyears_bcc"
+            else:
+                skip_years = None
 
             # If the model is not BCC-CSM2-MR
             # then we need to skip over the 0th time index
@@ -439,6 +441,8 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
                 
                 # Assert that the new len is correct
                 assert len(nao_member[1:skip_years]) == nyears_bcc, "Length of nao_member is not equal to nyears_bcc"
+            else:
+                skip_years = None
 
             # If the model is not BCC-CSM2-MR
             # then we need to skip over the 0th time index
