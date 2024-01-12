@@ -412,7 +412,10 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
         # If any of the corr1_p values are greater than the sig_threshold
         # then set the corr1 values to NaNs at the same locations
-        corr1_p[corr1_p > sig_threshold] = np.nan
+        # WHat if the sig threshold is two sided?
+        # We wan't to set the corr1_p values to NaNs
+        # Where corr1_p<sig_threshold and corr1_p>1-sig_threshold
+        corr1_p[(corr1_p > sig_threshold) & (corr1_p < 1-sig_threshold)] = np.nan
 
         # plot the p-values
         ax.contourf(lons, lats, corr1_p, hatches=["...."], alpha=0., transform=proj)
