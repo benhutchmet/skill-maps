@@ -1861,7 +1861,7 @@ def plot_subplots_ind_models_spna(nao_stats_dict: dict,
     # Show the figure
     plt.show()
 
-
+# TODO: make this suitable for years 2-5 as well
 def plot_multi_model_mean(nao_stats_dict: dict,
                           models_list: List[str],
                           lag_and_var_adjust: bool = False,
