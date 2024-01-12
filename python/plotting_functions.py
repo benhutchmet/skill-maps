@@ -904,7 +904,7 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # If any of the corr1_p values are greater than the significance
             # threshold - set them to NaN
-            corr1_p[corr1_p > sig_threshold] = np.nan
+            corr1_p[(corr1_p > sig_threshold) & (corr1_p < 1-sig_threshold)] = np.nan
 
             # Plot the p-values for the correlation between the initialized forecast
             # and the observations
