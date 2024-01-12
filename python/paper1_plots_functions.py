@@ -22,6 +22,9 @@ sys.path.append("/home/users/benhutch/skill-maps/python")
 # import functions as fnc
 import plotting_functions as plt_fnc
 
+# Import nao skill functions
+import nao_skill_functions as nao_fnc
+
 # Import functions
 import functions as fnc
 
@@ -43,7 +46,7 @@ def forecast_stats_var(variables: list,
                        forecast_range: str,
                        region: str = "global",
                        start_year: int = 1961,
-                       end_year: int = 2018,
+                       end_year: int = 2023,
                        method: str = "raw",
                        no_bootstraps: int = 1,
                        base_dir: str = "/home/users/benhutch/skill-maps-processed-data"):
@@ -76,7 +79,7 @@ def forecast_stats_var(variables: list,
 
     end_year: int
         End year to process.
-        e.g. default is 2018
+        e.g. default is 2023
 
     method: str
         Method to process.
@@ -209,8 +212,55 @@ def forecast_stats_var(variables: list,
         # Do some logging
         print(f"Finished processing {variable}!")
 
+    # If psl is in the variables list
+    if "psl" in variables:
+        print("Calculating the NAO index...")
+
+        # Set up the dcpp models for the variable
+        dcpp_models = nao_match_fnc.match_variable_models(match_var="psl")
+
+        # Set up the obs path for the variable
+        obs_path = nao_match_fnc.find_obs_path(match_var="psl")
+
+        # Process the observations for the NAO index
+        obs_psl_anom = fnc.read_obs(variable="psl",
+                                    region=region,
+                                    forecast_range=forecast_range,
+                                    season=season,
+                                    observations_path=obs_path,
+                                    start_year=1960,
+                                    end_year=2023)
+        
+        # Load adn process the dcpp model data
+        dcpp_data = pbs_func.load_and_process_dcpp_data(base_dir=base_dir,
+                                                        dcpp_models=dcpp_models,
+                                                        variable="psl",
+                                                        region=region,
+                                                        forecast_range=forecast_range,
+                                                        season=model_season)
+
+        # Remove the years with NaNs from the obs and dcpp data
+        obs_psl_anom, \
+        dcpp_data, \
+        _ = fnc.remove_years_with_nans_nao(observed_data=obs_psl_anom,
+                                            model_data=dcpp_data,
+                                            models=dcpp_models,
+                                            NAO_matched=False)
+        
+        # Extract the nao stats
+        nao_stats_dict = nao_fnc.nao_stats(obs_psl=obs_psl_anom,
+                                           hindcast_psl=dcpp_data,
+                                           models=dcpp_models,
+                                           lag=4,
+                                           short_period=(1965,2010),
+                                           season=season)
+
+    else:
+        print("Not calculating the NAO index...")
+        nao_stats_dict = None
+
     # Return the forecast_stats_var dictionary
-    return forecast_stats_var
+    return forecast_stats_var, nao_stats_dict
 
 # Define a plotting function for this data
 def plot_forecast_stats_var(forecast_stats_var_dic: dict,
