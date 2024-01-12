@@ -99,6 +99,18 @@ def forecast_stats_var(variables: list,
     # Create empty dictionary containing a key for each variable
     forecast_stats_var = {}
 
+    # Translate the seasons
+    if season == "DJF":
+        model_season = "DJF"
+    elif season == "MAM":
+        model_season = "MAY"
+    elif season == "JJA":
+        model_season = "ULG"
+    elif season == "SON":
+        model_season = "SON"
+    else:
+        raise ValueError(f"season {season} not recognised!")
+
     # Loop over each variable in the variables list
     for variable in variables:
         # Do some logging
@@ -132,7 +144,7 @@ def forecast_stats_var(variables: list,
                                                         variable=variable,
                                                         region=region,
                                                         forecast_range=forecast_range,
-                                                        season=season)
+                                                        season=model_season)
         
         # Make sure that the individual models have the same valid years
         dcpp_data = fnc.constrain_years(model_data=dcpp_data,
