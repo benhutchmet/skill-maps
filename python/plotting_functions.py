@@ -879,7 +879,8 @@ def plot_different_methods_same_season_var(arrays: list, values: list,
 
             # If any of the corr1_p values are greater than the significance
             # threshold - set them to NaN
-            corr1_p_cs[corr1_p_cs > sig_threshold] = np.nan
+            # greater than sig_threshold and less than 1-sig_threshold
+            corr1_p_cs[(corr1_p_cs > sig_threshold) & (corr1_p_cs < 1-sig_threshold)] = np.nan
 
             # Create a masked array for the corr1_p values
             corr1_p_cs_masked = np.ma.masked_where(np.isnan(corr1_p_cs), corr1_p_cs)
