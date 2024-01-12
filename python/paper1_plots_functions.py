@@ -102,6 +102,8 @@ def forecast_stats_var(variables: list,
     # Translate the seasons
     if season == "DJF":
         model_season = "DJF"
+    if season == "DJFM":
+        model_season = "DJFM"
     elif season == "MAM":
         model_season = "MAY"
     elif season == "JJA":
