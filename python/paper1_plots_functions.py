@@ -448,6 +448,16 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             # Increment the counter
             current_index_lag += 1
 
+    # Set up the initialisation offset
+    if forecast_range == "2-9":
+        init_offset = 5
+    elif forecast_range == "2-5":
+        init_offset = 2
+    elif forecast_range == "2-3":
+        init_offset = 1
+    else:
+        raise ValueError("forecast_range must be either 2-9 or 2-5")
+
 
     # Set up the axis labels
     axis_labels = ["a", "b", "c", "d", "e", "f"]
@@ -460,9 +470,9 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
     # Set up the nrows depending on whether the number of keys is even or odd
     if no_keys % 2 == 0:
-        nrows = int(no_keys / 2)
+        nrows = int(no_keys / 2) + 1 # Extra row for the NAO index
     else:
-        nrows = int((no_keys + 1) / 2)
+        nrows = int((no_keys + 1) / 2) + 1
 
     # Set up the figure
     fig, axs = plt.subplots(nrows=nrows,
@@ -635,9 +645,80 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         cf_list.append(cf)
 
     # Add a colorbar
-    cbar = fig.colorbar(cf_list[0], ax=axs, orientation="horizontal", pad=0.05,
-                         aspect=50, shrink=0.8)
+    cbar = fig.colorbar(cf_list[0], ax=[axs[1], axs[3]], orientation="vertical", pad=0.05)
     cbar.set_label("correlation coefficient", fontsize=10)
+
+    # Now plot the NAO index
+    print("Plotting the raw NAO index...")
+
+    # Extract the total_nesn
+    total_nens = nao_members.shape[0]
+
+    # Calculate the mean of the nao_members
+    nao_members_mean = np.mean(nao_members, axis=0)
+
+    # Calculate the correlation between the nao_members_mean and the obs_ts
+    corr1, p1 = pearsonr(nao_members_mean,
+                            nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts'])
+
+    # Calculate the RPC between the model NAO index and the obs NAO index
+    rpc1 = corr1 / (np.std(nao_members_mean) /np.std(nao_members))
+
+    # Calculate the 5th and 95th percentiles of the nao_members
+    nao_members_mean_min = np.percentile(nao_members, 5, axis=0)
+    nao_members_mean_max = np.percentile(nao_members, 95, axis=0)
+
+    # Plot the ensemble mean
+    ax = axs.flat[-2]
+
+    # Plot the ensemble mean
+    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
+            nao_members_mean / 100, color="red", label="dcppA")
+
+    # Plot the obs
+    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
+            nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts'] / 100, color="black",
+            label="ERA5")
+    
+    # Plot the 5th and 95th percentiles
+    ax.fill_between(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
+                    nao_members_mean_min / 100,
+                    nao_members_mean_max / 100,
+                    color="red", alpha=0.2)
+
+    # Add a text box with the axis label
+    ax.text(0.95, 0.05, f"{axis_labels[-2]}", transform=ax.transAxes,
+            va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+            fontsize=8)
+    
+    # Include a legend
+    ax.legend(loc="upper left", fontsize=8)
+
+    # Print that we are plotting the lag and variance adjusted NAO index
+    print("Plotting the lag and variance adjusted NAO index...")
+
+    # Extract the total_nens
+    total_nens_lag = nao_members_lag.shape[0]
+
+    # Calculate the mean of the nao_members
+    nao_members_mean_lag = np.mean(nao_members_lag, axis=0)
+
+    # Calculate the correlation between the nao_members_mean and the obs_ts
+    corr1_lag, p1_lag = pearsonr(nao_members_mean_lag,
+                                    nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'])
+    
+    # Calculate the RPC between the model NAO index and the obs NAO index
+    rpc1_lag = corr1_lag / (np.std(nao_members_mean_lag) /np.std(nao_members_lag))
+
+    # Calculate the rps between the model nao index and the obs nao index
+    rps1 = rpc1 * (np.std(nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag']) / np.std(nao_members_lag))
+
+    # Var adjust the NAO
+    nao_var_adjust = nao_members_mean_lag * rps1
+
+    # Calculate the RMSE between the ensemble mean and observations
+    rmse = np.sqrt()
+
 
     # Set up the pathname for saving the figure
     fig_name = f"different_variables_corr_{start_year}_{end_year}"
