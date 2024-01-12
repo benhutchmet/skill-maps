@@ -359,8 +359,8 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         # Include coastlines
         ax.coastlines()
 
-        # Add borders (?)
-        ax.add_feature(cfeature.BORDERS)
+        # # Add borders (?)
+        # ax.add_feature(cfeature.BORDERS)
 
         # Set up the cf object
         cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
@@ -385,7 +385,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             # Show these values on the plot
             ax.text(0.05, 0.05, f"r={r:.2f}, p={p:.2f}", transform=ax.transAxes,
                     va="bottom", ha="left", bbox=dict(facecolor="white", alpha=0.5),
-                    fontsize=6)
+                    fontsize=8)
             
             # Add the gridbox to the plot
             ax.plot([lon1_corr, lon2_corr, lon2_corr, lon1_corr, lon1_corr],
@@ -406,12 +406,12 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         # Add a text box with the axis label
         ax.text(0.95, 0.05, f"{axis_labels[i]}", transform=ax.transAxes,
                 va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=6)
+                fontsize=8)
         
         # Add a textboc with the variable name in the top left
         ax.text(0.05, 0.95, f"{key}", transform=ax.transAxes,
                 va="top", ha="left", bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=6)
+                fontsize=8
         
         # Add a text box with the season in the top right
         # ax.text(0.95, 0.95, f"{season}", transform=ax.transAxes,
@@ -424,7 +424,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # Add a colorbar
     cbar = fig.colorbar(cf_list[0], ax=axs, orientation="horizontal", pad=0.05,
                          aspect=50, shrink=0.8)
-    cbar.set_label("correlation coefficient", fontsize=6)
+    cbar.set_label("correlation coefficient", fontsize=10)
 
     # Set up the pathname for saving the figure
     fig_name = f"different_variables_corr_{start_year}_{end_year}"
