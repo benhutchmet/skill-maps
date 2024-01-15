@@ -38,6 +38,440 @@ import nao_matching_seasons as nao_match_fnc
 # Import the functions from process_bs_values
 import process_bs_values as pbs_func
 
+# Define a function to convert the season
+def convert_season(season, dic):
+    """
+    Convert a season from a number to a string using a dictionary.
+
+    Args:
+        season (str): The season to convert.
+        dic (dict): A dictionary mapping season numbers to season names.
+                    Must contain 'season_map' as a key.
+
+    Returns:
+        str: The converted season name.
+
+    Example:
+        >>> season = "1"
+        >>> dic = {"1": "DJF", "2": "MAM", "3": "JJA", "4": "SON"}
+        >>> convert_season(season, dic)
+        'DJF'
+    """
+    # If season contains a number, convert it to the string
+    if season in ["1", "2", "3", "4"]:
+        season = dic.season_map[season]
+    
+    return season
+
+# Define a function to extract historical models based on the variable
+def extract_hist_models(variable, dic):
+    """
+    For a given variable, extract the historical models.
+    
+    Args:
+        variable (str): The variable to extract the historical models for.
+        dic (dict): A dictionary containing the historical models 
+                    for each variable.
+                    Must contain 'historical_models_map' as a key. 
+        
+    Returns:
+        list: A list of the historical models for the given variable.
+    """
+
+    # Extract the historical models for the given variable
+    hist_models = dic.historical_models_map[variable]
+
+    # Return the historical models
+    return hist_models   
+
+
+# Define a new function to load and process the historical data
+def load_and_process_hist_data(base_dir, hist_models, variable, region,
+                                forecast_range, season):
+    """
+    Load and process the historical data for a given variable, region,
+    forecast range and season. Assumes surface data.
+    
+    Args:
+        base_dir (str): The base directory containing the historical data.
+        hist_models (list): A list of the historical models to load the data for.
+        variable (str): The variable to load the data for.
+        region (str): The region to load the data for.
+        forecast_range (str): The forecast range to load the data for.
+        season (str): The season to load the data for.
+        
+    Returns:
+        hist_data (dict): The processed historical data.
+                          As a dictionary containing the model names as keys.
+    """
+
+    hist_datasets = hist_fnc.load_processed_historical_data(base_dir, 
+                                                            hist_models, 
+                                                            variable, 
+                                                            region, 
+                                                            forecast_range, 
+                                                            season)
+    
+    hist_data, _ = hist_fnc.process_data(hist_datasets, variable)
+
+    return hist_data
+
+# Define a new function to load and process the model data
+def load_and_process_dcpp_data(base_dir, dcpp_models, variable, region,
+                                forecast_range, season):
+    """
+    Load and process the model data for a given variable, region,
+    forecast range and season. Assumes surface data.
+
+    Args:
+        base_dir (str): The base directory containing the dcpp data.
+        dcpp_models (list): A list of the dcpp models to load the data for.
+        variable (str): The variable to load the data for.
+        region (str): The region to load the data for.
+        forecast_range (str): The forecast range to load the data for.
+        season (str): The season to load the data for.
+
+    Returns:
+        dcpp_data (dict): The processed dcpp data.
+                          As a dictionary containing the model names as keys.
+    """
+
+    dcpp_datasets = fnc.load_data(base_dir, dcpp_models, variable, 
+                                    region, forecast_range, season)
+    
+    dcpp_data, _ = fnc.process_data(dcpp_datasets, variable)
+
+    return dcpp_data
+
+# Define a new function to align the time periods and convert to array
+def align_and_convert_to_array(hist_data, dcpp_data, hist_models, dcpp_models,
+                               obs):
+    """
+    Align the time periods and convert the data to an array.
+
+    Args:
+        hist_data (dict): The processed historical data.
+                          As a dictionary containing the model names as keys.
+        dcpp_data (dict): The processed dcpp data.
+                          As a dictionary containing the model names as keys.
+        hist_models (list): A list of the historical models to load data for.
+        dcpp_models (list): A list of the dcpp models to load the data for.
+        variable (str): The variable to load the data for.
+        obs (array): The processed observations.
+
+    Returns:
+        fcst1 (array): The processed dcpp data as an array.
+        fcst2 (array): The processed historical data as an array.
+        obs (array): The processed observations as an array.
+        common_years (array): The common years between all three datasets.
+    """
+
+    # Use constrain_years to make sure that the models have the same time axis
+    constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
+
+    constrained_dcpp_data = fnc.constrain_years(dcpp_data, dcpp_models)
+
+    # Align the forecasts and observations
+    fcst1, fcst2, obs, common_years = fnc.align_forecast1_forecast2_obs(
+        constrained_dcpp_data, dcpp_models, constrained_hist_data, hist_models,
+        obs)
+    
+    # Return the aligned data
+    return fcst1, fcst2, obs, common_years
+
+# Define a new function to load the NAO matched data
+def load_nao_matched_data(base_dir: str, variable: str, region: str, season: str, forecast_range: str, start_year: int, end_year: int) -> Tuple[xr.Dataset, xr.Dataset]:
+    """
+    Load the NAO matched members and mean from a directory.
+
+    Parameters
+    ----------
+    base_dir : str
+        The base directory containing the NAO matched data.
+    variable : str
+        The variable to load (e.g. "t2m").
+    region : str
+        The region to load (e.g. "uk").
+    season : str
+        The season to load (e.g. "djf").
+    forecast_range : str
+        The forecast range to load (e.g. "day10").
+    start_year : int
+        The start year of the data to load.
+    end_year : int
+        The end year of the data to load.
+
+    Returns
+    -------
+    Tuple[xr.Dataset, xr.Dataset]
+        A tuple containing the NAO matched members and mean as xarray Datasets.
+    """
+
+    # Convert the season to the model season
+    if season == "MAM":
+        season = "MAY"
+    elif season == "JJA":
+        season = "ULG"
+        
+    # Set up the path to the data
+    path_nao_match_dir = f"{base_dir}/{variable}/{region}/{season}/{forecast_range}/{start_year}-{end_year}/"
+
+    # Check if there are files in the directory
+    if len(os.listdir(path_nao_match_dir)) == 0:
+        raise ValueError("There are no files in the directory")
+
+    # Extract the files in the directory
+    files = os.listdir(path_nao_match_dir)
+
+    # Extract the file containing the lagged ensemble NAO matched mean
+    nao_matched_mean_file = [file for file in files if "mean_lagged" in file][0]
+
+    # Extract the file containing the lagged ensemble NAO matched members
+    nao_matched_members_file = [file for file in files if "members_lagged" in file][0]
+
+    # Open the datasets using xarray
+    nao_matched_members = xr.open_dataset(path_nao_match_dir + nao_matched_members_file)
+    nao_matched_mean = xr.open_dataset(path_nao_match_dir + nao_matched_mean_file)
+
+    return (nao_matched_members, nao_matched_mean)
+
+# Define a function to align the NAO matched data with the constrained hist
+# data and the obs
+def align_nao_matched_members(obs: xr.DataArray, 
+                                nao_matched_members: xr.Dataset, 
+                                constrained_hist_data: dict,
+                                hist_models: list) -> tuple:
+    """
+    Aligns the NAO matched members, observations, and constrained historical data
+    to have the same years.
+
+    Args:
+    obs (xr.DataArray): The observations as an xarray DataArray.
+    nao_matched_members (xr.Dataset): The NAO matched members as an xarray Dataset.
+    constrained_hist_data (dict): The constrained historical data as a dictionary
+                                    of xarray Datasets.
+    hist_models (list): A list of the historical models.
+
+    Returns:
+    tuple: A tuple containing the aligned NAO matched members, forecast2, 
+            observations, and common years.
+            Contains the following:
+            fcst1_nm (array): The aligned NAO matched members.
+            fcst2 (array): The aligned constrained historical data.
+            obs (array): The aligned observations.
+            common_years (array): The common years between all three datasets.
+    """
+
+    # First extract the years for the observations
+    obs_years = obs.time.dt.year.values
+
+    # Loop over the years
+    for year in obs_years:
+        # If there are any NaN values in the observations
+        obs_year = obs.sel(time=f'{year}')
+        if np.isnan(obs_year.values).any():
+            print(f"there are NaN values in the observations for {year}")
+            if np.isnan(obs_year.values).all():
+                print(f"all values are NaN for {year}")
+                # Delete the year from the observations
+                obs = obs.sel(time=obs.time.dt.year != year)
+            else:
+                print(f"not all values are NaN for {year}")
+        else:
+            print(f"there are no NaN values in the observations for {year}")
+
+    # Extract the constrained obs_years
+    obs_years = obs.time.dt.year.values
+
+    # Extract the years for the NAO matched members
+    nao_matched_members_years = nao_matched_members.time.values
+
+    # Check that there are no duplicate years in the NAO matched members
+    if len(nao_matched_members_years) != len(np.unique(nao_matched_members_years)):
+        raise ValueError("there are duplicate years in the NAO matched members")
+
+    # Loop over the years for the NAO matched members
+    # and check that there are no NaN values
+    for year in nao_matched_members_years:
+        # If there are any NaN values in the observations
+        nao_matched_year = nao_matched_members['__xarray_dataarray_variable__'].sel(time=year)
+        if np.isnan(nao_matched_year.values).any():
+            print(f"there are NaN values in the NAO matched members for {year}")
+            if np.isnan(nao_matched_year.values).all():
+                print(f"all values are NaN for {year}")
+                # Delete the year from the observations
+                nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
+            else:
+                print(f"not all values are NaN for {year}")
+                # print("deleting the year containing some NaNs from the NAO matched members")
+                # # Delete the year from the NAo matched members
+                # nao_matched_members = nao_matched_members.sel(time=nao_matched_members.time.values != year)
+        else:
+            print(f"there are no NaN values in the NAO matched members for {year}")
+
+    # Extract the constrained nao_matched_members_years
+    nao_matched_members_years = nao_matched_members.time.values
+
+    # Extract the years for the constrained historical data
+    constrained_hist_data_years = constrained_hist_data[hist_models[0]][0].time.dt.year.values
+
+    # If the years for the NAO matched members are not the same as the constrained historical data
+    if not np.array_equal(nao_matched_members_years, 
+                          constrained_hist_data_years):
+        print("years for NAO matched members and constrained historical data are not the same")
+
+        # Find the common years
+        common_years = np.intersect1d(nao_matched_members_years, constrained_hist_data_years)
+
+        # Extract the common years from the NAO matched members
+        common_years_mask = np.in1d(nao_matched_members.time.values, common_years)
+        fcst1_nm = nao_matched_members.isel(time=common_years_mask)
+
+        # Extract the common years from the constrained historical data
+        constrained_hist_data_nmatch = {}
+        for model in constrained_hist_data:
+            model_data = constrained_hist_data[model]
+            for member in model_data:
+                # Extract the years for the member
+                member_years = member.time.dt.year.values
+
+                # If the years for the member are not the same as the common years
+                if not np.array_equal(member_years, common_years):
+                    # print(f"years for {model} member {member} are not the same as the common years")
+                    # Extract the common years for the member
+                    member = member.sel(time=member.time.dt.year.isin(common_years))
+
+                # Append to the list
+                if model not in constrained_hist_data_nmatch:
+                    constrained_hist_data_nmatch[model] = []
+
+                constrained_hist_data_nmatch[model].append(member)
+
+        # FIXME: Check the aligning of years here
+        fcst1_nm_years = fcst1_nm.time.values
+
+        # Check the new years
+        fcst2_years = constrained_hist_data_nmatch[hist_models[0]][0].time.dt.year.values
+
+        # Assert that the NAO matched members and constrained historical data
+        # have the same years
+        assert np.array_equal(fcst2_years, fcst1_nm_years), "the years are not the same"
+
+        # NAO matched members years
+        nao_matched_members_years = fcst1_nm_years
+
+    # Forecast 1 NM and forecast 2 should now be the same
+    common_model_years = nao_matched_members_years
+
+    # If the obs years are not the same as the common model years
+    if not np.array_equal(obs_years, common_model_years):
+        print("years for observations and common model years are not the same")
+
+        # Find the common years
+        common_years = np.intersect1d(obs_years, common_model_years)
+
+        # Select the common years from the observations
+        obs = obs.sel(time=obs.time.dt.year.isin(common_years))
+
+        # Use a boolean mask to select the common years from the NAO matched members
+        common_years_mask = np.in1d(nao_matched_members.time.values, common_years)
+
+        # Extract the common years from the NAO matched members
+        fcst1_nm = nao_matched_members.isel(time=common_years_mask)
+
+        # Extract the common years from the constrained historical data
+        constrained_hist_data_nmatch_obs = {}
+
+        # Extract the common obs years from the constrained historical data
+        for model in constrained_hist_data:
+            model_data = constrained_hist_data[model]
+            for member in model_data:
+                # Extract the years for the member
+                member_years = member.time.dt.year.values
+
+                # If the years for the member are not the same as the common years
+                if not np.array_equal(member_years, common_years):
+                    # print(f"years for {model} member {member} are not the same as the common years")
+                    # Extract the common years for the member
+                    member = member.sel(time=member.time.dt.year.isin(common_years))
+
+                # Append to the list
+                if model not in constrained_hist_data_nmatch_obs:
+                    constrained_hist_data_nmatch_obs[model] = []
+
+                constrained_hist_data_nmatch_obs[model].append(member)
+
+        # Check the new years
+        obs_years = obs.time.dt.year.values
+
+        # Extract the years for the constrained historical data
+        constrained_hist_data_years = constrained_hist_data_nmatch_obs[hist_models[0]][0].time.dt.year.values
+
+        # Assert that the arrays are the same
+        assert np.array_equal(obs_years, constrained_hist_data_years), \
+                                "the years are not the same"
+        
+        # Extract the nao matched members years again
+        nao_matched_members_years = fcst1_nm.time.values
+
+        # Assert that the arrays are the same
+        assert np.array_equal(obs_years, nao_matched_members_years), \
+                                "the years are not the same"
+        
+    # Extract the arrays from the datasets
+    fcst1_nm = fcst1_nm['__xarray_dataarray_variable__'].values
+
+    # Extract the obs
+    obs = obs.values
+
+    # Extract the no. ensemble members for f2
+    n_members_hist = np.sum([len(constrained_hist_data_nmatch[model]) for model
+                                in constrained_hist_data_nmatch])
+    
+    # Set up the fcst2 array
+    fcst2 = np.zeros([n_members_hist, len(obs_years), fcst1_nm.shape[2], fcst1_nm.shape[3]])
+
+    # Initialize the member index counter
+    member_index = 0
+
+    # Loop over the models
+    for model in constrained_hist_data_nmatch:
+        # Extract the model data
+        model_data = constrained_hist_data_nmatch[model]
+
+        # Loop over the members
+        for member in model_data:
+            # Extract the member data
+            member_data = member.values
+
+            # Set up the member data
+            fcst2[member_index, :, :, :] = member_data
+
+            # Increment the member index
+            member_index += 1
+
+    # If the time axis is not the second axis of the nao matched members
+    if fcst1_nm.shape[1] != len(obs_years):
+        print("time axis is not the second axis of the nao matched members")
+
+        # Swap the first and second axes
+        fcst1_nm = np.swapaxes(fcst1_nm, 0, 1)
+
+    # Assert that the array shapes are the same
+    assert fcst1_nm[0].shape == fcst2[0].shape, "the forecast array shapes are not the same"
+
+    # Assert that the array shapes are the same
+    assert fcst1_nm[0].shape == obs.shape, "the forecast and obs array shapes are not the same"
+
+    common_years = obs_years
+
+    # Print the shapes
+    print("fcst1_nm shape:", fcst1_nm.shape)
+    print("fcst2 shape:", fcst2.shape)
+    print("obs shape:", obs.shape)
+
+    return (fcst1_nm, fcst2, obs, common_years)
+
 # Create a function to process the raw data for the full forecast period
 # TODO: may also need to do this for lagged at some point as well
 def forecast_stats_var(variables: list,
