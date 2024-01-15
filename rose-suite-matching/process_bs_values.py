@@ -83,7 +83,7 @@ sys.path.append("/home/users/benhutch/skill-maps/python")
 import functions as fnc
 
 # Import the functions for calculating the forecast stats
-import paper_1_functions as p1_fnc
+import paper1_plots_functions as p1_fnc
 
 # Import the other functions
 sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
@@ -247,12 +247,19 @@ def main():
     if full_period:
         print("Processing the raw data for the full period")
         
+        # Create a list containing the single variable specified
+        variables = [variable]
+
         # Call the function
         # TODO: test for single bootstrap in this case
         forecast_stats, \
-        nao_stats_dict = p1_fnc.forecast_stats_var(variables = dicts.paper_1_variables,
+        nao_stats_dict = p1_fnc.forecast_stats_var(variables = variables,
                                             season = season,
                                             forecast_range = forecast_range,
+                                            region = region,
+                                            start_year = start_year,
+                                            end_year = end_year,
+                                            method = method,
                                             no_bootstraps = no_bootstraps)
     else:
         print("Processing the raw data for the overlapping hist period")
@@ -359,6 +366,10 @@ def main():
 
     # Check that forecast_stats exists and is a dictionary
     assert isinstance(forecast_stats, dict), "forecast_stats is not a dictionary"
+
+    # If the full period is True, extract the forecast stats
+    if full_period:
+        forecast_stats = forecast_stats[variable]
 
     # Set up the save path
     save_path = save_dir + "/" + variable + "/" + region + "/" + season + "/" \

@@ -600,7 +600,7 @@ def forecast_stats_var(variables: list,
         
 
         # Extract the years
-        years = obs.dt.year.values
+        years = obs.time.dt.year.values
 
         # print the first and last years from the obs
         print(f"obs start year = {years[0]}")
