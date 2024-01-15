@@ -160,6 +160,14 @@ def forecast_stats_var(variables: list,
                                                            model_data=dcpp_data,
                                                            models=dcpp_models)
         
+
+        # Extract the years
+        years = obs.dt.year.values
+
+        # print the first and last years from the obs
+        print(f"obs start year = {years[0]}")
+        print(f"obs end year = {years[-1]}")
+
         # Extract an array from the obs
         obs_array = obs.values
 

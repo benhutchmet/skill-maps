@@ -52,6 +52,9 @@ Parameters:
     level: int
         The level to perform the matching for. 
         Must be a level in the input files.
+    full_period: bool
+        Whether to use the full period or not.
+        Must be a boolean in the input files.
 
 Output:
 =======
@@ -78,6 +81,9 @@ import dictionaries as dicts
 # Import the functions
 sys.path.append("/home/users/benhutch/skill-maps/python")
 import functions as fnc
+
+# Import the functions for calculating the forecast stats
+from paper1_plots_functions import forecast_stats_var
 
 # Import the other functions
 sys.path.append("/home/users/benhutch/skill-maps/rose-suite-matching")
@@ -145,6 +151,10 @@ def extract_variables():
     # add optional argument for level, which defaults to None
     parser.add_argument('level', type=str, default=None,
                         help='The level to perform the matching for.')
+    
+    # add optional argument for full_period, which defaults to False
+    parser.add_argument('full_period', type=bool, default=False,
+                        help='Whether to use the full period or not.')
 
     # Extract the CLAs
     args = parser.parse_args()
@@ -632,6 +642,9 @@ def main():
 
     level = args.level
 
+    # Extract the full period boolean
+    full_period = args.full_period
+
     # If the region is global, set the region to the global gridspec
     if region == "global":
         region_grid = dicts.gridspec_global
@@ -662,105 +675,121 @@ def main():
     # Set up the observations path for the matching variable
     obs_path_name = find_obs_path(variable)
 
-    # Process the observed data
-    obs = fnc.process_observations(variable, region, region_grid, 
-                                   forecast_range, season, obs_path_name, 
-                                   variable, plev=level)
-
-
-    # if the variable is 'rsds'
-    # divide the obs data by 86400 to convert from J/m2 to W/m2
-    if variable in ['rsds', 'ssrd']:
-        print("converting obs to W/m2")
-        obs /= 86400
-
-    # Set up the model season
-    if season == "MAM":
-        model_season = "MAY"
-    elif season == "JJA":
-        model_season = "ULG"
+    # If full_period is True, process the raw data
+    # for the long period (s1961-2014 for years 2-9)
+    # TODO: Processing for the lagged data as well
+    if full_period:
+        print("Processing the raw data for the full period")
+        
+        # Call the function
+        # TODO: test for single bootstrap in this case
+        forecast_stats_dict, \
+        nao_stats_dict = forecast_stats_var(variables = dicts.paper_1_variables,
+                                            season = season,
+                                            forecast_range = forecast_range,
+                                            no_bootstraps = no_bootstraps)
     else:
-        model_season = season
+        print("Processing the raw data for the overlapping hist period")
 
-    # Load and process the historical data
-    hist_data = load_and_process_hist_data(base_dir_historical, hist_models, 
-                                            variable, region, forecast_range, 
-                                            season)
-    
-    # Set up the constrained historical data (contain only the common years)
-    constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
-    
-    # Load and process the model data
-    dcpp_data = load_and_process_dcpp_data(base_dir, dcpp_models, variable, 
-                                            region, forecast_range, 
-                                            model_season)
-    
-    # Now we process the data to align the time periods and convert to array
-    fcst1, fcst2, obs_array, common_years = align_and_convert_to_array(hist_data, 
-                                                                    dcpp_data, 
-                                                                    hist_models, 
-                                                                    dcpp_models,
-                                                                    obs)
+        # Process the observed data
+        obs = fnc.process_observations(variable, region, region_grid, 
+                                    forecast_range, season, obs_path_name, 
+                                    variable, plev=level)
 
-    # Set up the
-    # TODO: Set up a run which for the raw data calculates the forecast stats
-    # for the longer time series (s1961-2014)
-    # Would have to test to see whether this breaks the bootstrapping first though                                                                
 
-    # If the method is 'raw', process the forecast stats
-    if method == "raw":                                                             
-        print("Processing forecast stats for raw method")
+        # if the variable is 'rsds'
+        # divide the obs data by 86400 to convert from J/m2 to W/m2
+        if variable in ['rsds', 'ssrd']:
+            print("converting obs to W/m2")
+            obs /= 86400
 
-        # Now perform the bootstrapping to create the forecast stats
-        forecast_stats = fnc.forecast_stats(obs_array, fcst1, fcst2, 
-                                            no_boot = no_bootstraps)
+        # Set up the model season
+        if season == "MAM":
+            model_season = "MAY"
+        elif season == "JJA":
+            model_season = "ULG"
+        else:
+            model_season = season
+
+        # Load and process the historical data
+        hist_data = load_and_process_hist_data(base_dir_historical, hist_models, 
+                                                variable, region, forecast_range, 
+                                                season)
         
-    # Else if the method is 'lagged', lag the data
-    # Before processing the forecast stats
-    elif method == "lagged":
-        print("Performing lagging before processing forecast stats")
-
-        # Call the function to perform the lagging
-        lag_fcst1, lag_obs, lag_fcst2 = fnc.lag_ensemble_array(fcst1, fcst2,
-                                                                obs_array, lag=lag)
+        # Set up the constrained historical data (contain only the common years)
+        constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
         
-        # Now process the forecast stats for the lagged data
-        forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
-                                            no_boot = no_bootstraps)
-    
-    # Else if the method is nao_matched
-    elif method == "nao_matched":
-        print("Performing NAO matching before processing forecast stats")
-
-        # Set up the NAO matching base directory
-        nao_match_base_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
-
-        # Load the nao_matched data
-        nao_matched_data = load_nao_matched_data(nao_match_base_dir, variable,
-                                                region, season, forecast_range,
-                                                start_year, end_year)
+        # Load and process the model data
+        dcpp_data = load_and_process_dcpp_data(base_dir, dcpp_models, variable, 
+                                                region, forecast_range, 
+                                                model_season)
         
-        # Extract the nao_matched members and mean
-        nao_matched_members = nao_matched_data[0]
-        # nao_matched_mean = nao_matched_data[1]
+        # Now we process the data to align the time periods and convert to array
+        fcst1, fcst2, obs_array, common_years = align_and_convert_to_array(hist_data, 
+                                                                        dcpp_data, 
+                                                                        hist_models, 
+                                                                        dcpp_models,
+                                                                        obs)
 
-        # Use the function to constrain the NAO matched members
-        aligned_data = align_nao_matched_members(obs, nao_matched_members,
-                                                    constrained_hist_data,
-                                                    hist_models)
-        
-        # Extract the aligned NAO matched members, forecast2, obs, and common years
-        fcst1_nm = aligned_data[0]
-        fcst2 = aligned_data[1]
-        obs_array = aligned_data[2]
-        common_years = aligned_data[3]
+        # Set up the
+        # TODO: Set up a run which for the raw data calculates the forecast stats
+        # for the longer time series (s1961-2014)
+        # Would have to test to see whether this breaks the bootstrapping first though                                                                
 
-        # Now perform the bootstrapping to create the forecast stats
-        forecast_stats = fnc.forecast_stats(obs_array, fcst1_nm, fcst2, 
-                                            no_boot = no_bootstraps)
+        # If the method is 'raw', process the forecast stats
+        if method == "raw":                                                             
+            print("Processing forecast stats for raw method")
+
+            # Now perform the bootstrapping to create the forecast stats
+            forecast_stats = fnc.forecast_stats(obs_array, fcst1, fcst2, 
+                                                no_boot = no_bootstraps)
+            
+        # Else if the method is 'lagged', lag the data
+        # Before processing the forecast stats
+        elif method == "lagged":
+            print("Performing lagging before processing forecast stats")
+
+            # Call the function to perform the lagging
+            lag_fcst1, lag_obs, lag_fcst2 = fnc.lag_ensemble_array(fcst1, fcst2,
+                                                                    obs_array, lag=lag)
+            
+            # Now process the forecast stats for the lagged data
+            forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
+                                                no_boot = no_bootstraps)
         
-    else:
-        raise ValueError("Method not recognised. Please try again.")
+        # Else if the method is nao_matched
+        elif method == "nao_matched":
+            print("Performing NAO matching before processing forecast stats")
+
+            # Set up the NAO matching base directory
+            nao_match_base_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
+
+            # Load the nao_matched data
+            nao_matched_data = load_nao_matched_data(nao_match_base_dir, variable,
+                                                    region, season, forecast_range,
+                                                    start_year, end_year)
+            
+            # Extract the nao_matched members and mean
+            nao_matched_members = nao_matched_data[0]
+            # nao_matched_mean = nao_matched_data[1]
+
+            # Use the function to constrain the NAO matched members
+            aligned_data = align_nao_matched_members(obs, nao_matched_members,
+                                                        constrained_hist_data,
+                                                        hist_models)
+            
+            # Extract the aligned NAO matched members, forecast2, obs, and common years
+            fcst1_nm = aligned_data[0]
+            fcst2 = aligned_data[1]
+            obs_array = aligned_data[2]
+            common_years = aligned_data[3]
+
+            # Now perform the bootstrapping to create the forecast stats
+            forecast_stats = fnc.forecast_stats(obs_array, fcst1_nm, fcst2, 
+                                                no_boot = no_bootstraps)
+            
+        else:
+            raise ValueError("Method not recognised. Please try again.")
 
     # Check that forecast_stats exists and is a dictionary
     assert isinstance(forecast_stats, dict), "forecast_stats is not a dictionary"
@@ -1080,6 +1109,613 @@ def main():
     np.save(save_path + fcst10_ts_name, forecast_stats["f10_ts"])
 
     np.save(save_path + obs_ts_name, forecast_stats["o_ts"])
+
+    # If the nao_stats_dict exists, save the nao_stats
+    if nao_stats_dict:
+        # Set up the names for the nao_stats
+        nao_stats_years_name = (
+            f"nao_stats_years_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # Years short
+        nao_stats_years_short_name = (
+            f"nao_stats_years_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # years lag
+        nao_stats_years_lag_name = (
+            f"nao_stats_years_lag_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # Years lag short
+        nao_stats_years_lag_short_name = (
+            f"nao_stats_years_lag_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # obs_nao_ts
+        obs_nao_ts_name = (
+            f"obs_nao_ts_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # obs_nao_ts_short
+        obs_nao_ts_short_name = (
+            f"obs_nao_ts_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # obs_nao_ts_lag
+        obs_nao_ts_lag_name = (
+            f"obs_nao_ts_lag_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # obs_nao_ts_lag_short
+        obs_nao_ts_lag_short_name = (
+            f"obs_nao_ts_lag_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts
+        model_nao_ts_name = (
+            f"model_nao_ts_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_short
+        model_nao_ts_short_name = (
+            f"model_nao_ts_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_members
+        model_nao_ts_members_name = (
+            f"model_nao_ts_members_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_members_short
+        model_nao_ts_members_short_name = (
+            f"model_nao_ts_members_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_short_min
+        model_nao_ts_short_min_name = (
+            f"model_nao_ts_short_min_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_short_max
+        model_nao_ts_short_max_name = (
+            f"model_nao_ts_short_max_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_min
+        model_nao_ts_min_name = (
+            f"model_nao_ts_min_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_max
+        model_nao_ts_max_name = (
+            f"model_nao_ts_max_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_var_adjust
+        model_nao_ts_var_adjust_name = (
+            f"model_nao_ts_var_adjust_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_var_adjust_short
+        model_nao_ts_var_adjust_short_name = (
+            f"model_nao_ts_var_adjust_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_var_adjust
+        model_nao_ts_lag_var_adjust_name = (
+            f"model_nao_ts_lag_var_adjust_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_var_adjust_short
+        model_nao_ts_lag_var_adjust_short_name = (
+            f"model_nao_ts_lag_var_adjust_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_members
+        model_nao_ts_lag_members_name = (
+            f"model_nao_ts_lag_members_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_members_short
+        model_nao_ts_lag_members_short_name = (
+            f"model_nao_ts_lag_members_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_var_adjust_min
+        model_nao_ts_lag_var_adjust_min_name = (
+            f"model_nao_ts_lag_var_adjust_min_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_var_adjust_max
+        model_nao_ts_lag_var_adjust_max_name = (
+            f"model_nao_ts_lag_var_adjust_max_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_var_adjust_short_min
+        model_nao_ts_lag_var_adjust_short_min_name = (
+            f"model_nao_ts_lag_var_adjust_short_min_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # model_nao_ts_lag_var_adjust_short_max
+        model_nao_ts_lag_var_adjust_short_max_name = (
+            f"model_nao_ts_lag_var_adjust_short_max_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for corr1 nao stats
+        nao_stats_corr1_name = (
+            f"nao_stats_corr1_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for corr1 nao stats short
+        nao_stats_corr1_short_name = (
+            f"nao_stats_corr1_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for corr1 nao stats lag var adjust
+        nao_stats_corr1_lag_var_adjust_name = (
+            f"nao_stats_corr1_lag_var_adjust_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for corr1 nao stats lag var adjust short
+        nao_stats_corr1_lag_var_adjust_short_name = (
+            f"nao_stats_corr1_lag_var_adjust_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for p1 nao stats
+        nao_stats_p1_name = (
+            f"nao_stats_p1_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for p1 nao stats short
+        nao_stats_p1_short_name = (
+            f"nao_stats_p1_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for p1 nao stats lag var adjust
+        nao_stats_p1_lag_var_adjust_name = (
+            f"nao_stats_p1_lag_var_adjust_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for p1 nao stats lag var adjust short
+        nao_stats_p1_lag_var_adjust_short_name = (
+            f"nao_stats_p1_lag_var_adjust_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPC1 nao stats
+        nao_stats_RPC1_name = (
+            f"nao_stats_RPC1_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPC1 nao stats short
+        nao_stats_RPC1_short_name = (
+            f"nao_stats_RPC1_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPC1 nao stats lag
+        nao_stats_RPC1_lag_name = (
+            f"nao_stats_RPC1_lag_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPC1 nao stats lag short
+        nao_stats_RPC1_lag_short_name = (
+            f"nao_stats_RPC1_lag_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPS1
+        nao_stats_RPS1_name = (
+            f"nao_stats_RPS1_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPS1 short
+        nao_stats_RPS1_short_name = (
+            f"nao_stats_RPS1_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPS1 lag
+        nao_stats_RPS1_lag_name = (
+            f"nao_stats_RPS1_lag_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for RPS1 lag short
+        nao_stats_RPS1_lag_short_name = (
+            f"nao_stats_RPS1_lag_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats short period
+        nao_stats_short_period_name = (
+            f"nao_stats_short_period_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats long period
+        nao_stats_long_period_name = (
+            f"nao_stats_long_period_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats lag short period
+        nao_stats_short_period_lag_name = (
+            f"nao_stats_short_period_lag_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats lag long period
+        nao_stats_long_period_lag_name = (
+            f"nao_stats_long_period_lag_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats nens
+        nao_stats_nens_name = (
+            f"nao_stats_nens_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats nens lag
+        nao_stats_nens_lag_name = (
+            f"nao_stats_nens_lag_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats obs_spna
+        nao_stats_obs_spna_name = (
+            f"nao_stats_obs_spna_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats obs_spna short
+        nao_stats_obs_spna_short_name = (
+            f"nao_stats_obs_spna_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna_members
+        nao_stats_model_spna_members_name = (
+            f"nao_stats_model_spna_members_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna_members short
+        nao_stats_model_spna_members_short_name = (
+            f"nao_stats_model_spna_members_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna
+        nao_stats_model_spna_name = (
+            f"nao_stats_model_spna_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna short
+        nao_stats_model_spna_short_name = (
+            f"nao_stats_model_spna_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna min
+        nao_stats_model_spna_min_name = (
+            f"nao_stats_model_spna_min_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna max
+        nao_stats_model_spna_max_name = (
+            f"nao_stats_model_spna_max_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna short min
+        nao_stats_model_spna_short_min_name = (
+            f"nao_stats_model_spna_short_min_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats model_spna short max
+        nao_stats_model_spna_short_max_name = (
+            f"nao_stats_model_spna_short_max_{variable}_{region}_{season}_" +
+            f"{forecast_range}.npy"
+        )
+
+        # name for nao_stats corr1_spna .txt file
+        nao_stats_corr1_spna_name = (
+            f"nao_stats_corr1_spna_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats corr1_spna short .txt file
+        nao_stats_corr1_spna_short_name = (
+            f"nao_stats_corr1_spna_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats p1_spna .txt file
+        nao_stats_p1_spna_name = (
+            f"nao_stats_p1_spna_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats p1_spna short .txt file
+        nao_stats_p1_spna_short_name = (
+            f"nao_stats_p1_spna_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats RPC1_spna .txt file
+        nao_stats_RPC1_spna_name = (
+            f"nao_stats_RPC1_spna_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats RPC1_spna short .txt file
+        nao_stats_RPC1_spna_short_name = (
+            f"nao_stats_RPC1_spna_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats corr_spna_nao_obs
+        nao_stats_corr_spna_nao_obs_name = (
+            f"nao_stats_corr_spna_nao_obs_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats corr_spna_nao_obs short
+        nao_stats_corr_spna_nao_obs_short_name = (
+            f"nao_stats_corr_spna_nao_obs_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats p_spna_nao_obs
+        nao_stats_p_spna_nao_obs_name = (
+            f"nao_stats_p_spna_nao_obs_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats p_spna_nao_obs short
+        nao_stats_p_spna_nao_obs_short_name = (
+            f"nao_stats_p_spna_nao_obs_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats corr_spna_nao_model
+        nao_stats_corr_spna_nao_model_name = (
+            f"nao_stats_corr_spna_nao_model_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats corr_spna_nao_model short
+        nao_stats_corr_spna_nao_model_short_name = (
+            f"nao_stats_corr_spna_nao_model_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats p_spna_nao_model
+        nao_stats_p_spna_nao_model_name = (
+            f"nao_stats_p_spna_nao_model_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats p_spna_nao_model short
+        nao_stats_p_spna_nao_model_short_name = (
+            f"nao_stats_p_spna_nao_model_short_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # name for nao_stats tas nens
+        nao_stats_tas_nens_name = (
+            f"nao_stats_tas_nens_{variable}_{region}_{season}_" +
+            f"{forecast_range}.txt"
+        )
+
+        # save all of the .npy files
+        np.save(save_path + nao_stats_years_name, nao_stats_dict["years"])
+
+        np.save(save_path + nao_stats_years_lag_name, nao_stats_dict["years_lag"])
+
+        # Save the short period years
+        np.save(save_path + nao_stats_years_short_name, nao_stats_dict["years_short"])
+
+        np.save(save_path + nao_stats_years_lag_short_name, nao_stats_dict["years_lag_short"])
+
+        # Save the obs_nao_ts
+        np.save(save_path + obs_nao_ts_name, nao_stats_dict["obs_nao_ts"])
+
+        np.save(save_path + obs_nao_ts_short_name, nao_stats_dict["obs_nao_ts_short"])
+
+        np.save(save_path + obs_nao_ts_lag_name, nao_stats_dict["obs_nao_ts_lag"])
+
+        np.save(save_path + obs_nao_ts_lag_short_name, nao_stats_dict["obs_nao_ts_lag_short"])
+
+        # Save the model_nao_ts
+        np.save(save_path + model_nao_ts_name, nao_stats_dict["model_nao_ts"])
+
+        np.save(save_path + model_nao_ts_short_name, nao_stats_dict["model_nao_ts_short"])
+
+        np.save(save_path + model_nao_ts_members_name, nao_stats_dict["model_nao_ts_members"])
+
+        np.save(save_path + model_nao_ts_members_short_name, nao_stats_dict["model_nao_ts_members_short"])
+
+        np.save(save_path + model_nao_ts_short_min_name, nao_stats_dict["model_nao_ts_short_min"])
+
+        np.save(save_path + model_nao_ts_short_max_name, nao_stats_dict["model_nao_ts_short_max"])
+
+        np.save(save_path + model_nao_ts_min_name, nao_stats_dict["model_nao_ts_min"])
+
+        np.save(save_path + model_nao_ts_max_name, nao_stats_dict["model_nao_ts_max"])
+
+        np.save(save_path + model_nao_ts_var_adjust_name, nao_stats_dict["model_nao_ts_var_adjust"])
+
+        np.save(save_path + model_nao_ts_var_adjust_short_name, nao_stats_dict["model_nao_ts_var_adjust_short"])
+
+        np.save(save_path + model_nao_ts_lag_var_adjust_name, nao_stats_dict["model_nao_ts_lag_var_adjust"])
+
+        np.save(save_path + model_nao_ts_lag_var_adjust_short_name, nao_stats_dict["model_nao_ts_lag_var_adjust_short"])
+
+        np.save(save_path + model_nao_ts_lag_members_name, nao_stats_dict["model_nao_ts_lag_members"])
+
+        np.save(save_path + model_nao_ts_lag_members_short_name, nao_stats_dict["model_nao_ts_lag_members_short"])
+
+        np.save(save_path + model_nao_ts_lag_var_adjust_min_name, nao_stats_dict["model_nao_ts_lag_var_adjust_min"])
+
+        np.save(save_path + model_nao_ts_lag_var_adjust_max_name, nao_stats_dict["model_nao_ts_lag_var_adjust_max"])
+
+        np.save(save_path + model_nao_ts_lag_var_adjust_short_min_name, nao_stats_dict["model_nao_ts_lag_var_adjust_short_min"])
+
+        np.save(save_path + model_nao_ts_lag_var_adjust_short_max_name, nao_stats_dict["model_nao_ts_lag_var_adjust_short_max"])
+
+        # Save the obs_spna
+        np.save(save_path + nao_stats_obs_spna_name, nao_stats_dict["obs_spna"])
+
+        np.save(save_path + nao_stats_obs_spna_short_name, nao_stats_dict["obs_spna_short"])
+
+        # Save the model_spna
+        np.save(save_path + nao_stats_model_spna_members_name, nao_stats_dict["model_spna_members"])
+
+        np.save(save_path + nao_stats_model_spna_members_short_name, nao_stats_dict["model_spna_members_short"])
+
+        np.save(save_path + nao_stats_model_spna_name, nao_stats_dict["model_spna"])
+
+        np.save(save_path + nao_stats_model_spna_short_name, nao_stats_dict["model_spna_short"])
+
+        np.save(save_path + nao_stats_model_spna_min_name, nao_stats_dict["model_spna_min"])
+
+        np.save(save_path + nao_stats_model_spna_max_name, nao_stats_dict["model_spna_max"])
+
+        np.save(save_path + nao_stats_model_spna_short_min_name, nao_stats_dict["model_spna_short_min"])
+
+        np.save(save_path + nao_stats_model_spna_short_max_name, nao_stats_dict["model_spna_short_max"])
+
+        # Save all of the .txt files
+        # Save the corr1 nao stats
+        np.savetxt(save_path + nao_stats_corr1_name, np.array([nao_stats_dict["corr1"]]))
+
+        np.savetxt(save_path + nao_stats_corr1_short_name, np.array([nao_stats_dict["corr1_short"]]))
+
+        np.savetxt(save_path + nao_stats_corr1_lag_var_adjust_name, np.array([nao_stats_dict["corr1_lag_var_adjust"]]))
+
+        np.savetxt(save_path + nao_stats_corr1_lag_var_adjust_short_name, np.array([nao_stats_dict["corr1_lag_var_adjust_short"]]))
+
+        # Save the p1 nao stats
+        np.savetxt(save_path + nao_stats_p1_name, np.array([nao_stats_dict["p1"]]))
+
+        np.savetxt(save_path + nao_stats_p1_short_name, np.array([nao_stats_dict["p1_short"]]))
+
+        np.savetxt(save_path + nao_stats_p1_lag_var_adjust_name, np.array([nao_stats_dict["p1_lag_var_adjust"]]))
+
+        np.savetxt(save_path + nao_stats_p1_lag_var_adjust_short_name, np.array([nao_stats_dict["p1_lag_var_adjust_short"]]))
+
+        # Save the RPC1 nao stats
+        np.savetxt(save_path + nao_stats_RPC1_name, np.array([nao_stats_dict["RPC1"]]))
+
+        np.savetxt(save_path + nao_stats_RPC1_short_name, np.array([nao_stats_dict["RPC1_short"]]))
+
+        np.savetxt(save_path + nao_stats_RPC1_lag_name, np.array([nao_stats_dict["RPC1_lag"]]))
+
+        np.savetxt(save_path + nao_stats_RPC1_lag_short_name, np.array([nao_stats_dict["RPC1_lag_short"]]))
+
+        # Save the RPS1 nao stats
+        np.savetxt(save_path + nao_stats_RPS1_name, np.array([nao_stats_dict["RPS1"]]))
+
+        np.savetxt(save_path + nao_stats_RPS1_short_name, np.array([nao_stats_dict["RPS1_short"]]))
+
+        np.savetxt(save_path + nao_stats_RPS1_lag_name, np.array([nao_stats_dict["RPS1_lag"]]))
+
+        np.savetxt(save_path + nao_stats_RPS1_lag_short_name, np.array([nao_stats_dict["RPS1_lag_short"]]))
+
+        # Save the short period nao stats
+        np.savetxt(save_path + nao_stats_short_period_name, np.array([nao_stats_dict["short_period"]]))
+
+        np.savetxt(save_path + nao_stats_long_period_name, np.array([nao_stats_dict["long_period"]]))
+
+        np.savetxt(save_path + nao_stats_short_period_lag_name, np.array([nao_stats_dict["short_period_lag"]]))
+
+        np.savetxt(save_path + nao_stats_long_period_lag_name, np.array([nao_stats_dict["long_period_lag"]]))
+
+        # Save the nens nao stats
+        np.savetxt(save_path + nao_stats_nens_name, np.array([nao_stats_dict["nens"]]))
+
+        np.savetxt(save_path + nao_stats_nens_lag_name, np.array([nao_stats_dict["nens_lag"]]))
+
+        # Save the corr1_spna nao stats
+        np.savetxt(save_path + nao_stats_corr1_spna_name, np.array([nao_stats_dict["corr1_spna"]]))
+
+        np.savetxt(save_path + nao_stats_corr1_spna_short_name, np.array([nao_stats_dict["corr1_spna_short"]]))
+
+        # Save the p1_spna nao stats
+        np.savetxt(save_path + nao_stats_p1_spna_name, np.array([nao_stats_dict["p1_spna"]]))
+
+        np.savetxt(save_path + nao_stats_p1_spna_short_name, np.array([nao_stats_dict["p1_spna_short"]]))
+
+        # Save the RPC1_spna nao stats
+        np.savetxt(save_path + nao_stats_RPC1_spna_name, np.array([nao_stats_dict["RPC1_spna"]]))
+
+        np.savetxt(save_path + nao_stats_RPC1_spna_short_name, np.array([nao_stats_dict["RPC1_spna_short"]]))
+
+        # Save the corr_spna_nao_obs nao stats
+        np.savetxt(save_path + nao_stats_corr_spna_nao_obs_name, np.array([nao_stats_dict["corr_spna_nao_obs"]]))
+
+        np.savetxt(save_path + nao_stats_corr_spna_nao_obs_short_name, np.array([nao_stats_dict["corr_spna_nao_short_obs"]]))
+
+        # Save the p_spna_nao_obs nao stats
+        np.savetxt(save_path + nao_stats_p_spna_nao_obs_name, np.array([nao_stats_dict["p_spna_nao_obs"]]))
+
+        np.savetxt(save_path + nao_stats_p_spna_nao_obs_short_name, np.array([nao_stats_dict["p_spna_nao_short_obs"]]))
+
+        # Save the corr_spna_nao_model nao stats
+        np.savetxt(save_path + nao_stats_corr_spna_nao_model_name, np.array([nao_stats_dict["corr_spna_nao_model"]]))
+
+        np.savetxt(save_path + nao_stats_corr_spna_nao_model_short_name, np.array([nao_stats_dict["corr_spna_nao_short_model"]]))
+
+        # Save the p_spna_nao_model nao stats
+        np.savetxt(save_path + nao_stats_p_spna_nao_model_name, np.array([nao_stats_dict["p_spna_nao_model"]]))
+
+        np.savetxt(save_path + nao_stats_p_spna_nao_model_short_name, np.array([nao_stats_dict["p_spna_nao_short_model"]]))
+
+        # Save the tas nens nao stats
+        np.savetxt(save_path + nao_stats_tas_nens_name, np.array([nao_stats_dict["tas_nens"]]))
                                                                 
 if __name__ == "__main__":
     main()
