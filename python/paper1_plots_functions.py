@@ -696,7 +696,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
                             nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts'])
 
     # Calculate the RPC between the model NAO index and the obs NAO index
-    rpc1 = corr1 / (np.std(nao_members_mean) /np.std(nao_members))
+    rpc1 = (corr1) / (np.std(nao_members_mean) /np.std(nao_members))
 
     # Calculate the 5th and 95th percentiles of the nao_members
     nao_members_mean_min = np.percentile(nao_members, 5, axis=0)
@@ -733,8 +733,8 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # Include a title which contains the correlations
     # p values and the rpccorr1_pbbbbeuibweiub
     ax1.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
-                 f"RPC = {rpc1:.2f}"
-                 f"N = {total_nens}", fontsize=8)
+                 f"RPC = {rpc1:.2f}, "
+                 f"N = {total_nens}", fontsize=10)
 
     # Include a legend
     ax1.legend(loc="upper left", fontsize=8)
@@ -765,7 +765,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
                                     nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'])
     
     # Calculate the RPC between the model NAO index and the obs NAO index
-    rpc1_lag = corr1_lag / (np.std(nao_members_mean_lag) /np.std(nao_members_lag))
+    rpc1_lag = (corr1_lag) / (np.std(nao_members_mean_lag) /np.std(nao_members_lag))
 
     # Calculate the rps between the model nao index and the obs nao index
     rps1 = rpc1_lag * (np.std(nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag']) / np.std(nao_members_lag))
@@ -812,7 +812,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     # p values and rpc values
     ax2.set_title(f"ACC = {corr1_lag:.2f} (p = {p1_lag:.2f}), "
                  f"RPC = {rpc1_lag:.2f}, "
-                 f"N = {total_nens_lag}", fontsize=8)
+                 f"N = {total_nens_lag}", fontsize=10)
     
     # Set a horizontal line at zero
     ax2.axhline(y=0, color="black", linestyle="--", linewidth=1)
