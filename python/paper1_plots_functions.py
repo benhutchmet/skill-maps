@@ -266,6 +266,7 @@ def forecast_stats_var(variables: list,
 def plot_forecast_stats_var(forecast_stats_var_dic: dict,
                             nao_stats_dict: dict,
                             psl_models: list,
+                            season: str,
                             forecast_range: str,
                             figsize_x: int = 10,
                             figsize_y: int = 12,
@@ -289,6 +290,9 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
     psl_models: list
         List of models which are used to calculate the NAO index.
+
+    season: str
+        Season to process.
 
     forecast_range: str
         Forecast range to process.
@@ -322,10 +326,14 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     """
 
     # First do the processing for the NAO index
-    if forecast_range == "2-9":
+    if forecast_range == "2-9" and season == "DJFM":
         # Set up the length of the time series for raw and lagged
         nyears_long = len(np.arange(1966, 2019 + 1))
         nyears_long_lag = len(np.arange(1969, 2019 + 1))
+    elif forecast_range == "2-9" and season == "JJA":
+        # Set up the length of the time series for raw and lagged
+        nyears_long = len(np.arange(1967, 2019 + 1))
+        nyears_long_lag = len(np.arange(1970, 2019 + 1))
     elif forecast_range == "2-5":
         # Set up the length of the time series for raw and lagged
         nyears_long = len(np.arange(1964, 2017 + 1))
@@ -336,6 +344,14 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
         nyears_long_lag = len(np.arange(1966, 2016 + 1))
     else:
         raise ValueError("forecast_range must be either 2-9 or 2-5 or 2-3")
+
+    # Set up the forecast ylims
+    if season == "DJFM":
+        ylims = [-10, 10]
+    elif season == "JJA":
+        ylims = [-3, 3]
+    else:
+        raise ValueError(f"season {season} not recognised!")
 
     # Set up the arrays for plotting the NAO index
     total_nens = 0 ; total_lagged_nens = 0
@@ -710,7 +726,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
             fontsize=8)
     
     # Include a textbox containing the total nens in the top right
-    a1x.text(0.95, 0.95, f"n = {total_nens}", transform=ax.transAxes,
+    ax1.text(0.95, 0.95, f"n = {total_nens}", transform=ax.transAxes,
             va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
 
@@ -727,7 +743,7 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     ax1.axhline(y=0, color="black", linestyle="--", linewidth=1)
 
     # Set the y limits
-    ax1.set_ylim([-10, 10])
+    ax1.set_ylim(ylims)
 
     # Set the y label
     ax1.set_ylabel("NAO (hPa)")
