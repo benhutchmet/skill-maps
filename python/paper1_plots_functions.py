@@ -687,47 +687,53 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     nao_members_mean_max = np.percentile(nao_members, 95, axis=0)
 
     # Plot the ensemble mean
-    ax = axs[2, 0]
+    ax1 = axs[2, 0]
 
     # Plot the ensemble mean
-    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
+    ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
             nao_members_mean / 100, color="red", label="dcppA")
 
     # Plot the obs
-    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
+    ax1.plot(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
             nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts'] / 100, color="black",
             label="ERA5")
     
     # Plot the 5th and 95th percentiles
-    ax.fill_between(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
+    ax1.fill_between(nao_stats_dict['BCC-CSM2-MR']['years'] - init_offset,
                     nao_members_mean_min / 100,
                     nao_members_mean_max / 100,
                     color="red", alpha=0.2)
 
     # Add a text box with the axis label
-    ax.text(0.95, 0.05, f"{axis_labels[-2]}", transform=ax.transAxes,
+    ax1.text(0.95, 0.05, f"{axis_labels[-2]}", transform=ax.transAxes,
             va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
     
     # Include a textbox containing the total nens in the top right
-    ax.text(0.95, 0.95, f"n = {total_nens}", transform=ax.transAxes,
+    a1x.text(0.95, 0.95, f"n = {total_nens}", transform=ax.transAxes,
             va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
-    
+
+    # Include a title which contains the correlations
+    # p values and the rpccorr1_pbbbbeuibweiub
+    ax1.set_title(f"ACC = {corr1:.2f} (p = {p1:.2f}), "
+                 f"RPC = {rpc1:.2f}"
+                 f"N = {total_nens}", fontsize=8)
+
     # Include a legend
-    ax.legend(loc="upper left", fontsize=8)
+    ax1.legend(loc="upper left", fontsize=8)
 
     # Set a horizontal line at zero
-    ax.axhline(y=0, color="black", linestyle="--", linewidth=1)
+    ax1.axhline(y=0, color="black", linestyle="--", linewidth=1)
 
     # Set the y limits
-    ax.set_ylim([-10, 10])
+    ax1.set_ylim([-10, 10])
 
     # Set the y label
-    ax.set_ylabel("NAO (hPa)")
+    ax1.set_ylabel("NAO (hPa)")
 
     # Set the x label
-    ax.set_xlabel("Initialisation year")
+    ax1.set_xlabel("Initialisation year")
 
     # Print that we are plotting the lag and variance adjusted NAO index
     print("Plotting the lag and variance adjusted NAO index...")
@@ -759,38 +765,47 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
     ci_upper = nao_var_adjust + rmse
 
     # Set up the axes
-    ax = axs[2, 1]
+    ax2 = axs[2, 1]
 
     # Plot the ensemble mean
-    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
+    ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
             nao_var_adjust / 100, color="red", label="dcppA")
     
     # Plot the obs
-    ax.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
+    ax2.plot(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
             nao_stats_dict['BCC-CSM2-MR']['obs_nao_ts_lag'] / 100, color="black",
             label="ERA5")
 
     # Plot the 5th and 95th percentiles
-    ax.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
+    ax2.fill_between(nao_stats_dict['BCC-CSM2-MR']['years_lag'] - init_offset,
                     ci_lower / 100,
                     ci_upper / 100,
                     color="red", alpha=0.2)
 
     # Add a text box with the axis label
-    ax.text(0.95, 0.05, f"{axis_labels[-1]}", transform=ax.transAxes,
+    ax2.text(0.95, 0.05, f"{axis_labels[-1]}", transform=ax.transAxes,
             va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
     
     # Include a textbox containing the total nens in the top right
-    ax.text(0.95, 0.95, f"n = {total_nens_lag}", transform=ax.transAxes,
+    ax2.text(0.95, 0.95, f"n = {total_nens_lag}", transform=ax.transAxes,
             va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
+
+    # Include a title which contains the correlations
+    # p values and rpc values
+    ax2.set_title(f"ACC = {corr1_lag:.2f} (p = {p1_lag:.2f}), "
+                 f"RPC = {rpc1_lag:.2f}, "
+                 f"N = {total_nens_lag}", fontsize=8)
     
     # Set a horizontal line at zero
-    ax.axhline(y=0, color="black", linestyle="--", linewidth=1)
+    ax2.axhline(y=0, color="black", linestyle="--", linewidth=1)
 
-    # Set the y limits
-    ax.set_ylim([-10, 10])
+    # # Share the y axis with ax1
+    # ax2.set_ylim([-10, 10])
+
+    # Share the y-axis with ax1
+    ax2.sharey(ax1)
 
     # Set up the pathname for saving the figure
     fig_name = f"different_variables_corr_{start_year}_{end_year}"
