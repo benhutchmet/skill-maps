@@ -4,14 +4,18 @@ Functions for use in paper1_plots.ipynb notesbook.
 # Local Imports
 import os
 import sys
-import glob
 
 # Third-Party Imports
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from scipy.stats import pearsonr
-import cartopy.feature as cfeature
+
+# Import typing
+from typing import Tuple
+
+# Import xarray
+import xarray as xr
 
 # Local imports
 sys.path.append("/home/users/benhutch/skill-maps")
@@ -35,8 +39,9 @@ import plot_init_benefit as pib_fnc
 # Import the nao_matching_seasons functions
 import nao_matching_seasons as nao_match_fnc
 
-# Import the functions from process_bs_values
-import process_bs_values as pbs_func
+# Import the historical functions
+sys.path.append("/home/users/benhutch/skill-maps-differences")
+import functions_diff as hist_fnc
 
 # Define a function to convert the season
 def convert_season(season, dic):
@@ -577,7 +582,7 @@ def forecast_stats_var(variables: list,
                                         obs_var_name=variable)
         
         # Load and process the dcpp model data
-        dcpp_data = pbs_func.load_and_process_dcpp_data(base_dir=base_dir,
+        dcpp_data = load_and_process_dcpp_data(base_dir=base_dir,
                                                         dcpp_models=dcpp_models,
                                                         variable=variable,
                                                         region=region,
@@ -673,7 +678,7 @@ def forecast_stats_var(variables: list,
                                     end_year=2023)
         
         # Load adn process the dcpp model data
-        dcpp_data = pbs_func.load_and_process_dcpp_data(base_dir=base_dir,
+        dcpp_data = load_and_process_dcpp_data(base_dir=base_dir,
                                                         dcpp_models=dcpp_models,
                                                         variable="psl",
                                                         region=region,

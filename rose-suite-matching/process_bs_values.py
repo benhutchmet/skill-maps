@@ -1064,7 +1064,7 @@ def main():
 
         # name for nao_stats corr_spna_nao_obs
         nao_stats_corr_spna_nao_obs_name = (
-            f"nao_stats_corr_spna_nao_obs_{variable}_{region}_{season}_" +
+            f"nao_stats_corr_spnafunc_nao_obs_{variable}_{region}_{season}_" +
             f"{forecast_range}.txt"
         )
 
