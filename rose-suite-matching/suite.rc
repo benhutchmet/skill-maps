@@ -5,15 +5,15 @@
         obs_var_name=msl
         region=global
         season=DJFM
-        forecast_range=2-9
-        start_year=1960
-        end_year=2023
-        lag=4
-        no_subset_members=20
+        forecast_range="2-9"
+        start_year="1960"
+        end_year="2023"
+        lag="4"
+        no_subset_members="20"
         method=raw
         nboot=1
-        level=100000
-        full_period=True
+        level="100000"
+        full_period="True"
 
 [scheduling]
     [[dependencies]]
@@ -28,7 +28,7 @@
         [[[job]]]
             batch system = slurm
         [[[directives]]]
-            --partition = short-serial
+            --partition=short-serial
     [[process_bootstrap<match_var><obs_var_name><region><season><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot><level><full_period>]]
         [[[script]]]
         script = """
