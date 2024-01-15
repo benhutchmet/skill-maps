@@ -38,7 +38,6 @@ import nao_matching_seasons as nao_match_fnc
 # Import the functions from process_bs_values
 import process_bs_values as pbs_func
 
-
 # Create a function to process the raw data for the full forecast period
 # TODO: may also need to do this for lagged at some point as well
 def forecast_stats_var(variables: list,
