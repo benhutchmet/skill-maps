@@ -357,129 +357,143 @@ def main():
         # Print the shape of the alt_lag_data
         print("Shape of alt_lag_data:", alt_lag_data.shape)
 
-        
-    # If full_period is True, process the raw data
-    # for the long period (s1961-2014 for years 2-9)
-    # TODO: Processing for the lagged data as well
-    if full_period:
-        print("Processing the raw data for the full period")
-        
-        # Create a list containing the single variable specified
-        variables = [variable]
+        # Extract the values for the obs
+        obs_values = obs.values
 
-        # Call the function
-        # TODO: test for single bootstrap in this case
-        forecast_stats, \
-        nao_stats_dict = p1_fnc.forecast_stats_var(variables = variables,
-                                            season = season,
-                                            forecast_range = forecast_range,
-                                            region = region,
-                                            start_year = start_year,
-                                            end_year = end_year,
-                                            method = method,
-                                            no_bootstraps = no_bootstraps)
+        # Print the shape of the obs_values
+        print("Shape of obs_values:", obs_values.shape)
+
+        # Run the function to calculate the forecast stats
+        forecast_stats = fnc.forecast_stats(obs=obs_values,
+                                            fcst1=alt_lag_data,
+                                            fcst2=alt_lag_data,
+                                            no_boot=no_bootstraps)
+
+        # Print the forecast stats
+        print("Forecast stats:", forecast_stats)
     else:
-        print("Processing the raw data for the overlapping hist period")
+        # If full_period is True, process the raw data
+        # for the long period (s1961-2014 for years 2-9)
+        # TODO: Processing for the lagged data as well
+        if full_period:
+            print("Processing the raw data for the full period")
+            
+            # Create a list containing the single variable specified
+            variables = [variable]
 
-        # Process the observed data
-        obs = fnc.process_observations(variable, region, region_grid, 
-                                    forecast_range, season, obs_path_name, 
-                                    variable, plev=level)
-
-
-        # if the variable is 'rsds'
-        # divide the obs data by 86400 to convert from J/m2 to W/m2
-        if variable in ['rsds', 'ssrd']:
-            print("converting obs to W/m2")
-            obs /= 86400
-
-        # Set up the model season
-        if season == "MAM":
-            model_season = "MAY"
-        elif season == "JJA":
-            model_season = "ULG"
+            # Call the function
+            # TODO: test for single bootstrap in this case
+            forecast_stats, \
+            nao_stats_dict = p1_fnc.forecast_stats_var(variables = variables,
+                                                season = season,
+                                                forecast_range = forecast_range,
+                                                region = region,
+                                                start_year = start_year,
+                                                end_year = end_year,
+                                                method = method,
+                                                no_bootstraps = no_bootstraps)
         else:
-            model_season = season
+            print("Processing the raw data for the overlapping hist period")
 
-        # Load and process the historical data
-        hist_data = p1_fnc.load_and_process_hist_data(base_dir_historical, hist_models, 
-                                                variable, region, forecast_range, 
-                                                season)
-        
-        # Set up the constrained historical data (contain only the common years)
-        constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
-        
-        # Load and process the model data
-        dcpp_data = p1_fnc.load_and_process_dcpp_data(base_dir, dcpp_models, variable, 
-                                                region, forecast_range, 
-                                                model_season)
-        
-        # Now we process the data to align the time periods and convert to array
-        fcst1, fcst2, obs_array, common_years = p1_fnc.align_and_convert_to_array(hist_data, 
-                                                                        dcpp_data, 
-                                                                        hist_models, 
-                                                                        dcpp_models,
-                                                                        obs)
+            # Process the observed data
+            obs = fnc.process_observations(variable, region, region_grid, 
+                                        forecast_range, season, obs_path_name, 
+                                        variable, plev=level)
 
-        # Set up the
-        # TODO: Set up a run which for the raw data calculates the forecast stats
-        # for the longer time series (s1961-2014)
-        # Would have to test to see whether this breaks the bootstrapping first though                                                                
 
-        # If the method is 'raw', process the forecast stats
-        if method == "raw":                                                             
-            print("Processing forecast stats for raw method")
+            # if the variable is 'rsds'
+            # divide the obs data by 86400 to convert from J/m2 to W/m2
+            if variable in ['rsds', 'ssrd']:
+                print("converting obs to W/m2")
+                obs /= 86400
 
-            # Now perform the bootstrapping to create the forecast stats
-            forecast_stats = fnc.forecast_stats(obs_array, fcst1, fcst2, 
-                                                no_boot = no_bootstraps)
+            # Set up the model season
+            if season == "MAM":
+                model_season = "MAY"
+            elif season == "JJA":
+                model_season = "ULG"
+            else:
+                model_season = season
+
+            # Load and process the historical data
+            hist_data = p1_fnc.load_and_process_hist_data(base_dir_historical, hist_models, 
+                                                    variable, region, forecast_range, 
+                                                    season)
             
-        # Else if the method is 'lagged', lag the data
-        # Before processing the forecast stats
-        elif method == "lagged":
-            print("Performing lagging before processing forecast stats")
-
-            # Call the function to perform the lagging
-            lag_fcst1, lag_obs, lag_fcst2 = fnc.lag_ensemble_array(fcst1, fcst2,
-                                                                    obs_array, lag=lag)
+            # Set up the constrained historical data (contain only the common years)
+            constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
             
-            # Now process the forecast stats for the lagged data
-            forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
-                                                no_boot = no_bootstraps)
-        
-        # Else if the method is nao_matched
-        elif method == "nao_matched":
-            print("Performing NAO matching before processing forecast stats")
-
-            # Set up the NAO matching base directory
-            nao_match_base_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
-
-            # Load the nao_matched data
-            nao_matched_data = p1_fnc.load_nao_matched_data(nao_match_base_dir, variable,
-                                                    region, season, forecast_range,
-                                                    start_year, end_year)
+            # Load and process the model data
+            dcpp_data = p1_fnc.load_and_process_dcpp_data(base_dir, dcpp_models, variable, 
+                                                    region, forecast_range, 
+                                                    model_season)
             
-            # Extract the nao_matched members and mean
-            nao_matched_members = nao_matched_data[0]
-            # nao_matched_mean = nao_matched_data[1]
+            # Now we process the data to align the time periods and convert to array
+            fcst1, fcst2, obs_array, common_years = p1_fnc.align_and_convert_to_array(hist_data, 
+                                                                            dcpp_data, 
+                                                                            hist_models, 
+                                                                            dcpp_models,
+                                                                            obs)
 
-            # Use the function to constrain the NAO matched members
-            aligned_data = p1_fnc.align_nao_matched_members(obs, nao_matched_members,
-                                                        constrained_hist_data,
-                                                        hist_models)
-            
-            # Extract the aligned NAO matched members, forecast2, obs, and common years
-            fcst1_nm = aligned_data[0]
-            fcst2 = aligned_data[1]
-            obs_array = aligned_data[2]
-            common_years = aligned_data[3]
+            # Set up the
+            # TODO: Set up a run which for the raw data calculates the forecast stats
+            # for the longer time series (s1961-2014)
+            # Would have to test to see whether this breaks the bootstrapping first though                                                                
 
-            # Now perform the bootstrapping to create the forecast stats
-            forecast_stats = fnc.forecast_stats(obs_array, fcst1_nm, fcst2, 
-                                                no_boot = no_bootstraps)
+            # If the method is 'raw', process the forecast stats
+            if method == "raw":                                                             
+                print("Processing forecast stats for raw method")
+
+                # Now perform the bootstrapping to create the forecast stats
+                forecast_stats = fnc.forecast_stats(obs_array, fcst1, fcst2, 
+                                                    no_boot = no_bootstraps)
+                
+            # Else if the method is 'lagged', lag the data
+            # Before processing the forecast stats
+            elif method == "lagged":
+                print("Performing lagging before processing forecast stats")
+
+                # Call the function to perform the lagging
+                lag_fcst1, lag_obs, lag_fcst2 = fnc.lag_ensemble_array(fcst1, fcst2,
+                                                                        obs_array, lag=lag)
+                
+                # Now process the forecast stats for the lagged data
+                forecast_stats = fnc.forecast_stats(lag_obs, lag_fcst1, lag_fcst2,
+                                                    no_boot = no_bootstraps)
             
-        else:
-            raise ValueError("Method not recognised. Please try again.")
+            # Else if the method is nao_matched
+            elif method == "nao_matched":
+                print("Performing NAO matching before processing forecast stats")
+
+                # Set up the NAO matching base directory
+                nao_match_base_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
+
+                # Load the nao_matched data
+                nao_matched_data = p1_fnc.load_nao_matched_data(nao_match_base_dir, variable,
+                                                        region, season, forecast_range,
+                                                        start_year, end_year)
+                
+                # Extract the nao_matched members and mean
+                nao_matched_members = nao_matched_data[0]
+                # nao_matched_mean = nao_matched_data[1]
+
+                # Use the function to constrain the NAO matched members
+                aligned_data = p1_fnc.align_nao_matched_members(obs, nao_matched_members,
+                                                            constrained_hist_data,
+                                                            hist_models)
+                
+                # Extract the aligned NAO matched members, forecast2, obs, and common years
+                fcst1_nm = aligned_data[0]
+                fcst2 = aligned_data[1]
+                obs_array = aligned_data[2]
+                common_years = aligned_data[3]
+
+                # Now perform the bootstrapping to create the forecast stats
+                forecast_stats = fnc.forecast_stats(obs_array, fcst1_nm, fcst2, 
+                                                    no_boot = no_bootstraps)
+                
+            else:
+                raise ValueError("Method not recognised. Please try again.")
 
     # Check that forecast_stats exists and is a dictionary
     assert isinstance(forecast_stats, dict), "forecast_stats is not a dictionary"
