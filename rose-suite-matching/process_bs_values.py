@@ -350,8 +350,14 @@ def main():
             "Length of observations is incorrect"
         )
 
-        
+        # Swap the axes of the alt_lag_data
+        # Swap the 1th axis with the 0th axis
+        alt_lag_data = np.swapaxes(alt_lag_data, 1, 0)
 
+        # Print the shape of the alt_lag_data
+        print("Shape of alt_lag_data:", alt_lag_data.shape)
+
+        
     # If full_period is True, process the raw data
     # for the long period (s1961-2014 for years 2-9)
     # TODO: Processing for the lagged data as well
