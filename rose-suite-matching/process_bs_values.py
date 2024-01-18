@@ -272,10 +272,10 @@ def main():
         print("Number of lons:", alt_lag_data.shape[3])
 
         # Extract the first year of the array
-        alt_lag_first_year = start_year + (lag - 1)
+        alt_lag_first_year = int(start_year) + (lag - 1)
 
         # Extract the last year of the array
-        alt_lag_last_year = end_year
+        alt_lag_last_year = int(end_year)
 
         # Print the start and end years
         print("Start year alt lag:", alt_lag_first_year)
@@ -294,14 +294,55 @@ def main():
         print("First year obs pre-slice:", obs.time[0].dt.year.values)
         print("Last year obs pre-slice:", obs.time[-1].dt.year.values)
 
+        # Print out the first and last values of the observations
+        print("First value obs pre-slice:", obs[0, 0, 0].values)
+        print("Last value obs pre-slice:", obs[-1, 0, 0].values)
+
+        # Print the second and penultimate values of the observations
+        print("Second value obs pre-slice:", obs[1, 0, 0].values)
+        print("Penultimate value obs pre-slice:", obs[-2, 0, 0].values)
+
+        # If the window size for rolling mean is even, e.g. 2
+        # Then the latter place from the medium will be taken for the label
+        # E.g. for a rolling mean over:
+        # [1960], [1961], [1962], [1963] (window = 4)
+        # The label will be 1962
+        # Depending on the forecast range, change the alt lag last year
+        #TODO: Check this is correct
+        if forecast_range == "2-9":
+            alt_lag_first_year = alt_lag_first_year + 5
+            alt_lag_last_year = alt_lag_last_year + 5
+        elif forecast_range == "2-5":
+            alt_lag_first_year = alt_lag_first_year + 3
+            alt_lag_last_year = alt_lag_last_year + 3
+        elif forecast_range == "2-3":
+            alt_lag_first_year = alt_lag_first_year + 2
+            alt_lag_last_year = alt_lag_last_year + 2
+        else:
+            raise ValueError("Forecast range not recognised. Please try again.")
+        
+        # Print the start and end years
+        print("Start year alt lag:", alt_lag_first_year)
+        print("End year alt lag:", alt_lag_last_year)
+
         # Constraint the observations to the common years
-        obs = obs.sel(time=slice(alt_lag_first_year, alt_lag_last_year))
+        obs = obs.sel(time=slice(f"{alt_lag_first_year}-01-01", f"{alt_lag_last_year}-12-31"))
+
+        # Print all of the dates in the observations
+        print("Dates in obs:", obs.time.dt.year.values)
 
         # Print the first and last years of the observations
         print("First year obs post-slice:", obs.time[0].dt.year.values)
         print("Last year obs post-slice:", obs.time[-1].dt.year.values)
 
-        # Verify
+        # Verify that the length of the observations is correct
+        assert len(obs.time.dt.year.values) == alt_lag_data.shape[0], (
+            "Length of observations is incorrect"
+        )
+
+        # Print out the first and last values of the observations
+        print("First value obs post-slice:", obs[0, 0, 0].values)
+        print("Last value obs post-slice:", obs[-1, 0, 0].values)
 
 
     # If full_period is True, process the raw data
