@@ -68,6 +68,7 @@ Output:
 import argparse
 import os
 import sys
+import glob
 
 # Import from other scripts
 # -------------------------
@@ -218,9 +219,9 @@ def main():
         raise ValueError("Region not recognised. Please try again.")
     
     # Assert that method must be 'raw', 'lagged' or 'nao_matched'
-    assert method in ["raw", "lagged", "nao_matched"], (
+    assert method in ["raw", "lagged", "alternate_lag", "nao_matched"], (
         "Method not recognised. Please try again." +
-        "Must be 'raw', 'lagged' or 'nao_matched'"
+        "Must be 'raw', 'lagged', 'alternate_lag' or 'nao_matched'"
     )
 
     # If season conttains a number, convert it to the string
@@ -240,6 +241,37 @@ def main():
 
     # Set up the observations path for the matching variable
     obs_path_name = find_obs_path(variable)
+
+    # If the method is 'alternate_lag'
+    if method == "alternate_lag":
+        print("Loading alternate lagged data")
+
+        # Set up the directory
+        # TODO: hardcoded for now
+        alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data"
+
+        # Form the file name
+        filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}_*_alternate_lag.npy"
+
+        # Find files matching the filename
+        files = glob.glob(alt_lag_dir + "/" + filename)
+
+        # Print the matching files
+        print("Matching files:", files)
+
+        # Assert that there is only one file
+        assert len(files) == 1, "More than one file found"
+
+        # Load the file
+        alt_lag_data = np.load(files[0])
+
+        # Print the first dimension of the array
+        print("Number of start years:", alt_lag_data.shape[0])
+        print("Number of ensemble members:", alt_lag_data.shape[1])
+        print("Number of lats:", alt_lag_data.shape[2])
+        print("Number of lons:", alt_lag_data.shape[3])
+
+
 
     # If full_period is True, process the raw data
     # for the long period (s1961-2014 for years 2-9)
