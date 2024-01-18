@@ -271,6 +271,37 @@ def main():
         print("Number of lats:", alt_lag_data.shape[2])
         print("Number of lons:", alt_lag_data.shape[3])
 
+        # Extract the first year of the array
+        alt_lag_first_year = start_year + (lag - 1)
+
+        # Extract the last year of the array
+        alt_lag_last_year = end_year
+
+        # Print the start and end years
+        print("Start year alt lag:", alt_lag_first_year)
+        print("End year alt lag:", alt_lag_last_year)
+
+        # Process the observations for this variable
+        obs = fnc.process_observations(variable=variable,
+                                       region=region,
+                                       region_grid=region_grid,
+                                       forecast_range=forecast_range,
+                                       season=season,
+                                       observations_path=obs_path_name,
+                                       obs_var_name=variable)
+        
+        # print the first and last years of the observations
+        print("First year obs pre-slice:", obs.time[0].dt.year.values)
+        print("Last year obs pre-slice:", obs.time[-1].dt.year.values)
+
+        # Constraint the observations to the common years
+        obs = obs.sel(time=slice(alt_lag_first_year, alt_lag_last_year))
+
+        # Print the first and last years of the observations
+        print("First year obs post-slice:", obs.time[0].dt.year.values)
+        print("Last year obs post-slice:", obs.time[-1].dt.year.values)
+
+        # Verify
 
 
     # If full_period is True, process the raw data
