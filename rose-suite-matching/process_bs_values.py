@@ -328,10 +328,20 @@ def main():
         # Constraint the observations to the common years
         obs = obs.sel(time=slice(f"{alt_lag_first_year}-01-01", f"{alt_lag_last_year}-12-31"))
 
-        # Print all of the dates in the observations
-        print("Dates in obs:", obs.time.dt.year.values)
+        # Loop over the obs to check that there are no nans
+        for year in obs.time.dt.year.values:
+            # Extract the data for the year
+            year_data = obs.sel(time=f"{year}")
 
-        # Print the first and last years of the observations
+            # If there are any nans, raise an error
+            if np.isnan(year_data).any():
+                print("Nans found in obs for year:", year)
+                if np.isnan(year_data).all():
+                    print("All values are nan")
+                    print("Removing year:", year, "from obs")
+                    obs = obs.sel(time=obs.time.dt.year != year)
+
+        # print the first and last years of the observations
         print("First year obs post-slice:", obs.time[0].dt.year.values)
         print("Last year obs post-slice:", obs.time[-1].dt.year.values)
 
@@ -340,10 +350,7 @@ def main():
             "Length of observations is incorrect"
         )
 
-        # Print out the first and last values of the observations
-        print("First value obs post-slice:", obs[0, 0, 0].values)
-        print("Last value obs post-slice:", obs[-1, 0, 0].values)
-
+        
 
     # If full_period is True, process the raw data
     # for the long period (s1961-2014 for years 2-9)
