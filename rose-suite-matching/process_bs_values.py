@@ -325,6 +325,9 @@ def main():
         print("Start year alt lag:", alt_lag_first_year)
         print("End year alt lag:", alt_lag_last_year)
 
+        # Set up common years
+        common_years = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+
         # Constraint the observations to the common years
         obs = obs.sel(time=slice(f"{alt_lag_first_year}-01-01", f"{alt_lag_last_year}-12-31"))
 
@@ -365,8 +368,8 @@ def main():
 
         # Run the function to calculate the forecast stats
         forecast_stats = fnc.forecast_stats(obs=obs_values,
-                                            fcst1=alt_lag_data,
-                                            fcst2=alt_lag_data,
+                                            forecast1=alt_lag_data,
+                                            forecast2=alt_lag_data,
                                             no_boot=no_bootstraps)
 
         # Print the forecast stats
@@ -499,7 +502,7 @@ def main():
     assert isinstance(forecast_stats, dict), "forecast_stats is not a dictionary"
 
     # If the full period is True, extract the forecast stats
-    if full_period:
+    if full_period and method != "alternate_lag":
         forecast_stats = forecast_stats[variable]
 
     # Set up the save path
