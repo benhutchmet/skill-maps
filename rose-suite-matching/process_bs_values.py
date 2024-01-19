@@ -242,6 +242,9 @@ def main():
     # Set up the observations path for the matching variable
     obs_path_name = find_obs_path(variable)
 
+    # Set nao_stats_dict to None
+    nao_stats_dict = None
+
     # If the method is 'alternate_lag'
     if method == "alternate_lag":
         print("Loading alternate lagged data")
@@ -822,7 +825,7 @@ def main():
     np.save(save_path + obs_ts_name, forecast_stats["o_ts"])
 
     # If the nao_stats_dict exists, save the nao_stats
-    if nao_stats_dict:
+    if nao_stats_dict is not None:
         # Set up the names for the nao_stats
         nao_stats_years_name = (
             f"nao_stats_years_{variable}_{region}_{season}_" +
