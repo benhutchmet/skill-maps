@@ -253,32 +253,53 @@ def main():
         # TODO: hardcoded for now
         alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data"
 
+        # Extract the first year of the array
+        alt_lag_first_year = int(start_year) + (lag - 1)
+
+        # Extract the last year of the array
+        alt_lag_last_year = int(end_year)
+
         # Form the file name
-        filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}_*_alternate_lag.npy"
+        filename = f"{variable}_{season}_{region}_{alt_lag_first_year}_{alt_lag_last_year}_{forecast_range}_{lag}_*alternate_lag.npy"
+
+        # Form the other file name
+        raw_filename = f"{variable}_{season}_{region}_{start_year}_{alt_lag_last_year}_{forecast_range}_{lag}_alternate_lag.npy"
 
         # Find files matching the filename
-        files = glob.glob(alt_lag_dir + "/" + filename)
+        alt_lag_files = glob.glob(alt_lag_dir + "/" + filename)
 
-        # Print the matching files
-        print("Matching files:", files)
+        # Find files matching the raw filename
+        raw_files = glob.glob(alt_lag_dir + "/" + raw_filename)
 
         # Assert that there is only one file
-        assert len(files) == 1, "More than one file found"
+        assert len(alt_lag_files) == 1, "More than one file found"
+
+        # Assert that there is only one file
+        assert len(raw_files) == 1, "More than one file found"
+
+        # # Print the matching files
+        # print("Matching files:", files)
+
+        # # Assert that there is only one file
+        # assert len(files) == 1, "More than one file found"
 
         # Load the file
-        alt_lag_data = np.load(files[0])
+        alt_lag_data = np.load(alt_lag_files[0])
+
+        # Load the raw data
+        raw_data = np.load(raw_files[0])
+
+        # print the shape of the alt lag data
+        print("Shape of alt lag data:", alt_lag_data.shape)
+
+        # Print the shape of the raw data
+        print("Shape of raw data:", raw_data.shape)
 
         # Print the first dimension of the array
         print("Number of start years:", alt_lag_data.shape[0])
         print("Number of ensemble members:", alt_lag_data.shape[1])
         print("Number of lats:", alt_lag_data.shape[2])
         print("Number of lons:", alt_lag_data.shape[3])
-
-        # Extract the first year of the array
-        alt_lag_first_year = int(start_year) + (lag - 1)
-
-        # Extract the last year of the array
-        alt_lag_last_year = int(end_year)
 
         # Print the start and end years
         print("Start year alt lag:", alt_lag_first_year)
