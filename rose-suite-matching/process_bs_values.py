@@ -246,6 +246,195 @@ def main():
     # Set nao_stats_dict to None
     nao_stats_dict = None
 
+    # Set up the file names for the arrays
+    corr1_name = f"corr1_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr1_p_name = f"corr1_p_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr2_name = f"corr2_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr2_p_name = f"corr2_p_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr10_name = f"corr10_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    corr10_p_name = (f"corr10_p_{variable}_{region}_{season}_{forecast_range}"+
+                    ".npy")
+
+    partial_r_name = (
+        f"partial_r_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Partial r min and max values
+    partial_r_min_name = (
+        f"partial_r_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    partial_r_max_name = (
+        f"partial_r_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also the partial r bias
+    partial_r_bias_name = (
+        f"partial_r_bias_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    obs_resid_name = (
+        f"obs_resid_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Save the forecaast 1 residual array
+    fcst1_em_resid_name = (
+        f"fcst1_em_resid_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    partial_r_p_name = (
+        f"partial_r_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    sigo = f"sigo_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    sigo_resid = (
+        f"sigo_resid_{variable}_{region}_{season}_" +
+        f"{forecast_range}.npy"
+    )
+
+    # Also save arrays for the correlation differences
+    corr_diff_name = (
+        f"corr_diff_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Min and max values
+    corr_diff_min_name = (
+        f"corr_diff_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr_diff_max_name = (
+        f"corr_diff_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr_diff_p_name = (
+        f"corr_diff_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save arrays for the RPC and RPC_p
+    rpc1_name = (
+        f"rpc1_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Min and max arrays
+    rpc1_min_name = (
+        f"rpc1_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc1_max_name = (
+        f"rpc1_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc1_p_name = (
+        f"rpc1_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc2_name = (
+        f"rpc2_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Min and max arrays
+    rpc2_min_name = (
+        f"rpc2_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc2_max_name = (
+        f"rpc2_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    rpc2_p_name = (
+        f"rpc2_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the arrays for MSSS1 and MSSS2
+
+    msss1_name = (
+        f"msss1_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the arrays for the min and max values of MSS1 and MSS2
+    msss1_min_name = (
+        f"msss1_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    msss1_max_name = (
+        f"msss1_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the arrays for the MSSS1 and MSSS2 p values
+    msss1_p_name = (
+        f"msss1_p_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the corr1 and corr2 min and max values
+    corr1_min_name = (
+        f"corr1_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr1_max_name = (
+        f"corr1_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr2_min_name = (
+        f"corr2_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr2_max_name = (
+        f"corr2_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Also save the corr10 min and max values
+    corr10_min_name = (
+        f"corr10_min_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    corr10_max_name = (
+        f"corr10_max_{variable}_{region}_{season}_{forecast_range}" +
+        ".npy"
+    )
+
+    # Set up the names for the forecast time series
+    fcst1_ts_name = f"fcst1_ts_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    fcst2_ts_name = f"fcst2_ts_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    fcst10_ts_name = f"fcst10_ts_{variable}_{region}_{season}_{forecast_range}.npy"
+
+    obs_ts_name = f"obs_ts_{variable}_{region}_{season}_{forecast_range}.npy"
+
     # If the method is 'alternate_lag'
     if method == "alternate_lag":
         print("Loading alternate lagged data")
@@ -490,6 +679,12 @@ def main():
         # Print the shape of the obs_values
         print("Shape of obs_values:", obs_values.shape)
 
+        # Print the shape of the alt lag data
+        print("Shape of alt_lag_data:", alt_lag_data.shape)
+
+        # Print the shape of the raw data
+        print("Shape of raw_data_mean:", raw_data_mean.shape)
+
         # Run the function to calculate the forecast stats
         forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_values,
                                                     forecast1=alt_lag_data,
@@ -501,6 +696,24 @@ def main():
                                                 forecast1=raw_data_mean,
                                                 forecast2=raw_data_mean,
                                                 no_boot=no_bootstraps)
+
+        # Set up the save path
+        save_path_alt_lag = save_dir + "/" + variable + "/" + region + "/" + season + "/" \
+                    + forecast_range + "/" + "alt_lag" + "/" + "no_bootstraps_" + \
+                    str(no_bootstraps) + "/"
+        
+        # Set up the save path
+        save_path_raw = save_dir + "/" + variable + "/" + region + "/" + season + "/" \
+                    + forecast_range + "/" + "raw" + "/" + "no_bootstraps_" + \
+                    str(no_bootstraps) + "/"
+        
+        # If the save path doesn't exist, create it
+        if not os.path.exists(save_path_alt_lag):
+            os.makedirs(save_path_alt_lag)
+
+        # If the save path doesn't exist, create it
+        if not os.path.exists(save_path_raw):
+            os.makedirs(save_path_raw)
 
         
 
@@ -647,195 +860,6 @@ def main():
     # If the save path doesn't exist, create it
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-
-    # Set up the file names for the arrays
-    corr1_name = f"corr1_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    corr1_p_name = f"corr1_p_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    corr2_name = f"corr2_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    corr2_p_name = f"corr2_p_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    corr10_name = f"corr10_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    corr10_p_name = (f"corr10_p_{variable}_{region}_{season}_{forecast_range}"+
-                    ".npy")
-
-    partial_r_name = (
-        f"partial_r_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Partial r min and max values
-    partial_r_min_name = (
-        f"partial_r_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    partial_r_max_name = (
-        f"partial_r_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Also the partial r bias
-    partial_r_bias_name = (
-        f"partial_r_bias_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    obs_resid_name = (
-        f"obs_resid_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Save the forecaast 1 residual array
-    fcst1_em_resid_name = (
-        f"fcst1_em_resid_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    partial_r_p_name = (
-        f"partial_r_p_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    sigo = f"sigo_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    sigo_resid = (
-        f"sigo_resid_{variable}_{region}_{season}_" +
-        f"{forecast_range}.npy"
-    )
-
-    # Also save arrays for the correlation differences
-    corr_diff_name = (
-        f"corr_diff_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Min and max values
-    corr_diff_min_name = (
-        f"corr_diff_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    corr_diff_max_name = (
-        f"corr_diff_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    corr_diff_p_name = (
-        f"corr_diff_p_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Also save arrays for the RPC and RPC_p
-    rpc1_name = (
-        f"rpc1_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Min and max arrays
-    rpc1_min_name = (
-        f"rpc1_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    rpc1_max_name = (
-        f"rpc1_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    rpc1_p_name = (
-        f"rpc1_p_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    rpc2_name = (
-        f"rpc2_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Min and max arrays
-    rpc2_min_name = (
-        f"rpc2_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    rpc2_max_name = (
-        f"rpc2_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    rpc2_p_name = (
-        f"rpc2_p_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Also save the arrays for MSSS1 and MSSS2
-
-    msss1_name = (
-        f"msss1_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Also save the arrays for the min and max values of MSS1 and MSS2
-    msss1_min_name = (
-        f"msss1_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    msss1_max_name = (
-        f"msss1_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Also save the arrays for the MSSS1 and MSSS2 p values
-    msss1_p_name = (
-        f"msss1_p_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Also save the corr1 and corr2 min and max values
-    corr1_min_name = (
-        f"corr1_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    corr1_max_name = (
-        f"corr1_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    corr2_min_name = (
-        f"corr2_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    corr2_max_name = (
-        f"corr2_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Also save the corr10 min and max values
-    corr10_min_name = (
-        f"corr10_min_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    corr10_max_name = (
-        f"corr10_max_{variable}_{region}_{season}_{forecast_range}" +
-        ".npy"
-    )
-
-    # Set up the names for the forecast time series
-    fcst1_ts_name = f"fcst1_ts_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    fcst2_ts_name = f"fcst2_ts_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    fcst10_ts_name = f"fcst10_ts_{variable}_{region}_{season}_{forecast_range}.npy"
-
-    obs_ts_name = f"obs_ts_{variable}_{region}_{season}_{forecast_range}.npy"
     
     # Save the arrays
     # if the file already exists, don't overwrite it
