@@ -279,7 +279,7 @@ def main():
             # If the psl_DJFM_global_1962_1980_2-9_2_1706281292.628301_alternate_lag.npy
             # 1706281292.628301 is the datetime
             # Extract the datetimes
-            datetimes = [file.split("_",expand=True)[7] for file in alt_lag_files]
+            datetimes = [file.split("_")[7] for file in alt_lag_files]
 
             # Remove the .npy from the datetimes
             datetimes = [datetime.split(".")[0] for datetime in datetimes]
@@ -309,7 +309,7 @@ def main():
             # If the psl_DJFM_global_1962_1980_2-9_2_1706281292.628301_alternate_lag.npy
             # 1706281292.628301 is the datetime
             # Extract the datetimes
-            datetimes = [file.split("_",expand=True)[7] for file in raw_files]
+            datetimes = [file.split("_")[7] for file in raw_files]
 
             # Remove the .npy from the datetimes
             datetimes = [datetime.split(".")[0] for datetime in datetimes]
@@ -377,14 +377,29 @@ def main():
         # Depending on the forecast range, change the alt lag last year
         #TODO: Check this is correct
         if forecast_range == "2-9":
+            # Set up the alt lag first and last years
             alt_lag_first_year = alt_lag_first_year + 5
             alt_lag_last_year = alt_lag_last_year + 5
+
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 5
+            raw_last_year = int(end_year) + 5
         elif forecast_range == "2-5":
+            # Set up the alt lag first and last years
             alt_lag_first_year = alt_lag_first_year + 3
             alt_lag_last_year = alt_lag_last_year + 3
+
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 3
+            raw_last_year = int(end_year) + 3
         elif forecast_range == "2-3":
+            # Set up the alt lag first and last years
             alt_lag_first_year = alt_lag_first_year + 2
             alt_lag_last_year = alt_lag_last_year + 2
+
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 2
+            raw_last_year = int(end_year) + 2
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
         
@@ -395,11 +410,30 @@ def main():
         # Set up common years
         common_years = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
 
+        # Create a copy of the obs
+        obs_copy = obs.copy()
+
         # Constraint the observations to the common years
-        obs = obs.sel(time=slice(f"{alt_lag_first_year}-01-01", f"{alt_lag_last_year}-12-31"))
+        obs_lag = obs_copy.sel(time=slice(f"{alt_lag_first_year}-01-01", f"{alt_lag_last_year}-12-31"))
+
+        # Constrain the observations to the common years of the raw data
+        obs_raw = obs_copy.sel(time=slice(f"{raw_first_year}-01-01", f"{raw_last_year}-12-31"))
 
         # Loop over the obs to check that there are no nans
-        for year in obs.time.dt.year.values:
+        for year in obs_lag.time.dt.year.values:
+            # Extract the data for the year
+            year_data = obs.sel(time=f"{year}")
+
+            # If there are any nans, raise an error
+            if np.isnan(year_data).any():
+                print("Nans found in obs for year:", year)
+                if np.isnan(year_data).all():
+                    print("All values are nan")
+                    print("Removing year:", year, "from obs")
+                    obs = obs.sel(time=obs.time.dt.year != year)
+
+        # Loop over the obs to check that there are no nans
+        for year in obs_raw.time.dt.year.values:
             # Extract the data for the year
             year_data = obs.sel(time=f"{year}")
 
@@ -412,11 +446,16 @@ def main():
                     obs = obs.sel(time=obs.time.dt.year != year)
 
         # print the first and last years of the observations
-        print("First year obs post-slice:", obs.time[0].dt.year.values)
-        print("Last year obs post-slice:", obs.time[-1].dt.year.values)
+        print("First year obs post-slice:", obs_lag.time[0].dt.year.values)
+        print("Last year obs post-slice:", obs_lag.time[-1].dt.year.values)
 
         # Verify that the length of the observations is correct
-        assert len(obs.time.dt.year.values) == alt_lag_data.shape[0], (
+        assert len(obs_lag.time.dt.year.values) == alt_lag_data.shape[0], (
+            "Length of observations is incorrect"
+        )
+
+        # Verify that the length of the observations is correct
+        assert len(obs_raw.time.dt.year.values) == raw_data.shape[0], (
             "Length of observations is incorrect"
         )
 
@@ -427,6 +466,24 @@ def main():
         # Print the shape of the alt_lag_data
         print("Shape of alt_lag_data:", alt_lag_data.shape)
 
+        # Swap the axes of the raw_data
+        # Swap the 1th axis with the 0th axis
+        raw_data = np.swapaxes(raw_data, 1, 0)
+
+        # Print the shape of the raw_data
+        print("Shape of raw_data:", raw_data.shape)
+
+        # TODO: Calculate the raw forecast stats for the raw data
+        # First take the mean over the year axis for the raw data
+        if forecast_range == "2-3":
+            raw_data_mean = raw_data[:, :, :2, :, :].mean(axis=2)
+        elif forecast_range == "2-5":
+            raw_data_mean = raw_data[:, :, :4, :, :].mean(axis=2)
+        elif forecast_range == "2-9":
+            raw_data_mean = raw_data[:, :, :8, :, :].mean(axis=2)
+        else:
+            raise ValueError("Forecast range not recognised. Please try again.")
+
         # Extract the values for the obs
         obs_values = obs.values
 
@@ -434,10 +491,20 @@ def main():
         print("Shape of obs_values:", obs_values.shape)
 
         # Run the function to calculate the forecast stats
-        forecast_stats = fnc.forecast_stats(obs=obs_values,
-                                            forecast1=alt_lag_data,
-                                            forecast2=alt_lag_data,
-                                            no_boot=no_bootstraps)
+        forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_values,
+                                                    forecast1=alt_lag_data,
+                                                    forecast2=alt_lag_data,
+                                                    no_boot=no_bootstraps)
+        
+        # TODO: Calculate the forecast stats for the raw data
+        forecast_stats_raw = fnc.forecast_stats(obs=obs_values,
+                                                forecast1=raw_data_mean,
+                                                forecast2=raw_data_mean,
+                                                no_boot=no_bootstraps)
+
+        
+
+        # TODO: save the output for both the raw data and the alt lag data
 
         # Print the forecast stats
         print("Forecast stats:", forecast_stats)
