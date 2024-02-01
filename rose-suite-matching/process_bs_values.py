@@ -98,6 +98,7 @@ import functions_diff as hist_fnc
 import numpy as np
 from typing import Tuple
 import xarray as xr
+import pandas as pd
 
 # Define a function to extract the variables from the command line
 def extract_variables():
@@ -263,7 +264,7 @@ def main():
         filename = f"{variable}_{season}_{region}_{alt_lag_first_year}_{alt_lag_last_year}_{forecast_range}_{lag}_*alternate_lag.npy"
 
         # Form the other file name
-        raw_filename = f"{variable}_{season}_{region}_{start_year}_{alt_lag_last_year}_{forecast_range}_{lag}_alternate_lag.npy"
+        raw_filename = f"{variable}_{season}_{region}_{start_year}_{alt_lag_last_year}_{forecast_range}_{lag}*.npy"
 
         # Find files matching the filename
         alt_lag_files = glob.glob(alt_lag_dir + "/" + filename)
@@ -271,23 +272,65 @@ def main():
         # Find files matching the raw filename
         raw_files = glob.glob(alt_lag_dir + "/" + raw_filename)
 
-        # Assert that there is only one file
-        assert len(alt_lag_files) == 1, "More than one file found"
+        # If there is more than one file
+        if len(alt_lag_files) > 1:
+            print("More than one file found")
 
-        # Assert that there is only one file
-        assert len(raw_files) == 1, "More than one file found"
+            # If the psl_DJFM_global_1962_1980_2-9_2_1706281292.628301_alternate_lag.npy
+            # 1706281292.628301 is the datetime
+            # Extract the datetimes
+            datetimes = [file.split("_",expand=True)[7] for file in alt_lag_files]
 
-        # # Print the matching files
-        # print("Matching files:", files)
+            # Remove the .npy from the datetimes
+            datetimes = [datetime.split(".")[0] for datetime in datetimes]
 
-        # # Assert that there is only one file
-        # assert len(files) == 1, "More than one file found"
+            # Convert the datasetimes to datetimes using pandas
+            datetimes = [pd.to_datetime(datetime, unit="s") for datetime in datetimes]
 
-        # Load the file
-        alt_lag_data = np.load(alt_lag_files[0])
+            # Find the latest datetime
+            latest_datetime = max(datetimes)
 
-        # Load the raw data
-        raw_data = np.load(raw_files[0])
+            # Find the index of the latest datetime
+            latest_datetime_index = datetimes.index(latest_datetime)
+
+            # Print that we are using the latest datetime file
+            print("Using the latest datetime file:", alt_lag_files[latest_datetime_index])
+
+            # Load the file
+            alt_lag_data = np.load(alt_lag_files[latest_datetime_index])
+        else:
+            # Load the file
+            alt_lag_data = np.load(alt_lag_files[0])
+
+        # If there is more than one file
+        if len(raw_files) > 1:
+            print("More than one file found")
+
+            # If the psl_DJFM_global_1962_1980_2-9_2_1706281292.628301_alternate_lag.npy
+            # 1706281292.628301 is the datetime
+            # Extract the datetimes
+            datetimes = [file.split("_",expand=True)[7] for file in raw_files]
+
+            # Remove the .npy from the datetimes
+            datetimes = [datetime.split(".")[0] for datetime in datetimes]
+
+            # Convert the datasetimes to datetimes using pandas
+            datetimes = [pd.to_datetime(datetime, unit="s") for datetime in datetimes]
+
+            # Find the latest datetime
+            latest_datetime = max(datetimes)
+
+            # Find the index of the latest datetime
+            latest_datetime_index = datetimes.index(latest_datetime)
+
+            # Print that we are using the latest datetime file
+            print("Using the latest datetime file:", raw_files[latest_datetime_index])
+
+            # Load the file
+            raw_data = np.load(raw_files[latest_datetime_index])
+        else:
+            # Load the file
+            raw_data = np.load(raw_files[0])
 
         # print the shape of the alt lag data
         print("Shape of alt lag data:", alt_lag_data.shape)
