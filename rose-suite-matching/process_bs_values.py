@@ -701,6 +701,7 @@ def main():
         # Print the shape of the raw data
         print("Shape of raw_data_mean:", raw_data_mean.shape)
 
+        # FIXME: Exits in forecast_stats?
         # Run the function to calculate the forecast stats
         forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_values,
                                                     forecast1=alt_lag_data,
@@ -739,6 +740,10 @@ def main():
 
         # Loop over the save paths and forecast stats
         for save_path, forecast_stat, common_year in zip(save_paths, forecast_stats, common_years):
+            print("Saving the arrays to:", save_path
+                  )
+            print("Common years:", common_year)
+            print(forecast_stat)
             # Save the arrays
             # if the file already exists, don't overwrite it
             np.save(save_path + corr1_name, forecast_stat["corr1"])
