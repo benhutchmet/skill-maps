@@ -435,6 +435,16 @@ def main():
 
     obs_ts_name = f"obs_ts_{variable}_{region}_{season}_{forecast_range}.npy"
 
+    # Set up the names for the values of the forecast stats
+    nens1_name = f"nens1_{variable}_{region}_{season}_{forecast_range}.txt"
+
+    nens2_name = f"nens2_{variable}_{region}_{season}_{forecast_range}.txt"
+
+    start_end_years = (
+        f"start_end_years_{variable}_{region}_{season}_" +
+        f"{forecast_range}.txt"
+    )
+
     # If the method is 'alternate_lag'
     if method == "alternate_lag":
         print("Loading alternate lagged data")
@@ -597,7 +607,13 @@ def main():
         print("End year alt lag:", alt_lag_last_year)
 
         # Set up common years
-        common_years = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+        common_years_alt_lag = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+
+        # Set up common years
+        common_years_raw = np.arange(raw_first_year, raw_last_year + 1)
+
+        # Create a list of the common years
+        common_years = [common_years_alt_lag, common_years_raw]
 
         # Create a copy of the obs
         obs_copy = obs.copy()
@@ -715,12 +731,124 @@ def main():
         if not os.path.exists(save_path_raw):
             os.makedirs(save_path_raw)
 
-        
+        # Store the paths in a list
+        save_paths = [save_path_alt_lag, save_path_raw]
 
-        # TODO: save the output for both the raw data and the alt lag data
+        # Store the forecast stats in a list
+        forecast_stats = [forecast_stats_alt_lag, forecast_stats_raw]
 
-        # Print the forecast stats
-        print("Forecast stats:", forecast_stats)
+        # Loop over the save paths and forecast stats
+        for save_path, forecast_stat, common_year in zip(save_paths, forecast_stats, common_years):
+            # Save the arrays
+            # if the file already exists, don't overwrite it
+            np.save(save_path + corr1_name, forecast_stat["corr1"])
+
+            # Save the min and max values
+            np.save(save_path + corr1_min_name, forecast_stat["corr1_min"])
+
+            np.save(save_path + corr1_max_name, forecast_stat["corr1_max"])
+
+            np.save(save_path + corr1_p_name, forecast_stat["corr1_p"])
+
+            np.save(save_path + corr2_name, forecast_stat["corr2"])
+
+            # Save the min and max values
+            np.save(save_path + corr2_min_name, forecast_stat["corr2_min"])
+
+            np.save(save_path + corr2_max_name, forecast_stat["corr2_max"])
+
+            np.save(save_path + corr2_p_name, forecast_stat["corr2_p"])
+
+            np.save(save_path + corr10_name, forecast_stat["corr10"])
+
+            # Save the min and max values
+            np.save(save_path + corr10_min_name, forecast_stat["corr10_min"])
+
+            np.save(save_path + corr10_max_name, forecast_stat["corr10_max"])
+
+            np.save(save_path + corr10_p_name, forecast_stat["corr10_p"])
+
+            # Save the MSSS1 and MSSS2 arrays
+            np.save(save_path + msss1_name, forecast_stat["msss1"])
+
+            # Save the min and max values
+            np.save(save_path + msss1_min_name, forecast_stat["msss1_min"])
+
+            np.save(save_path + msss1_max_name, forecast_stat["msss1_max"])
+
+            np.save(save_path + msss1_p_name, forecast_stat["msss1_p"])
+
+            # Save the RPC1 and RPC2 arrays
+            np.save(save_path + rpc1_name, forecast_stat["rpc1"])
+
+            # Save the min and max values
+            np.save(save_path + rpc1_min_name, forecast_stat["rpc1_min"])
+
+            np.save(save_path + rpc1_max_name, forecast_stat["rpc1_max"])
+
+            np.save(save_path + rpc1_p_name, forecast_stat["rpc1_p"])
+
+            np.save(save_path + rpc2_name, forecast_stat["rpc2"])
+
+            # Save the min and max values
+            np.save(save_path + rpc2_min_name, forecast_stat["rpc2_min"])
+
+            np.save(save_path + rpc2_max_name, forecast_stat["rpc2_max"])
+
+            np.save(save_path + rpc2_p_name, forecast_stat["rpc2_p"])
+
+            # Save the corr_diff arrays
+            np.save(save_path + corr_diff_name, forecast_stat["corr_diff"])
+
+            # Save the min and max values
+            np.save(save_path + corr_diff_min_name, forecast_stat["corr_diff_min"])
+
+            np.save(save_path + corr_diff_max_name, forecast_stat["corr_diff_max"])
+
+            np.save(save_path + corr_diff_p_name, forecast_stat["corr_diff_p"])
+
+            # Save the partial r min and max values
+            np.save(save_path + partial_r_min_name, forecast_stat["partialr_min"])
+
+            np.save(save_path + partial_r_max_name, forecast_stat["partialr_max"])
+
+            # Save the partial r bias
+            np.save(save_path + partial_r_bias_name, forecast_stat["partialr_bias"])
+
+            # Save the partial r and partial r p values
+            np.save(save_path + partial_r_name, forecast_stat["partialr"])
+
+            np.save(save_path + partial_r_p_name, forecast_stat["partialr_p"])
+
+            # Save the obs residual array
+            np.save(save_path + obs_resid_name, forecast_stat["obs_resid"])
+
+            # Save the forecast1 residual array
+            np.save(save_path + fcst1_em_resid_name, forecast_stat["fcst1_em_resid"])
+
+            # Save the sigo and sigo residual arrays
+            np.save(save_path + sigo, forecast_stat["sigo"])
+
+            np.save(save_path + sigo_resid, forecast_stat["sigo_resid"])
+
+            # Save the values of the forecast stats
+            np.savetxt(save_path + nens1_name, forecast_stat["nens1"])
+
+            np.savetxt(save_path + nens2_name, forecast_stat["nens2"])
+
+            np.savetxt(save_path + start_end_years, [common_year[0],
+                                                    common_year[-1]])
+
+            # Save the forecast time series
+            np.save(save_path + fcst1_ts_name, forecast_stat["f1_ts"])
+
+            np.save(save_path + fcst2_ts_name, forecast_stat["f2_ts"])
+
+            np.save(save_path + fcst10_ts_name, forecast_stat["f10_ts"])
+
+            np.save(save_path + obs_ts_name, forecast_stat["o_ts"])
+
+        # TODO: also save the output for the NAO time series
     else:
         # If full_period is True, process the raw data
         # for the long period (s1961-2014 for years 2-9)
@@ -952,16 +1080,6 @@ def main():
     np.save(save_path + sigo, forecast_stats["sigo"])
 
     np.save(save_path + sigo_resid, forecast_stats["sigo_resid"])
-
-    # Set up the names for the values of the forecast stats
-    nens1_name = f"nens1_{variable}_{region}_{season}_{forecast_range}.txt"
-
-    nens2_name = f"nens2_{variable}_{region}_{season}_{forecast_range}.txt"
-
-    start_end_years = (
-        f"start_end_years_{variable}_{region}_{season}_" +
-        f"{forecast_range}.txt"
-    )
     
     # Save the values of the forecast stats
     np.savetxt(save_path + nens1_name, np.array([forecast_stats["nens1"]]))
