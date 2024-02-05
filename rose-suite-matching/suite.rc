@@ -1,7 +1,7 @@
 [cylc]
     UTC mode = True # Ignore DST
     [[parameters]]
-        match_var="psl"
+        match_var=psl,rsds,sfcWind
         obs_var_name="psl"
         region="global"
         season=DJFM
