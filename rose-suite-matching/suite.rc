@@ -9,7 +9,7 @@
         start_year="1961"
         end_year="2014"
         lag="4"
-        no_subset_members="20"
+        no_subset_members="50"
         method=alternate_lag
         nboot=20
         level="100000"
