@@ -843,9 +843,9 @@ def main():
             np.save(save_path + sigo_resid, forecast_stat["sigo_resid"])
 
             # Save the values of the forecast stats
-            np.savetxt(save_path + nens1_name, forecast_stat["nens1"])
+            np.savetxt(save_path + nens1_name, np.array([forecast_stats["nens1"]]))
 
-            np.savetxt(save_path + nens2_name, forecast_stat["nens2"])
+            np.savetxt(save_path + nens2_name, np.array([forecast_stats["nens2"]]))
 
             np.savetxt(save_path + start_end_years, [common_year[0],
                                                     common_year[-1]])
