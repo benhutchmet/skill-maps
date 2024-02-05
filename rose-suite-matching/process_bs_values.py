@@ -547,6 +547,12 @@ def main():
         print("Start year alt lag:", alt_lag_first_year)
         print("End year alt lag:", alt_lag_last_year)
 
+        # if the season is ULG, change it to JJA
+        if season == "ULG":
+            season = "JJA"
+        elif season == "MAY":
+            season = "MAM"
+
         # Process the observations for this variable
         obs = fnc.process_observations(variable=variable,
                                        region=region,
