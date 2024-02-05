@@ -1526,6 +1526,8 @@ def create_bs_dict(variables: list,
         # Add the skill_maps dictionary to the bs_skill_maps dictionary
         bs_skill_maps[key] = skill_maps
 
+    # if there are not four keys
+
     # Return the bs_skill_maps dictionary
     return bs_skill_maps
 
@@ -1756,6 +1758,9 @@ def plot_diff_variables(bs_skill_maps: dict,
         # Add the axes to the list
         axes.append(ax)
 
+    # Remove content from the 4th axis
+    axs[1, 1].remove()
+
     # Add a colorbar
     cbar = fig.colorbar(cf_list[0], ax=axes, orientation="horizontal", pad=0.05,
                         shrink=0.8)
@@ -1767,7 +1772,7 @@ def plot_diff_variables(bs_skill_maps: dict,
     plots_dir = "/gws/nopw/j04/canari/users/benhutch/plots"
 
     # Set up the current date
-    current_date = datetime.datetime.now().strftime("%Y%m%d")
+    current_date = datetime.now().strftime("%Y%m%d")
 
     # Set up the figure name
     fig_name = f"different_variables_corr_{start_year}_{end_year}_{season}_{forecast_range}_{current_date}"
