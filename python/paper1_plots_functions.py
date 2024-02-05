@@ -1429,13 +1429,13 @@ def create_bs_dict(variables: list,
 
     # Create a dictionary containing the reauired stars for each variable
     stats_dict = {
-        'corr1', [],
-        'corr1_p', [],
-        'f1_ts', [],
-        'o_ts', [],
-        'nens1', mdi,
-        'start_year', mdi,
-        'end_year', mdi
+        'corr1': [],
+        'corr1_p': [],
+        'f1_ts': [],
+        'o_ts': [],
+        'nens1': mdi,
+        'start_year': mdi,
+        'end_year': mdi
     }
 
     # Loop over the variables and nboot
@@ -1445,6 +1445,9 @@ def create_bs_dict(variables: list,
         # Set up the base path
         base_path = os.path.join(base_dir, var, region, season, forecast_range, method,
                                  f"no_bootstraps_{nboot}")
+        
+        # Print the base path
+        print(f"base_path = {base_path}")
 
         # Assert that this directory exists and is not empty
         assert os.path.isdir(base_path), f"Directory {base_path} does not exist!"
@@ -1490,10 +1493,13 @@ def create_bs_dict(variables: list,
         obs_ts = np.load(os.path.join(base_path, obs_ts_file[0]))
 
         # Load the files
-        nens1 = np.load(os.path.join(base_path, nens1_file[0]))
+        nens1 = np.loadtxt(os.path.join(base_path, nens1_file[0])).astype(int)
 
         # Load the files
-        start_end_years = np.load(os.path.join(base_path, start_end_years_file[0]))
+        start_year = np.loadtxt(os.path.join(base_path, start_end_years_file[0])).astype(int)
+
+        # Load the files
+        end_year = np.loadtxt(os.path.join(base_path, start_end_years_file[0])).astype(int)
 
         # Add the values to the skill_maps dictionary
         skill_maps["corr1"] = corr1
@@ -1511,10 +1517,10 @@ def create_bs_dict(variables: list,
         skill_maps["nens1"] = nens1
 
         # Add the values to the skill_maps dictionary
-        skill_maps["start_year"] = int(start_end_years[0])
+        skill_maps["start_year"] = start_year
 
         # Add the values to the skill_maps dictionary
-        skill_maps["end_year"] = int(start_end_years[1])
+        skill_maps["end_year"] = end_year
 
         # Add the skill_maps dictionary to the bs_skill_maps dictionary
         bs_skill_maps[key] = skill_maps
