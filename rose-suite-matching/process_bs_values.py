@@ -690,10 +690,16 @@ def main():
             raise ValueError("Forecast range not recognised. Please try again.")
 
         # Extract the values for the obs
-        obs_values = obs.values
+        obs_lag_values = obs_lag.values
+
+        # Extract the values for the obs
+        obs_values = obs_raw.values
 
         # Print the shape of the obs_values
-        print("Shape of obs_values:", obs_values.shape)
+        print("Shape of obs_values lag:", obs_lag_values.shape)
+
+        # Print the shape of the obs_values
+        print("Shape of obs_values raw:", obs_values.shape)
 
         # Print the shape of the alt lag data
         print("Shape of alt_lag_data:", alt_lag_data.shape)
@@ -703,7 +709,7 @@ def main():
 
         # FIXME: Exits in forecast_stats?
         # Run the function to calculate the forecast stats
-        forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_values,
+        forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_lag_values,
                                                     forecast1=alt_lag_data,
                                                     forecast2=alt_lag_data,
                                                     no_boot=no_bootstraps)
