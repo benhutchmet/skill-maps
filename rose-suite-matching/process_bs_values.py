@@ -707,6 +707,13 @@ def main():
         # Print the shape of the raw data
         print("Shape of raw_data_mean:", raw_data_mean.shape)
 
+        # NOTE: Temporary fix on nens
+        nens1_alt_lag = alt_lag_data.shape[0]
+
+        # NOTE: Temporary fix on nens
+        nens1_raw = raw_data_mean.shape[0]
+
+
         # FIXME: Exits in forecast_stats?
         # Run the function to calculate the forecast stats
         forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_lag_values,
@@ -744,8 +751,11 @@ def main():
         # Store the forecast stats in a list
         forecast_stats = [forecast_stats_alt_lag, forecast_stats_raw]
 
+        # Form the list of nens
+        nens = [nens1_alt_lag, nens1_raw]
+
         # Loop over the save paths and forecast stats
-        for save_path, forecast_stat, common_year in zip(save_paths, forecast_stats, common_years):
+        for save_path, forecast_stat, common_year, nen in zip(save_paths, forecast_stats, common_years, nens):
             print("Saving the arrays to:", save_path
                   )
             print("Common years:", common_year)
@@ -843,9 +853,9 @@ def main():
             np.save(save_path + sigo_resid, forecast_stat["sigo_resid"])
 
             # Save the values of the forecast stats
-            np.savetxt(save_path + nens1_name, np.array([forecast_stats["nens1"]]))
+            np.savetxt(save_path + nens1_name, np.array([nen]))
 
-            np.savetxt(save_path + nens2_name, np.array([forecast_stats["nens2"]]))
+            np.savetxt(save_path + nens2_name, np.array([nen]))
 
             np.savetxt(save_path + start_end_years, [common_year[0],
                                                     common_year[-1]])
