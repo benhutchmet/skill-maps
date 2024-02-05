@@ -4,8 +4,8 @@
         match_var=psl,rsds,sfcWind
         obs_var_name="psl"
         region="global"
-        season=DJFM
-        forecast_range="2-3"
+        season=DJFM,ULG
+        forecast_range=2-3,2-5,2-9
         start_year="1961"
         end_year="2014"
         lag="4"
