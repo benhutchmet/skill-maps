@@ -1372,57 +1372,57 @@ def check_bootstraps_exist(variables: list,
 
 # Create another function to form the bs_skill_maps dictionary
 def create_bs_dict(variables: list,
-                     no_bootstraps: list,
-                     season: str,
-                     forecast_range: str,
-                     method: str,
-                     region: str = "global",
-                     base_dir: str = "/gws/nopw/j04/canari/users/benhutch/bootstrapping"):
-     """
-     Function which creates a dictionary of bootstrapped skill maps for a list of variables.
+                    no_bootstraps: list,
+                    season: str,
+                    forecast_range: str,
+                    method: str,
+                    region: str = "global",
+                    base_dir: str = "/gws/nopw/j04/canari/users/benhutch/bootstrapping"):
+    """
+    Function which creates a dictionary of bootstrapped skill maps for a list of variables.
+
+    Inputs:
+    -------
+
+    variables: list
+        List of variables to process.
+        e.g. ["tas", "pr", "psl"]
+
+    no_bootstraps: list
+        List of the no bootstraps for each variable.
+        e.g. [100, 100, 100]
+
+    season: str
+        Season to process.
+        e.g. "DJF"
+
+    forecast_range: str
+        Forecast range to process.
+        e.g. "2-9"
+
+    region: str
+        Region to process.
+        e.g. default is "global"
+
+    method: list
+        List of methods to process.
+        e.g. ["raw", "alt_lag"]
+
+    base_dir: str
+        Base directory to process.
+        e.g. default is "/gws/nopw/j04/canari/users/benhutch/bootstrapping"
+
+    Outputs:
+    --------
+    bs_skill_maps: dict
+        Dictionary containing the bootstrapped skill maps for each variable.
+        Dictionary keys are the variable names.
+        e.g. bs_skill_maps["tas"] = {"raw": {"corr": corr, "rmse": rmse, "bias": bias},
+                                        "alt_lag": {"corr": corr, "rmse": rmse, "bias": bias}}
+    """
     
-     Inputs:
-     -------
-    
-     variables: list
-          List of variables to process.
-          e.g. ["tas", "pr", "psl"]
-    
-     no_bootstraps: list
-          List of the no bootstraps for each variable.
-          e.g. [100, 100, 100]
-    
-     season: str
-          Season to process.
-          e.g. "DJF"
-    
-     forecast_range: str
-          Forecast range to process.
-          e.g. "2-9"
-    
-     region: str
-          Region to process.
-          e.g. default is "global"
-    
-     method: list
-          List of methods to process.
-          e.g. ["raw", "alt_lag"]
-    
-     base_dir: str
-          Base directory to process.
-          e.g. default is "/gws/nopw/j04/canari/users/benhutch/bootstrapping"
-    
-     Outputs:
-     --------
-     bs_skill_maps: dict
-          Dictionary containing the bootstrapped skill maps for each variable.
-          Dictionary keys are the variable names.
-          e.g. bs_skill_maps["tas"] = {"raw": {"corr": corr, "rmse": rmse, "bias": bias},
-                                         "alt_lag": {"corr": corr, "rmse": rmse, "bias": bias}}
-     """
-    
-     # Create an empty dictionary to store the bootstrapped skill maps
-     bs_skill_maps = {}
+    # Create an empty dictionary to store the bootstrapped skill maps
+    bs_skill_maps = {}
     
     # Set up the mdi
     mdi = -9999.0
@@ -1437,5 +1437,90 @@ def create_bs_dict(variables: list,
         'start_year', mdi,
         'end_year', mdi
     }
+
+    # Loop over the variables and nboot
+    for var, nboot in zip(variables, no_bootstraps):
+        print(f"Processing variable {var}...") ; print(f"Processing {nboot} bootstraps...")
+
+        # Set up the base path
+        base_path = os.path.join(base_dir, var, region, season, forecast_range, method,
+                                 f"no_bootstraps_{nboot}")
+
+        # Assert that this directory exists and is not empty
+        assert os.path.isdir(base_path), f"Directory {base_path} does not exist!"
+
+        # Set up the dictionary key for this variable
+        key = (var, f"nboot_{nboot}")
+
+        # Create an empty dictionary to store the skill maps for this variable
+        skill_maps = {}
+
+        # Find the file containing "corr1_{variable}" in the base_path
+        corr1_file = [file for file in os.listdir(base_path) if f"corr1_{var}" in file]
+
+        # Find the file containing "corr1_p_{variable}" in the base_path
+        corr1_p_file = [file for file in os.listdir(base_path) if f"corr1_p_{var}" in file]
+
+        # Find the file containing "fcst1_ts_{variable}" in the base_path
+        fcst1_ts_file = [file for file in os.listdir(base_path) if f"fcst1_ts_{var}" in file]
+
+        # Find the file containing "obs_ts_{variable}" in the base_path
+        obs_ts_file = [file for file in os.listdir(base_path) if f"obs_ts_{var}" in file]
+
+        # Find the file containing "nens1_{variable}" in the base_path
+        nens1_file = [file for file in os.listdir(base_path) if f"nens1_{var}" in file]
+
+        # Find the file containing "start_end_years_{variable}" in the base_path
+        start_end_years_file = [file for file in os.listdir(base_path) if f"start_end_years_{var}" in file]
+
+        # Assert that the length of each of these lists is equal to 1
+        for file in [corr1_file, corr1_p_file, fcst1_ts_file, obs_ts_file, nens1_file, start_end_years_file]:
+            assert len(file) == 1, f"Length of file list is not equal to 1"
+
+        # Load the files
+        corr1 = np.load(os.path.join(base_path, corr1_file[0]))
+
+        # Load the files
+        corr1_p = np.load(os.path.join(base_path, corr1_p_file[0]))
+
+        # Load the files
+        fcst1_ts = np.load(os.path.join(base_path, fcst1_ts_file[0]))
+
+        # Load the files
+        obs_ts = np.load(os.path.join(base_path, obs_ts_file[0]))
+
+        # Load the files
+        nens1 = np.load(os.path.join(base_path, nens1_file[0]))
+
+        # Load the files
+        start_end_years = np.load(os.path.join(base_path, start_end_years_file[0]))
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr1"] = corr1
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr1_p"] = corr1_p
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["f1_ts"] = fcst1_ts
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["o_ts"] = obs_ts
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["nens1"] = nens1
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["start_year"] = int(start_end_years[0])
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["end_year"] = int(start_end_years[1])
+
+        # Add the skill_maps dictionary to the bs_skill_maps dictionary
+        bs_skill_maps[key] = skill_maps
+
+    # Return the bs_skill_maps dictionary
+    return bs_skill_maps
+
 
 
