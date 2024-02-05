@@ -727,7 +727,7 @@ def main():
         
         # Set up the save path
         save_path_raw = save_dir + "/" + variable + "/" + region + "/" + season + "/" \
-                    + forecast_range + "/" + "raw" + "/" + "no_bootstraps_" + \
+                    + forecast_range + "/" + "new_raw" + "/" + "no_bootstraps_" + \
                     str(no_bootstraps) + "/"
         
         # If the save path doesn't exist, create it
