@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from scipy.stats import pearsonr
+from datetime import datetime
 
 # Import typing
 from typing import Tuple
@@ -1527,6 +1528,258 @@ def create_bs_dict(variables: list,
 
     # Return the bs_skill_maps dictionary
     return bs_skill_maps
+
+
+# Now we want to write a function to plot the skill maps
+def plot_diff_variables(bs_skill_maps: dict,
+                        season: str,
+                        forecast_range: str,
+                        figsize_x: int = 10,
+                        figsize_y: int = 12,
+                        gridbox_corr: dict = None,
+                        gridbox_plot: dict = None,
+                        sig_threshold: float = 0.05):
+    """
+    Plot the skill maps for different variables as a 2x2 grid.
+
+    Inputs:
+    -------
+
+    bs_skill_maps: dict
+        Dictionary containing the bootstrapped skill maps for each variable.
+        Dictionary keys are the variable names.
+        e.g. bs_skill_maps["tas"] = {"raw": {"corr": corr, "rmse": rmse, "bias": bias},
+                                        "alt_lag": {"corr": corr, "rmse": rmse, "bias": bias}}
+
+    season: str
+        Season to process.
+        e.g. "DJF"
+
+    forecast_range: str
+        Forecast range to process.
+        e.g. "2-9"
+
+    figsize_x: int
+        Width of the figure in inches.
+        e.g. default is 10
+
+    figsize_y: int
+        Height of the figure in inches.
+        e.g. default is 12
+
+    gridbox_corr: dict
+        Dictionary containing the gridbox for which to calculate the correlation.
+        e.g. default is None
+
+    gridbox_plot: dict
+        Dictionary containing the gridbox for which to plot the skill maps.
+        e.g. default is None
+
+    sig_threshold: float
+        Significance threshold for the correlation coefficients.
+        e.g. default is 0.05
+    
+    Outputs:
+    --------
+
+    None
+    """
+
+    # Set up the initialisation offset
+    # FIXME: Will have to fiddle with this
+    if forecast_range == "2-9":
+        init_offset = 6
+    elif forecast_range == "2-5":
+        init_offset = 3
+    elif forecast_range == "2-3":
+        init_offset = 2
+    else:
+        raise ValueError("forecast_range must be either 2-9 or 2-5 or 2-3")
+
+    # Set up the axis labels
+    axis_labels = ["a", "b", "c", "d"]
+
+    # Set up the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the figure
+    fig, axs = plt.subplots(nrows=2,
+                            ncols=2,
+                            figsize=(figsize_x, figsize_y))
+    
+    # Set up the lats and lons
+    lons = np.arange(-180, 180, 2.5) ; lats = np.arange(-90, 90, 2.5)
+
+    # If the gridbox_corr is not None
+    if gridbox_corr is not None:
+        # Extract the lats and lons from the gridbox_corr
+        lon1_corr, lon2_corr = gridbox_corr['lon1'], gridbox_corr['lon2']
+        lat1_corr, lat2_corr = gridbox_corr['lat1'], gridbox_corr['lat2']
+
+        # find the indices of the lats which correspond to the gridbox
+        lat1_idx_corr = np.argmin(np.abs(lats - lat1_corr))
+        lat2_idx_corr = np.argmin(np.abs(lats - lat2_corr))
+
+        # find the indices of the lons which correspond to the gridbox
+        lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
+        lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+
+    # If gridbox_plot is not None
+    if gridbox_plot is not None:
+        # Extract the lats and lons from the gridbox_plot
+        lon1_gb, lon2_gb = gridbox_plot['lon1'], gridbox_plot['lon2']
+        lat1_gb, lat2_gb = gridbox_plot['lat1'], gridbox_plot['lat2']
+
+        # find the indices of the lats which correspond to the gridbox
+        lat1_idx_gb = np.argmin(np.abs(lats - lat1_gb))
+        lat2_idx_gb = np.argmin(np.abs(lats - lat2_gb))
+
+        # find the indices of the lons which correspond to the gridbox
+        lon1_idx_gb = np.argmin(np.abs(lons - lon1_gb))
+        lon2_idx_gb = np.argmin(np.abs(lons - lon2_gb))
+
+        # Constrain the lats and lons
+        lats = lats[lat1_idx_gb:lat2_idx_gb]
+        lons = lons[lon1_idx_gb:lon2_idx_gb]
+
+    # Set up the contour levels
+    clevs = np.arange(-1.0, 1.1, 0.1)
+
+    # Set up a list to store the contourf objects
+    cf_list = []
+
+    # Set up the axes
+    axes = []
+
+    # Loop over the keys in the bs_skill_maps dictionary
+    for i, (key, skill_maps) in enumerate(bs_skill_maps.items()):
+        # Logging
+        print(f"Plotting variable {key}...") ; print(f"Plotting index {i}...")
+
+        # Extract the correlation arrays from the skill_maps dictionary
+        corr = skill_maps["corr1"]
+        corr1_p = skill_maps["corr1_p"]
+
+        # Extract the time series
+        fcst1_ts = skill_maps["f1_ts"]
+        obs_ts = skill_maps["o_ts"]
+
+        # Extract the values
+        nens1 = skill_maps["nens1"]
+        start_year = skill_maps["start_year"]
+        end_year = skill_maps["end_year"]
+
+        # Print the start and end years
+        print(f"start_year = {start_year}")
+        print(f"end_year = {end_year}")
+        print(f"nens1 = {nens1}")
+        print(f"for variable {key}")
+
+        # If grid_box_plot is not None
+        if gridbox_plot is not None:
+            # Print
+            print("Constraining data to gridbox_plot...")
+            print("As defined by gridbox_plot = ", gridbox_plot)
+
+            # Constrain the data to the gridbox_plot
+            corr = corr[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+            corr1_p = corr1_p[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+
+        # Set up the axes
+        ax = plt.subplot(2, 2, i + 1, projection=proj)
+
+        # Include coastlines
+        ax.coastlines()
+
+        # # Add borders (?)
+        # ax.add_feature(cfeature.BORDERS)
+
+        # Set up the cf object
+        cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
+
+        # If gridbox_corr is not None
+        if gridbox_corr is not None:
+            # Loggging
+            print("Calculating the correlations with a specific gridbox...")
+            print("As defined by gridbox_corr = ", gridbox_corr)
+
+            # Constrain the ts to the gridbox_corr
+            fcst1_ts = fcst1_ts[:, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
+            obs_ts = obs_ts[:, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
+
+            # Calculate the mean of both time series
+            fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
+            obs_ts_mean = np.mean(obs_ts, axis=(1, 2))
+
+            # Calculate the correlation between the two time series
+            r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+
+            # Show these values on the plot
+            ax.text(0.05, 0.05, f"r = {r:.2f}, p = {p:.2f}", transform=ax.transAxes,
+                    va="bottom", ha="left", bbox=dict(facecolor="white", alpha=0.5),
+                    fontsize=8)
+            
+            # Add the gridbox to the plot
+            ax.plot([lon1_corr, lon2_corr, lon2_corr, lon1_corr, lon1_corr],
+                    [lat1_corr, lat1_corr, lat2_corr, lat2_corr, lat1_corr],
+                    color="green", linewidth=2, transform=proj)
+            
+        # If any of the corr1 values are NaNs
+        # then set the p values to NaNs at the same locations
+        corr1_p[np.isnan(corr)] = np.nan
+
+        # If any of the corr1_p values are greater or less than the sig_threshold
+        # then set the corr1 values to NaNs at the same locations
+        corr1_p[(corr1_p > sig_threshold) & (corr1_p < 1-sig_threshold)] = np.nan
+
+        # plot the p-values
+        ax.contourf(lons, lats, corr1_p, hatches=["...."], alpha=0., transform=proj)
+
+        # Add a text box with the axis label
+        ax.text(0.95, 0.05, f"{axis_labels[i]}", transform=ax.transAxes,
+                va="bottom", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8)
+
+        # Add a textboc with the variable name in the top left
+        ax.text(0.05, 0.95, f"{key}", transform=ax.transAxes,
+                va="top", ha="left", bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8)
+        
+        # Include the number of ensemble members in the top right of the figure
+        ax.text(0.95, 0.95, f"n = {nens1}", transform=ax.transAxes,
+                va="top", ha="right", bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8)
+        
+        # Add the contourf object to the list
+        cf_list.append(cf)
+
+        # Add the axes to the list
+        axes.append(ax)
+
+    # Add a colorbar
+    cbar = fig.colorbar(cf_list[0], ax=axes, orientation="horizontal", pad=0.05,
+                        shrink=0.8)
+
+    # Set the label for the colorbar
+    cbar.set_label("correlation coefficient", fontsize=10)
+
+    # Set up the path for saving the figure
+    plots_dir = "/gws/nopw/j04/canari/users/benhutch/plots"
+
+    # Set up the current date
+    current_date = datetime.datetime.now().strftime("%Y%m%d")
+
+    # Set up the figure name
+    fig_name = f"different_variables_corr_{start_year}_{end_year}_{season}_{forecast_range}_{current_date}"
+
+    # Set up the figure path
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+
+    # Show the figure
+    plt.show()
 
 
 
