@@ -760,6 +760,7 @@ def main():
         # Form the list of nens
         nens = [nens1_alt_lag, nens1_raw]
 
+        # FIXME: NO new raw tas?
         # Loop over the save paths and forecast stats
         for save_path, forecast_stat, common_year, nen in zip(save_paths, forecast_stats, common_years, nens):
             print("Saving the arrays to:", save_path
