@@ -1370,5 +1370,72 @@ def check_bootstraps_exist(variables: list,
     return files_available
 
 
+# Create another function to form the bs_skill_maps dictionary
+def create_bs_dict(variables: list,
+                     no_bootstraps: list,
+                     season: str,
+                     forecast_range: str,
+                     method: str,
+                     region: str = "global",
+                     base_dir: str = "/gws/nopw/j04/canari/users/benhutch/bootstrapping"):
+     """
+     Function which creates a dictionary of bootstrapped skill maps for a list of variables.
+    
+     Inputs:
+     -------
+    
+     variables: list
+          List of variables to process.
+          e.g. ["tas", "pr", "psl"]
+    
+     no_bootstraps: list
+          List of the no bootstraps for each variable.
+          e.g. [100, 100, 100]
+    
+     season: str
+          Season to process.
+          e.g. "DJF"
+    
+     forecast_range: str
+          Forecast range to process.
+          e.g. "2-9"
+    
+     region: str
+          Region to process.
+          e.g. default is "global"
+    
+     method: list
+          List of methods to process.
+          e.g. ["raw", "alt_lag"]
+    
+     base_dir: str
+          Base directory to process.
+          e.g. default is "/gws/nopw/j04/canari/users/benhutch/bootstrapping"
+    
+     Outputs:
+     --------
+     bs_skill_maps: dict
+          Dictionary containing the bootstrapped skill maps for each variable.
+          Dictionary keys are the variable names.
+          e.g. bs_skill_maps["tas"] = {"raw": {"corr": corr, "rmse": rmse, "bias": bias},
+                                         "alt_lag": {"corr": corr, "rmse": rmse, "bias": bias}}
+     """
+    
+     # Create an empty dictionary to store the bootstrapped skill maps
+     bs_skill_maps = {}
+    
+    # Set up the mdi
+    mdi = -9999.0
+
+    # Create a dictionary containing the reauired stars for each variable
+    stats_dict = {
+        'corr1', [],
+        'corr1_p', [],
+        'f1_ts', [],
+        'o_ts', [],
+        'nens1', mdi,
+        'start_year', mdi,
+        'end_year', mdi
+    }
 
 
