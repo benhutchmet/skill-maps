@@ -1286,3 +1286,89 @@ def plot_forecast_stats_var(forecast_stats_var_dic: dict,
 
     # Show the figure
     plt.show()
+
+
+# Define a function for checking whether bootstrapped files exist for list of variables
+def check_bootstraps_exist(variables: list,
+                           no_bootstraps: list,
+                           season: str,
+                           forecast_range: str,
+                           region: str = "global",
+                           method: list = ["raw", "alt_lag"],
+                           base_dir: str = "/gws/nopw/j04/canari/users/benhutch/bootstrapping"):
+    """
+    Function which checks whether bootstrapped files exist for a list of variables.
+
+    Inputs:
+    -------
+
+    variables: list
+        List of variables to process.
+        e.g. ["tas", "pr", "psl"]
+
+    no_bootstraps: list
+        List of the no bootstraps for each variable.
+        e.g. [100, 100, 100]
+
+    season: str
+        Season to process.
+        e.g. "DJF"
+
+    forecast_range: str
+        Forecast range to process.
+        e.g. "2-9"
+
+    region: str
+        Region to process.
+        e.g. default is "global"
+
+    method: list
+        List of methods to process.
+        e.g. ["raw", "alt_lag"]
+
+    base_dir: str
+        Base directory to process.
+        e.g. default is "/gws/nopw/j04/canari/users/benhutch/bootstrapping"
+
+    Outputs:
+    --------
+    bootstraps_exist: bool
+        Boolean value indicating whether bootstraps exist for the variables.
+    """
+
+
+    # Create a dictionary to store the list of files available
+    # for each variable, method and no_bootstraps combination
+    files_available = {}
+
+    # Loop over the methods
+    for meth in method:
+        print(f"Checking whether bootstraps exist for method {meth}...")
+
+        # Loop over the variables and no_bootstraps at the same time
+        for var, nboot in zip(variables, no_bootstraps):
+            print(f"Checking whether bootstraps exist for variable {var}...")
+            print(f"Checking whether bootstraps exist for {nboot} bootstraps...")
+
+            # Set up the base path
+            base_path = os.path.join(base_dir, var, region, season, forecast_range, meth,
+                                     f"no_bootstraps_{nboot}")
+            
+            # Assert that this directory exists and is not empty
+            assert os.path.isdir(base_path), f"Directory {base_path} does not exist!"
+
+            # Set up the key for the files_available dictionary
+            key = (meth, var, f"nboot_{nboot}")
+
+            # List the files in the directory
+            files = os.listdir(base_path)
+
+            # Add the files to the dictionary
+            files_available[key] = files
+
+    # Return the files_available dictionary
+    return files_available
+
+
+
+
