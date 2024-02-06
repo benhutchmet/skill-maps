@@ -1758,8 +1758,8 @@ def plot_diff_variables(bs_skill_maps: dict,
         # Add the axes to the list
         axes.append(ax)
 
-    # Remove content from the 4th axis
-    axs[1, 1].remove()
+    # # Remove content from the 4th axis
+    # axs[1, 1].remove()
 
     # Add a colorbar
     cbar = fig.colorbar(cf_list[0], ax=axes, orientation="horizontal", pad=0.05,
