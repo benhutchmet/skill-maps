@@ -695,6 +695,13 @@ def main():
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
 
+        # FIXME: Temporary fix for testing new_raw
+        # Constrain both obs_lag and obs_raw to the first 10 ensemble members
+        obs_lag = obs_lag[:10, :, :, :]
+
+        # Constrain both obs_lag and obs_raw to the first 10 ensemble members
+        obs_raw = obs_raw[:10, :, :, :]
+
         # Extract the values for the obs
         obs_lag_values = obs_lag.values
 
@@ -718,7 +725,6 @@ def main():
 
         # NOTE: Temporary fix on nens
         nens1_raw = raw_data_mean.shape[0]
-
 
         # FIXME: Exits in forecast_stats?
         # Run the function to calculate the forecast stats
