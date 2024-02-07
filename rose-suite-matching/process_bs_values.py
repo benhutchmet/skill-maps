@@ -684,7 +684,6 @@ def main():
         # Print the shape of the raw_data
         print("Shape of raw_data:", raw_data.shape)
 
-        # TODO: Calculate the raw forecast stats for the raw data
         # First take the mean over the year axis for the raw data
         if forecast_range == "2-3":
             raw_data_mean = raw_data[:, :, :2, :, :].mean(axis=2)
@@ -694,13 +693,6 @@ def main():
             raw_data_mean = raw_data[:, :, :8, :, :].mean(axis=2)
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
-
-        # FIXME: Temporary fix for testing new_raw
-        # Constrain both obs_lag and obs_raw to the first 10 ensemble members
-        alt_lag_data = alt_lag_data[:10, :, :, :]
-
-        # Constrain both obs_lag and obs_raw to the first 10 ensemble members
-        raw_data_mean = raw_data_mean[:10, :, :, :]
 
         # Extract the values for the obs
         obs_lag_values = obs_lag.values
@@ -726,14 +718,13 @@ def main():
         # NOTE: Temporary fix on nens
         nens1_raw = raw_data_mean.shape[0]
 
-        # FIXME: Exits in forecast_stats?
         # Run the function to calculate the forecast stats
         forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_lag_values,
                                                     forecast1=alt_lag_data,
                                                     forecast2=alt_lag_data,
                                                     no_boot=no_bootstraps)
         
-        # TODO: Calculate the forecast stats for the raw data
+        # Run the function to calculate the forecast stats
         forecast_stats_raw = fnc.forecast_stats(obs=obs_values,
                                                 forecast1=raw_data_mean,
                                                 forecast2=raw_data_mean,
@@ -766,7 +757,6 @@ def main():
         # Form the list of nens
         nens = [nens1_alt_lag, nens1_raw]
 
-        # FIXME: NO new raw tas?
         # Loop over the save paths and forecast stats
         for save_path, forecast_stat, common_year, nen in zip(save_paths, forecast_stats, common_years, nens):
             print("Saving the arrays to:", save_path
