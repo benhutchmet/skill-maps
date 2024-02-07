@@ -882,13 +882,13 @@ def main():
 
             np.save(save_path + obs_ts_name, forecast_stat["o_ts"])
 
-            # Print that the arrays have been saved
-            print("Arrays saved to:", save_path)
-            print("For alternate lag:", alt_lag_first_year, alt_lag_last_year)
-            print("Finished saving arrays")
+        # Print that the arrays have been saved
+        print("Arrays saved to:", save_path)
+        print("For alternate lag:", alt_lag_first_year, alt_lag_last_year)
+        print("Finished saving arrays")
 
-            # Exit here
-            sys.exit()
+        # Exit here
+        sys.exit()
 
         # TODO: also save the output for the NAO time series
     else:
