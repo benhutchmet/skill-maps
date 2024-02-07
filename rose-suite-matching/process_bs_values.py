@@ -697,10 +697,10 @@ def main():
 
         # FIXME: Temporary fix for testing new_raw
         # Constrain both obs_lag and obs_raw to the first 10 ensemble members
-        obs_lag = obs_lag[:10, :, :, :]
+        alt_lag_data = alt_lag_data[:10, :, :, :]
 
         # Constrain both obs_lag and obs_raw to the first 10 ensemble members
-        obs_raw = obs_raw[:10, :, :, :]
+        raw_data_mean = raw_data_mean[:10, :, :, :]
 
         # Extract the values for the obs
         obs_lag_values = obs_lag.values
