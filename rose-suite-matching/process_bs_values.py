@@ -459,7 +459,6 @@ def main():
         # Extract the last year of the array
         alt_lag_last_year = int(end_year)
 
-
         # Form the other file name
         raw_filename = f"{variable}_{season}_{region}_{start_year}_{alt_lag_last_year}_{forecast_range}_{lag}*.npy"
 
@@ -599,6 +598,14 @@ def main():
             raw_first_year = int(start_year) + 2
             raw_last_year = int(end_year) + 2
         # FIXME: Add the other forecast ranges
+        elif forecast_range in ["1", "2"] and season in ["DJFM", "DJF", "ONDJFM"]:
+            # Set up the raw first and last years
+            raw_first_year = int(start_year)
+            raw_last_year = int(end_year)
+        elif forecast_range in ["1", "2"] and season not in ["DJFM", "DJF", "ONDJFM"]:
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 1
+            raw_last_year = int(end_year) + 1
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
         
@@ -611,9 +618,6 @@ def main():
 
         # Set up common years
         common_years_raw = np.arange(raw_first_year, raw_last_year + 1)
-
-        # Create a list of the common years
-        common_years = [common_years_alt_lag, common_years_raw]
 
         # Create a copy of the obs
         obs_copy = obs.copy()
@@ -651,25 +655,40 @@ def main():
                     obs = obs.sel(time=obs.time.dt.year != year)
 
         # print the first and last years of the observations
-        print("First year obs post-slice:", obs_lag.time[0].dt.year.values)
-        print("Last year obs post-slice:", obs_lag.time[-1].dt.year.values)
+        # print("First year obs post-slice:", obs_lag.time[0].dt.year.values)
+        # print("Last year obs post-slice:", obs_lag.time[-1].dt.year.values)
 
-        # Verify that the length of the observations is correct
-        assert len(obs_lag.time.dt.year.values) == alt_lag_data.shape[0], (
-            "Length of observations is incorrect"
-        )
+        # If alt_lag_data exists
+        if alt_lag_data is not None:
+            print("Alt lag data exists")
+            # Verify that the length of the observations is correct
+            assert len(obs_lag.time.dt.year.values) == alt_lag_data.shape[0], (
+                "Length of observations is incorrect"
+            )
+
+            # Swap the axes of the alt_lag_data
+            # Swap the 1th axis with the 0th axis
+            alt_lag_data = np.swapaxes(alt_lag_data, 1, 0)
+
+            # Print the shape of the alt_lag_data
+            print("Shape of alt_lag_data:", alt_lag_data.shape)
+
+            # Print the shape of the alt lag data
+            print("Shape of alt_lag_data:", alt_lag_data.shape)
+
+            # NOTE: Temporary fix on nens
+            nens1_alt_lag = alt_lag_data.shape[0]
+
+            # Run the function to calculate the forecast stats
+            forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_lag_values,
+                                                        forecast1=alt_lag_data,
+                                                        forecast2=alt_lag_data,
+                                                        no_boot=no_bootstraps)
 
         # Verify that the length of the observations is correct
         assert len(obs_raw.time.dt.year.values) == raw_data.shape[0], (
             "Length of observations is incorrect"
         )
-
-        # Swap the axes of the alt_lag_data
-        # Swap the 1th axis with the 0th axis
-        alt_lag_data = np.swapaxes(alt_lag_data, 1, 0)
-
-        # Print the shape of the alt_lag_data
-        print("Shape of alt_lag_data:", alt_lag_data.shape)
 
         # Swap the axes of the raw_data
         # Swap the 1th axis with the 0th axis
@@ -700,23 +719,11 @@ def main():
         # Print the shape of the obs_values
         print("Shape of obs_values raw:", obs_values.shape)
 
-        # Print the shape of the alt lag data
-        print("Shape of alt_lag_data:", alt_lag_data.shape)
-
         # Print the shape of the raw data
         print("Shape of raw_data_mean:", raw_data_mean.shape)
 
         # NOTE: Temporary fix on nens
-        nens1_alt_lag = alt_lag_data.shape[0]
-
-        # NOTE: Temporary fix on nens
         nens1_raw = raw_data_mean.shape[0]
-
-        # Run the function to calculate the forecast stats
-        forecast_stats_alt_lag = fnc.forecast_stats(obs=obs_lag_values,
-                                                    forecast1=alt_lag_data,
-                                                    forecast2=alt_lag_data,
-                                                    no_boot=no_bootstraps)
         
         # Run the function to calculate the forecast stats
         forecast_stats_raw = fnc.forecast_stats(obs=obs_values,
@@ -742,14 +749,30 @@ def main():
         if not os.path.exists(save_path_raw):
             os.makedirs(save_path_raw)
 
-        # Store the paths in a list
-        save_paths = [save_path_alt_lag, save_path_raw]
+        if alt_lag_data is not None:
+            # Store the paths in a list
+            save_paths = [save_path_alt_lag, save_path_raw]
 
-        # Store the forecast stats in a list
-        forecast_stats = [forecast_stats_alt_lag, forecast_stats_raw]
+            # Store the forecast stats in a list
+            forecast_stats = [forecast_stats_alt_lag, forecast_stats_raw]
 
-        # Form the list of nens
-        nens = [nens1_alt_lag, nens1_raw]
+            # Form the list of nens
+            nens = [nens1_alt_lag, nens1_raw]
+
+            # Create a list of the common years
+            common_years = [common_years_alt_lag, common_years_raw]
+        else:
+            # Store the paths in a list
+            save_paths = [save_path_raw]
+
+            # Store the forecast stats in a list
+            forecast_stats = [forecast_stats_raw]
+
+            # Form the list of nens
+            nens = [nens1_raw]
+
+            # Create a list of the common years
+            common_years = [common_years_raw]
 
         # Loop over the save paths and forecast stats
         for save_path, forecast_stat, common_year, nen in zip(save_paths, forecast_stats, common_years, nens):

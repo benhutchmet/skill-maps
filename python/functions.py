@@ -1168,9 +1168,6 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # print(f"Error processing observations dataset: {e}")
         sys.exit()
 
-# TODO: Add a function to process the observations for a timeseries
-
-
 def process_observations_timeseries(variable, region, forecast_range, season, observations_path):
     """
     Processes the observations for a specific variable, region, forecast range, and season.
