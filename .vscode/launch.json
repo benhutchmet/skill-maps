@@ -58,7 +58,7 @@
                 "psl",
                 "msl",
                 "global",
-                "DJFM",
+                "ULG",
                 "2-3",
                 "1961",
                 "2014", // short period for testing
@@ -67,7 +67,7 @@
                 "alternate_lag",
                 "1",
                 "100000",
-                "True" // use the full period
+                "False" // use the full period
             ]
         }
     ]
