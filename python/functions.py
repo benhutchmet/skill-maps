@@ -730,9 +730,9 @@ def calculate_annual_mean_anomalies(obs_anomalies, season):
 
     try:
         # Shift the dataset if necessary
-        if season in ["DJFM", "NDJFM"]:
+        if season in ["DJFM", "NDJFM", "ONDJFM"]:
             obs_anomalies_shifted = obs_anomalies.shift(time=-3)
-        elif season in ["DJF", "NDJF"]:
+        elif season in ["DJF", "NDJF", "ONDJF"]:
             obs_anomalies_shifted = obs_anomalies.shift(time=-2)
         elif season in ["NDJ", "ONDJ"]:
             obs_anomalies_shifted = obs_anomalies.shift(time=-1)
