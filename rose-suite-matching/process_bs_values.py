@@ -459,47 +459,52 @@ def main():
         # Extract the last year of the array
         alt_lag_last_year = int(end_year)
 
-        # Form the file name
-        filename = f"{variable}_{season}_{region}_{alt_lag_first_year}_{alt_lag_last_year}_{forecast_range}_{lag}_*alternate_lag.npy"
 
         # Form the other file name
         raw_filename = f"{variable}_{season}_{region}_{start_year}_{alt_lag_last_year}_{forecast_range}_{lag}*.npy"
 
-        # Find files matching the filename
-        alt_lag_files = glob.glob(alt_lag_dir + "/" + filename)
-
         # Find files matching the raw filename
         raw_files = glob.glob(alt_lag_dir + "/" + raw_filename)
 
-        # If there is more than one file
-        if len(alt_lag_files) > 1:
-            print("More than one file found")
+        if "-" in forecast_range:
+            # Form the file name
+            filename = f"{variable}_{season}_{region}_{alt_lag_first_year}_{alt_lag_last_year}_{forecast_range}_{lag}_*alternate_lag.npy"
 
-            # If the psl_DJFM_global_1962_1980_2-9_2_1706281292.628301_alternate_lag.npy
-            # 1706281292.628301 is the datetime
-            # Extract the datetimes
-            datetimes = [file.split("_")[7] for file in alt_lag_files]
+            # Find files matching the filename
+            alt_lag_files = glob.glob(alt_lag_dir + "/" + filename)
 
-            # Remove the .npy from the datetimes
-            datetimes = [datetime.split(".")[0] for datetime in datetimes]
+            # If there is more than one file
+            if len(alt_lag_files) > 1:
+                print("More than one file found")
 
-            # Convert the datasetimes to datetimes using pandas
-            datetimes = [pd.to_datetime(datetime, unit="s") for datetime in datetimes]
+                # If the psl_DJFM_global_1962_1980_2-9_2_1706281292.628301_alternate_lag.npy
+                # 1706281292.628301 is the datetime
+                # Extract the datetimes
+                datetimes = [file.split("_")[7] for file in alt_lag_files]
 
-            # Find the latest datetime
-            latest_datetime = max(datetimes)
+                # Remove the .npy from the datetimes
+                datetimes = [datetime.split(".")[0] for datetime in datetimes]
 
-            # Find the index of the latest datetime
-            latest_datetime_index = datetimes.index(latest_datetime)
+                # Convert the datasetimes to datetimes using pandas
+                datetimes = [pd.to_datetime(datetime, unit="s") for datetime in datetimes]
 
-            # Print that we are using the latest datetime file
-            print("Using the latest datetime file:", alt_lag_files[latest_datetime_index])
+                # Find the latest datetime
+                latest_datetime = max(datetimes)
 
-            # Load the file
-            alt_lag_data = np.load(alt_lag_files[latest_datetime_index])
-        else:
-            # Load the file
-            alt_lag_data = np.load(alt_lag_files[0])
+                # Find the index of the latest datetime
+                latest_datetime_index = datetimes.index(latest_datetime)
+
+                # Print that we are using the latest datetime file
+                print("Using the latest datetime file:", alt_lag_files[latest_datetime_index])
+
+                # Load the file
+                alt_lag_data = np.load(alt_lag_files[latest_datetime_index])
+            else:
+                # Load the file
+                alt_lag_data = np.load(alt_lag_files[0])
+
+            # print the shape of the alt lag data
+            print("Shape of alt lag data:", alt_lag_data.shape)
 
         # If there is more than one file
         if len(raw_files) > 1:
@@ -531,21 +536,8 @@ def main():
             # Load the file
             raw_data = np.load(raw_files[0])
 
-        # print the shape of the alt lag data
-        print("Shape of alt lag data:", alt_lag_data.shape)
-
         # Print the shape of the raw data
         print("Shape of raw data:", raw_data.shape)
-
-        # Print the first dimension of the array
-        print("Number of start years:", alt_lag_data.shape[0])
-        print("Number of ensemble members:", alt_lag_data.shape[1])
-        print("Number of lats:", alt_lag_data.shape[2])
-        print("Number of lons:", alt_lag_data.shape[3])
-
-        # Print the start and end years
-        print("Start year alt lag:", alt_lag_first_year)
-        print("End year alt lag:", alt_lag_last_year)
 
         # if the season is ULG, change it to JJA
         if season == "ULG":
@@ -563,16 +555,16 @@ def main():
                                        obs_var_name=variable)
         
         # print the first and last years of the observations
-        print("First year obs pre-slice:", obs.time[0].dt.year.values)
-        print("Last year obs pre-slice:", obs.time[-1].dt.year.values)
+        # print("First year obs pre-slice:", obs.time[0].dt.year.values)
+        # print("Last year obs pre-slice:", obs.time[-1].dt.year.values)
 
-        # Print out the first and last values of the observations
-        print("First value obs pre-slice:", obs[0, 0, 0].values)
-        print("Last value obs pre-slice:", obs[-1, 0, 0].values)
+        # # Print out the first and last values of the observations
+        # print("First value obs pre-slice:", obs[0, 0, 0].values)
+        # print("Last value obs pre-slice:", obs[-1, 0, 0].values)
 
-        # Print the second and penultimate values of the observations
-        print("Second value obs pre-slice:", obs[1, 0, 0].values)
-        print("Penultimate value obs pre-slice:", obs[-2, 0, 0].values)
+        # # Print the second and penultimate values of the observations
+        # print("Second value obs pre-slice:", obs[1, 0, 0].values)
+        # print("Penultimate value obs pre-slice:", obs[-2, 0, 0].values)
 
         # If the window size for rolling mean is even, e.g. 2
         # Then the latter place from the medium will be taken for the label
@@ -605,6 +597,7 @@ def main():
             # Set up the raw first and last years
             raw_first_year = int(start_year) + 2
             raw_last_year = int(end_year) + 2
+        # FIXME: Add the other forecast ranges
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
         
