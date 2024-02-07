@@ -1129,36 +1129,41 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # #print("Checking for NaN values in obs_annual_mean_anomalies")
         # check_for_nan_values(obs_annual_mean_anomalies)
 
-        # Select the forecast range
-        obs_anomalies_annual_forecast_range = select_forecast_range(
-            obs_annual_mean_anomalies, forecast_range)
-        # Check for NaN values in the observations dataset
-        # #print("Checking for NaN values in obs_anomalies_annual_forecast_range")
-        # check_for_nan_values(obs_anomalies_annual_forecast_range)
+        # If the forecast range contains a hyphen
+        if "-" in forecast_range:
+            # Select the forecast range
+            obs_anomalies_annual_forecast_range = select_forecast_range(
+                obs_annual_mean_anomalies, forecast_range)
+            # Check for NaN values in the observations dataset
+            # #print("Checking for NaN values in obs_anomalies_annual_forecast_range")
+            # check_for_nan_values(obs_anomalies_annual_forecast_range)
 
-        print("Observations anomalies annual forecast range:",
-              obs_anomalies_annual_forecast_range.values)
+            print("Observations anomalies annual forecast range:",
+                obs_anomalies_annual_forecast_range.values)
 
-        # if the forecast range is "2-2" i.e. a year ahead forecast
-        # then we need to shift the dataset by 1 year
-        # where the model would show the DJFM average as Jan 1963 (s1961)
-        # the observations would show the DJFM average as Dec 1962
-        # so we need to shift the observations to the following year
-        # if the forecast range is "2-2" and the season is "DJFM"
-        # then shift the dataset by 1 year
-        if forecast_range == "2-2" and season == "DJFM":
-            obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(
-                time=1)
+            # if the forecast range is "2-2" i.e. a year ahead forecast
+            # then we need to shift the dataset by 1 year
+            # where the model would show the DJFM average as Jan 1963 (s1961)
+            # the observations would show the DJFM average as Dec 1962
+            # so we need to shift the observations to the following year
+            # if the forecast range is "2-2" and the season is "DJFM"
+            # then shift the dataset by 1 year
+            if forecast_range == "2-2" and season == "DJFM":
+                obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(
+                    time=1)
 
-        # Save the processed observations dataset as a netCDF file
-        # print that the file is being saved
-        # Save the processed observations dataset as a netCDF file
-        # Convert the variable to a DataArray object before saving
-        # print("Saving processed observations dataset")
-        # obs_anomalies_annual_forecast_range.to_netcdf(processed_obs_file)
+            # Save the processed observations dataset as a netCDF file
+            # print that the file is being saved
+            # Save the processed observations dataset as a netCDF file
+            # Convert the variable to a DataArray object before saving
+            # print("Saving processed observations dataset")
+            # obs_anomalies_annual_forecast_range.to_netcdf(processed_obs_file)
 
-        return obs_anomalies_annual_forecast_range
+            return obs_anomalies_annual_forecast_range
+        else:
+            print("just need single year forecast range - seasonal averages work")
 
+            return obs_annual_mean_anomalies
     except Exception as e:
         # print(f"Error processing observations dataset: {e}")
         sys.exit()

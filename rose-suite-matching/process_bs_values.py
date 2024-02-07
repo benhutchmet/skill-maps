@@ -546,6 +546,7 @@ def main():
             season = "MAM"
 
         # Process the observations for this variable
+            #TODO: check this for forecast range = 1,2
         obs = fnc.process_observations(variable=variable,
                                        region=region,
                                        region_grid=region_grid,
