@@ -658,6 +658,12 @@ def main():
         # print("First year obs post-slice:", obs_lag.time[0].dt.year.values)
         # print("Last year obs post-slice:", obs_lag.time[-1].dt.year.values)
 
+        # Extract the values for the obs
+        obs_lag_values = obs_lag.values
+
+        # Extract the values for the obs
+        obs_values = obs_raw.values
+
         # If alt_lag_data exists
         if alt_lag_data is not None:
             print("Alt lag data exists")
@@ -706,12 +712,6 @@ def main():
             raw_data_mean = raw_data[:, :, :8, :, :].mean(axis=2)
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
-
-        # Extract the values for the obs
-        obs_lag_values = obs_lag.values
-
-        # Extract the values for the obs
-        obs_values = obs_raw.values
 
         # Print the shape of the obs_values
         print("Shape of obs_values lag:", obs_lag_values.shape)
