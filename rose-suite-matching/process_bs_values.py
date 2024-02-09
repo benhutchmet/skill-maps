@@ -449,6 +449,9 @@ def main():
     if method == "alternate_lag":
         print("Loading alternate lagged data")
 
+        # Set alt_lag_data to None
+        alt_lag_data = None
+
         # Set up the directory
         # TODO: hardcoded for now
         alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data"
@@ -710,6 +713,8 @@ def main():
             raw_data_mean = raw_data[:, :, :4, :, :].mean(axis=2)
         elif forecast_range == "2-9":
             raw_data_mean = raw_data[:, :, :8, :, :].mean(axis=2)
+        elif forecast_range in ["1", "2"]:
+            raw_data_mean = raw_data.mean(axis=2)
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
 

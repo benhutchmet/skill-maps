@@ -55,14 +55,14 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "psl",
+                "tas",
                 "msl",
                 "global",
                 "ULG",
-                "2-3",
+                "1",
                 "1961",
                 "2014", // short period for testing
-                "4",
+                "0",
                 "20",
                 "alternate_lag",
                 "1",
