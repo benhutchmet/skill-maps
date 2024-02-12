@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
 
 # Import local modules
 import functions as func
@@ -238,13 +239,22 @@ def calc_nao_stats(data: np.ndarray,
             'obs_nao': [],
             'model_nao_mean': [],
             'model_nao_members': [],
-            'years': [],
+            'model_nao_members_min': [],
+            'model_nao_members_max': [],
+            'init_years': [],
+            'valid_years': [],
             'corr1': mdi,
             'p1': mdi,
             'rpc1': mdi,
             'rps1': mdi,
             'nens': mdi
         }
+
+        # Set up the years
+        years = np.arange(start_year, end_year + 1)
+
+        # Append the years to the dictionary
+        nao_stats['init_years'] = years
 
         # Set up the lats and lons
         lons = np.arange(-180, 180, 2.5) ; lats = np.arange(-90, 90, 2.5)
@@ -352,6 +362,9 @@ def calc_nao_stats(data: np.ndarray,
             # Set up the common years accordingly
             common_years = np.arange(raw_first_year, raw_last_year + 1)
 
+            # Append the valid years
+            nao_stats['valid_years'] = common_years
+
             # Constrain the obs_psl_anom to the common years
             obs_psl_anom = obs_psl_anom.sel(time=slice(f"{raw_first_year}-01-01",
                                                        f"{raw_last_year}-12-31"))
@@ -431,7 +444,49 @@ def calc_nao_stats(data: np.ndarray,
             model_nao = s_lat_box_model - n_lat_box_model
 
             # Print the shape of the model nao
-            print("Shape of the model nao:", model_nao.shape) 
+            print("Shape of the model nao:", model_nao.shape)
+
+            # Append the model nao to the dictionary
+            nao_stats["model_nao_members"] = model_nao
+
+            # Calculate the 5% lower interval
+            model_nao_min = np.percentile(model_nao, 5, axis=0)
+
+            # Calculate the 95% upper interval
+            model_nao_max = np.percentile(model_nao, 95, axis=0)
+
+            # Append the model_nao_min to the dictionary
+            nao_stats["model_nao_members_min"] = model_nao_min
+
+            # Append the model_nao_max to the dictionary
+            nao_stats["model_nao_members_max"] = model_nao_max
+
+            # Calculate the mean of the model nao
+            nao_stats["model_nao_mean"] = model_nao.mean(axis=0)
+
+            # Calculate the corr1
+            corr1, p1 = pearsonr(obs_nao, model_nao.mean(axis=0)) 
+
+            # Append the corr1 and p1 to the dictionary
+            nao_stats["corr1"] = corr1 ; nao_stats["p1"] = p1
+
+            # calculate the standard deviation of the forecast
+            sig_f1 = np.std(model_nao.mean(axis=0))
+
+            # Calculate the rpc1
+            rpc1 = corr1 / (sig_f1 / np.std(model_nao))
+
+            # Calculate the rps1
+            rps1 = rpc1 * (np.std(obs_nao) / np.std(model_nao))
+
+            # Append the rpc1 to the dictionary
+            nao_stats["rpc1"] = rpc1
+
+            # Append the rps1 to the dictionary
+            nao_stats["rps1"] = rps1
+
+            # Append the nens to the dictionary
+            nao_stats["nens"] = len(model_nao)
 
         elif data.ndim == 4:
             print("Processing the alt-lag data")
