@@ -280,6 +280,30 @@ def calc_nao_stats(data: np.ndarray,
                                      end_year=2023,
         )
 
+        # Set up the lats
+        obs_lats = obs_psl_anom.lat.values
+
+        # Set up the lons
+        obs_lons = obs_psl_anom.lon.values
+
+        # Assert that the lats and lons are equivalent to the obs
+        assert np.array_equal(lats, obs_lats), "Lats not equal to obs lats"
+
+        # Assert that the lons are equivalent to the obs
+        assert np.array_equal(lons, obs_lons), "Lons not equal to obs lons"
+
+        # Find the indices which correspond
+        s_lat1_idx, s_lat2_idx = np.argmin(np.abs(lats - s_lat1)), np.argmin(np.abs(lats - s_lat2))
+
+        # Find the indices which correspond
+        s_lon1_idx, s_lon2_idx = np.argmin(np.abs(lons - s_lon1)), np.argmin(np.abs(lons - s_lon2))
+
+        # Find the indices which correspond
+        n_lat1_idx, n_lat2_idx = np.argmin(np.abs(lats - n_lat1)), np.argmin(np.abs(lats - n_lat2))
+
+        # Find the indices which correspond
+        n_lon1_idx, n_lon2_idx = np.argmin(np.abs(lons - n_lon1)), np.argmin(np.abs(lons - n_lon2))
+
         # Print the shape of the data
         print("data shape", np.shape(data))
 
@@ -340,7 +364,7 @@ def calc_nao_stats(data: np.ndarray,
             obs_psl_anom_north = obs_psl_anom.sel(lat=slice(n_lat1, n_lat2),
                                                   lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
 
-            # Calculate the NAO index
+            # Calculate the NAO index: azores - iceland
             obs_nao = obs_psl_anom_south - obs_psl_anom_north
 
             # Print the shape of the obs_nao
@@ -391,6 +415,23 @@ def calc_nao_stats(data: np.ndarray,
 
             # Print the shape of the obs_nao
             print("shape of the observed data:", np.shape(obs_nao))
+
+            # Extract the data for the NAO gridboxes
+            n_lat_box_model = data[:, :,
+                                    n_lat1_idx:n_lat2_idx + 1,
+                                    n_lon1_idx:n_lon2_idx + 1].mean(axis=(2, 3))
+
+            # Extract the data for the NAO gridboxes
+            s_lat_box_model = data[:, :,
+                                    s_lat1_idx:s_lat2_idx + 1,
+                                    s_lon1_idx:s_lon2_idx + 1].mean(axis=(2, 3))
+
+            # Calculate the NAO index for the model
+            # Azores - iceland
+            model_nao = s_lat_box_model - n_lat_box_model
+
+            # Print the shape of the model nao
+            print("Shape of the model nao:", model_nao.shape) 
 
         elif data.ndim == 4:
             print("Processing the alt-lag data")
