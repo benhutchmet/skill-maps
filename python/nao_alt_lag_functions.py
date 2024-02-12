@@ -493,7 +493,162 @@ def calc_nao_stats(data: np.ndarray,
 
         elif data.ndim == 4:
             print("Processing the alt-lag data")
-            AssertionError("Not yet implemented")
+
+            # Set up the alt_lag_first_year
+            alt_lag_first_year = start_year + lag - 1
+
+            # Set up the first and last years accordingly
+            # If forecast range is 2-9
+            if forecast_range == "2-9":
+                # Set up the raw first and last years
+                alt_lag_first_year = int(alt_lag_first_year) + 5
+                alt_lag_last_year = int(end_year) + 5
+            elif forecast_range == "2-5":
+                # Set up the raw first and last years
+                alt_lag_first_year = int(alt_lag_first_year) + 3
+                alt_lag_last_year = int(end_year) + 3
+            elif forecast_range == "2-3":
+                # Set up the raw first and last years
+                alt_lag_first_year = int(alt_lag_first_year) + 2
+                alt_lag_last_year = int(end_year) + 2
+            elif forecast_range == "2":
+                # Set up the raw first and last years
+                alt_lag_first_year = int(alt_lag_first_year) + 1
+                alt_lag_last_year = int(end_year) + 1
+            elif forecast_range == "1":
+                # Set up the raw first and last years
+                alt_lag_first_year = int(alt_lag_first_year)
+                alt_lag_last_year = int(end_year)
+            else:
+                print("Forecast range not recognised")
+                AssertionError("Forecast range not recognised")
+
+            # If the season is not DJFM
+            if season not in ["DJFM", "DJF", "ONDJFM"]:
+                # Add 1 to the raw first and last years
+                alt_lag_first_year += 1
+                alt_lag_last_year += 1
+
+            # Print the alt_lag_first year and last year
+            print("Alt-lag first year:", alt_lag_first_year)
+            print("Alt-lag last year:", alt_lag_last_year)
+
+            # Set up the common years accordingly
+            common_years = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+
+            # Append the valid years
+            nao_stats['valid_years'] = common_years
+
+            # Constrain the obs_psl_anom to the common years
+            obs_psl_anom = obs_psl_anom.sel(time=slice(f"{alt_lag_first_year}-01-01",
+                                                       f"{alt_lag_last_year}-12-31"))
+            
+            # extract the data for the south grid
+            obs_psl_anom_south = obs_psl_anom.sel(lat=slice(s_lat1, s_lat2),
+                                                  lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
+            
+            # extract the data for the north grid
+            obs_psl_anom_north = obs_psl_anom.sel(lat=slice(n_lat1, n_lat2),
+                                                  lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
+            
+            # Calculate the NAO index: azores - iceland
+            obs_nao = obs_psl_anom_south - obs_psl_anom_north
+
+            # Loop over the years
+            for year in obs_nao.time.dt.year.values:
+                # Extract the data for the year
+                years_obs_nao = obs_nao.sel(time=f"{year}")
+
+                # If there are any nans, raise an error
+                if np.isnan(years_obs_nao).any():
+                    print("Nans found in obs for year:", year)
+                    if np.isnan(years_obs_nao).all():
+                        print("All values are nan")
+                        print("Removing year:", year, "from obs")
+                        obs_nao = obs_nao.sel(time=obs_nao.time.dt.year != year)
+
+            # Extract obs_nao as its values
+            obs_nao = obs_nao.values
+
+            # append the obs_nao to the dictionary
+            nao_stats['obs_nao'] = obs_nao
+
+            # Swap the axes of the data
+            data = np.swapaxes(data, 0, 1)
+
+            # Print the shape of the data
+            print("Shape of the model data:", np.shape(data))
+            print("Shape of the obs_nao:", np.shape(obs_nao))
+
+            # Assert that the shape of lats is the same as the shape of the data third axis
+            assert data.shape[2] == len(lats), "Data lats shape not equal to lats shape"
+
+            # Assert that the shape of lons is the same as the shape of the data fourth axis
+            assert data.shape[3] == len(lons), "Data lons shape not equal to lons shape"
+
+            # Extract the data for the NAO gridboxes
+            n_lat_box_model = data[:, :,
+                                    n_lat1_idx:n_lat2_idx + 1,
+                                    n_lon1_idx:n_lon2_idx + 1].mean(axis=(2, 3))
+            
+            # Extract the data for the NAO gridboxes
+            s_lat_box_model = data[:, :,
+                                    s_lat1_idx:s_lat2_idx + 1,
+                                    s_lon1_idx:s_lon2_idx + 1].mean(axis=(2, 3))
+
+            # Calculate the NAO index for the model
+            # Azores - iceland
+            model_nao = s_lat_box_model - n_lat_box_model
+
+            # Print the shape of the model nao
+            print("Shape of the model nao:", model_nao.shape)
+
+            # Append the model nao to the dictionary
+            nao_stats["model_nao_members"] = model_nao
+
+            # Calculate the ensemble mean of the model nao
+            model_nao_mean = model_nao.mean(axis=0)
+
+            # Calculate the corr1
+            corr1, p1 = pearsonr(obs_nao, model_nao_mean)
+
+            # Calculate the standard deviation of the forecast
+            sig_f1 = np.std(model_nao_mean)
+
+            # Calculate the RPC1
+            rpc1 = corr1 / (sig_f1 / np.std(model_nao))
+
+            # Calculate the RPS1
+            rps1 = rpc1 * (np.std(obs_nao) / np.std(model_nao))
+
+            # Append the rpc1 and rps1 to the dictionary
+            nao_stats["rpc1"] = rpc1 ; nao_stats["rps1"] = rps1
+
+            # Append the nens to the dictionary
+            nao_stats["nens"] = len(model_nao)
+
+            # Scale the ensemble mean by RPS1
+            model_nao_mean = model_nao_mean * rps1
+
+            # Append the model_nao_mean to the dictionary
+            nao_stats["model_nao_mean"] = model_nao_mean
+
+            # Calculate the corr2
+            corr2, p2 = pearsonr(obs_nao, model_nao_mean)
+
+            # Append the corr2 and p2 to the dictionary
+            nao_stats["corr1"] = corr2 ; nao_stats["p1"] = p2
+
+            # Calculate the rmse
+            rmse = np.sqrt(np.mean((model_nao_mean - obs_nao) ** 2))
+
+            # Calculate the ci_lower and ci_upper using rmse
+            ci_lower = model_nao_mean - rmse
+            ci_upper = model_nao_mean + rmse
+
+            # Append the ci_lower and ci_upper to the dictionary
+            nao_stats["model_nao_members_min"] = ci_lower
+            nao_stats["model_nao_members_max"] = ci_upper
 
         else:
             print("Data length not recognised")
