@@ -1,8 +1,8 @@
 [cylc]
     UTC mode = True # Ignore DST
     [[parameters]]
-        match_var=tas,psl,rsds
-        obs_var_name="psl"
+        match_var=sfcWind
+        obs_var_name="si10"
         region="global"
         season=ULG,DJFM
         forecast_range=1,2
