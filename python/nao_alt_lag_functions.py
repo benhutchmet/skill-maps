@@ -26,7 +26,7 @@ import nao_skill_functions as nao_func
 
 # Import dictionaries
 sys.path.append('/home/users/benhutch/skill-maps')
-import dictionaries as dict
+import dictionaries as dicts
 
 # Import the functions from the rose-suite-matching repository
 sys.path.append('/home/users/benhutch/skill-maps/rose-suite-matching')
@@ -263,13 +263,13 @@ def calc_nao_stats(data: np.ndarray,
         if season in ["DJFM", "DJF", "ONDJFM", "MAM"]:
             print("Using standard NAO definition")
             # Hardcoded for now
-            south_grid = dict.azores_grid_corrected
-            north_grid = dict.iceland_grid_corrected
+            south_grid = dicts.azores_grid_corrected
+            north_grid = dicts.iceland_grid_corrected
         else:
             print("Using summer NAO definition")
             # Hardcoded for now
-            south_grid = dict.snao_south_grid
-            north_grid = dict.snao_north_grid
+            south_grid = dicts.snao_south_grid
+            north_grid = dicts.snao_north_grid
 
         # Extract the lats and lons for the south grid
         s_lon1, s_lon2 = south_grid['lon1'], south_grid['lon2']
@@ -561,12 +561,6 @@ def plot_nao(nao_stats: dict,
     # Plot the 5% lower interval
     ax.fill_between(nao_stats["init_years"], nao_stats["model_nao_members_min"]/100,
                     nao_stats["model_nao_members_max"]/100, color="red", alpha=0.2)
-    
-    # Set up the title
-    ax.set_title(f"ACC = {nao_stats['corr1']:.2f} "
-                 f"(p = {nao_stats["p1"]:.2f}) "
-                 f"RPC = {nao_stats['rpc1']:.2f} "
-                 f"N = {nao_stats['nens']}")
 
     # Set the y lim
     ax.set_ylim(-10, 10)
@@ -581,30 +575,50 @@ def plot_nao(nao_stats: dict,
     if alt_lag:
         experiment = "Lagged"
 
-        # Format a textbox in the top left with the experiment and lag
-        ax.text(0.005, 0.95, f"{experiment} ({lag})",
-                transform=ax.transAxes, fontsize=10,
-                verticalalignment='top',
-                bbox=dict(facecolor='white', alpha=0.5))
+        # # Format a textbox in the top left with the experiment and lag
+        # ax.text(0.05, 0.95, f"{experiment} ({lag})",
+        #         transform=ax.transAxes, fontsize=10,
+        #         verticalalignment='top')
 
     else:
         experiment = "Raw"
 
-        # Format a textbox in the top left with the experiment and lag
-        ax.text(0.05, 0.95, f"{experiment}",
-                transform=ax.transAxes, fontsize=10,
-                verticalalignment='top',
-                horizontalalignment='left',
-                bbox=dict(facecolor='white', alpha=0.5))
+        # # Format a textbox in the top left with the experiment and lag
+        # ax.text(0.05, 0.95, f"{experiment}",
+        #         transform=ax.transAxes, fontsize=10,
+        #         verticalalignment='top',
+        #         horizontalalignment='left')
         
+    first_year = nao_stats['init_years'][0]
+    last_year = nao_stats['init_years'][-1]
+
+    if alt_lag:
+        # Set up the title
+        ax.set_title(f"ACC = {nao_stats['corr1']:.2f} "
+                    f"(p = {nao_stats['p1']:.2f}), "
+                    f"RPC = {nao_stats['rpc1']:.2f}, "
+                    f"N = {nao_stats['nens']} ,"
+                    f"Experiment: {experiment} , "
+                    f"Lag: {lag}",
+                    f"Season: {season}, "
+                    f"Forecast Range: {forecast_range}, "
+                    f"{first_year}-{last_year}")
+    else:
+        # Set up the title
+        ax.set_title(f"ACC = {nao_stats['corr1']:.2f} "
+                    f"(p = {nao_stats['p1']:.2f}), "
+                    f"RPC = {nao_stats['rpc1']:.2f}, "
+                    f"N = {nao_stats['nens']}, "
+                    f"{experiment}, "
+                    f"{season}, "
+                    f"{forecast_range}, "
+                    f"s{first_year}-s{last_year}")
+
     # Set up another textbox in the top right with the season and forecast range
-    ax.text(0.95, 0.95, f"{season}\n",
-            f"Years {forecast_range}\n",
-            f"{nao_stats['init_year'][0]}-{nao_stats['init_year'][-1]}",
-            transform=ax.transAxes, fontsize=10,
-            verticalalignment='top',
-            horizontalalignment='right',
-            bbox=dict(facecolor='white', alpha=0.5))
+    # ax.text(0.95, 0.95, f"{season}\nYears {forecast_range}\n{nao_stats['init_years'][0]}-{nao_stats['init_years'][-1]}",
+    #     transform=ax.transAxes, fontsize=10,
+    #     verticalalignment='top',
+    #     horizontalalignment='right')
     
     # Set up the x label
     ax.set_xlabel("Initialisation year")
