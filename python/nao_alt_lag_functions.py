@@ -275,14 +275,20 @@ def calc_nao_stats(data: np.ndarray,
                                      region=region,
                                      forecast_range=forecast_range,
                                      season=season,
-                                     observations_path=nms_func.find_obs_path(variable=variable,),
-                                     start_year=start_year,
-                                     end_year=end_year,
+                                     observations_path=nms_func.find_obs_path(match_var=variable,),
+                                     start_year=1960,
+                                     end_year=2023,
         )
+
+        # Print the shape of the data
+        print("data shape", np.shape(data))
+
+        # Print the len of the data
+        print("len data", len(data))
 
         # TODO: Make sure this lines up with the model data
         # Set up the first and last years accordingly
-        if len(data) == 5:
+        if data.ndim == 5:
             print("Processing the raw data")
 
             # If forecast range is 2-9
@@ -315,6 +321,10 @@ def calc_nao_stats(data: np.ndarray,
                 raw_first_year += 1
                 raw_last_year += 1
 
+            # Print the raw first year and last year
+            print("Raw first year:", raw_first_year)
+            print("Raw last year:", raw_last_year)
+
             # Set up the common years accordingly
             common_years = np.arange(raw_first_year, raw_last_year + 1)
 
@@ -324,11 +334,11 @@ def calc_nao_stats(data: np.ndarray,
 
             # extract the data for the south grid
             obs_psl_anom_south = obs_psl_anom.sel(lat=slice(s_lat1, s_lat2),
-                                                  lon=slice(s_lon1, s_lon2).mean(dim=["lat", "lon"]))
+                                                  lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
 
             # extract the data for the north grid
             obs_psl_anom_north = obs_psl_anom.sel(lat=slice(n_lat1, n_lat2),
-                                                  lon=slice(n_lon1, n_lon2).mean(dim=["lat", "lon"]))
+                                                  lon=slice(n_lon1, n_lon2)).mean(dim=["lat", "lon"])
 
             # Calculate the NAO index
             obs_nao = obs_psl_anom_south - obs_psl_anom_north
@@ -356,7 +366,7 @@ def calc_nao_stats(data: np.ndarray,
             data = np.swapaxes(data, 0, 1)
 
             # Print the shape of the data
-            print("Shape of the data:", data.shape)
+            print("Shape of the data:", np.shape(data))
 
             # If the third axis has size > 1
             if data.shape[2] > 1:
@@ -370,21 +380,22 @@ def calc_nao_stats(data: np.ndarray,
                 # Squeeze the data
                 data = np.squeeze(data)
 
-            # Print the shape of the data
-            print("Shape of the data:", data.shape)
-
             # Assert that the shape of lats is the same as the shape of the data third axis
             assert data.shape[2] == len(lats), "Data lats shape not equal to lats shape"
 
             # Assert that the shape of lons is the same as the shape of the data fourth axis
             assert data.shape[3] == len(lons), "Data lons shape not equal to lons shape"
 
-            
+            # Print the shape of the data
+            print("Shape of the model data:", np.shape(data))
 
+            # Print the shape of the obs_nao
+            print("shape of the observed data:", np.shape(obs_nao))
 
-
-        elif len(data) == 4:
+        elif data.ndim == 4:
             print("Processing the alt-lag data")
 
         else:
             print("Data length not recognised")
+
+        return obs_nao
