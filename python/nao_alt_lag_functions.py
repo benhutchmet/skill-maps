@@ -396,6 +396,9 @@ def calc_nao_stats(data: np.ndarray,
                         print("Removing year:", year, "from obs")
                         obs_nao = obs_nao.sel(time=obs_nao.time.dt.year != year)
 
+            # Extract obs_nao as its values
+            obs_nao = obs_nao.values
+
             # append the obs_nao to the dictionary
             nao_stats['obs_nao'] = obs_nao
 
@@ -490,8 +493,130 @@ def calc_nao_stats(data: np.ndarray,
 
         elif data.ndim == 4:
             print("Processing the alt-lag data")
+            AssertionError("Not yet implemented")
 
         else:
             print("Data length not recognised")
+            AssertionError("Data length not recognised")
 
-        return obs_nao
+        return nao_stats
+
+def plot_nao(nao_stats: dict,
+             season: str,
+             forecast_range: str,
+             lag: int,
+             alt_lag: bool = False,
+             figsize_x: int = 12,
+             figsize_y: int = 8,
+             save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots"):
+    """
+    Plots the NAO index from nao_stats.
+
+    Parameters:
+    ===========
+
+    nao_stats: dict
+        The dictionary containing the NAO index.
+
+    season: str
+        The season for which the NAO index is being plotted.
+
+    forecast_range: str
+        The forecast range for which the NAO index is being plotted.
+
+    lag: int
+        The lag for which the NAO index is being plotted.
+
+    alt_lag: bool
+        Whether the alternate lag data is being plotted (default is False).
+        True = alt_lag data
+        False = raw data
+
+    figsize_x: int
+        The x-dimension of the figure (default is 12).
+
+    figsize_y: int
+        The y-dimension of the figure (default is 8).
+
+    save_dir: str
+        The directory in which the plots are being saved (default is "/gws/nopw/j04/canari/users/benhutch/plots").
+
+    Returns:
+    ========
+
+    None
+    """
+
+    # Set up the figure
+    fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
+
+    # Plot the ensemble mean NAO index
+    ax.plot(nao_stats["init_years"], nao_stats["model_nao_mean"]/100, label="DCPP",
+            color="red")
+    
+    # Plot the observed NAO index
+    ax.plot(nao_stats["init_years"], nao_stats["obs_nao"]/100, label="ERA5",
+            color="black")
+    
+    # Plot the 5% lower interval
+    ax.fill_between(nao_stats["init_years"], nao_stats["model_nao_members_min"]/100,
+                    nao_stats["model_nao_members_max"]/100, color="red", alpha=0.2)
+    
+    # Set up the title
+    ax.set_title(f"ACC = {nao_stats['corr1']:.2f} "
+                 f"(p = {nao_stats["p1"]:.2f}) "
+                 f"RPC = {nao_stats['rpc1']:.2f} "
+                 f"N = {nao_stats['nens']}")
+
+    # Set the y lim
+    ax.set_ylim(-10, 10)
+
+    # Set up the horizontal line
+    ax.axhline(y=0, color="black", linestyle="--")
+
+    # Include the legend in the lower bottom right corner
+    ax.legend(loc="lower right")
+
+    # Set up the experiment
+    if alt_lag:
+        experiment = "Lagged"
+
+        # Format a textbox in the top left with the experiment and lag
+        ax.text(0.005, 0.95, f"{experiment} ({lag})",
+                transform=ax.transAxes, fontsize=10,
+                verticalalignment='top',
+                bbox=dict(facecolor='white', alpha=0.5))
+
+    else:
+        experiment = "Raw"
+
+        # Format a textbox in the top left with the experiment and lag
+        ax.text(0.05, 0.95, f"{experiment}",
+                transform=ax.transAxes, fontsize=10,
+                verticalalignment='top',
+                horizontalalignment='left',
+                bbox=dict(facecolor='white', alpha=0.5))
+        
+    # Set up another textbox in the top right with the season and forecast range
+    ax.text(0.95, 0.95, f"{season}\n",
+            f"Years {forecast_range}\n",
+            f"{nao_stats['init_year'][0]}-{nao_stats['init_year'][-1]}",
+            transform=ax.transAxes, fontsize=10,
+            verticalalignment='top',
+            horizontalalignment='right',
+            bbox=dict(facecolor='white', alpha=0.5))
+    
+    # Set up the x label
+    ax.set_xlabel("Initialisation year")
+
+    # Set up the current time
+    current_time = pd.to_datetime("today").strftime("%Y-%m-%d")
+
+    # Set up the plot_name
+    plot_name = f"{experiment}_{season}_{forecast_range}_{lag}_nao_index_{current_time}.png"
+
+    # Save the plot
+    plt.savefig(os.path.join(save_dir, plot_name), dpi=300)
+
+    # Show the plot
+    plt.show()
