@@ -764,13 +764,15 @@ def select_forecast_range(obs_anomalies_annual, forecast_range):
     ValueError: If the input dataset is invalid.
     """
     try:
+        if "-" in forecast_range:
+            forecast_range_start, forecast_range_end = map(
+                int, forecast_range.split("-"))
+            # print("Forecast range:", forecast_range_start, "-", forecast_range_end)
 
-        forecast_range_start, forecast_range_end = map(
-            int, forecast_range.split("-"))
-        # print("Forecast range:", forecast_range_start, "-", forecast_range_end)
-
-        rolling_mean_range = forecast_range_end - forecast_range_start + 1
-        # print("Rolling mean range:", rolling_mean_range)
+            rolling_mean_range = forecast_range_end - forecast_range_start + 1
+            # print("Rolling mean range:", rolling_mean_range)
+        else:
+            rolling_mean_range = int(forecast_range)
 
         # P[RINT THE TIME DIMENSION OF THE OBSERVATIONS
         print("Time dimension of obs:", obs_anomalies_annual.time.values)

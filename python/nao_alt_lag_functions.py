@@ -250,11 +250,18 @@ def calc_nao_stats(data: np.ndarray,
             'nens': mdi
         }
 
-        # Set up the years
-        years = np.arange(start_year, end_year + 1)
+        if alt_lag:
+            # Set up the years
+            years = np.arange(start_year + lag - 1, end_year + 1)
+        elif forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
+            years = np.arange(start_year, end_year)
+        else:
+            # Set up the years
+            years = np.arange(start_year, end_year + 1)
 
         # Append the years to the dictionary
         nao_stats['init_years'] = years
+
 
         # Set up the lats and lons
         lons = np.arange(-180, 180, 2.5) ; lats = np.arange(-90, 90, 2.5)
@@ -279,11 +286,20 @@ def calc_nao_stats(data: np.ndarray,
         n_lon1, n_lon2 = north_grid['lon1'], north_grid['lon2']
         n_lat1, n_lat2 = north_grid['lat1'], north_grid['lat2']
 
+        # If the forecast range is a single digit
+        if "-" not in forecast_range:
+            forecast_range_obs = "1"
+        else:
+            forecast_range_obs = forecast_range
+
+        # Print the forecast range obs
+        print("Forecast range obs:", forecast_range_obs)
+
         # First process the obs NAO
         # FIXME: make sure this read_obs function works for years 1 and years 2
         obs_psl_anom = func.read_obs(variable=variable,
                                      region=region,
-                                     forecast_range=forecast_range,
+                                     forecast_range=forecast_range_obs,
                                      season=season,
                                      observations_path=nms_func.find_obs_path(match_var=variable,),
                                      start_year=1960,
@@ -420,6 +436,11 @@ def calc_nao_stats(data: np.ndarray,
                 # Squeeze the data
                 data = np.squeeze(data)
 
+            # If years 2-9
+            if forecast_range == "2-9":
+                # Remove the final time step
+                data = data[:, :-1, :, :]
+
             # Assert that the shape of lats is the same as the shape of the data third axis
             assert data.shape[2] == len(lats), "Data lats shape not equal to lats shape"
 
@@ -523,11 +544,11 @@ def calc_nao_stats(data: np.ndarray,
                 print("Forecast range not recognised")
                 AssertionError("Forecast range not recognised")
 
-            # If the season is not DJFM
-            if season not in ["DJFM", "DJF", "ONDJFM"]:
-                # Add 1 to the raw first and last years
-                alt_lag_first_year += 1
-                alt_lag_last_year += 1
+            # # If the season is not DJFM
+            # if season not in ["DJFM", "DJF", "ONDJFM"]:
+            #     # Add 1 to the raw first and last years
+            #     alt_lag_first_year += 1
+            #     alt_lag_last_year += 1
 
             # Print the alt_lag_first year and last year
             print("Alt-lag first year:", alt_lag_first_year)
@@ -543,6 +564,10 @@ def calc_nao_stats(data: np.ndarray,
             obs_psl_anom = obs_psl_anom.sel(time=slice(f"{alt_lag_first_year}-01-01",
                                                        f"{alt_lag_last_year}-12-31"))
             
+            # Print the first and last years of the obs_psl_anom
+            print("First year of obs_psl_anom:", obs_psl_anom.time.dt.year.values[0])
+            print("Last year of obs_psl_anom:", obs_psl_anom.time.dt.year.values[-1])
+
             # extract the data for the south grid
             obs_psl_anom_south = obs_psl_anom.sel(lat=slice(s_lat1, s_lat2),
                                                   lon=slice(s_lon1, s_lon2)).mean(dim=["lat", "lon"])
@@ -717,8 +742,16 @@ def plot_nao(nao_stats: dict,
     ax.fill_between(nao_stats["init_years"], nao_stats["model_nao_members_min"]/100,
                     nao_stats["model_nao_members_max"]/100, color="red", alpha=0.2)
 
-    # Set the y lim
-    ax.set_ylim(-10, 10)
+
+    if "-" in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
+        # Set the y lim
+        ax.set_ylim(-10, 10)
+    elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
+        # Set the y lim
+        ax.set_ylim(-15, 15)
+    elif season not in ["DJFM", "DJF", "ONDJFM"]:
+        # Set the y lim
+        ax.set_ylim(-10, 10)
 
     # Set up the horizontal line
     ax.axhline(y=0, color="black", linestyle="--")
@@ -748,16 +781,15 @@ def plot_nao(nao_stats: dict,
     last_year = nao_stats['init_years'][-1]
 
     if alt_lag:
-        # Set up the title
         ax.set_title(f"ACC = {nao_stats['corr1']:.2f} "
-                    f"(p = {nao_stats['p1']:.2f}), "
-                    f"RPC = {nao_stats['rpc1']:.2f}, "
-                    f"N = {nao_stats['nens']} ,"
-                    f"Experiment: {experiment} , "
-                    f"Lag: {lag}",
-                    f"Season: {season}, "
-                    f"Forecast Range: {forecast_range}, "
-                    f"{first_year}-{last_year}")
+                     f"(p = {nao_stats['p1']:.2f}), "
+                     f"RPC = {nao_stats['rpc1']:.2f}, "
+                     f"N = {nao_stats['nens']}, "
+                     f"{experiment} "
+                     f"({lag}), "
+                     f"{season}, "
+                     f"{forecast_range}, "
+                     f"{first_year}-{last_year}")
     else:
         # Set up the title
         ax.set_title(f"ACC = {nao_stats['corr1']:.2f} "
