@@ -9,6 +9,7 @@ import glob
 import random
 
 # Third party imports
+import xesmf as xe
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -25,6 +26,7 @@ sys.path.append('/home/users/benhutch/skill-maps/')
 import dictionaries as dicts
 
 # Define a function for preprocessing the model data
+# TODO: Add regridding in here
 def preprocess(ds: xr.Dataset,
                first_fcst_year_idx: int,
                last_fcst_year_idx: int,
@@ -32,8 +34,8 @@ def preprocess(ds: xr.Dataset,
                lat2: float,
                lon1: float,
                lon2: float,
-               start_month: int = 12,
-               end_month: int = 3):
+               start_month: int = 1,
+               end_month: int = 12):
     """
     Preprocess the model data using xarray
     """
@@ -171,6 +173,9 @@ def load_model_data_xarray(model_variable: str,
     # Extract the path for the given model and experiment and variable
     model_path = csv_data.loc[(csv_data['model'] == model) & (csv_data['experiment'] == experiment) & (csv_data['variable'] == model_variable), 'path'].values[0]
 
+    # # print the model path
+    # print("model path:", model_path)
+    
     # Assert that the model path exists
     assert os.path.exists(model_path), "The model path does not exist"
 
@@ -181,7 +186,7 @@ def load_model_data_xarray(model_variable: str,
     model_path_root = model_path.split('/')[1]
 
     # If the model path root is gws
-    if model_path_root == 'gws':
+    if model_path_root in ['gws', 'work']:
         print("The model path root is gws")
 
         # List the files in the model path
@@ -250,7 +255,7 @@ def load_model_data_xarray(model_variable: str,
     member_files = []
 
     # If the model path root is gws
-    if model_path_root == 'gws':
+    if model_path_root in ['gws', 'work']:
         print("Forming the list of files for each ensemble member for gws")
 
         # Loop over the unique variant labels
@@ -323,7 +328,6 @@ def load_model_data_xarray(model_variable: str,
                                concat_dim='time',
                                join='override',
                                coords='minimal',
-                               engine='netcdf4',
                                parallel=True)
         
         # Append the dataset to the model data
