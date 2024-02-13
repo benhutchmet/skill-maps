@@ -437,7 +437,7 @@ def calc_nao_stats(data: np.ndarray,
                 data = np.squeeze(data)
 
             # If years 2-9
-            if forecast_range == "2-9":
+            if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
                 # Remove the final time step
                 data = data[:, :-1, :, :]
 
