@@ -504,10 +504,10 @@ def calc_nao_stats(data: np.ndarray,
             rps1 = rpc1 * (np.std(obs_nao) / np.std(model_nao))
 
             # Append the rpc1 to the dictionary
-            nao_stats["rpc1"] = rpc1
+            nao_stats["rpc1"] = np.abs(rpc1)
 
             # Append the rps1 to the dictionary
-            nao_stats["rps1"] = rps1
+            nao_stats["rps1"] = np.abs(rps1)
 
             # Append the nens to the dictionary
             nao_stats["nens"] = len(model_nao)
@@ -647,13 +647,13 @@ def calc_nao_stats(data: np.ndarray,
             rps1 = rpc1 * (np.std(obs_nao) / np.std(model_nao))
 
             # Append the rpc1 and rps1 to the dictionary
-            nao_stats["rpc1"] = rpc1 ; nao_stats["rps1"] = rps1
+            nao_stats["rpc1"] = np.abs(rpc1) ; nao_stats["rps1"] = np.abs(rps1)
 
             # Append the nens to the dictionary
             nao_stats["nens"] = len(model_nao)
 
             # Scale the ensemble mean by RPS1
-            model_nao_mean = model_nao_mean * rps1
+            model_nao_mean = model_nao_mean * np.abs(rps1)
 
             # Append the model_nao_mean to the dictionary
             nao_stats["model_nao_mean"] = model_nao_mean
