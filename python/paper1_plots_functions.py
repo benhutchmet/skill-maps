@@ -2614,6 +2614,7 @@ def plot_ts(
     figsize_x: int = 10,
     figsize_y: int = 12,
     save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots",
+    trendline: bool = False,
 ):
     """
     Plot the time series data.
@@ -2657,6 +2658,10 @@ def plot_ts(
         Directory to save the figure to.
         e.g. default is "/gws/nopw/j04/canari/users/benhutch/plots"
 
+    trendline: bool
+        Whether to include a trendline on the plot.
+        e.g. default is False
+
     Outputs:
     --------
 
@@ -2683,6 +2688,40 @@ def plot_ts(
 
     # Set up a horizontal line at 0
     ax.axhline(0, color="black", linestyle="--")
+
+    # Include a trendline
+    if trendline:
+        # Calculate the trendline for the forecast timeseries
+        z_fcst = np.polyfit(ts_dict["init_years"], ts_dict["fcst_ts_mean"], 1)
+        p_fcst = np.poly1d(z_fcst)
+        ax.plot(
+            ts_dict["init_years"],
+            p_fcst(ts_dict["init_years"]),
+            "r--",
+            label="trendline",
+        )
+
+        # Calculate the trendline for the obs_ts
+        z_obs = np.polyfit(ts_dict["init_years"], ts_dict["obs_ts"], 1)
+        p_obs = np.poly1d(z_obs)
+        ax.plot(
+            ts_dict["init_years"],
+            p_obs(ts_dict["init_years"]),
+            "k--",
+            label="trendline",
+        )
+
+        # Include the slopes of the trendlines in a textbox
+        ax.text(
+            0.05,
+            0.95,
+            f"Model trendline slope = {z_fcst[0]:.2f}\nObs trendline slope = {z_obs[0]:.2f}",
+            transform=ax.transAxes,
+            va="top",
+            ha="left",
+            bbox=dict(facecolor="white", alpha=0.5),
+            fontsize=8,
+        )
 
     # Include a legend
     ax.legend(loc="lower right")
