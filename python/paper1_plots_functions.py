@@ -2615,6 +2615,7 @@ def plot_ts(
     figsize_y: int = 12,
     save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots",
     trendline: bool = False,
+    constrain_years: list = None,
 ):
     """
     Plot the time series data.
@@ -2662,11 +2663,39 @@ def plot_ts(
         Whether to include a trendline on the plot.
         e.g. default is False
 
+    constrain_years: list
+        List of years to constrain the plot to.
+        e.g. default is None
+
     Outputs:
     --------
 
     None
     """
+
+    if constrain_years is not None:
+        # Assert that years within constrain_years are in init_years
+        assert all(
+            year in ts_dict["init_years"] for year in constrain_years
+        ), "Years within constrain_years are not in init_years!"
+
+        # Find the indices of constrain_years in init_years
+        idxs = [ts_dict["init_years"].index(year) for year in constrain_years]
+
+        # Constrain the init_years to constrain_years
+        ts_dict["init_years"] = [ts_dict["init_years"][idx] for idx in idxs]
+
+        # Constrain the fcst_ts_mean to constrain_years
+        ts_dict["fcst_ts_mean"] = [ts_dict["fcst_ts_mean"][idx] for idx in idxs]
+
+        # Constrain the obs_ts to constrain_years
+        ts_dict["obs_ts"] = [ts_dict["obs_ts"][idx] for idx in idxs]
+
+        # Constrain the fcst_ts_min to constrain_years
+        ts_dict["fcst_ts_min"] = [ts_dict["fcst_ts_min"][idx] for idx in idxs]
+
+        # Constrain the fcst_ts_max to constrain_years
+        ts_dict["fcst_ts_max"] = [ts_dict["fcst_ts_max"][idx] for idx in idxs]
 
     # Set up the figure
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
@@ -2698,7 +2727,7 @@ def plot_ts(
             ts_dict["init_years"],
             p_fcst(ts_dict["init_years"]),
             "r--",
-            label="trendline",
+            alpha=0.5
         )
 
         # Calculate the trendline for the obs_ts
@@ -2708,16 +2737,16 @@ def plot_ts(
             ts_dict["init_years"],
             p_obs(ts_dict["init_years"]),
             "k--",
-            label="trendline",
+            alpha=0.5
         )
 
         # Include the slopes of the trendlines in a textbox
         ax.text(
             0.05,
-            0.95,
+            0.05,
             f"Model trendline slope = {z_fcst[0]:.2f}\nObs trendline slope = {z_obs[0]:.2f}",
             transform=ax.transAxes,
-            va="top",
+            va="bottom",
             ha="left",
             bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8,
