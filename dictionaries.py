@@ -259,7 +259,7 @@ north_atlantic_grid_plot = {
 
 # Wider pacific grid for the plot
 pacific_grid_plot = {
-    'lon1': -178,
+    'lon1': -180,
     'lon2': 40,
     'lat1': 10,
     'lat2': 90
