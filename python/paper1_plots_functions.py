@@ -1848,8 +1848,7 @@ def show_gridbox(grid: dict,
     ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=proj)
 
     # Add a text box with the gridbox name
-    ax.text(0.05, 0.05, f"{grid_name
-    }", transform=ax.transAxes,
+    ax.text(0.05, 0.05, f"{grid_name}", transform=ax.transAxes,
             va="bottom", ha="left", bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8)
     

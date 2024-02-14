@@ -265,6 +265,14 @@ pacific_grid_plot = {
     'lat2': 90
 }
 
+# Set up a grid centred over the Rocky Mountains
+rocky_mountain_grid = {
+    'lon1': -120,
+    'lon2': -90,
+    'lat1': 30,
+    'lat2': 50
+}
+
 # Define a grid to plot for China
 china_grid_plot = {
     'lon1': 75,
