@@ -2594,6 +2594,7 @@ def plot_ts(
     ts_dict: dict,
     figsize_x: int = 10,
     figsize_y: int = 12,
+    save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots",
 ):
     """
     Plot the time series data.
@@ -2633,6 +2634,10 @@ def plot_ts(
         Height of the figure in inches.
         e.g. default is 12
 
+    save_dir: str
+        Directory to save the figure to.
+        e.g. default is "/gws/nopw/j04/canari/users/benhutch/plots"
+
     Outputs:
     --------
 
@@ -2644,3 +2649,104 @@ def plot_ts(
 
     # Plot the ensemble mean
     ax.plot(ts_dict["init_years"], ts_dict["fcst_ts_mean"], color="red", label="dcppA")
+
+    # Plot the observations
+    ax.plot(ts_dict["valid_years"], ts_dict["obs_ts"], color="black", label="ERA5")
+
+    # Fill between the min and max
+    ax.fill_between(
+        ts_dict["init_years"],
+        ts_dict["fcst_ts_min"],
+        ts_dict["fcst_ts_max"],
+        color="red",
+        alpha=0.3,
+    )
+
+    # Set up a horizontal line at 0
+    ax.axhline(0, color="black", linestyle="--")
+
+    # Include a legend
+    ax.legend(loc="lower right")
+
+    # Set the experiment name
+    if ts_dict["alt_lag"]:
+        exp_name = "lagged"
+    else:
+        exp_name = "raw"
+
+    # Set the first year
+    first_year = ts_dict["init_years"][0]
+    last_year = ts_dict["init_years"][-1]
+
+    # Include a box in the top left
+    # with the location name
+    ax.text(
+        0.05,
+        0.95,
+        f"{ts_dict['gridbox_name']}",
+        transform=ax.transAxes,
+        va="top",
+        ha="left",
+        bbox=dict(facecolor="white", alpha=0.5),
+        fontsize=8,
+    )
+
+    # Set the title
+    if ts_dict["alt_lag"]:
+        ax.set_title(
+            f"ACC = {ts_dict['corr']:.2f} "
+            f"(p = {ts_dict['p']:.2f}) "
+            f"RPC = {ts_dict['rpc']:.2f} "
+            f"N = {ts_dict['nens']} "
+            f"{exp_name} "
+            f"({ts_dict['lag']}) "
+            f"{ts_dict['season']} "
+            f"{ts_dict['forecast_range']} "
+            f"{first_year}-{last_year}"
+        )
+    else:
+        ax.set_title(
+            f"ACC = {ts_dict['corr']:.2f} "
+            f"(p = {ts_dict['p']:.2f}) "
+            f"RPC = {ts_dict['rpc']:.2f} "
+            f"N = {ts_dict['nens']} "
+            f"{exp_name} "
+            f"{ts_dict['season']} "
+            f"{ts_dict['forecast_range']} "
+            f"{first_year}-{last_year}"
+        )
+
+    # Set the x-axis label
+    ax.set_xlabel("Initialisation year")
+
+    if ts_dict["variable"] == "tas":
+        # Set the y-axis label
+        ax.set_ylabel("Temperature anomaly (K)")
+    elif ts_dict["variable"] == "psl":
+        # Set the y-axis label
+        ax.set_ylabel("Pressure anomaly (hPa)")
+    elif ts_dict["variable"] == "rsds":
+        # Set the y-axis label
+        ax.set_ylabel("Radiation anomaly (W/m^2)")
+    elif ts_dict["variable"] == "sfcWind":
+        # Set the y-axis label
+        ax.set_ylabel("Wind anomaly (m/s)")
+    else:
+        raise ValueError("Variable not recognised!")
+
+    # Set up the current time
+    current_time = datetime.now().strftime("%Y%m%d")
+
+    # Set up the figure name
+    fig_name = f"{ts_dict['variable']}_{ts_dict['gridbox_name']}_{ts_dict['season']}_{ts_dict['forecast_range']}_{current_time}"
+
+    # Set up the figure path
+    fig_path = os.path.join(save_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+
+    # Show the figure
+    plt.show()
+
+    return None
