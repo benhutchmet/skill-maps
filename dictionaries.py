@@ -257,6 +257,14 @@ north_atlantic_grid_plot = {
     'lat2': 90
 }
 
+# Wider pacific grid for the plot
+pacific_grid_plot = {
+    'lon1': -178,
+    'lon2': 40,
+    'lat1': 10,
+    'lat2': 90
+}
+
 # Define a grid to plot for China
 china_grid_plot = {
     'lon1': 75,
