@@ -2706,24 +2706,24 @@ def plot_ts(
     if ts_dict["alt_lag"]:
         ax.set_title(
             f"ACC = {ts_dict['corr']:.2f} "
-            f"(p = {ts_dict['p']:.2f}) "
-            f"RPC = {ts_dict['rpc']:.2f} "
-            f"N = {ts_dict['nens']} "
+            f"(p = {ts_dict['p']:.2f}), "
+            f"RPC = {ts_dict['rpc']:.2f}, "
+            f"N = {ts_dict['nens']}, "
             f"{exp_name} "
-            f"({ts_dict['lag']}) "
-            f"{ts_dict['season']} "
-            f"{ts_dict['forecast_range']} "
+            f"({ts_dict['lag']}), "
+            f"{ts_dict['season']}, "
+            f"{ts_dict['forecast_range']}, "
             f"{first_year}-{last_year}"
         )
     else:
         ax.set_title(
             f"ACC = {ts_dict['corr']:.2f} "
-            f"(p = {ts_dict['p']:.2f}) "
-            f"RPC = {ts_dict['rpc']:.2f} "
-            f"N = {ts_dict['nens']} "
-            f"{exp_name} "
-            f"{ts_dict['season']} "
-            f"{ts_dict['forecast_range']} "
+            f"(p = {ts_dict['p']:.2f}), "
+            f"RPC = {ts_dict['rpc']:.2f}, "
+            f"N = {ts_dict['nens']}, "
+            f"{exp_name}, "
+            f"{ts_dict['season']}, "
+            f"{ts_dict['forecast_range']}, "
             f"{first_year}-{last_year}"
         )
 
