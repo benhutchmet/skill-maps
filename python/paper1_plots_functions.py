@@ -2337,8 +2337,12 @@ def load_ts_data(
         # Extract the obs_anoms as its values
         obs_ts = obs_anoms.values
 
-        # Append the obs_ts to the ts_dict
-        ts_dict["obs_ts"] = obs_ts
+        if variable == "psl":
+            # Append the obs_ts to the ts_dict
+            ts_dict["obs_ts"] = obs_ts / 100
+        else:
+            # Append the obs_ts to the ts_dict
+            ts_dict["obs_ts"] = obs_ts
 
         # Swap the axes of the data
         data = np.swapaxes(data, 0, 1)
@@ -2508,8 +2512,12 @@ def load_ts_data(
         # Extract the obs_anoms as its values
         obs_ts = obs_anoms.values
 
-        # Append the obs_ts to the ts_dict
-        ts_dict["obs_ts"] = obs_ts
+        if variable == "psl":
+            # Append the obs_ts to the ts_dict
+            ts_dict["obs_ts"] = obs_ts / 100
+        else:
+            # Append the obs_ts to the ts_dict
+            ts_dict["obs_ts"] = obs_ts
 
         # Swap the axes of the data
         data = np.swapaxes(data, 0, 1)
