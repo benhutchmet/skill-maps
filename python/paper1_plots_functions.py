@@ -1781,5 +1781,81 @@ def plot_diff_variables(bs_skill_maps: dict,
     # Show the figure
     plt.show()
 
+# Write a new function which shows a gridbox
+def show_gridbox(grid: dict,
+                 grid_name: str,
+                 figsize_x: int = 10,
+                 figsize_y: int = 12,):
+    """
+    Show a gridbox on a map.
+
+    Inputs:
+    -------
+
+    grid: dict
+        Dictionary containing the gridbox to show.
+        e.g. grid = {"lon1": lon1, "lon2": lon2, "lat1": lat1, "lat2": lat2}
+
+    grid_name: str
+        Name of the gridbox to show.
+        e.g. "gridbox1"
+
+    figsize_x: int
+        Width of the figure in inches.
+        e.g. default is 10
+
+    figsize_y: int
+        Height of the figure in inches.
+        e.g. default is 12
+
+    Outputs:
+    --------
+
+    None
+    """
+
+    # Set up the projection
+    proj = ccrs.PlateCarree(central_longitude=0)
+
+    # Set up the figure
+    fig = plt.figure(figsize=(figsize_x, figsize_y))
+
+    # Set up the axes
+    ax = fig.add_subplot(1, 1, 1, projection=proj)
+
+    # Include coastlines
+    ax.coastlines()
+    ax.stock_img()
+
+    # Extract the lons and lats from the grid dictionary
+    lon1, lon2 = grid['lon1'], grid['lon2']
+    lat1, lat2 = grid['lat1'], grid['lat2']
+
+    # Add the gridbox to the plot
+    ax.plot([lon1, lon2, lon2, lon1, lon1],
+            [lat1, lat1, lat2, lat2, lat1],
+            color="green", linewidth=2, transform=proj)
+    
+    # Set up the region extent
+    lon_min = lon1 - 20
+    lon_max = lon2 + 20
+
+    # Set up the lat extent
+    lat_min = lat1 - 20
+    lat_max = lat2 + 20
+
+    # Set the extent of the plot
+    ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=proj)
+
+    # Add a text box with the gridbox name
+    ax.text(0.05, 0.05, f"{grid_name
+    }", transform=ax.transAxes,
+            va="bottom", ha="left", bbox=dict(facecolor="white", alpha=0.5),
+            fontsize=8)
+    
+    # Show the figure
+    plt.show()
+
+    return None
 
 
