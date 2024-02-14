@@ -2688,6 +2688,9 @@ def plot_ts(
         # Constrain the fcst_ts_mean to constrain_years
         ts_dict["fcst_ts_mean"] = [ts_dict["fcst_ts_mean"][idx] for idx in idxs]
 
+        # Constrain the fcst_ts_members to constrain_years
+        ts_dict["fcst_ts_members"] = [ts_dict["fcst_ts_members"][idx] for idx in idxs]
+
         # Constrain the obs_ts to constrain_years
         ts_dict["obs_ts"] = [ts_dict["obs_ts"][idx] for idx in idxs]
 
@@ -2696,6 +2699,29 @@ def plot_ts(
 
         # Constrain the fcst_ts_max to constrain_years
         ts_dict["fcst_ts_max"] = [ts_dict["fcst_ts_max"][idx] for idx in idxs]
+
+        # Recalculate the correlation between the two time series
+        corr, p = pearsonr(ts_dict["fcst_ts_mean"], ts_dict["obs_ts"])
+
+        # Append the new corr and p to the ts_dict
+        ts_dict["corr"] = corr
+        ts_dict["p"] = p
+
+        # Recalculate the rpc
+        sig_f = np.std(ts_dict["fcst_ts_mean"])
+        sig_o = np.std(ts_dict["obs_ts"])
+        sig_f_members = np.std(ts_dict["fcst_ts_members"])
+
+        # Calculate the rpc
+        rpc = corr * (sig_f / sig_f_members)
+
+        # Calculate the rps
+        rps = rpc * (sig_o / sig_f_members)
+
+        # Append the new rpc and rps to the ts_dict
+        ts_dict["rpc"] = np.abs(rpc)
+        ts_dict["rps"] = np.abs(rps)
+
 
     # Set up the figure
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
