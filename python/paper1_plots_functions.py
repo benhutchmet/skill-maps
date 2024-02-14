@@ -2381,24 +2381,35 @@ def load_ts_data(
         # Print the shape of the data
         print(f"model data members.shape = {data.shape}")
 
-        # Append the data to the ts_dict
-        ts_dict["fcst_ts_members"] = data
-
         # Calculate the 5% lowest interval
         ci_lower = np.percentile(data, 5, axis=0)
 
         # Calculate the 95% highest interval
         ci_upper = np.percentile(data, 95, axis=0)
 
-        # Append the ci_lower and ci_upper to the ts_dict
-        ts_dict["fcst_ts_min"] = ci_lower
-        ts_dict["fcst_ts_max"] = ci_upper
-
         # Calculate the mean of the data
         data_mean = np.mean(data, axis=0)
 
-        # Append the data_mean to the ts_dict
-        ts_dict["fcst_ts_mean"] = data_mean
+        if variable == "psl":
+            # Append the data to the ts_dict
+            ts_dict["fcst_ts_members"] = data / 100
+
+            # Append the data_mean to the ts_dict
+            ts_dict["fcst_ts_mean"] = data_mean / 100
+
+            # Append the ci_lower and ci_upper to the ts_dict
+            ts_dict["fcst_ts_min"] = ci_lower / 100
+            ts_dict["fcst_ts_max"] = ci_upper / 100
+        else:
+            # Append the data to the ts_dict
+            ts_dict["fcst_ts_members"] = data
+
+            # Append the data_mean to the ts_dict
+            ts_dict["fcst_ts_mean"] = data_mean
+
+            # Append the ci_lower and ci_upper to the ts_dict
+            ts_dict["fcst_ts_min"] = ci_lower
+            ts_dict["fcst_ts_max"] = ci_upper
 
         # Calculate the correlation between the obs_ts and fcst_ts_mean
         corr, p = pearsonr(data_mean, obs_ts)
@@ -2651,7 +2662,7 @@ def plot_ts(
     ax.plot(ts_dict["init_years"], ts_dict["fcst_ts_mean"], color="red", label="dcppA")
 
     # Plot the observations
-    ax.plot(ts_dict["valid_years"], ts_dict["obs_ts"], color="black", label="ERA5")
+    ax.plot(ts_dict["init_years"], ts_dict["obs_ts"], color="black", label="ERA5")
 
     # Fill between the min and max
     ax.fill_between(
