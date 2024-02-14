@@ -1587,17 +1587,6 @@ def plot_diff_variables(bs_skill_maps: dict,
     None
     """
 
-    # Set up the initialisation offset
-    # FIXME: Will have to fiddle with this
-    if forecast_range == "2-9":
-        init_offset = 6
-    elif forecast_range == "2-5":
-        init_offset = 3
-    elif forecast_range == "2-3":
-        init_offset = 2
-    else:
-        raise ValueError("forecast_range must be either 2-9 or 2-5 or 2-3")
-
     # Set up the axis labels
     axis_labels = ["a", "b", "c", "d"]
 
