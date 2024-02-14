@@ -616,8 +616,11 @@ def main():
         print("Start year alt lag:", alt_lag_first_year)
         print("End year alt lag:", alt_lag_last_year)
 
-        # Set up common years
-        common_years_alt_lag = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+        if forecast_range == "2":
+            common_years_alt_lag = np.arange(alt_lag_first_year + 1, (alt_lag_last_year + 1) + 1)
+        else:
+            # Set up common years
+            common_years_alt_lag = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
 
         # Set up common years
         common_years_raw = np.arange(raw_first_year, raw_last_year + 1)
