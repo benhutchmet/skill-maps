@@ -2061,7 +2061,7 @@ def load_ts_data(data: np.ndarray,
                                    lon=slice(lon1, lon2)).mean(dim=["lat", "lon"])
 
         # Loop over the years
-        for year in years:
+        for year in obs_anoms.time.dt.year.values:
             # Extract the obs_anoms for this year
             obs_anoms_year = obs_anoms.sel(time=f"{year}")
 
@@ -2216,7 +2216,7 @@ def load_ts_data(data: np.ndarray,
                                    lon=slice(lon1, lon2)).mean(dim=["lat", "lon"])
         
         # Loop over the years
-        for year in years:
+        for year in obs_anoms.time.dt.year.values:
             # Extract the obs_anoms for this year
             obs_anoms_year = obs_anoms.sel(time=f"{year}")
 
