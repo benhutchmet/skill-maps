@@ -1859,3 +1859,458 @@ def show_gridbox(grid: dict,
     return None
 
 
+# Write a function for loading ts data for a specific gridbox
+def load_ts_data(data: np.ndarray,
+                 season: str,
+                forecast_range: str,
+                start_year: int,
+                end_year: int,
+                lag: int,
+                gridbox: dict,
+                gridbox_name: str,
+                variable: str,
+                alt_lag: bool = False,
+                region: str = "global",
+                 ):
+    """
+    Load time series data for a specific gridbox.
+    
+    Inputs:
+    -------
+    
+    data: np.ndarray
+        Array containing the data to process.
+        e.g. data = np.load("path/to/data.npy")
+        
+    season: str
+        Season to process.
+        e.g. "DJF"
+
+    forecast_range: str
+        Forecast range to process.
+        e.g. "2-9"
+
+    start_year: int
+        Start year to process.
+        e.g. 1993
+
+    end_year: int
+        End year to process.
+
+    lag: int
+        Lag to process.
+        e.g. 0
+
+    gridbox: dict
+        Dictionary containing the gridbox to process.
+        e.g. gridbox = {"lon1": lon1, "lon2": lon2, "lat1": lat1, "lat2": lat2}
+
+    gridbox_name: str
+        Name of the gridbox to process.
+        e.g. "gridbox1"
+
+    variable: str
+        Variable to process.
+        e.g. "tas"
+
+    alt_lag: bool
+        Whether to use the alt_lag method.
+        e.g. default is False
+
+    region: str
+        Region to process.
+        e.g. default is "global"
+
+    Outputs:
+    --------
+
+    ts: np.ndarray
+        Array containing the time series data for the gridbox.
+    """
+
+    # Set up the mdi
+    mdi = -9999.0
+
+    # Set up the dictionary
+    ts_dict = {
+        "obs_ts": [],
+        "fcst_ts_members": [],
+        "fcst_ts_min": [],
+        "fcst_ts_max": [],
+        "fcst_ts_mean": [],
+        "init_years": [],
+        "valid_years": [],
+        "nens": mdi,
+        "corr": mdi,
+        "p": mdi,
+        "rpc": mdi,
+        "rps": mdi,
+        "season": season,
+        "forecast_range": forecast_range,
+        "start_year": start_year,
+        "end_year": end_year,
+        "lag": lag,
+        "variable": variable,
+        "gridbox": gridbox,
+        "gridbox_name": gridbox_name,
+        "alt_lag": alt_lag,
+    }
+
+    # Extract the lats and lons from the gridbox
+    lon1, lon2 = gridbox['lon1'], gridbox['lon2']
+
+    # Extract the lats and lons from the gridbox
+    lat1, lat2 = gridbox['lat1'], gridbox['lat2']
+
+    # Set up the years depending
+    if alt_lag:
+        # Set up the years
+        years = np.arange(start_year + lag - 1, end_year + 1)
+    elif forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
+        years = np.arange(start_year, end_year)
+    else:
+        # Set up the years
+        years = np.arange(start_year, end_year + 1)
+
+    # Append the years to the ts_dict
+    ts_dict["init_years"] = years
+
+    # Set up the lats and lons
+    lats = np.arange(-90, 90, 2.5) ; lons = np.arange(-180, 180, 2.5)
+
+    # If the forecast range is a single digit
+    if "-" in forecast_range:
+        forecast_range_obs = "1"
+    else:
+        forecast_range_obs = forecast_range
+
+    # Process the observed data
+    obs_anoms = fnc.read_obs(variable=variable,
+                             region=region,
+                             forecast_range=forecast_range_obs,
+                             season=season,
+                             observations_path=nao_match_fnc.find_obs_path(match_var=variable),
+                             start_year=1960,
+                             end_year=2023,
+                             )
+
+    # Set up the lats and lons
+    obs_lats = obs_anoms.lat.values ; obs_lons = obs_anoms.lon.values
+
+    # Assert that the lats and lons are equal
+    assert np.array_equal(obs_lats, lats), "lats are not equal!"
+
+    # Assert that the lons are equal
+    assert np.array_equal(obs_lons, lons), "lons are not equal!"
+
+    # Find the indices of the lats and lons which correspond to the gridbox
+    lat1_idx = np.argmin(np.abs(lats - lat1)) ; lat2_idx = np.argmin(np.abs(lats - lat2))
+
+    # Find the indices of the lons which correspond to the gridbox
+    lon1_idx = np.argmin(np.abs(lons - lon1)) ; lon2_idx = np.argmin(np.abs(lons - lon2))
+
+    # Process the data
+    if data.ndim == 5 and alt_lag is False:
+        print("Processing the raw data")
+
+        # If forecast range is 2-9
+        if forecast_range == "2-9":
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 5
+            raw_last_year = int(end_year) + 5
+        elif forecast_range == "2-5":
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 3
+            raw_last_year = int(end_year) + 3
+        elif forecast_range == "2-3":
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 2
+            raw_last_year = int(end_year) + 2
+        elif forecast_range == "2":
+            # Set up the raw first and last years
+            raw_first_year = int(start_year) + 1
+            raw_last_year = int(end_year) + 1
+        elif forecast_range == "1":
+            # Set up the raw first and last years
+            raw_first_year = int(start_year)
+            raw_last_year = int(end_year)
+        else:
+            print("Forecast range not recognised")
+
+        # If the season is not DJFM
+        if season not in ["DJFM", "DJF", "ONDJFM"]:
+            # Add 1 to the raw first and last years
+            raw_first_year += 1
+            raw_last_year += 1
+
+        # Print the raw first and last years
+        print(f"raw_first_year = {raw_first_year}")
+        print(f"raw_last_year = {raw_last_year}")
+
+        # Set up the valid years
+        valid_years = np.arange(raw_first_year, raw_last_year + 1)
+
+        # Append the valid years to the ts_dict
+        ts_dict["valid_years"] = valid_years
+
+        # Constrain the obs_anoms to the valid years
+        obs_anoms = obs_anoms.sel(time=slice(f"{raw_first_year}-01-01",
+                                                f"{raw_last_year}-12-31"))
+
+        # Constrain the obs_anoms to the gridbox
+        obs_anoms = obs_anoms.sel(lat=slice(lat1, lat2),
+                                   lon=slice(lon1, lon2)).mean(dim=["lat", "lon"])
+
+        # Loop over the years
+        for year in years:
+            # Extract the obs_anoms for this year
+            obs_anoms_year = obs_anoms.sel(time=f"{year}")
+
+            # If there are any NaNs in the obs_anoms_year
+            if np.isnan(obs_anoms_year).any():
+                print(f"NaNs found in obs_anoms_year for year {year}")
+                if np.isnan(obs_anoms_year).all():
+                    print(f"All values are NaNs for year {year}")
+                    print(f"removing year {year} from the years array")
+                    obs_anoms = obs_anoms.drop_sel(time=f"{year}")
+
+        # Print the shape of the obs_anoms
+        print(f"obs_anoms.shape = {obs_anoms.shape}")
+
+        # Extract the obs_anoms as its values
+        obs_ts = obs_anoms.values
+
+        # Append the obs_ts to the ts_dict
+        ts_dict["obs_ts"] = obs_ts
+
+        # Swap the axes of the data
+        data = np.swapaxes(data, 0, 1)
+
+        # Print the shape of the data
+        print(f"data.shape = {data.shape}")
+
+        # If the third axis has size > 1
+        if data.shape[2] > 1:
+            # Calculate the mean of the data
+            # Extract the second number in forecast_range
+            forecast_range_number = int(forecast_range.split("-")[1])
+
+            # Calculate the mean of the data
+            data = data[:, :, :forecast_range_number - 1, :, :].mean(axis=2)
+        elif data.shape[2] == 1:
+            # Squeeze the data
+            data = np.squeeze(data) 
+
+        # If years 2-9 and not winter (i.e. not shifted back)
+        if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
+            # Remove the final time step
+            data = data[:, :-1, :, :]
+
+        # Assert that the data shape is as expected
+        assert data.shape[0] == len(years), "Data shape not as expected!"
+
+        # Assert that the shape of the lats
+        assert data.shape[2] == len(lats), "lats shape not as expected!"
+
+        # Assert that the shape of the lons
+        assert data.shape[3] == len(lons), "lons shape not as expected!"
+
+        # Print the shape of the modified data
+        print(f"modified model data.shape = {data.shape}")
+
+        # Constrain the data to the gridbox
+        data = data[:, :,
+                     lat1_idx:lat2_idx, lon1_idx:lon2_idx].mean(axis=(2, 3))
+        
+        # Print the shape of the data
+        print(f"model data members.shape = {data.shape}")
+
+        # Append the data to the ts_dict
+        ts_dict["fcst_ts_members"] = data
+
+        # Calculate the 5% lowest interval
+        ci_lower = np.percentile(data, 5, axis=0)
+
+        # Calculate the 95% highest interval
+        ci_upper = np.percentile(data, 95, axis=0)
+
+        # Append the ci_lower and ci_upper to the ts_dict
+        ts_dict["fcst_ts_min"] = ci_lower ; ts_dict["fcst_ts_max"] = ci_upper
+
+        # Calculate the mean of the data
+        data_mean = np.mean(data, axis=0)
+
+        # Append the data_mean to the ts_dict
+        ts_dict["fcst_ts_mean"] = data_mean
+
+        # Calculate the correlation between the obs_ts and fcst_ts_mean
+        corr, p = pearsonr(data_mean, obs_ts)
+
+        # Append the corr and p to the ts_dict
+        ts_dict["corr"] = corr ; ts_dict["p"] = p
+
+        # Calculate the standard deviation of the forecast time series
+        sig_f = np.std(data_mean) ; sig_o = np.std(obs_ts)
+
+        # Calculate th stdev of the members
+        sig_f_members = np.std(data)
+
+        # Calculate the rpc
+        rpc = corr * (sig_f / sig_f_members)
+
+        # Calculate the rps
+        rps = rpc * (sig_o / sig_f_members)
+
+        # Append the rpc and rps to the ts_dict
+        ts_dict["rpc"] = np.abs(rpc) ; ts_dict["rps"] = np.abs(rps)
+
+        # Append the nens to the ts_dict
+        ts_dict["nens"] = data.shape[0]
+
+    elif data.ndim == 4 and alt_lag is True:
+        print("Processing the alt_lag data")
+
+        # Set up the alt_lag first and last years
+        alt_lag_first_year = int(start_year) + lag - 1
+        alt_lag_last_year = int(end_year)
+
+        # Set up the first and last years
+        if forecast_range == "2-9":
+            # Set up the raw first and last years
+            alt_lag_first_year = alt_lag_first_year + 5
+            alt_lag_last_year = alt_lag_last_year + 5
+        elif forecast_range == "2-5":
+            # Set up the first and last years
+            alt_lag_first_year = alt_lag_first_year + 3
+            alt_lag_last_year = alt_lag_last_year + 3
+        elif forecast_range == "2-3":
+            # Set up the first and last years
+            alt_lag_first_year = alt_lag_first_year + 2
+            alt_lag_last_year = alt_lag_last_year + 2
+        elif forecast_range == "2":
+            # Set up the first and last years
+            alt_lag_first_year = alt_lag_first_year + 1
+            alt_lag_last_year = alt_lag_last_year + 1
+        elif forecast_range == "1":
+            # Set up the first and last years
+            alt_lag_first_year = alt_lag_first_year
+            alt_lag_last_year = alt_lag_last_year
+        else:
+            raise ValueError("Forecast range not recognised")
+        
+        # Print the alt_lag first and last years
+        print(f"alt_lag_first_year = {alt_lag_first_year}")
+        print(f"alt_lag_last_year = {alt_lag_last_year}")
+
+        # Set up the valid years
+        valid_years = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+
+        # Append the valid years to the ts_dict
+        ts_dict["valid_years"] = valid_years
+
+        # Constrain the obs_anoms to the valid years
+        obs_anoms = obs_anoms.sel(time=slice(f"{alt_lag_first_year}-01-01",
+                                                f"{alt_lag_last_year}-12-31"))
+        
+        # Constrain the obs_anoms to the gridbox
+        obs_anoms = obs_anoms.sel(lat=slice(lat1, lat2),
+                                   lon=slice(lon1, lon2)).mean(dim=["lat", "lon"])
+        
+        # Loop over the years
+        for year in years:
+            # Extract the obs_anoms for this year
+            obs_anoms_year = obs_anoms.sel(time=f"{year}")
+
+            # If there are any NaNs in the obs_anoms_year
+            if np.isnan(obs_anoms_year).any():
+                print(f"NaNs found in obs_anoms_year for year {year}")
+                if np.isnan(obs_anoms_year).all():
+                    print(f"All values are NaNs for year {year}")
+                    print(f"removing year {year} from the years array")
+                    obs_anoms = obs_anoms.drop_sel(time=f"{year}")
+
+        # Print the shape of the obs_anoms
+        print(f"obs_anoms.shape = {obs_anoms.shape}")
+
+        # Extract the obs_anoms as its values
+        obs_ts = obs_anoms.values
+
+        # Append the obs_ts to the ts_dict
+        ts_dict["obs_ts"] = obs_ts
+
+        # Swap the axes of the data
+        data = np.swapaxes(data, 0, 1)
+
+        # Print the shape of the data
+        print(f"data.shape = {data.shape}")
+        print(f"obs_anoms.shape = {obs_anoms.shape}")
+
+        # Assert that the data shape is as expected
+        assert data.shape[0] == len(years), "Data shape not as expected!"
+
+        # Assert that the shape of the lats
+        assert data.shape[2] == len(lats), "lats shape not as expected!"
+
+        # Assert that the shape of the lons
+        assert data.shape[3] == len(lons), "lons shape not as expected!"
+
+        # Print the shape of the modified data
+        print(f"modified model data.shape = {data.shape}")
+
+        # Constrain the data to the gridbox
+        data = data[:, :,
+                     lat1_idx:lat2_idx, lon1_idx:lon2_idx].mean(axis=(2, 3))
+        
+        # Print the shape of the data
+        print(f"model data members.shape = {data.shape}")
+
+        # Append the data to the ts_dict
+        ts_dict["fcst_ts_members"] = data
+
+        # Calculate the 5% lowest interval
+        ci_lower = np.percentile(data, 5, axis=0)
+
+        # Calculate the 95% highest interval
+        ci_upper = np.percentile(data, 95, axis=0)
+
+        # Append the ci_lower and ci_upper to the ts_dict
+        ts_dict["fcst_ts_min"] = ci_lower ; ts_dict["fcst_ts_max"] = ci_upper
+
+        # Calculate the mean of the data
+        data_mean = np.mean(data, axis=0)
+
+        # Append the data_mean to the ts_dict
+        ts_dict["fcst_ts_mean"] = data_mean
+
+        # Calculate the correlation between the obs_ts and fcst_ts_mean
+        corr, p = pearsonr(data_mean, obs_ts)
+
+        # Append the corr and p to the ts_dict
+        ts_dict["corr"] = corr ; ts_dict["p"] = p
+
+        # Calculate the standard deviation of the forecast time series
+        sig_f = np.std(data_mean) ; sig_o = np.std(obs_ts)
+
+        # Calculate th stdev of the members
+        sig_f_members = np.std(data)
+
+        # Calculate the rpc
+        rpc = corr * (sig_f / sig_f_members)
+
+        # Calculate the rps
+        rps = rpc * (sig_o / sig_f_members)
+
+        # Append the rpc and rps to the ts_dict
+        ts_dict["rpc"] = np.abs(rpc) ; ts_dict["rps"] = np.abs(rps)
+
+        # Append the nens to the ts_dict
+        ts_dict["nens"] = np.shape(data)[0]
+
+    else:
+        raise ValueError("Data dimensions are not as expected for alt_lag: ", alt_lag)
+    
+    # Return the ts_dict
+    return ts_dict
+
+
+# TODO: Write a function for plotting the time series
