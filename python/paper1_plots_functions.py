@@ -2216,8 +2216,6 @@ def load_ts_data(
     if alt_lag:
         # Set up the years
         years = np.arange(start_year + lag - 1, end_year + 1)
-    elif forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
-        years = np.arange(start_year, end_year)
     else:
         # Set up the years
         years = np.arange(start_year, end_year + 1)
@@ -2362,13 +2360,13 @@ def load_ts_data(
             # Squeeze the data
             data = np.squeeze(data)
 
-        # If years 2-9 and not winter (i.e. not shifted back)
-        if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
-            # Remove the final time step
-            data = data[:, :-1, :, :]
+        # # If years 2-9 and not winter (i.e. not shifted back)
+        # if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
+        #     # Remove the final time step
+        #     data = data[:, :-1, :, :]
 
         # Assert that the data shape is as expected
-        assert data.shape[1] == len(years), "Data shape not as expected!"
+        assert data.shape[1] == len(valid_years), "Data shape not as expected!"
 
         # Assert that the shape of the lats
         assert data.shape[2] == len(lats), "lats shape not as expected!"
@@ -2527,7 +2525,7 @@ def load_ts_data(
         print(f"obs_anoms.shape = {obs_anoms.shape}")
 
         # Assert that the data shape is as expected
-        assert data.shape[1] == len(years), "Data shape not as expected!"
+        assert data.shape[1] == len(valid_years), "Data shape not as expected!"
 
         # Assert that the shape of the lats
         assert data.shape[2] == len(lats), "lats shape not as expected!"
@@ -2680,8 +2678,8 @@ def plot_ts(
         ), "Years within constrain_years are not in init_years!"
 
         # Find the indices of constrain_years in init_years
-        idxs = [ts_dict["init_years"].index(year) for year in constrain_years]
-
+        idxs = [np.where(np.array(ts_dict["init_years"]) == year)[0][0] for year in constrain_years]
+        
         # Constrain the init_years to constrain_years
         ts_dict["init_years"] = [ts_dict["init_years"][idx] for idx in idxs]
 
