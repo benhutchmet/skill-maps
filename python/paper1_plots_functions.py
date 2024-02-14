@@ -1598,6 +1598,9 @@ def plot_diff_variables(bs_skill_maps: dict,
                             ncols=2,
                             figsize=(figsize_x, figsize_y))
     
+    # Adjust the whitespace
+    fig.subplots_adjust(hspace=0.1, wspace=0.1)
+    
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5) ; lats = np.arange(-90, 90, 2.5)
 
@@ -1771,6 +1774,9 @@ def plot_diff_variables(bs_skill_maps: dict,
 
     # Save the figure
     plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+
+    # # specify a tight layout
+    # plt.tight_layout()
 
     # Show the figure
     plt.show()
