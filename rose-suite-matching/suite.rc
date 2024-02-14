@@ -4,11 +4,11 @@
         match_var=psl,tas,sfcWind,rsds
         obs_var_name="msl"
         region="global"
-        season=DJFM
-        forecast_range=2-9
+        season=DJFM,ULG
+        forecast_range=2
         start_year="1961"
         end_year="2014"
-        lag="2"
+        lag="0"
         no_subset_members="20"
         method=alternate_lag
         nboot=100
