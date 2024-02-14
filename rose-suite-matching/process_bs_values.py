@@ -612,15 +612,25 @@ def main():
         else:
             raise ValueError("Forecast range not recognised. Please try again.")
         
+
+        # If the forecast range is 2
+        if forecast_range == "2":
+            # alt_lag_first_year = alt_lag_first_year + 1
+            # alt_lag_last_year = alt_lag_last_year + 1
+
+            # Set up the raw first and last years
+            raw_first_year = raw_first_year + 1
+            raw_last_year = raw_last_year + 1
+
         # Print the start and end years
         print("Start year alt lag:", alt_lag_first_year)
         print("End year alt lag:", alt_lag_last_year)
 
-        if forecast_range == "2":
-            common_years_alt_lag = np.arange(alt_lag_first_year + 1, (alt_lag_last_year + 1) + 1)
-        else:
-            # Set up common years
-            common_years_alt_lag = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+        print("Start year raw:", raw_first_year)
+        print("End year raw:", raw_last_year)
+
+        # Set up common years
+        common_years_alt_lag = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
 
         # Set up common years
         common_years_raw = np.arange(raw_first_year, raw_last_year + 1)
