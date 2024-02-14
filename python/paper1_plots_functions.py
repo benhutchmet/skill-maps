@@ -2106,7 +2106,7 @@ def load_ts_data(data: np.ndarray,
             data = data[:, :-1, :, :]
 
         # Assert that the data shape is as expected
-        assert data.shape[0] == len(years), "Data shape not as expected!"
+        assert data.shape[1] == len(years), "Data shape not as expected!"
 
         # Assert that the shape of the lats
         assert data.shape[2] == len(lats), "lats shape not as expected!"
@@ -2245,7 +2245,7 @@ def load_ts_data(data: np.ndarray,
         print(f"obs_anoms.shape = {obs_anoms.shape}")
 
         # Assert that the data shape is as expected
-        assert data.shape[0] == len(years), "Data shape not as expected!"
+        assert data.shape[1] == len(years), "Data shape not as expected!"
 
         # Assert that the shape of the lats
         assert data.shape[2] == len(lats), "lats shape not as expected!"
@@ -2313,3 +2313,53 @@ def load_ts_data(data: np.ndarray,
 
 
 # TODO: Write a function for plotting the time series
+def plot_ts(ts_dict: dict,
+            figsize_x: int = 10,
+            figsize_y: int = 12,
+            ):
+    """
+    Plot the time series data.
+
+    Inputs:
+    -------
+
+    ts_dict: dict
+        Dictionary containing the time series data to plot.
+        e.g. ts_dict = {"obs_ts": obs_ts,
+                        "fcst_ts_members": fcst_ts_members,
+                        "fcst_ts_min": fcst_ts_min,
+                        "fcst_ts_max": fcst_ts_max,
+                        "fcst_ts_mean": fcst_ts_mean,
+                        "init_years": init_years,
+                        "valid_years": valid_years,
+                        "nens": nens,
+                        "corr": corr,
+                        "p": p,
+                        "rpc": rpc,
+                        "rps": rps,
+                        "season": season,
+                        "forecast_range": forecast_range,
+                        "start_year": start_year,
+                        "end_year": end_year,
+                        "lag": lag,
+                        "variable": variable,
+                        "gridbox": gridbox,
+                        "gridbox_name": gridbox_name,
+                        "alt_lag": alt_lag,
+
+    figsize_x: int
+        Width of the figure in inches.
+        e.g. default is 10
+
+    figsize_y: int
+        Height of the figure in inches.
+        e.g. default is 12
+
+    Outputs:
+    --------
+
+    None
+    """
+
+    # Set up the mdi
+    
