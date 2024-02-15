@@ -92,7 +92,7 @@ def diagnose_swj_index(data_path: str,
                        season: str = 'JJA',
                        variable: str = 'u',
                        lon1: float = 320.0,
-                       lon2: float = 340.0,
+                       lon2: float = 360.0,
                        lat1: float = 90.0,
                        lat2: float = 0.0,
                        level: int = 300):
