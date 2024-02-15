@@ -265,6 +265,14 @@ pacific_grid_plot = {
     'lat2': 90
 }
 
+# Test pacific grid for the plot
+pacific_grid_plot_test = {
+    'lon1': 180,
+    'lon2': 360,
+    'lat1': 10,
+    'lat2': 90
+}
+
 # Set up a grid centred over the Rocky Mountains
 rocky_mountain_grid = {
     'lon1': -120,
