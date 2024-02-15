@@ -87,6 +87,8 @@ def calculate_climatology(
 
 # Write a function for diagnosing the SWJ index
 def diagnose_swj_index(data_path: str,
+                       start_year: int = 1940,
+                       end_year: int = 2020,
                        season: str = 'JJA',
                        variable: str = 'u',
                        lon1: float = 320.0,
@@ -104,6 +106,12 @@ def diagnose_swj_index(data_path: str,
     
     data_path: str
         Path to the data.
+
+    start_year: int
+        Start year for the SWJ index calculation.
+
+    end_year: int
+        End year for the SWJ index calculation.
         
     variable: str
         Variable to calculate the SWJ index for.
@@ -141,6 +149,9 @@ def diagnose_swj_index(data_path: str,
     # Assert that only the specified months are in the data
     assert all(month in data['time.month'].values for month in months), 'The specified months are not in the data.'
 
+    # Select the variable
+    data = data[variable]
+
     # Select the level
     data = data.sel(level=level)
 
@@ -150,10 +161,38 @@ def diagnose_swj_index(data_path: str,
     # Calculate the annual mean
     data = data.groupby('time.year').mean(dim='time')
 
-    # Calculate the SWJ index
-    # Find the latitude of peak magnitudes of 300-hPa zonal winds averaged over 320°E–340°E
-    swj_index = data.mean(dim='lon').max(dim='lat')
+    # Extract the latitudes from the data
+    lats = data['latitude'].values
 
+    # Print the shape of the data
+    print(lats.shape)
+
+    # Take the mean over the longitudes
+    data = data.mean(dim='longitude')
+
+    # Extract the data as a numpy array
+    data = data.values
+
+    # Print the shape of the data
+    print(data.shape)
+
+    # Find the indices of the maximum values for the second dimension, for each year
+    indices = np.argmax(data, axis=1)
+
+    # Extract the latitudes of the maximum values
+    swj_index = lats[indices]
+
+    # print the shape of the swj_index
+    print(swj_index.shape)
+
+    print(swj_index)
+
+    # Create a time coordinate
+    years = np.arange(start_year, end_year)
+
+    # Set up the pandas dataframe
+    swj_index = pd.DataFrame(swj_index, index=years)
+    
     return swj_index
 
 
