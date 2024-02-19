@@ -544,6 +544,8 @@ def main():
         # if the season is ULG, change it to JJA
         if season == "ULG":
             season = "JJA"
+        elif season == "AYULGS":
+            season = "AMJJAS"
         elif season == "MAY":
             season = "MAM"
 

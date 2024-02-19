@@ -673,6 +673,10 @@ def select_season(regridded_obs_dataset_region, season):
             months = [11, 12, 1, 2]
         elif season == "DJFM":
             months = [12, 1, 2, 3]
+        elif season == "ONDJFM":
+            months = [10, 11, 12, 1, 2, 3]
+        elif season == "AMJJAS":
+            months = [4, 5, 6, 7, 8, 9]
         else:
             raise ValueError("Invalid season")
 
