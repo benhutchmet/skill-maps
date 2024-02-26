@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=sub-alt-lag
+#SBATCH --job-name=sub-boot
 #SBATCH --partition=high-mem
 #SBATCH --mem=30000
 #SBATCH --time=2400:00
