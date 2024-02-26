@@ -168,6 +168,20 @@ season_month_map = {
     "AMJJAS": [4, 5, 6, 7, 8, 9],
 }
 
+pr_models = [
+    "BCC-CSM2-MR",
+    "MPI-ESM1-2-HR",
+    "CanESM5",
+    "CMCC-CM2-SR5",
+    "HadGEM3-GC31-MM",
+    "MPI-ESM1-2-LR",
+    "FGOALS-f3-L",
+    "MIROC6",
+    "IPSL-CM6A-LR",
+    "NorCPM1",
+]
+
+
 # Define a dictionary to set up the matching historical models
 # for the different variables
 historical_models_map = {
@@ -176,6 +190,7 @@ historical_models_map = {
     "sfcWind": sfcWind_models_historical,
     "rsds": rsds_models_historical,
     "ua": historical_models_ua,
+    "pr": pr_models,
 }
 
 

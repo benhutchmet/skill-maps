@@ -85,6 +85,8 @@ def match_variable_models(match_var):
         match_var_models = dic.models
     elif match_var in ["ua", "va"]:
         match_var_models = dic.common_models_noIPSL_noCan
+    elif match_var in ["pr"]:
+        match_var_models = dic.pr_models
     else:
         print("The variable is not supported for NAO matching.")
         sys.exit()
@@ -106,6 +108,8 @@ def find_obs_path(match_var):
         obs_path = dic.obs
     elif match_var in ["ua", "va"]:
         obs_path = dic.obs_ua_va
+    elif match_var in ["pr"]:
+        obs_path = dic.obs_pr
     else:
         print("The variable is not supported for NAO matching.")
         sys.exit()
@@ -572,12 +576,16 @@ def main():
                     # Initialize an empty list
                     ensemble_members_mv_dict[key] = {
                         f"{match_var}_field": [],
-                        "years": []
+                        "years": [],
                     }
 
                 # Append the time series and years to the dictionary
-                ensemble_members_mv_dict[key][f"{match_var}_field"].append(member.values)
-                ensemble_members_mv_dict[key]["years"].append(member.time.dt.year.values)
+                ensemble_members_mv_dict[key][f"{match_var}_field"].append(
+                    member.values
+                )
+                ensemble_members_mv_dict[key]["years"].append(
+                    member.time.dt.year.values
+                )
 
                 # Increment the counter
                 counter += 1
@@ -635,10 +643,7 @@ def main():
                 # If the key is not in the dictionary
                 if key not in ensemble_members_dict:
                     # Initialize an empty list
-                    ensemble_members_dict[key] = {
-                        "spna": [],
-                        "years": []
-                    }
+                    ensemble_members_dict[key] = {"spna": [], "years": []}
 
                 # Append the time series and years to the dictionary
                 ensemble_members_dict[key]["spna"].append(member.values)
@@ -688,7 +693,7 @@ def main():
                 assert np.array_equal(
                     years, years1
                 ), "The years are not the same as years1."
-                
+
                 # Find the index of the year
                 year_index = np.where(years == year)[0][0]
 
@@ -702,7 +707,7 @@ def main():
                 spna_diff_year = np.abs(spna_value_year - spna_value_mean)
 
                 # Add the difference to the dictionary
-                spna_diff[year].append((spna_diff_year,key))
+                spna_diff[year].append((spna_diff_year, key))
 
             # Print
             print("Completed the SPNA matching for year:", year)
@@ -712,9 +717,13 @@ def main():
             spna_diff[year] = sorted(spna_diff[year])[:no_subset_members]
 
             # Print
-            print("Now extracting the SPNA matched members for year:",
-                   year, "from the match var",
-                     match_var, "data.")
+            print(
+                "Now extracting the SPNA matched members for year:",
+                year,
+                "from the match var",
+                match_var,
+                "data.",
+            )
             # TODO: Select these members from the model data
             # Extract the spna_diff for the given year
             spna_diff_year = spna_diff[year]
@@ -729,7 +738,9 @@ def main():
 
                 # Select the member from ensemble_members_mv_dict
                 # using the model and variant
-                spna_matched_member = ensemble_members_mv_dict[(model, variant)][f"{match_var}_field"][0][year_index]
+                spna_matched_member = ensemble_members_mv_dict[(model, variant)][
+                    f"{match_var}_field"
+                ][0][year_index]
 
                 # Append the member to the list
                 spna_matched_members[year].append(spna_matched_member)
@@ -739,6 +750,7 @@ def main():
 
         # Print the spna_matched_members dictionary for debugging
         print("spna_matched_members:", spna_matched_members)
+
 
 if __name__ == "__main__":
     main()
