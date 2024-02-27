@@ -40,7 +40,8 @@ import iris.quickplot as qplt
 
 # Import CDO
 from cdo import *
-cdo = Cdo()
+
+# cdo = Cdo()
 
 # # Import specific functions
 # from nao_skill_functions import calculate_spna_index

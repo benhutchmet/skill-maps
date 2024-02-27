@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=sub-boot
-#SBATCH --partition=high-mem
+#SBATCH --partition=short-serial
 #SBATCH --mem=30000
-#SBATCH --time=2400:00
+#SBATCH --time=500:00
 #SBATCH -o /home/users/benhutch/lagging-NAO-test-suite/logs/submit-bs-%A_%a.out
 #SBATCH -e /home/users/benhutch/lagging-NAO-test-suite/logs/submit-bs-%A_%a.err
 #SBATCH --mail-user=benwhutchins25@gmail.com
