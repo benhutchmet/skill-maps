@@ -281,6 +281,16 @@ central_europe_grid = {"lon1": -10, "lon2": 25, "lat1": 36, "lat2": 65}
 # define the uk grid from Clarke et al. 2017
 uk_grid = {"lon1": -10, "lon2": 3, "lat1": 50, "lat2": 60}
 
+north_sea_kay = {
+    "lon1": 1,  # degrees east
+    "lon2": 7,
+    "lat1": 53,  # degrees north
+    "lat2": 59,
+}
+
+# define the Norway grid
+norway_grid = {"lon1": 4, "lon2": 16, "lat1": 58, "lat2": 71}
+
 # define a grid to plot for the north atlantic
 north_atlantic_grid_plot = {"lon1": -70, "lon2": 40, "lat1": 20, "lat2": 90}
 

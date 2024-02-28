@@ -1,11 +1,11 @@
 [cylc]
     UTC mode = True # Ignore DST
     [[parameters]]
-        match_var=psl
+        match_var=pr
         obs_var_name="msl"
         region="global"
         season=ONDJFM,AYULGS
-        forecast_range=2
+        forecast_range=2,2-5,2-9
         start_year="1961"
         end_year="2014"
         lag="4"
