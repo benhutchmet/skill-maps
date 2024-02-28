@@ -1955,16 +1955,40 @@ def plot_diff_variables(
             fontsize=8,
         )
 
+        # Extract the first part of the key
+        key = key[0]
+
+        # If this is tas
+        if key == "tas":
+            # Set the variable
+            var_name = "Temperature"
+        elif key == "pr":
+            # Set the variable
+            var_name = "Precipitation"
+        elif key == "psl":
+            # Set the variable
+            var_name = "Sea level pressure"
+        elif key == "sfcWind":
+            # Set the variable
+            var_name = "10m wind speed"
+        elif key == "rsds":
+            # Set the variable
+            var_name = "Solar irradiance"
+        else:
+            # Print the key
+            print(f"key = {key}")
+            AssertionError("Variable not recognised!")
+
         # Add a textboc with the variable name in the top left
         ax.text(
             0.05,
             0.95,
-            f"{key}",
+            f"{var_name}",
             transform=ax.transAxes,
             va="top",
             ha="left",
             bbox=dict(facecolor="white", alpha=0.5),
-            fontsize=8,
+            fontsize=10,
         )
 
         # Include the number of ensemble members in the top right of the figure
@@ -2678,8 +2702,11 @@ def plot_ts(
         ), "Years within constrain_years are not in init_years!"
 
         # Find the indices of constrain_years in init_years
-        idxs = [np.where(np.array(ts_dict["init_years"]) == year)[0][0] for year in constrain_years]
-        
+        idxs = [
+            np.where(np.array(ts_dict["init_years"]) == year)[0][0]
+            for year in constrain_years
+        ]
+
         # Constrain the init_years to constrain_years
         ts_dict["init_years"] = [ts_dict["init_years"][idx] for idx in idxs]
 
@@ -2720,7 +2747,6 @@ def plot_ts(
         ts_dict["rpc"] = np.abs(rpc)
         ts_dict["rps"] = np.abs(rps)
 
-
     # Set up the figure
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
 
@@ -2747,22 +2773,12 @@ def plot_ts(
         # Calculate the trendline for the forecast timeseries
         z_fcst = np.polyfit(ts_dict["init_years"], ts_dict["fcst_ts_mean"], 1)
         p_fcst = np.poly1d(z_fcst)
-        ax.plot(
-            ts_dict["init_years"],
-            p_fcst(ts_dict["init_years"]),
-            "r--",
-            alpha=0.5
-        )
+        ax.plot(ts_dict["init_years"], p_fcst(ts_dict["init_years"]), "r--", alpha=0.5)
 
         # Calculate the trendline for the obs_ts
         z_obs = np.polyfit(ts_dict["init_years"], ts_dict["obs_ts"], 1)
         p_obs = np.poly1d(z_obs)
-        ax.plot(
-            ts_dict["init_years"],
-            p_obs(ts_dict["init_years"]),
-            "k--",
-            alpha=0.5
-        )
+        ax.plot(ts_dict["init_years"], p_obs(ts_dict["init_years"]), "k--", alpha=0.5)
 
         # Include the slopes of the trendlines in a textbox
         ax.text(
