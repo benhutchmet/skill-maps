@@ -41,7 +41,7 @@ import iris.quickplot as qplt
 # Import CDO
 from cdo import *
 
-# cdo = Cdo()
+cdo = Cdo()
 
 # # Import specific functions
 # from nao_skill_functions import calculate_spna_index
@@ -551,6 +551,11 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
     xarray.Dataset: The regridded and selected observations dataset.
     """
 
+    # FIXME:
+    # By default set level to None
+    if level is not None:
+        level = None
+
     # First choose the gridspec file based on the region
     gridspec_path = "/home/users/benhutch/gridspec"
 
@@ -588,9 +593,11 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
         obs_var_name = "var131"
     elif obs_var_name in ["va"]:
         obs_var_name = "var132"
+    elif obs_var_name in ["pr"]:
+        obs_var_name = "var228"
 
     # If the variable is ua or va, then we want to select the plev=85000
-    if obs_var_name in ["ua", "va", "var131", "var132"]:
+    if obs_var_name in ["ua", "va", "var131", "var132", "var228", "pr"]:
         print("Variable is ua or va, creating new file name")
         if level is not None:
             regrid_sel_region_file = (
@@ -618,6 +625,9 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
             "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region" + ".nc"
         )
 
+    # print the regrid_sel_region_file
+    print("Regrid and select region file:", regrid_sel_region_file)
+
     # Check if the output file already exists
     # If it does, then exit the program
     if os.path.exists(regrid_sel_region_file):
@@ -644,8 +654,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
         "va",
         "var131",
         "var132",
+        "var228",
+        "pr",
     ]:
-        print("Invalid variable name")
+        print("Invalid variable name:", obs_var_name)
         sys.exit()
 
     # Translate the variable name to the name used in the obs dataset
@@ -669,6 +681,10 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
         obs_var_name = "var131"
     elif obs_var_name == "var132":
         obs_var_name = "var132"
+    elif obs_var_name == "pr":
+        obs_var_name = "var228"
+    elif obs_var_name == "var228":
+        obs_var_name = "var228"
     else:
         print("Invalid variable name")
         sys.exit()
@@ -691,7 +707,8 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
                 regrid_sel_region_dataset_combine = xr.open_dataset(
                     regrid_sel_region_file, chunks={"time": 100, "lat": 100, "lon": 100}
                 )[obs_var_name]
-        else:
+        # Elif expver is a dimension in the dataset
+        elif "expver" in xr.open_dataset(regrid_sel_region_file).dims:
 
             # Load the dataset for the selected variable
             regrid_sel_region_dataset = xr.open_mfdataset(
@@ -707,6 +724,12 @@ def regrid_and_select_region(observations_path, region, obs_var_name, level=None
             regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(
                 expver=1
             ).combine_first(regrid_sel_region_dataset.sel(expver=5))
+
+        else:
+            # Load the dataset for the selected variable
+            regrid_sel_region_dataset_combine = xr.open_dataset(
+                regrid_sel_region_file, chunks={"time": 100, "lat": 100, "lon": 100}
+            )[obs_var_name]
 
         return regrid_sel_region_dataset_combine
 

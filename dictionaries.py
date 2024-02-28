@@ -181,6 +181,9 @@ pr_models = [
     "NorCPM1",
 ]
 
+# Observations for pr
+# Convert to .nc first
+obs_pr = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1708982310.3666325-24382-12-6f0e95b3-7128-4ad4-8bc6-416040163640.nc"
 
 # Define a dictionary to set up the matching historical models
 # for the different variables
@@ -213,6 +216,8 @@ var_name_map = {
     "va": "var132",
     "var131": "var131",
     "var132": "var132",
+    "pr": "var228",
+    "var228": "var228",
 }
 
 season_map = {"1": "DJFM", "2": "MAM", "3": "JJA", "4": "SON"}

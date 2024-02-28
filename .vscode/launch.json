@@ -55,14 +55,14 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "tas",
+                "pr",
                 "msl",
                 "global",
-                "DJFM",
-                "2",
+                "ONDJFM",
+                "2-9",
                 "1961",
                 "2014", // short period for testing
-                "0",
+                "4",
                 "20",
                 "alternate_lag",
                 "1",
