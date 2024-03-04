@@ -67,7 +67,8 @@
                 "alternate_lag",
                 "1",
                 "100000",
-                "False" // use the full period
+                "False", // use the full period
+                "True" // NAO matching
             ]
         }
     ]
