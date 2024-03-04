@@ -55,7 +55,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "pr",
+                "sfcWind",
                 "msl",
                 "global",
                 "ONDJFM",

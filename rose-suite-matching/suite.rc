@@ -1,24 +1,25 @@
 [cylc]
     UTC mode = True # Ignore DST
     [[parameters]]
-        match_var=pr
+        match_var=pr,sfcWind,tas,rsds
         obs_var_name="msl"
         region="global"
-        season=ONDJFM,AYULGS
-        forecast_range=2,2-5,2-9
+        season=ONDJFM
+        forecast_range=2-9
         start_year="1961"
         end_year="2014"
         lag="4"
         no_subset_members="20"
         method=alternate_lag
-        nboot=100
+        nboot=10
         level="100000"
         full_period="False"
+        nao_matched="True"
 
 [scheduling]
     [[dependencies]]
         graph = """
-        process_bootstrap<match_var><obs_var_name><region><season><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot><level><full_period>
+        process_bootstrap<match_var><obs_var_name><region><season><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot><level><full_period><nao_matched>
         """
 
 [runtime]
@@ -30,11 +31,11 @@
         [[[directives]]]
             --partition=high-mem
 	        --mem=30000
-    [[process_bootstrap<match_var><obs_var_name><region><season><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot><level><full_period>]]
+    [[process_bootstrap<match_var><obs_var_name><region><season><forecast_range><start_year><end_year><lag><no_subset_members><method><nboot><level><full_period><nao_matched>]]
         script = """
         module load jaspy/3.10/r20230718
         cd ${CYLC_SUITE_RUN_DIR}/
-        python process_bs_values.py ${CYLC_TASK_PARAM_match_var} ${CYLC_TASK_PARAM_obs_var_name} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members} ${CYLC_TASK_PARAM_method} ${CYLC_TASK_PARAM_nboot} ${CYLC_TASK_PARAM_level} ${CYLC_TASK_PARAM_full_period}
+        python process_bs_values.py ${CYLC_TASK_PARAM_match_var} ${CYLC_TASK_PARAM_obs_var_name} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members} ${CYLC_TASK_PARAM_method} ${CYLC_TASK_PARAM_nboot} ${CYLC_TASK_PARAM_level} ${CYLC_TASK_PARAM_full_period} ${CYLC_TASK_PARAM_nao_matched}
         """
         [[[job]]]
             execution time limit = PT2400M

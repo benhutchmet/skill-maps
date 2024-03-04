@@ -681,7 +681,7 @@ def main():
             nao_m_filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}_20_*_nao_matched_members.npy"
 
             # Find the files matching the filename
-            nao_m_files = glob.glob(os.join(alt_lag_dir, nao_m_filename))
+            nao_m_files = glob.glob(os.path.join(alt_lag_dir, nao_m_filename))
 
             # If there is more than one file
             if len(nao_m_files) > 1:
@@ -692,8 +692,7 @@ def main():
 
                 # Convert the datetimes to datetimes using pandas
                 datetimes = [
-                    pd.to_datetime(datetime, format="%Y%m%d%H%M%S")
-                    for datetime in datetimes
+                    pd.to_datetime(datetime, unit="s") for datetime in datetimes
                 ]
 
                 # Find the latest datetime
