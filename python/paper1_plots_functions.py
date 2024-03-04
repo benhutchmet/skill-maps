@@ -1525,8 +1525,15 @@ def check_bootstraps_exist(
                 f"no_bootstraps_{nboot}",
             )
 
-            # Assert that this directory exists and is not empty
-            assert os.path.isdir(base_path), f"Directory {base_path} does not exist!"
+            # # Assert that this directory exists and is not empty
+            # assert os.path.isdir(base_path), f"Directory {base_path} does not exist!"
+
+            # If the directory does not exist
+            if not os.path.isdir(base_path):
+                print(f"Directory {base_path} does not exist!")
+
+                # continue to the next iteration
+                continue
 
             # Set up the key for the files_available dictionary
             key = (meth, var, f"nboot_{nboot}")
@@ -1547,7 +1554,7 @@ def create_bs_dict(
     no_bootstraps: list,
     season: str,
     forecast_range: str,
-    method: str,
+    methods: list,
     region: str = "global",
     base_dir: str = "/gws/nopw/j04/canari/users/benhutch/bootstrapping",
 ):
@@ -1579,7 +1586,7 @@ def create_bs_dict(
 
     method: list
         List of methods to process.
-        e.g. ["raw", "alt_lag"]
+        e.g. ["raw", "alt_lag", "alt_lag2"]
 
     base_dir: str
         Base directory to process.
@@ -1612,7 +1619,7 @@ def create_bs_dict(
     }
 
     # Loop over the variables and nboot
-    for var, nboot in zip(variables, no_bootstraps):
+    for var, nboot, method in zip(variables, no_bootstraps, methods):
         print(f"Processing variable {var}...")
         print(f"Processing {nboot} bootstraps...")
 
@@ -1665,16 +1672,34 @@ def create_bs_dict(
             file for file in os.listdir(base_path) if f"start_end_years_{var}" in file
         ]
 
-        # Assert that the length of each of these lists is equal to 1
-        for file in [
-            corr1_file,
-            corr1_p_file,
-            fcst1_ts_file,
-            obs_ts_file,
-            nens1_file,
-            start_end_years_file,
-        ]:
-            assert len(file) == 1, f"Length of file list is not equal to 1"
+        # if start_end_years_file is empty
+        if not start_end_years_file:
+            # Find the file ending in "common_years.npy"
+            common_years_file = [
+                file for file in os.listdir(base_path) if "common_years.npy" in file
+            ]
+
+            # Asserrt that the length of each of the lists is equal to 1
+            for file in [
+                corr1_file,
+                corr1_p_file,
+                fcst1_ts_file,
+                obs_ts_file,
+                nens1_file,
+                common_years_file,
+            ]:
+                assert len(file) == 1, f"Length of file list is not equal to 1"
+        else:
+            # Assert that the length of each of these lists is equal to 1
+            for file in [
+                corr1_file,
+                corr1_p_file,
+                fcst1_ts_file,
+                obs_ts_file,
+                nens1_file,
+                start_end_years_file,
+            ]:
+                assert len(file) == 1, f"Length of file list is not equal to 1"
 
         # Load the files
         corr1 = np.load(os.path.join(base_path, corr1_file[0]))
@@ -1691,15 +1716,23 @@ def create_bs_dict(
         # Load the files
         nens1 = np.loadtxt(os.path.join(base_path, nens1_file[0])).astype(int)
 
-        # Load the files
-        start_year = np.loadtxt(
-            os.path.join(base_path, start_end_years_file[0])
-        ).astype(int)
+        if not start_end_years_file:
+            # load the common years file
+            common_years = np.load(os.path.join(base_path, common_years_file[0]))
 
-        # Load the files
-        end_year = np.loadtxt(os.path.join(base_path, start_end_years_file[0])).astype(
-            int
-        )
+            # Extract the start and end years
+            start_year = common_years[0].astype(int)
+            end_year = common_years[1].astype(int)
+        else:
+            # Load the files
+            start_year = np.loadtxt(
+                os.path.join(base_path, start_end_years_file[0])
+            ).astype(int)
+
+            # Load the files
+            end_year = np.loadtxt(
+                os.path.join(base_path, start_end_years_file[0])
+            ).astype(int)
 
         # Add the values to the skill_maps dictionary
         skill_maps["corr1"] = corr1
