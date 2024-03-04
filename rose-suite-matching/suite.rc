@@ -11,7 +11,7 @@
         lag="4"
         no_subset_members="20"
         method=alternate_lag
-        nboot=10
+        nboot=100
         level="100000"
         full_period="False"
         nao_matched="True"
