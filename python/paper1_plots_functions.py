@@ -1769,11 +1769,16 @@ def plot_diff_variables(
     bs_skill_maps: dict,
     season: str,
     forecast_range: str,
+    methods: list = None,
     figsize_x: int = 10,
     figsize_y: int = 12,
     gridbox_corr: dict = None,
     gridbox_plot: dict = None,
     sig_threshold: float = 0.05,
+    winter_n_gridbox_corr: dict = dicts.iceland_grid_corrected,
+    winter_s_gridbox_corr: dict = dicts.azores_grid_corrected,
+    summer_n_gridbox_corr: dict = dicts.snao_north_grid,
+    summer_s_gridbox_corr: dict = dicts.snao_south_grid,
 ):
     """
     Plot the skill maps for different variables as a 2x2 grid.
@@ -1795,6 +1800,10 @@ def plot_diff_variables(
         Forecast range to process.
         e.g. "2-9"
 
+    methods: list
+        List of methods to process.
+        Default is None.
+
     figsize_x: int
         Width of the figure in inches.
         e.g. default is 10
@@ -1815,6 +1824,22 @@ def plot_diff_variables(
         Significance threshold for the correlation coefficients.
         e.g. default is 0.05
 
+    winter_n_gridbox_corr: dict
+        Dictionary containing the gridbox for which to calculate the correlation.
+        e.g. default is dicts.iceland_grid_corrected
+
+    winter_s_gridbox_corr: dict
+        Dictionary containing the gridbox for which to calculate the correlation.
+        e.g. default is dicts.azores_grid_corrected
+
+    summer_n_gridbox_corr: dict
+        Dictionary containing the gridbox for which to calculate the correlation.
+        e.g. default is dicts.snao_north_grid
+
+    summer_s_gridbox_corr: dict
+        Dictionary containing the gridbox for which to calculate the correlation.
+        e.g. default is dicts.snao_south_grid
+
     Outputs:
     --------
 
@@ -1822,13 +1847,17 @@ def plot_diff_variables(
     """
 
     # Set up the axis labels
-    axis_labels = ["a", "b", "c", "d"]
+    axis_labels = ["a", "b", "c", "d", "e", "f"]
 
     # Set up the projection
     proj = ccrs.PlateCarree()
 
+    # Set the nrows depending on the number of keys in the bs_skill_maps dictionary
+    # e.g. if this is 5 then nrows = 3
+    nrows = int(np.ceil(len(bs_skill_maps.keys()) / 2))
+
     # Set up the figure
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(figsize_x, figsize_y))
+    fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(figsize_x, figsize_y))
 
     # Adjust the whitespace
     fig.subplots_adjust(hspace=0.1, wspace=0.1)
@@ -1914,7 +1943,7 @@ def plot_diff_variables(
             corr1_p = corr1_p[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
 
         # Set up the axes
-        ax = plt.subplot(2, 2, i + 1, projection=proj)
+        ax = plt.subplot(nrows, 2, i + 1, projection=proj)
 
         # Include coastlines
         ax.coastlines()
@@ -1925,11 +1954,15 @@ def plot_diff_variables(
         # Set up the cf object
         cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
 
+        # Extract the variable name from the key
+        variable = key[0]
+
         # If gridbox_corr is not None
-        if gridbox_corr is not None:
+        if gridbox_corr is not None and variable != "psl":
             # Loggging
             print("Calculating the correlations with a specific gridbox...")
             print("As defined by gridbox_corr = ", gridbox_corr)
+            print("Variable is not psl")
 
             # Constrain the ts to the gridbox_corr
             fcst1_ts = fcst1_ts[
@@ -1964,6 +1997,105 @@ def plot_diff_variables(
                 linewidth=2,
                 transform=proj,
             )
+        elif gridbox_corr is not None and variable == "psl":
+            print("Calculating the correlations for NAO gridboxes...")
+            print("For variable psl")
+
+            # Depending on the season
+            if season in ["ONDJFM", "DJFM"]:
+                s_grid = winter_s_gridbox_corr
+                n_grid = winter_n_gridbox_corr
+            elif season == ["AMJJAS", "ULG", "JJA"]:
+                s_grid = summer_s_gridbox_corr
+                n_grid = summer_n_gridbox_corr
+            else:
+                raise AssertionError(f"Season: {season} not recognised!")
+
+            # Extract the lats and lons from the gridbox_corr n
+            lon1_corr_n, lon2_corr_n = n_grid["lon1"], n_grid["lon2"]
+            lat1_corr_n, lat2_corr_n = n_grid["lat1"], n_grid["lat2"]
+
+            # Extract the lats and lons from the gridbox_corr s
+            lon1_corr_s, lon2_corr_s = s_grid["lon1"], s_grid["lon2"]
+            lat1_corr_s, lat2_corr_s = s_grid["lat1"], s_grid["lat2"]
+
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_corr_n = np.argmin(np.abs(lats - lat1_corr_n))
+            lat2_idx_corr_n = np.argmin(np.abs(lats - lat2_corr_n))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_corr_n = np.argmin(np.abs(lons - lon1_corr_n))
+            lon2_idx_corr_n = np.argmin(np.abs(lons - lon2_corr_n))
+
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_corr_s = np.argmin(np.abs(lats - lat1_corr_s))
+            lat2_idx_corr_s = np.argmin(np.abs(lats - lat2_corr_s))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_corr_s = np.argmin(np.abs(lons - lon1_corr_s))
+            lon2_idx_corr_s = np.argmin(np.abs(lons - lon2_corr_s))
+
+            # Constrain the ts to the gridbox_corr
+            fcst1_ts_n = fcst1_ts[
+                :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+            ]
+            obs_ts_n = obs_ts[
+                :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+            ]
+
+            # Constrain the ts to the gridbox_corr
+            fcst1_ts_s = fcst1_ts[
+                :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+            ]
+            obs_ts_s = obs_ts[
+                :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+            ]
+
+            # Calculate the mean of both time series
+            fcst1_ts_mean_n = np.mean(fcst1_ts_n, axis=(1, 2))
+            obs_ts_mean_n = np.mean(obs_ts_n, axis=(1, 2))
+
+            # Calculate the mean of both time series
+            fcst1_ts_mean_s = np.mean(fcst1_ts_s, axis=(1, 2))
+            obs_ts_mean_s = np.mean(obs_ts_s, axis=(1, 2))
+
+            # Calculate the correlation between the two time series
+            r_n, p_n = pearsonr(fcst1_ts_mean_n, obs_ts_mean_n)
+            r_s, p_s = pearsonr(fcst1_ts_mean_s, obs_ts_mean_s)
+
+            # Show these values on the plot
+            ax.text(
+                0.05,
+                0.05,
+                "N: r = {r_n:.2f}, p = {p_n:.2f}\nS: r = {r_s:.2f}, p = {p_s:.2f}".format(
+                    r_n=r_n, p_n=p_n, r_s=r_s, p_s=p_s
+                ),
+                transform=ax.transAxes,
+                va="bottom",
+                ha="left",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
+
+            # Add the gridbox to the plot
+            ax.plot(
+                [lon1_corr_n, lon2_corr_n, lon2_corr_n, lon1_corr_n, lon1_corr_n],
+                [lat1_corr_n, lat1_corr_n, lat2_corr_n, lat2_corr_n, lat1_corr_n],
+                color="green",
+                linewidth=2,
+                transform=proj,
+            )
+
+            # Add the gridbox to the plot
+            ax.plot(
+                [lon1_corr_s, lon2_corr_s, lon2_corr_s, lon1_corr_s, lon1_corr_s],
+                [lat1_corr_s, lat1_corr_s, lat2_corr_s, lat2_corr_s, lat1_corr_s],
+                color="green",
+                linewidth=2,
+                transform=proj,
+            )
+        else:
+            AssertionError("gridbox_corr is None!")
 
         # If any of the corr1 values are NaNs
         # then set the p values to NaNs at the same locations
@@ -2024,17 +2156,46 @@ def plot_diff_variables(
             fontsize=10,
         )
 
-        # Include the number of ensemble members in the top right of the figure
-        ax.text(
-            0.95,
-            0.95,
-            f"n = {nens1}",
-            transform=ax.transAxes,
-            va="top",
-            ha="right",
-            bbox=dict(facecolor="white", alpha=0.5),
-            fontsize=8,
-        )
+        if methods is not None:
+            # If the list contains alt_lag
+            if "alt_lag" in methods:
+                # Replace alt_lag with lagged, where alt_lag is found
+                methods = [method.replace("alt_lag", "Lagged") for method in methods]
+            elif "nao_matched" in methods:
+                # Replace nao_matched with NAO-matched, where nao_matched is found
+                methods = [
+                    method.replace("nao_matched", "NAO-matched") for method in methods
+                ]
+            elif "raw" in methods:
+                # Replace raw with Raw, where raw is found
+                methods = [method.replace("raw", "Raw") for method in methods]
+            else:
+                # AssertionError
+                AssertionError("Method not recognised!")
+
+            # Include the method in the top right of the figure
+            ax.text(
+                0.95,
+                0.95,
+                f"{methods[i]} ({nens1})",
+                transform=ax.transAxes,
+                va="top",
+                ha="right",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
+        else:
+            # Include the number of ensemble members in the top right of the figure
+            ax.text(
+                0.95,
+                0.95,
+                f"n = {nens1}",
+                transform=ax.transAxes,
+                va="top",
+                ha="right",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
 
         # Add the contourf object to the list
         cf_list.append(cf)
@@ -2044,6 +2205,12 @@ def plot_diff_variables(
 
     # # Remove content from the 4th axis
     # axs[1, 1].remove()
+
+    # If nrows is 3 and len(bs_skill_maps.keys()) is 5
+    # then remove the 5th axis
+    if nrows == 3 and len(bs_skill_maps.keys()) == 5:
+        # Remove the 5th axis
+        axs[2, 1].remove()
 
     # Add a colorbar
     cbar = fig.colorbar(
