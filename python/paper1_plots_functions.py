@@ -1866,8 +1866,16 @@ def plot_diff_variables(
     lons = np.arange(-180, 180, 2.5)
     lats = np.arange(-90, 90, 2.5)
 
+    # Extract the first variable name from bs_skill_maps
+    # Extract the first element for each of the tuple keys
+    variables = list(bs_skill_maps.keys())
+    variables = [var[0] for var in variables]
+
+    # print the variables
+    print(f"variables = {variables}")
+
     # If the gridbox_corr is not None
-    if gridbox_corr is not None:
+    if gridbox_corr is not None and "psl" in variables:
         # Extract the lats and lons from the gridbox_corr
         lon1_corr, lon2_corr = gridbox_corr["lon1"], gridbox_corr["lon2"]
         lat1_corr, lat2_corr = gridbox_corr["lat1"], gridbox_corr["lat2"]
@@ -1879,6 +1887,56 @@ def plot_diff_variables(
         # find the indices of the lons which correspond to the gridbox
         lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
         lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+
+        # Depending on the season
+        if season in ["ONDJFM", "DJFM", "DJF"]:
+            # Set up the the southern gridbox
+            s_grid = winter_s_gridbox_corr
+            n_grid = winter_n_gridbox_corr
+        elif season in ["JJA", "JJAS", "JAS", "AMJJAS", "ULG"]:
+            # Set up the the southern gridbox
+            s_grid = summer_s_gridbox_corr
+            n_grid = summer_n_gridbox_corr
+        else:
+            raise ValueError("Season not recognised!")
+
+        # Extract the lats and lons from the gridbox_corr
+        lon1_corr_n, lon2_corr_n = n_grid["lon1"], n_grid["lon2"]
+        lat1_corr_n, lat2_corr_n = n_grid["lat1"], n_grid["lat2"]
+
+        # find the indices of the lats which correspond to the gridbox
+        lon1_corr_s, lon2_corr_s = s_grid["lon1"], s_grid["lon2"]
+        lat1_corr_s, lat2_corr_s = s_grid["lat1"], s_grid["lat2"]
+
+        # find the indices of the lats which correspond to the gridbox
+        lat1_idx_corr_n = np.argmin(np.abs(lats - lat1_corr_n))
+        lat2_idx_corr_n = np.argmin(np.abs(lats - lat2_corr_n))
+
+        # find the indices of the lons which correspond to the gridbox
+        lon1_idx_corr_n = np.argmin(np.abs(lons - lon1_corr_n))
+        lon2_idx_corr_n = np.argmin(np.abs(lons - lon2_corr_n))
+
+        # find the indices of the lats which correspond to the gridbox
+        lat1_idx_corr_s = np.argmin(np.abs(lats - lat1_corr_s))
+        lat2_idx_corr_s = np.argmin(np.abs(lats - lat2_corr_s))
+
+        # find the indices of the lons which correspond to the gridbox
+        lon1_idx_corr_s = np.argmin(np.abs(lons - lon1_corr_s))
+        lon2_idx_corr_s = np.argmin(np.abs(lons - lon2_corr_s))
+    elif gridbox_corr is not None and "psl" not in variables:
+        # Extract the lats and lons from the gridbox_corr
+        lon1_corr, lon2_corr = gridbox_corr["lon1"], gridbox_corr["lon2"]
+        lat1_corr, lat2_corr = gridbox_corr["lat1"], gridbox_corr["lat2"]
+
+        # find the indices of the lats which correspond to the gridbox
+        lat1_idx_corr = np.argmin(np.abs(lats - lat1_corr))
+        lat2_idx_corr = np.argmin(np.abs(lats - lat2_corr))
+
+        # find the indices of the lons which correspond to the gridbox
+        lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
+        lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+    else:
+        AssertionError("gridbox_corr is None and variable is not psl")
 
     # If gridbox_plot is not None
     if gridbox_plot is not None:
@@ -2001,39 +2059,23 @@ def plot_diff_variables(
             print("Calculating the correlations for NAO gridboxes...")
             print("For variable psl")
 
-            # Depending on the season
-            if season in ["ONDJFM", "DJFM"]:
-                s_grid = winter_s_gridbox_corr
-                n_grid = winter_n_gridbox_corr
-            elif season == ["AMJJAS", "ULG", "JJA"]:
-                s_grid = summer_s_gridbox_corr
-                n_grid = summer_n_gridbox_corr
-            else:
-                raise AssertionError(f"Season: {season} not recognised!")
+            # Print the shape of fcst1_ts
+            print(f"fcst1_ts.shape = {fcst1_ts.shape}")
 
-            # Extract the lats and lons from the gridbox_corr n
-            lon1_corr_n, lon2_corr_n = n_grid["lon1"], n_grid["lon2"]
-            lat1_corr_n, lat2_corr_n = n_grid["lat1"], n_grid["lat2"]
+            # Print the shape of obs_ts
+            print(f"obs_ts.shape = {obs_ts.shape}")
 
-            # Extract the lats and lons from the gridbox_corr s
-            lon1_corr_s, lon2_corr_s = s_grid["lon1"], s_grid["lon2"]
-            lat1_corr_s, lat2_corr_s = s_grid["lat1"], s_grid["lat2"]
+            # Print the lat1_idx_corr_n
+            print(f"lat1_idx_corr_n = {lat1_idx_corr_n}")
+            print(f"lat2_idx_corr_n = {lat2_idx_corr_n}")
+            print(f"lon1_idx_corr_n = {lon1_idx_corr_n}")
+            print(f"lon2_idx_corr_n = {lon2_idx_corr_n}")
 
-            # find the indices of the lats which correspond to the gridbox
-            lat1_idx_corr_n = np.argmin(np.abs(lats - lat1_corr_n))
-            lat2_idx_corr_n = np.argmin(np.abs(lats - lat2_corr_n))
-
-            # find the indices of the lons which correspond to the gridbox
-            lon1_idx_corr_n = np.argmin(np.abs(lons - lon1_corr_n))
-            lon2_idx_corr_n = np.argmin(np.abs(lons - lon2_corr_n))
-
-            # find the indices of the lats which correspond to the gridbox
-            lat1_idx_corr_s = np.argmin(np.abs(lats - lat1_corr_s))
-            lat2_idx_corr_s = np.argmin(np.abs(lats - lat2_corr_s))
-
-            # find the indices of the lons which correspond to the gridbox
-            lon1_idx_corr_s = np.argmin(np.abs(lons - lon1_corr_s))
-            lon2_idx_corr_s = np.argmin(np.abs(lons - lon2_corr_s))
+            # Print the lat1_idx_corr_s
+            print(f"lat1_idx_corr_s = {lat1_idx_corr_s}")
+            print(f"lat2_idx_corr_s = {lat2_idx_corr_s}")
+            print(f"lon1_idx_corr_s = {lon1_idx_corr_s}")
+            print(f"lon2_idx_corr_s = {lon2_idx_corr_s}")
 
             # Constrain the ts to the gridbox_corr
             fcst1_ts_n = fcst1_ts[
@@ -2062,6 +2104,10 @@ def plot_diff_variables(
             # Calculate the correlation between the two time series
             r_n, p_n = pearsonr(fcst1_ts_mean_n, obs_ts_mean_n)
             r_s, p_s = pearsonr(fcst1_ts_mean_s, obs_ts_mean_s)
+
+            # Print the values
+            print(f"r_n = {r_n}, p_n = {p_n}")
+            print(f"r_s = {r_s}, p_s = {p_s}")
 
             # Show these values on the plot
             ax.text(
@@ -2094,8 +2140,6 @@ def plot_diff_variables(
                 linewidth=2,
                 transform=proj,
             )
-        else:
-            AssertionError("gridbox_corr is None!")
 
         # If any of the corr1 values are NaNs
         # then set the p values to NaNs at the same locations
@@ -2440,6 +2484,9 @@ def load_ts_data(
     if alt_lag:
         # Set up the years
         years = np.arange(start_year + lag - 1, end_year + 1)
+    elif forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
+        # Set up the years
+        years = np.arange(start_year, end_year)
     else:
         # Set up the years
         years = np.arange(start_year, end_year + 1)
@@ -2452,7 +2499,7 @@ def load_ts_data(
     lons = np.arange(-180, 180, 2.5)
 
     # If the forecast range is a single digit
-    if "-" in forecast_range:
+    if forecast_range.isdigit():
         forecast_range_obs = "1"
     else:
         forecast_range_obs = forecast_range
@@ -2524,16 +2571,27 @@ def load_ts_data(
         print(f"raw_first_year = {raw_first_year}")
         print(f"raw_last_year = {raw_last_year}")
 
-        # Set up the valid years
-        valid_years = np.arange(raw_first_year, raw_last_year + 1)
+        # If the forecast range is not 2-9
+        if forecast_range != "2-9":
+            # Set up the valid years
+            valid_years = np.arange(raw_first_year, raw_last_year + 1)
+        else:
+            # Set up the valid years
+            valid_years = np.arange(raw_first_year, raw_last_year)
 
         # Append the valid years to the ts_dict
         ts_dict["valid_years"] = valid_years
 
-        # Constrain the obs_anoms to the valid years
-        obs_anoms = obs_anoms.sel(
-            time=slice(f"{raw_first_year}-01-01", f"{raw_last_year}-12-31")
-        )
+        if forecast_range != "2-9":
+            # Constrain the obs_anoms to the valid years
+            obs_anoms = obs_anoms.sel(
+                time=slice(f"{raw_first_year}-01-01", f"{raw_last_year}-12-31")
+            )
+        else:
+            # Constrain the obs_anoms to the valid years
+            obs_anoms = obs_anoms.sel(
+                time=slice(f"{raw_first_year}-01-01", f"{raw_last_year - 1}-12-31")
+            )
 
         # Constrain the obs_anoms to the gridbox
         obs_anoms = obs_anoms.sel(lat=slice(lat1, lat2), lon=slice(lon1, lon2)).mean(
@@ -2574,6 +2632,7 @@ def load_ts_data(
 
         # If the third axis has size > 1
         if data.shape[2] > 1:
+            print("Taking the mean over the valid forecvast years:", forecast_range)
             # Calculate the mean of the data
             # Extract the second number in forecast_range
             forecast_range_number = int(forecast_range.split("-")[1])
@@ -2581,13 +2640,15 @@ def load_ts_data(
             # Calculate the mean of the data
             data = data[:, :, : forecast_range_number - 1, :, :].mean(axis=2)
         elif data.shape[2] == 1:
+            print("Data.shape[2] == 1")
+            print("Squeezing the data")
             # Squeeze the data
             data = np.squeeze(data)
 
-        # # If years 2-9 and not winter (i.e. not shifted back)
-        # if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
-        #     # Remove the final time step
-        #     data = data[:, :-1, :, :]
+        # If years 2-9 and not winter (i.e. not shifted back)
+        if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
+            # Remove the final time step
+            data = data[:, :-1, :, :]
 
         # Assert that the data shape is as expected
         assert data.shape[1] == len(valid_years), "Data shape not as expected!"
@@ -3058,6 +3119,9 @@ def plot_ts(
     elif ts_dict["variable"] == "sfcWind":
         # Set the y-axis label
         ax.set_ylabel("Wind anomaly (m/s)")
+    elif ts_dict["variable"] == "pr":
+        # Set the y-axis label
+        ax.set_ylabel("Monthly precip (mm)")
     else:
         raise ValueError("Variable not recognised!")
 

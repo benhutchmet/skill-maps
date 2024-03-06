@@ -967,8 +967,14 @@ def load_obs(variable, regrid_obs_path):
     # Extract the variable name from the dictionary
     obs_variable = dic.var_name_map[variable]
 
+    # If the obs variable is 'var228'
+    if obs_variable == "var228":
+        # Set the regrid obs path
+        regrid_obs_path = "/home/users/benhutch/ERA5/global_regrid_sel_region_var228.nc"
+
     if obs_variable in dic.obs_ws_var_names:
         print("The obs variable is a wind speed variable")
+        print("Loading regrid obs file using xarray: ", regrid_obs_path)
 
         # Load the regrid obs file into an Iris cube
         obs = iris.load_cube(regrid_obs_path, obs_variable)
