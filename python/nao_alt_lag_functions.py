@@ -40,7 +40,7 @@ def load_data(
     start_year: int,
     end_year: int,
     lag: int,
-    alt_lag: bool = False,
+    method: str = None,
     region: str = "global",
     variable: str = "psl",
     data_dir: str = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data",
@@ -89,7 +89,7 @@ def load_data(
     """
 
     # Set up the years for extraction
-    if alt_lag:
+    if method == "alt_lag":
         if lag is not None:
             first_year = int(start_year) + int(lag) - 1
 
@@ -140,6 +140,58 @@ def load_data(
 
         # Return the data
         return alt_lag_data
+
+    elif method == "nao_matched":
+        print("Loading the nao matched data")
+
+        # Set up the last year
+        last_year = int(end_year)
+
+        # Set up the file path
+        filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}_*nao_matched*.npy"
+
+        # find files matching the filename
+        files = glob.glob(data_dir + "/" + filename)
+
+        # Assert that files is not empty
+        assert files, f"No files found for {filename}"
+
+        # If there is more than one file
+        if len(files) > 1:
+            print("More than one file found")
+
+            # If the psl_DJFM_global_1962_1980_2-9_2.npy
+            # 1706281292.628301 is the datetime
+            # Extract the datetimes
+            datetimes = [file.split("_")[8] for file in files]
+
+            # Remove the .npy from the datetimes
+            datetimes = [datetime.split(".")[0] for datetime in datetimes]
+
+            # Convert the datasetimes to datetimes using pandas
+            datetimes = [pd.to_datetime(datetime, unit="s") for datetime in datetimes]
+
+            # Find the latest datetime
+            latest_datetime = max(datetimes)
+
+            # Find the index of the latest datetime
+            latest_datetime_index = datetimes.index(latest_datetime)
+
+            # Print that we are using the latest datetime file
+            print("Using the latest datetime file:", files[latest_datetime_index])
+
+            # Load the file
+            data = np.load(files[latest_datetime_index])
+        else:
+            # Load the file
+            data = np.load(files[0])
+
+        # print the shape of the data
+        print("Shape of the data:", data.shape)
+
+        # Return the data
+        return data
+
     else:
         # Set up the file path
         filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}*.npy"
@@ -195,7 +247,7 @@ def calc_nao_stats(
     start_year: int,
     end_year: int,
     lag: int,
-    alt_lag: bool = False,
+    method: str = None,
     region: str = "global",
     variable: str = "psl",
 ):
@@ -255,7 +307,7 @@ def calc_nao_stats(
         "nens": mdi,
     }
 
-    if alt_lag:
+    if method in ["alt_lag", "nao_matched"]:
         # Set up the years
         years = np.arange(start_year + lag - 1, end_year + 1)
     elif forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:

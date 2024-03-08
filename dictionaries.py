@@ -212,6 +212,7 @@ var_name_map = {
     "rsds": "ssrd",
     "ssrd": "ssrd",
     "tos": "sst",
+    "sst": "sst",
     "ua": "var131",
     "va": "var132",
     "var131": "var131",

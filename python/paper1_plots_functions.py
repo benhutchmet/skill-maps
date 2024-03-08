@@ -2059,23 +2059,23 @@ def plot_diff_variables(
             print("Calculating the correlations for NAO gridboxes...")
             print("For variable psl")
 
-            # Print the shape of fcst1_ts
-            print(f"fcst1_ts.shape = {fcst1_ts.shape}")
+            # # Print the shape of fcst1_ts
+            # print(f"fcst1_ts.shape = {fcst1_ts.shape}")
 
-            # Print the shape of obs_ts
-            print(f"obs_ts.shape = {obs_ts.shape}")
+            # # Print the shape of obs_ts
+            # print(f"obs_ts.shape = {obs_ts.shape}")
 
-            # Print the lat1_idx_corr_n
-            print(f"lat1_idx_corr_n = {lat1_idx_corr_n}")
-            print(f"lat2_idx_corr_n = {lat2_idx_corr_n}")
-            print(f"lon1_idx_corr_n = {lon1_idx_corr_n}")
-            print(f"lon2_idx_corr_n = {lon2_idx_corr_n}")
+            # # Print the lat1_idx_corr_n
+            # print(f"lat1_idx_corr_n = {lat1_idx_corr_n}")
+            # print(f"lat2_idx_corr_n = {lat2_idx_corr_n}")
+            # print(f"lon1_idx_corr_n = {lon1_idx_corr_n}")
+            # print(f"lon2_idx_corr_n = {lon2_idx_corr_n}")
 
-            # Print the lat1_idx_corr_s
-            print(f"lat1_idx_corr_s = {lat1_idx_corr_s}")
-            print(f"lat2_idx_corr_s = {lat2_idx_corr_s}")
-            print(f"lon1_idx_corr_s = {lon1_idx_corr_s}")
-            print(f"lon2_idx_corr_s = {lon2_idx_corr_s}")
+            # # Print the lat1_idx_corr_s
+            # print(f"lat1_idx_corr_s = {lat1_idx_corr_s}")
+            # print(f"lat2_idx_corr_s = {lat2_idx_corr_s}")
+            # print(f"lon1_idx_corr_s = {lon1_idx_corr_s}")
+            # print(f"lon2_idx_corr_s = {lon2_idx_corr_s}")
 
             # Constrain the ts to the gridbox_corr
             fcst1_ts_n = fcst1_ts[

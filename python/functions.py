@@ -980,9 +980,12 @@ def load_obs(variable, regrid_obs_path):
         obs = iris.load_cube(regrid_obs_path, obs_variable)
     else:
         # Load using xarray
-        obs = xr.open_mfdataset(regrid_obs_path, combine="by_coords", parallel=True)[
-            obs_variable
-        ]
+        obs = xr.open_mfdataset(
+            regrid_obs_path,
+            combine="by_coords",
+            parallel=True,
+            chunks={"time": "auto", "lat": "auto", "lon": "auto"},
+        )[obs_variable]
 
         # Combine the two expver variables
         obs = obs.sel(expver=1).combine_first(obs.sel(expver=5))
