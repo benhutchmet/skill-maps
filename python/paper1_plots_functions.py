@@ -2387,7 +2387,7 @@ def load_ts_data(
     gridbox: dict,
     gridbox_name: str,
     variable: str,
-    alt_lag: bool = False,
+    alt_lag: str = None,
     region: str = "global",
 ):
     """
@@ -2431,9 +2431,9 @@ def load_ts_data(
         Variable to process.
         e.g. "tas"
 
-    alt_lag: bool
-        Whether to use the alt_lag method.
-        e.g. default is False
+    alt_lag: str
+        Alternative lag to process.
+        e.g. "nao_matched"
 
     region: str
         Region to process.
@@ -2481,7 +2481,7 @@ def load_ts_data(
     lat1, lat2 = gridbox["lat1"], gridbox["lat2"]
 
     # Set up the years depending
-    if alt_lag:
+    if alt_lag in ["nao_matched", "alt_lag"]:
         # Set up the years
         years = np.arange(start_year + lag - 1, end_year + 1)
     elif forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
@@ -2534,7 +2534,7 @@ def load_ts_data(
     lon2_idx = np.argmin(np.abs(lons - lon2))
 
     # Process the data
-    if data.ndim == 5 and alt_lag is False:
+    if data.ndim == 5 and alt_lag not in ["nao_matched", "alt_lag"]:
         print("Processing the raw data")
 
         # If forecast range is 2-9
@@ -2725,7 +2725,7 @@ def load_ts_data(
         # Append the nens to the ts_dict
         ts_dict["nens"] = data.shape[0]
 
-    elif data.ndim == 4 and alt_lag is True:
+    elif data.ndim == 4 and alt_lag in ["nao_matched", "alt_lag"]:
         print("Processing the alt_lag data")
 
         # Set up the alt_lag first and last years
@@ -2802,12 +2802,14 @@ def load_ts_data(
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts
 
-        # Swap the axes of the data
-        data = np.swapaxes(data, 0, 1)
+        if alt_lag != "nao_matched":
+            # Swap the axes of the data
+            data = np.swapaxes(data, 0, 1)
 
         # Print the shape of the data
         print(f"data.shape = {data.shape}")
         print(f"obs_anoms.shape = {obs_anoms.shape}")
+        print(f"len valid_years = {len(valid_years)}")
 
         # Assert that the data shape is as expected
         assert data.shape[1] == len(valid_years), "Data shape not as expected!"

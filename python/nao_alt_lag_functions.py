@@ -247,7 +247,7 @@ def calc_nao_stats(
     start_year: int,
     end_year: int,
     lag: int,
-    method: str = None,
+    alt_lag: bool = False,
     region: str = "global",
     variable: str = "psl",
 ):
@@ -307,7 +307,7 @@ def calc_nao_stats(
         "nens": mdi,
     }
 
-    if method in ["alt_lag", "nao_matched"]:
+    if alt_lag:
         # Set up the years
         years = np.arange(start_year + lag - 1, end_year + 1)
     elif forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
