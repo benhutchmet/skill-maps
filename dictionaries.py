@@ -18,6 +18,8 @@ test_model_norcpm = ["NorCPM1"]
 test_model_hadgem = ["HadGEM3-GC31-MM"]
 test_model_cesm = ["CESM1-1-CAM5-CMIP5"]
 
+
+
 # List of the full models
 models = [
     "BCC-CSM2-MR",
@@ -324,8 +326,14 @@ spna_grid_smith = {"lon1": -60, "lon2": -10, "lat1": 50, "lat2": 65}
 # From thornton et al. 2019
 uk_n_box = {"lon1": 153, "lon2": 201, "lat1": 57, "lat2": 70}
 
+# Define this but corrected
+uk_n_box_corrected = {"lon1": -27, "lon2": 21, "lat1": 57, "lat2": 70}
+
 # And for the southern box
 uk_s_box = {"lon1": 153, "lon2": 201, "lat1": 38, "lat2": 51}
+
+# Define this but corrected
+uk_s_box_corrected = {"lon1": -27, "lon2": 21, "lat1": 38, "lat2": 51}
 
 sfcWind_models_numbers = [1, 2, 3, 5, 8, 9, 10, 11]
 no_sfcWind_models = 8
