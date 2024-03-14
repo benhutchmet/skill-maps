@@ -250,6 +250,8 @@ def calc_nao_stats(
     alt_lag: bool = False,
     region: str = "global",
     variable: str = "psl",
+    winter_nao_n_grid: dict = dicts.iceland_grid_corrected,
+    winter_nao_s_grid: dict = dicts.azores_grid_corrected,
 ):
     """
     Calculates the NAO index for the given data.
@@ -281,6 +283,12 @@ def calc_nao_stats(
 
     variable: str
         The variable for which the NAO index is being calculated (default is "psl").
+
+    winter_nao_n_grid: dict
+        The dictionary containing the gridboxes for the winter NAO north region.
+
+    winter_nao_s_grid: dict
+        The dictionary containing the gridboxes for the winter NAO south region.
 
     Returns:
 
@@ -327,8 +335,8 @@ def calc_nao_stats(
     if season in ["DJFM", "DJF", "ONDJFM", "MAM"]:
         print("Using standard NAO definition")
         # Hardcoded for now
-        south_grid = dicts.azores_grid_corrected
-        north_grid = dicts.iceland_grid_corrected
+        south_grid = winter_nao_s_grid
+        north_grid = winter_nao_n_grid
     else:
         print("Using summer NAO definition")
         # Hardcoded for now

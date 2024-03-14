@@ -27,6 +27,7 @@ from matplotlib import rcParams
 from PIL import Image
 from sklearn.utils import resample
 from scipy.stats import pearsonr
+import random
 
 import matplotlib.cm as mpl_cm
 import matplotlib
@@ -6833,11 +6834,18 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
         "f2_ts": [],
         "f10_ts": [],
         "o_ts": [],
+        "f1_ts_short": [],
+        "o_ts_short": [],
+        "corr1_short": mdi,
+        "corr1_p_short": mdi,
     }
 
     # Set up the number of times from the obs
     # the size of the first dimension of the obs
     n_times = obs.shape[0]
+
+    # N_times short
+    n_times_short = n_times[:-10 + 1] # exlcude the last 10 years
 
     # Set up the number of lats and lons
     n_lats = obs.shape[1]
@@ -6859,6 +6867,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
     r_partial_bias_boot = np.zeros([nboot, n_lats, n_lons])
 
     r1o_boot = np.zeros([nboot, n_lats, n_lons])
+    r1o_boot_short = np.zeros([nboot, n_lats, n_lons])
     r2o_boot = np.zeros([nboot, n_lats, n_lons])
     r12_boot = np.zeros([nboot, n_lats, n_lons])
 
@@ -6886,6 +6895,9 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
     # for the time - time needs to be the same for all forecasts and obs
     index_time = range(n_times - block_length + 1)
 
+    # Create a short time index
+    index_time_short = range(n_times_short - block_length + 1)
+
     # For the members
     index_ens1 = range(nens1)
     index_ens2 = range(nens2)
@@ -6904,6 +6916,9 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
             # normal order of time
             index_time_this = range(0, n_times, block_length)
 
+            # normal order of time for short time
+            index_time_short_this = range(0, n_times_short, block_length)
+
         else:  # pick random samples
             # Create an array containing random indices
 
@@ -6916,11 +6931,20 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                 [random.choice(index_time) for _ in range(n_blocks)]
             )
 
+            # Create an array containing random indices for the blocks
+            # For the short time
+            index_time_short_this = np.array(
+                [random.choice(index_time_short) for _ in range(n_blocks)]
+            )
+
         # Create am empty array to store the observations
         obs_boot = np.zeros([n_times, n_lats, n_lons])
+        obs_boot_short = np.zeros([n_times_short, n_lats, n_lons])
 
         # Create an empty array to store the first forecast
         fcst1_boot = np.zeros([nens1, n_times, n_lats, n_lons])
+        fcst1_boot_short = np.zeros([nens1, n_times_short, n_lats, n_lons])
+
         fcst2_boot = np.zeros([nens2, n_times, n_lats, n_lons])
 
         # Create an empty array for the 10 member forecast
@@ -6968,8 +6992,39 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                 # Increment the time
                 itime += 1
 
+        # Loop over the short time index
+        itime_short = 0
+
+        for ithis in index_time_short_this:
+
+            # Set up the individual block index
+            index_block_short = np.arange(ithis, ithis + block_length)
+
+            # If the block index is greater than the number of times, then reduce the block index
+            index_block_short[(index_block_short > n_times_short - 1)] = (
+                index_block_short[(index_block_short > n_times_short - 1)]  - n_times_short
+            )
+
+            # Select a subset of indices for the block
+            index_block_short = index_block_short[: min(block_length, n_times_short - itime_short)]
+
+            # Loop over the block indices
+            for iblock in index_block_short:
+
+                # Extract the observations for the block
+                obs_boot_short[itime_short, :, :] = obs[iblock, :, :]
+
+                # Extract the first forecast for the block and random ensemble members
+                fcst1_boot_short[:, itime_short, :, :] = forecast1[
+                    index_ens1_this, iblock, :, :
+                ]
+
+                # Increment the time
+                itime_short += 1
+
         # Process the stats
         o = obs_boot
+        o_short = obs_boot_short
 
         print("shape of obs_boot", np.shape(o))
         print("value of obs_boot", o)
@@ -6977,6 +7032,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
         # Get the ensemble mean forecast
         # Should these be calculated for each lat lon, or does numpy do that for me?
         f1 = np.mean(fcst1_boot, axis=0)
+        f1_short = np.mean(fcst1_boot_short, axis=0)
         f2 = np.mean(fcst2_boot, axis=0)
 
         # Get the 10 member ensemble mean forecast
@@ -6986,10 +7042,13 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
         # For the ensemble mean time series plots
         if iboot == 0:
             f1_ts = f1
+            f1_short_i1 = f1_short
             f2_ts = f2
             f10_ts = f10
 
             o_ts = o
+            o_ts_short_i1 = o_short
+
 
         # Compute the bias by removing independent estimates of f2 - the historical ensemble mean
         # first half of the ensemble
@@ -7004,9 +7063,16 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
             for lon in range(n_lons):
                 # Extract the forecasts and obs
                 f1_cell = f1[:, lat, lon]
+
+                # f1_cell for the short period
+                f1_cell_short = f1_short[:, lat, lon]
+
                 f2_cell = f2[:, lat, lon]
                 f10_cell = f10[:, lat, lon]
                 o_cell = o[:, lat, lon]
+
+                # o_cell for the short period
+                o_cell_short = o_short[:, lat, lon]
 
                 # If all the values of o_cell are 0
                 if np.all(o_cell == 0.0):
@@ -7096,10 +7162,14 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                 r2o, _ = pearsonr(f2_cell, o_cell)
                 r_ens_10_boot[iboot, lat, lon], _ = pearsonr(f10_cell, o_cell)
 
+                # Perform the correlations for the short period
+                r1o_short, _ = pearsonr(f1_cell_short, o_cell_short)
+
                 # Assign values to bootstrap arrays
                 r1o_boot[iboot, lat, lon] = r1o
                 r2o_boot[iboot, lat, lon] = r2o
                 r12_boot[iboot, lat, lon] = r12
+                r1o_boot_short[iboot, lat, lon] = r1o_short
 
                 # Difference in correlations
                 rdiff_boot[iboot, lat, lon] = r1o - r2o
@@ -7170,6 +7240,9 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
     # correlation between forecast1 ensemble mean and observations for non-bootstrapped data
     forecasts_stats["corr1"] = r1o_boot[0]
 
+    # short correlations
+    forecasts_stats["corr1_short"] = r1o_boot_short[0]
+
     forecasts_stats["corr1_min"] = np.percentile(r1o_boot, 5, axis=0)  # 5% uncertainty
 
     forecasts_stats["corr1_max"] = np.percentile(
@@ -7178,6 +7251,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
     # Initialize the count of values arrays
     count_vals_r1o = np.zeros([n_lats, n_lons])
+    count_vals_r1o_short = np.zeros([n_lats, n_lons])
     count_vals_r2o = np.zeros([n_lats, n_lons])
 
     count_vals_r_ens_10 = np.zeros([n_lats, n_lons])
@@ -7193,6 +7267,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
     # Initialize the correlation arrays
     r1o_p = np.zeros([n_lats, n_lons])
+    r1o_p_short = np.zeros([n_lats, n_lons])
     r2o_p = np.zeros([n_lats, n_lons])
 
     r_ens_10_p = np.zeros([n_lats, n_lons])
@@ -7212,6 +7287,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
         for lon in range(n_lons):
             # Extract the forecasts and obs bootstrapped data for the cell
             r1o_boot_cell = r1o_boot[:, lat, lon]
+            r1o_boot_cell_short = r1o_boot_short[:, lat, lon]
             r2o_boot_cell = r2o_boot[:, lat, lon]
 
             r_ens_10_boot_cell = r_ens_10_boot[:, lat, lon]
@@ -7232,6 +7308,10 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
             # Process the count_vals
             count_vals_r1o[lat, lon] = np.sum(
                 i < 0.0 for i in r1o_boot_cell
+            )  # count of negative values
+
+            count_vals_r1o_short[lat, lon] = np.sum(
+                i < 0.0 for i in r1o_boot_cell_short
             )  # count of negative values
 
             count_vals_r2o[lat, lon] = np.sum(
@@ -7267,6 +7347,8 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
             # Calculate the p-values
             r1o_p[lat, lon] = float(count_vals_r1o[lat, lon]) / nboot
 
+            r1o_p_short[lat, lon] = float(count_vals_r1o_short[lat, lon]) / nboot
+
             r2o_p[lat, lon] = float(count_vals_r2o[lat, lon]) / nboot
 
             r_ens_10_p[lat, lon] = float(count_vals_r_ens_10[lat, lon]) / nboot
@@ -7285,6 +7367,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
     # Append the p-values to the dictionary
     forecasts_stats["corr1_p"] = r1o_p
+    forecasts_stats["corr1_p_short"] = r1o_p_short
     forecasts_stats["corr2_p"] = r2o_p
 
     forecasts_stats["corr10_p"] = r_ens_10_p
@@ -7458,6 +7541,12 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
     # Append the forecasts to the dictionary
     forecasts_stats["f1_ts"] = f1_ts
     forecasts_stats["f2_ts"] = f2_ts
+
+    # Add the short time series for the first forecast
+    forecasts_stats["f1_ts_short"] = f1_short_i1
+
+    # Add the short time series for the observations
+    forecasts_stats["o_ts_short"] = o_ts_short_i1
 
     forecasts_stats["f10_ts"] = f10_ts
 

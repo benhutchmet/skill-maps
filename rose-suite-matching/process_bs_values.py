@@ -425,6 +425,28 @@ def main():
         f"start_end_years_{variable}_{region}_{season}_" + f"{forecast_range}.txt"
     )
 
+    # Set the names for the new variables
+    start_end_years_short = (
+        f"start_end_years_{variable}_{region}_{season}_" + f"{forecast_range}.txt"
+    )
+
+    # Set up the names  for the short time series
+    fcst1_ts_short_name = (
+        f"fcst1_ts_{variable}_{region}_{season}_{forecast_range}_short.npy"
+    )
+
+    obs_ts_short_name = (
+        f"obs_ts_{variable}_{region}_{season}_{forecast_range}_short.npy"
+    )
+
+    corr1_short_name = (
+        f"corr1_{variable}_{region}_{season}_{forecast_range}_short.npy"
+    )
+
+    corr1_p_short_name = (
+        f"corr1_p_{variable}_{region}_{season}_{forecast_range}_short.npy"
+    )
+
     # If the method is 'alternate_lag'
     if method == "alternate_lag":
         print("Loading alternate lagged data")
@@ -1060,6 +1082,9 @@ def main():
             np.savetxt(save_path + nens2_name, np.array([nen]))
 
             np.savetxt(save_path + start_end_years, [common_year[0], common_year[-1]])
+
+            # Save the common years for the short time series
+            np.savetxt(save_path + start_end_years_short, [common_year[0], common_year[-10]])
 
             # Save the forecast time series
             np.save(save_path + fcst1_ts_name, forecast_stat["f1_ts"])
