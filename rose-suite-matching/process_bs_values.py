@@ -826,6 +826,36 @@ def main():
                 save_path_nao_matched + nens1_name, np.array([nens1_nao_matched])
             )
 
+            # Save the start and end years
+            np.savetxt(
+                save_path_nao_matched + start_end_years_short,
+                np.array([alt_lag_first_year, alt_lag_last_year - 10 + 1]),
+            )
+
+            # Save the short time series
+            np.save(
+                save_path_nao_matched + fcst1_ts_short_name,
+                forecast_stats_nao_matched["f1_ts_short"],
+            )
+
+            # Save the observed time series short
+            np.save(
+                save_path_nao_matched + obs_ts_short_name,
+                forecast_stats_nao_matched["o_ts_short"],
+            )
+
+            # Save the corr1 short
+            np.save(
+                save_path_nao_matched + corr1_short_name,
+                forecast_stats_nao_matched["corr1_short"],
+            )
+
+            # Save the corr1_p short
+            np.save(
+                save_path_nao_matched + corr1_p_short_name,
+                forecast_stats_nao_matched["corr1_p_short"],
+            )
+
             # FIXME: Fix the exiting here
             # Print that the arrays have been saved to the save path
             print("Arrays saved to:", save_path_nao_matched)
@@ -1094,6 +1124,30 @@ def main():
             np.save(save_path + fcst10_ts_name, forecast_stat["f10_ts"])
 
             np.save(save_path + obs_ts_name, forecast_stat["o_ts"])
+
+            # Save the short time series
+            np.save(
+                save_path + fcst1_ts_short_name,
+                forecast_stat["f1_ts_short"],
+            )
+
+            # Save the observed time series short
+            np.save(
+                save_path + obs_ts_short_name,
+                forecast_stat["o_ts_short"],
+            )
+
+            # Save the corr1 short
+            np.save(
+                save_path + corr1_short_name,
+                forecast_stat["corr1_short"],
+            )
+
+            # Save the corr1_p short
+            np.save(
+                save_path + corr1_p_short_name,
+                forecast_stat["corr1_p_short"],
+            )
 
         # Print that the arrays have been saved
         print("Arrays saved to:", save_path)
