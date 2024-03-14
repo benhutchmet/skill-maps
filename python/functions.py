@@ -6845,7 +6845,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
     n_times = obs.shape[0]
 
     # N_times short
-    n_times_short = n_times[:-10 + 1] # exlcude the last 10 years
+    n_times_short = n_times - 10
 
     # Set up the number of lats and lons
     n_lats = obs.shape[1]
@@ -7002,11 +7002,14 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
             # If the block index is greater than the number of times, then reduce the block index
             index_block_short[(index_block_short > n_times_short - 1)] = (
-                index_block_short[(index_block_short > n_times_short - 1)]  - n_times_short
+                index_block_short[(index_block_short > n_times_short - 1)]
+                - n_times_short
             )
 
             # Select a subset of indices for the block
-            index_block_short = index_block_short[: min(block_length, n_times_short - itime_short)]
+            index_block_short = index_block_short[
+                : min(block_length, n_times_short - itime_short)
+            ]
 
             # Loop over the block indices
             for iblock in index_block_short:
@@ -7048,7 +7051,6 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
 
             o_ts = o
             o_ts_short_i1 = o_short
-
 
         # Compute the bias by removing independent estimates of f2 - the historical ensemble mean
         # first half of the ensemble

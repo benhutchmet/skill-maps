@@ -1610,12 +1610,17 @@ def create_bs_dict(
     # Create a dictionary containing the reauired stars for each variable
     stats_dict = {
         "corr1": [],
+        "corr1_short": [],
         "corr1_p": [],
+        "corr1_p_short": [],
         "f1_ts": [],
+        "f1_ts_short": [],
         "o_ts": [],
+        "o_ts_short": [],
         "nens1": mdi,
         "start_year": mdi,
         "end_year": mdi,
+        "end_year_short": mdi,
     }
 
     # Loop over the variables and nboot
@@ -1647,21 +1652,59 @@ def create_bs_dict(
         skill_maps = {}
 
         # Find the file containing "corr1_{variable}" in the base_path
-        corr1_file = [file for file in os.listdir(base_path) if f"corr1_{var}" in file]
+        corr1_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr1_{var}_{region}_{season}_{forecast_range}.npy" in file
+        ]
+
+        # Corr1 file short
+        corr1_short_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr1_{var}_{region}_{season}_{forecast_range}_short" in file
+        ]
 
         # Find the file containing "corr1_p_{variable}" in the base_path
         corr1_p_file = [
-            file for file in os.listdir(base_path) if f"corr1_p_{var}" in file
+            file
+            for file in os.listdir(base_path)
+            if f"corr1_p_{var}_{region}_{season}_{forecast_range}.npy" in file
+        ]
+
+        # fiel containing corr1_p_short
+        corr1_p_short_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr1_p_{var}_{region}_{season}_{forecast_range}_short" in file
         ]
 
         # Find the file containing "fcst1_ts_{variable}" in the base_path
         fcst1_ts_file = [
-            file for file in os.listdir(base_path) if f"fcst1_ts_{var}" in file
+            file
+            for file in os.listdir(base_path)
+            if f"fcst1_ts_{var}_{region}_{season}_{forecast_range}.npy" in file
+        ]
+
+        # Short fcst1_ts file
+        fcst1_ts_file_short = [
+            file
+            for file in os.listdir(base_path)
+            if f"fcst1_ts_{var}_{region}_{season}_{forecast_range}_short" in file
+        ]
+
+        # Find the file containing "obs_ts_{variable} short
+        obs_ts_file_short = [
+            file
+            for file in os.listdir(base_path)
+            if f"obs_ts_{var}_{region}_{season}_{forecast_range}_short" in file
         ]
 
         # Find the file containing "obs_ts_{variable}" in the base_path
         obs_ts_file = [
-            file for file in os.listdir(base_path) if f"obs_ts_{var}" in file
+            file
+            for file in os.listdir(base_path)
+            if f"obs_ts_{var}_{region}_{season}_{forecast_range}.npy" in file
         ]
 
         # Find the file containing "nens1_{variable}" in the base_path
@@ -1688,7 +1731,9 @@ def create_bs_dict(
                 nens1_file,
                 common_years_file,
             ]:
-                assert len(file) == 1, f"Length of file list is not equal to 1"
+                assert (
+                    len(file) == 1
+                ), f"Length of file list is not equal to 1 for {file}"
         else:
             # Assert that the length of each of these lists is equal to 1
             for file in [
@@ -1699,7 +1744,9 @@ def create_bs_dict(
                 nens1_file,
                 start_end_years_file,
             ]:
-                assert len(file) == 1, f"Length of file list is not equal to 1"
+                assert (
+                    len(file) == 1
+                ), f"Length of file list is not equal to 1 for {file}"
 
         # Load the files
         corr1 = np.load(os.path.join(base_path, corr1_file[0]))
@@ -1715,6 +1762,50 @@ def create_bs_dict(
 
         # Load the files
         nens1 = np.loadtxt(os.path.join(base_path, nens1_file[0])).astype(int)
+
+        # If all of the files exist
+        if (
+            corr1_short_file
+            and corr1_p_short_file
+            and fcst1_ts_file_short
+            and obs_ts_file_short
+        ):
+            # Load the files
+            corr1_short = np.load(os.path.join(base_path, corr1_short_file[0]))
+
+            # Load the files
+            corr1_p_short = np.load(os.path.join(base_path, corr1_p_short_file[0]))
+
+            # Load the files
+            fcst1_ts_short = np.load(os.path.join(base_path, fcst1_ts_file_short[0]))
+
+            # Load the files
+            obs_ts_short = np.load(os.path.join(base_path, obs_ts_file_short[0]))
+
+            # # Load the files
+            # common_years = np.load(os.path.join(base_path, common_years_file[0]))
+
+            # # Extract the start and end years
+            # start_year = common_years[0].astype(int)
+            # end_year = common_years[1].astype(int)
+
+            # end year short
+            end_year_short = 2014
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr1_short"] = corr1_short
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr1_p_short"] = corr1_p_short
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["f1_ts_short"] = fcst1_ts_short
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["o_ts_short"] = obs_ts_short
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["end_year_short"] = end_year_short
 
         if not start_end_years_file:
             # load the common years file
@@ -1842,7 +1933,7 @@ def plot_diff_variables(
         e.g. default is dicts.snao_south_grid
 
     short_period: bool
-        Boolean value indicating whether to constrain the data to the short 
+        Boolean value indicating whether to constrain the data to the short
         period from Smith et al., 2020.
         Default is False.
 
@@ -1991,20 +2082,22 @@ def plot_diff_variables(
         end_year = skill_maps["end_year"]
 
         # if we are using the short period
-        if short_period:
+        if short_period and skill_maps.get("corr1_short") is not None:
+            print("Using the short period correlations...")
             # Set up the years
-            years = np.arange(1966, 2019 + 1)
+            years = np.arange(
+                skill_maps["start_year"][0], skill_maps["end_year_short"] + 1
+            )
 
-            # # Print the years
-            # print(f"years = {years}")
+            # Set up the time series
+            corr = skill_maps["corr1_short"]
+            corr1_p = skill_maps["corr1_p_short"]
 
-            # Find the indices 1961 annd 2005
-            idx_start = np.where(years == 1966)[0][0]
-            idx_end = np.where(years == 2011)[0][0]
+            # Set up the time series
+            fcst1_ts = skill_maps["f1_ts_short"]
 
-            # Constrain the data to the short period
-            fcst1_ts = fcst1_ts[idx_start:idx_end + 1]
-            obs_ts = obs_ts[idx_start:idx_end + 1]
+            # Set up the time series
+            obs_ts = skill_maps["o_ts_short"]
 
         # Print the start and end years
         print(f"start_year = {start_year}")
@@ -2036,6 +2129,7 @@ def plot_diff_variables(
 
         # Extract the variable name from the key
         variable = key[0]
+        nboot_str = key[1]
 
         # If gridbox_corr is not None
         if gridbox_corr is not None and variable != "psl":
@@ -2171,8 +2265,13 @@ def plot_diff_variables(
         # then set the corr1 values to NaNs at the same locations
         corr1_p[(corr1_p > sig_threshold) & (corr1_p < 1 - sig_threshold)] = np.nan
 
-        # plot the p-values
-        ax.contourf(lons, lats, corr1_p, hatches=["...."], alpha=0.0, transform=proj)
+        if nboot_str != "nboot_1":
+            # plot the p-values
+            ax.contourf(
+                lons, lats, corr1_p, hatches=["...."], alpha=0.0, transform=proj
+            )
+        else:
+            print("Not plotting p-values for nboot_1")
 
         # Add a text box with the axis label
         ax.text(

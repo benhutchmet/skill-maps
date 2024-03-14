@@ -177,16 +177,16 @@ def extract_variables():
     # add optional argument for full_period, which defaults to False
     parser.add_argument(
         "full_period",
-        type=bool,
-        default=False,
+        type=str,
+        default="False",
         help="Whether to use the full period or not.",
     )
 
     # add optional argument for nao_matched, which defaults to False
     parser.add_argument(
         "nao_matched",
-        type=bool,
-        default=False,
+        type=str,
+        default="False",
         help="Whether to use the NAO matched data or not.",
     )
 
@@ -248,6 +248,28 @@ def main():
 
     # Extract the NAO matched boolean
     nao_matched = args.nao_matched
+
+    # Assert that full_period must be 'True' or 'False'
+    assert full_period in ["True", "False"], (
+        "Full period not recognised. Please try again." + "Must be 'True' or 'False'"
+    )
+
+    # Assert that nao_matched must be 'True' or 'False'
+    assert nao_matched in ["True", "False"], (
+        "NAO matched not recognised. Please try again." + "Must be 'True' or 'False'"
+    )
+
+    # Convert the full_period to a boolean
+    if full_period == "True":
+        full_period = True
+    else:
+        full_period = False
+
+    # Convert the nao_matched to a boolean
+    if nao_matched == "True":
+        nao_matched = True
+    else:
+        nao_matched = False
 
     # If the region is global, set the region to the global gridspec
     if region == "global":
@@ -439,9 +461,7 @@ def main():
         f"obs_ts_{variable}_{region}_{season}_{forecast_range}_short.npy"
     )
 
-    corr1_short_name = (
-        f"corr1_{variable}_{region}_{season}_{forecast_range}_short.npy"
-    )
+    corr1_short_name = f"corr1_{variable}_{region}_{season}_{forecast_range}_short.npy"
 
     corr1_p_short_name = (
         f"corr1_p_{variable}_{region}_{season}_{forecast_range}_short.npy"
@@ -456,7 +476,8 @@ def main():
 
         # Set up the directory
         # TODO: hardcoded for now
-        alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data"
+        # FIXME: Testing sfcWind
+        alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
 
         # Extract the first year of the array
         alt_lag_first_year = int(start_year) + (lag - 1)
@@ -1114,7 +1135,9 @@ def main():
             np.savetxt(save_path + start_end_years, [common_year[0], common_year[-1]])
 
             # Save the common years for the short time series
-            np.savetxt(save_path + start_end_years_short, [common_year[0], common_year[-10]])
+            np.savetxt(
+                save_path + start_end_years_short, [common_year[0], common_year[-10]]
+            )
 
             # Save the forecast time series
             np.save(save_path + fcst1_ts_name, forecast_stat["f1_ts"])
