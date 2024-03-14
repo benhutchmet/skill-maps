@@ -242,6 +242,9 @@ iceland_grid = {"lon1": 155, "lon2": 164, "lat1": 63, "lat2": 70}
 # Define the dimensions for the gridbox for the azores
 iceland_grid_corrected = {"lon1": -25, "lon2": -16, "lat1": 63, "lat2": 70}
 
+# Set up a northern europe grid box
+northern_europe_grid = {"lon1": -10, "lon2": 25, "lat1": 55, "lat2": 70}
+
 # SPNA grid box
 # 49 - 57 * N
 # 50 - 25 * W

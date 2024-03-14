@@ -1779,6 +1779,7 @@ def plot_diff_variables(
     winter_s_gridbox_corr: dict = dicts.azores_grid_corrected,
     summer_n_gridbox_corr: dict = dicts.snao_north_grid,
     summer_s_gridbox_corr: dict = dicts.snao_south_grid,
+    short_period: bool = False,
 ):
     """
     Plot the skill maps for different variables as a 2x2 grid.
@@ -1839,6 +1840,11 @@ def plot_diff_variables(
     summer_s_gridbox_corr: dict
         Dictionary containing the gridbox for which to calculate the correlation.
         e.g. default is dicts.snao_south_grid
+
+    short_period: bool
+        Boolean value indicating whether to constrain the data to the short 
+        period from Smith et al., 2020.
+        Default is False.
 
     Outputs:
     --------
@@ -1983,6 +1989,22 @@ def plot_diff_variables(
         nens1 = skill_maps["nens1"]
         start_year = skill_maps["start_year"]
         end_year = skill_maps["end_year"]
+
+        # if we are using the short period
+        if short_period:
+            # Set up the years
+            years = np.arange(1966, 2019 + 1)
+
+            # # Print the years
+            # print(f"years = {years}")
+
+            # Find the indices 1961 annd 2005
+            idx_start = np.where(years == 1966)[0][0]
+            idx_end = np.where(years == 2011)[0][0]
+
+            # Constrain the data to the short period
+            fcst1_ts = fcst1_ts[idx_start:idx_end + 1]
+            obs_ts = obs_ts[idx_start:idx_end + 1]
 
         # Print the start and end years
         print(f"start_year = {start_year}")
@@ -2217,17 +2239,30 @@ def plot_diff_variables(
                 # AssertionError
                 AssertionError("Method not recognised!")
 
-            # Include the method in the top right of the figure
-            ax.text(
-                0.95,
-                0.95,
-                f"{methods[i]} ({nens1})",
-                transform=ax.transAxes,
-                va="top",
-                ha="right",
-                bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=8,
-            )
+            if short_period is False:
+                # Include the method in the top right of the figure
+                ax.text(
+                    0.95,
+                    0.95,
+                    f"{methods[i]} ({nens1})",
+                    transform=ax.transAxes,
+                    va="top",
+                    ha="right",
+                    bbox=dict(facecolor="white", alpha=0.5),
+                    fontsize=8,
+                )
+            else:
+                # Include the method in the top right of the figure
+                ax.text(
+                    0.95,
+                    0.95,
+                    f"{methods[i]} ({nens1})\nShort period corr",
+                    transform=ax.transAxes,
+                    va="top",
+                    ha="right",
+                    bbox=dict(facecolor="white", alpha=0.5),
+                    fontsize=8,
+                )
         else:
             # Include the number of ensemble members in the top right of the figure
             ax.text(
@@ -2620,6 +2655,12 @@ def load_ts_data(
         if variable == "psl":
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts / 100
+        elif variable == "pr":
+            # Convert the obs_ts to mm/day (from m/day)
+            obs_ts = obs_ts * 1000
+
+            # Append the obs_ts to the ts_dict
+            ts_dict["obs_ts"] = obs_ts
         else:
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts
@@ -2687,6 +2728,28 @@ def load_ts_data(
             # Append the ci_lower and ci_upper to the ts_dict
             ts_dict["fcst_ts_min"] = ci_lower / 100
             ts_dict["fcst_ts_max"] = ci_upper / 100
+        elif variable == "pr":
+            # Convert the data to mm/day (from m/day)
+            data = data * 86400
+
+            # Convert the data_mean to mm/day (from m/day)
+            data_mean = data_mean * 86400
+
+            # Convert the ci_lower to mm/day (from m/day)
+            ci_lower = ci_lower * 86400
+
+            # Convert the ci_upper to mm/day (from m/day)
+            ci_upper = ci_upper * 86400
+
+            # Append the data to the ts_dict
+            ts_dict["fcst_ts_members"] = data
+
+            # Append the data_mean to the ts_dict
+            ts_dict["fcst_ts_mean"] = data_mean
+
+            # Append the ci_lower and ci_upper to the ts_dict
+            ts_dict["fcst_ts_min"] = ci_lower
+            ts_dict["fcst_ts_max"] = ci_upper
         else:
             # Append the data to the ts_dict
             ts_dict["fcst_ts_members"] = data
@@ -2798,6 +2861,12 @@ def load_ts_data(
         if variable == "psl":
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts / 100
+        elif variable == "pr":
+            # Convert the obs_ts to mm/day (from m/day)
+            obs_ts = obs_ts * 1000
+
+            # Append the obs_ts to the ts_dict
+            ts_dict["obs_ts"] = obs_ts
         else:
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts
@@ -2848,6 +2917,28 @@ def load_ts_data(
             # Append the ci_lower and ci_upper to the ts_dict
             ts_dict["fcst_ts_min"] = ci_lower / 100
             ts_dict["fcst_ts_max"] = ci_upper / 100
+        elif variable == "pr":
+            # Convert the data to mm/day (from m/day)
+            data = data * 86400
+
+            # Convert the data_mean to mm/day (from m/day)
+            data_mean = data_mean * 86400
+
+            # Convert the ci_lower to mm/day (from m/day)
+            ci_lower = ci_lower * 86400
+
+            # Convert the ci_upper to mm/day (from m/day)
+            ci_upper = ci_upper * 86400
+
+            # Append the data to the ts_dict
+            ts_dict["fcst_ts_members"] = data
+
+            # Append the data_mean to the ts_dict
+            ts_dict["fcst_ts_mean"] = data_mean
+
+            # Append the ci_lower and ci_upper to the ts_dict
+            ts_dict["fcst_ts_min"] = ci_lower
+            ts_dict["fcst_ts_max"] = ci_upper
         else:
             # Append the data to the ts_dict
             ts_dict["fcst_ts_members"] = data
