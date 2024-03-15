@@ -3369,6 +3369,7 @@ def plot_ts(
     save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots",
     trendline: bool = False,
     constrain_years: list = None,
+    short_period: bool = False,
 ):
     """
     Plot the time series data.
@@ -3419,6 +3420,10 @@ def plot_ts(
     constrain_years: list
         List of years to constrain the plot to.
         e.g. default is None
+
+    short_period: bool
+        Whether to plot the short period time series.
+        e.g. default is False
 
     Outputs:
     --------
@@ -3481,26 +3486,55 @@ def plot_ts(
     # Set up the figure
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
 
-    # Plot the ensemble mean
-    ax.plot(ts_dict["init_years"], ts_dict["fcst_ts_mean"], color="red", label="dcppA")
+    # If short period is False
+    if not short_period:
+        # Plot the ensemble mean
+        ax.plot(
+            ts_dict["init_years"], ts_dict["fcst_ts_mean"], color="red", label="dcppA"
+        )
 
-    # Plot the observations
-    ax.plot(ts_dict["init_years"], ts_dict["obs_ts"], color="black", label="ERA5")
+        # Plot the observations
+        ax.plot(ts_dict["init_years"], ts_dict["obs_ts"], color="black", label="ERA5")
 
-    # Fill between the min and max
-    ax.fill_between(
-        ts_dict["init_years"],
-        ts_dict["fcst_ts_min"],
-        ts_dict["fcst_ts_max"],
-        color="red",
-        alpha=0.3,
-    )
+        # Fill between the min and max
+        ax.fill_between(
+            ts_dict["init_years"],
+            ts_dict["fcst_ts_min"],
+            ts_dict["fcst_ts_max"],
+            color="red",
+            alpha=0.3,
+        )
+    else:
+        # plot the ensemble mean for the short period
+        ax.plot(
+            ts_dict["init_years_short"],
+            ts_dict["fcst_ts_mean_short"],
+            color="red",
+            label="dcppA",
+        )
+
+        # plot the observations for the short period
+        ax.plot(
+            ts_dict["init_years_short"],
+            ts_dict["obs_ts_short"],
+            color="black",
+            label="ERA5",
+        )
+
+        # Fill between the min and max for the short period
+        ax.fill_between(
+            ts_dict["init_years_short"],
+            ts_dict["fcst_ts_min_short"],
+            ts_dict["fcst_ts_max_short"],
+            color="red",
+            alpha=0.3,
+        )
 
     # Set up a horizontal line at 0
     ax.axhline(0, color="black", linestyle="--")
 
     # Include a trendline
-    if trendline:
+    if trendline and not short_period:
         # Calculate the trendline for the forecast timeseries
         z_fcst = np.polyfit(ts_dict["init_years"], ts_dict["fcst_ts_mean"], 1)
         p_fcst = np.poly1d(z_fcst)
@@ -3522,6 +3556,8 @@ def plot_ts(
             bbox=dict(facecolor="white", alpha=0.5),
             fontsize=8,
         )
+    elif trendline and short_period:
+        AssertionError("Trendline not implemented for short_period = True")
 
     # Include a legend
     ax.legend(loc="lower right")
@@ -3532,9 +3568,10 @@ def plot_ts(
     else:
         exp_name = "raw"
 
-    # Set the first year
-    first_year = ts_dict["init_years"][0]
-    last_year = ts_dict["init_years"][-1]
+    if not short_period:
+        # Set the first year
+        first_year = ts_dict["init_years"][0]
+        last_year = ts_dict["init_years"][-1]
 
     # Include a box in the top left
     # with the location name
@@ -3550,7 +3587,7 @@ def plot_ts(
     )
 
     # Set the title
-    if ts_dict["alt_lag"]:
+    if ts_dict["alt_lag"] and not short_period:
         ax.set_title(
             f"ACC = {ts_dict['corr']:.2f} "
             f"(p = {ts_dict['p']:.2f}), "
@@ -3558,6 +3595,29 @@ def plot_ts(
             f"N = {ts_dict['nens']}, "
             f"{exp_name} "
             f"({ts_dict['lag']}), "
+            f"{ts_dict['season']}, "
+            f"{ts_dict['forecast_range']}, "
+            f"{first_year}-{last_year}"
+        )
+    elif ts_dict["alt_lag"] and short_period:
+        ax.set_title(
+            f"ACC = {ts_dict['corr_short']:.2f} "
+            f"(p = {ts_dict['p_short']:.2f}), "
+            f"RPC = {ts_dict['rpc_short']:.2f}, "
+            f"N = {ts_dict['nens']}, "
+            f"{exp_name} "
+            f"({ts_dict['lag']}), "
+            f"{ts_dict['season']}, "
+            f"{ts_dict['forecast_range']}, "
+            f"{first_year}-{last_year}"
+        )
+    elif not ts_dict["alt_lag"] and short_period:
+        ax.set_title(
+            f"ACC = {ts_dict['corr_short']:.2f} "
+            f"(p = {ts_dict['p_short']:.2f}), "
+            f"RPC = {ts_dict['rpc_short']:.2f}, "
+            f"N = {ts_dict['nens']}, "
+            f"{exp_name}, "
             f"{ts_dict['season']}, "
             f"{ts_dict['forecast_range']}, "
             f"{first_year}-{last_year}"
