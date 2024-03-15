@@ -58,7 +58,7 @@
                 "sfcWind",
                 "msl",
                 "global",
-                "DJFM",
+                "ONDJFM",
                 "2-9",
                 "1961",
                 "2014", // short period for testing
@@ -68,7 +68,7 @@
                 "1",
                 "100000",
                 "False", // use the full period
-                "False" // NAO matching
+                "True" // NAO matching
             ]
         }
     ]

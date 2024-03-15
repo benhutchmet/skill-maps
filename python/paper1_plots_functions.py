@@ -2586,17 +2586,28 @@ def load_ts_data(
     # Set up the dictionary
     ts_dict = {
         "obs_ts": [],
+        "obs_ts_short": [],
         "fcst_ts_members": [],
+        "fcst_ts_members_short": [],
         "fcst_ts_min": [],
+        "fcst_ts_min_short": [],
         "fcst_ts_max": [],
+        "fcst_ts_max_short": [],
         "fcst_ts_mean": [],
+        "fcst_ts_mean_short": [],
         "init_years": [],
+        "init_years_short": [],
         "valid_years": [],
+        "valid_years_short": [],
         "nens": mdi,
         "corr": mdi,
+        "corr_short": mdi,
         "p": mdi,
+        "p_short": mdi,
         "rpc": mdi,
+        "rpc_short": mdi,
         "rps": mdi,
+        "rps_short": mdi,
         "season": season,
         "forecast_range": forecast_range,
         "start_year": start_year,
@@ -2628,6 +2639,9 @@ def load_ts_data(
     # Append the years to the ts_dict
     ts_dict["init_years"] = years
 
+    # Append the init years short
+    ts_dict["init_years_short"] = years[: -10 + 1]  # final year should be 2005
+
     # Set up the lats and lons
     lats = np.arange(-90, 90, 2.5)
     lons = np.arange(-180, 180, 2.5)
@@ -2647,6 +2661,17 @@ def load_ts_data(
         observations_path=nao_match_fnc.find_obs_path(match_var=variable),
         start_year=1960,
         end_year=2023,
+    )
+
+    # Process the obs anoms short
+    obs_anoms_short = fnc.read_obs(
+        variable=variable,
+        region=region,
+        forecast_range=forecast_range_obs,
+        season=season,
+        observations_path=nao_match_fnc.find_obs_path(match_var=variable),
+        start_year=1960,
+        end_year=2014,  # similar to Doug's
     )
 
     # Set up the lats and lons
@@ -2715,6 +2740,11 @@ def load_ts_data(
 
         # Append the valid years to the ts_dict
         ts_dict["valid_years"] = valid_years
+
+        # Append the valid years short
+        ts_dict["valid_years_short"] = valid_years[
+            : -10 + 1
+        ]  # final year should be 2013/14
 
         if forecast_range != "2-9":
             # Constrain the obs_anoms to the valid years
