@@ -2992,26 +2992,50 @@ def load_ts_data(
         # Calculate the correlation between the obs_ts and fcst_ts_mean
         corr, p = pearsonr(data_mean, obs_ts)
 
+        # Calculate the correlation between the obs_ts and fcst_ts_mean short
+        corr_short, p_short = pearsonr(data_mean_short, obs_ts_short)
+
         # Append the corr and p to the ts_dict
         ts_dict["corr"] = corr
         ts_dict["p"] = p
+
+        # Append the corr short and p short to the ts_dict
+        ts_dict["corr_short"] = corr_short
+        ts_dict["p_short"] = p_short
 
         # Calculate the standard deviation of the forecast time series
         sig_f = np.std(data_mean)
         sig_o = np.std(obs_ts)
 
         # Calculate th stdev of the members
+        sig_f_short = np.std(data_mean_short)
+        sig_o_short = np.std(obs_ts_short)
+
+        # Calculate th stdev of the members
         sig_f_members = np.std(data)
+
+        # Calculate the stdev of the short members
+        sig_f_members_short = np.std(data_short)
 
         # Calculate the rpc
         rpc = corr * (sig_f / sig_f_members)
 
+        # Calculate the rpc for the short period
+        rpc_short = corr_short * (sig_f_short / sig_f_members_short)
+
         # Calculate the rps
         rps = rpc * (sig_o / sig_f_members)
+
+        # Calculate the rps for the short period
+        rps_short = rpc_short * (sig_o_short / sig_f_members_short)
 
         # Append the rpc and rps to the ts_dict
         ts_dict["rpc"] = np.abs(rpc)
         ts_dict["rps"] = np.abs(rps)
+
+        # Append the rpc short and rps short to the ts_dict
+        ts_dict["rpc_short"] = np.abs(rpc_short)
+        ts_dict["rps_short"] = np.abs(rps_short)
 
         # Append the nens to the ts_dict
         ts_dict["nens"] = data.shape[0]
@@ -3057,6 +3081,12 @@ def load_ts_data(
         # Append the valid years to the ts_dict
         ts_dict["valid_years"] = valid_years
 
+        # Set up the valid years short
+        valid_years_short = np.arange(alt_lag_first_year, alt_lag_last_year - 10 + 1)
+
+        # APpend the valid years short to the ts_dict
+        ts_dict["valid_years_short"] = valid_years_short
+
         # Constrain the obs_anoms to the valid years
         obs_anoms = obs_anoms.sel(
             time=slice(f"{alt_lag_first_year}-01-01", f"{alt_lag_last_year}-12-31")
@@ -3066,6 +3096,18 @@ def load_ts_data(
         obs_anoms = obs_anoms.sel(lat=slice(lat1, lat2), lon=slice(lon1, lon2)).mean(
             dim=["lat", "lon"]
         )
+
+        # Constrain the obs_anoms short to the valid years
+        obs_anoms_short = obs_anoms_short.sel(
+            time=slice(
+                f"{alt_lag_first_year}-01-01", f"{alt_lag_last_year - 10 + 1}-12-31"
+            )
+        )
+
+        # Constrain the obs_anoms short to the gridbox
+        obs_anoms_short = obs_anoms_short.sel(
+            lat=slice(lat1, lat2), lon=slice(lon1, lon2)
+        ).mean(dim=["lat", "lon"])
 
         # Loop over the years
         for year in obs_anoms.time.dt.year.values:
@@ -3080,24 +3122,52 @@ def load_ts_data(
                     print(f"removing year {year} from the years array")
                     obs_anoms = obs_anoms.drop_sel(time=f"{year}")
 
+        # Loop over the years for obs anoms short
+        for year in obs_anoms_short.time.dt.year.values:
+            # Extract the obs_anoms for this year
+            obs_anoms_year = obs_anoms_short.sel(time=f"{year}")
+
+            # If there are any NaNs in the obs_anoms_year
+            if np.isnan(obs_anoms_year).any():
+                print(f"NaNs found in obs_anoms_year for year {year}")
+                if np.isnan(obs_anoms_year).all():
+                    print(f"All values are NaNs for year {year}")
+                    print(f"removing year {year} from the years array")
+                    obs_anoms_short = obs_anoms_short.drop_sel(time=f"{year}")
+
         # Print the shape of the obs_anoms
         print(f"obs_anoms.shape = {obs_anoms.shape}")
 
         # Extract the obs_anoms as its values
         obs_ts = obs_anoms.values
 
+        # Extract the obs_anoms short as its values
+        obs_ts_short = obs_anoms_short.values
+
         if variable == "psl":
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts / 100
+
+            # Append the obs_ts short to the ts_dict
+            ts_dict["obs_ts_short"] = obs_ts_short / 100
         elif variable == "pr":
             # Convert the obs_ts to mm/day (from m/day)
             obs_ts = obs_ts * 1000
 
+            # Convert the obs_ts short to mm/day (from m/day)
+            obs_ts_short = obs_ts_short * 1000
+
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts
+
+            # Append the obs_ts short to the ts_dict
+            ts_dict["obs_ts_short"] = obs_ts_short
         else:
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts
+
+            # Append the obs_ts short to the ts_dict
+            ts_dict["obs_ts_short"] = obs_ts_short
 
         if alt_lag != "nao_matched":
             # Swap the axes of the data
@@ -3109,6 +3179,9 @@ def load_ts_data(
         print(f"len valid_years = {len(valid_years)}")
 
         # Assert that the data shape is as expected
+        assert data.shape[1] == len(valid_years), "Data shape not as expected!"
+
+        # Assert that the shape of the short data is as expected
         assert data.shape[1] == len(valid_years), "Data shape not as expected!"
 
         # Assert that the shape of the lats
@@ -3123,84 +3196,160 @@ def load_ts_data(
         # Constrain the data to the gridbox
         data = data[:, :, lat1_idx:lat2_idx, lon1_idx:lon2_idx].mean(axis=(2, 3))
 
+        # Constrasin the short data to the gridbox
+        data_short = data[:, : -10 + 1]  # final year should be 2005
+
         # Print the shape of the data
         print(f"model data members.shape = {data.shape}")
 
         # Calculate the mean of the data
         data_mean = np.mean(data, axis=0)
 
+        # Calculate the mean of the short data
+        data_mean_short = np.mean(data_short, axis=0)
+
         # Calculate the 5% lowest interval
         ci_lower = np.percentile(data, 5, axis=0)
 
+        # Calculate the 5% lowest interval for the short period
+        ci_lower_short = np.percentile(data_short, 5, axis=0)
+
         # Calculate the 95% highest interval
         ci_upper = np.percentile(data, 95, axis=0)
+
+        # Calculate the 95% highest interval for the short period
+        ci_upper_short = np.percentile(data_short, 95, axis=0)
 
         if variable == "psl":
             # Append the data to the ts_dict
             ts_dict["fcst_ts_members"] = data / 100
 
+            # Append the short members to the ts_dict
+            ts_dict["fcst_ts_members_short"] = data_short / 100
+
             # Append the data_mean to the ts_dict
             ts_dict["fcst_ts_mean"] = data_mean / 100
+
+            # Append the data_mean short to the ts_dict
+            ts_dict["fcst_ts_mean_short"] = data_mean_short / 100
 
             # Append the ci_lower and ci_upper to the ts_dict
             ts_dict["fcst_ts_min"] = ci_lower / 100
             ts_dict["fcst_ts_max"] = ci_upper / 100
+
+            # Append the ci_lower short and ci_upper short to the ts_dict
+            ts_dict["fcst_ts_min_short"] = ci_lower_short / 100
+            ts_dict["fcst_ts_max_short"] = ci_upper_short / 100
         elif variable == "pr":
             # Convert the data to mm/day (from m/day)
             data = data * 86400
 
+            # Convert the data short to mm/day (from m/day)
+            data_short = data_short * 86400
+
             # Convert the data_mean to mm/day (from m/day)
             data_mean = data_mean * 86400
+
+            # Convert the data_mean short to mm/day (from m/day)
+            data_mean_short = data_mean_short * 86400
 
             # Convert the ci_lower to mm/day (from m/day)
             ci_lower = ci_lower * 86400
 
+            # Convert the ci_upper shrt to mm/day (from m/day)
+            ci_lower_short = ci_lower_short * 86400
+
             # Convert the ci_upper to mm/day (from m/day)
             ci_upper = ci_upper * 86400
+
+            # Convert the ci_upper short to mm/day (from m/day)
+            ci_upper_short = ci_upper_short * 86400
 
             # Append the data to the ts_dict
             ts_dict["fcst_ts_members"] = data
 
+            # Append the short members to the ts_dict
+            ts_dict["fcst_ts_members_short"] = data_short
+
             # Append the data_mean to the ts_dict
             ts_dict["fcst_ts_mean"] = data_mean
+
+            # Append the data_mean short to the ts_dict
+            ts_dict["fcst_ts_mean_short"] = data_mean_short
 
             # Append the ci_lower and ci_upper to the ts_dict
             ts_dict["fcst_ts_min"] = ci_lower
             ts_dict["fcst_ts_max"] = ci_upper
+
+            # Append the ci_lower short and ci_upper short to the ts_dict
+            ts_dict["fcst_ts_min_short"] = ci_lower_short
+            ts_dict["fcst_ts_max_short"] = ci_upper_short
         else:
             # Append the data to the ts_dict
             ts_dict["fcst_ts_members"] = data
 
+            # Append the short members to the ts_dict
+            ts_dict["fcst_ts_members_short"] = data_short
+
             # Append the data_mean to the ts_dict
             ts_dict["fcst_ts_mean"] = data_mean
+
+            # Append the data_mean short to the ts_dict
+            ts_dict["fcst_ts_mean_short"] = data_mean_short
 
             # Append the ci_lower and ci_upper to the ts_dict
             ts_dict["fcst_ts_min"] = ci_lower
             ts_dict["fcst_ts_max"] = ci_upper
 
+            # Append the ci_lower short and ci_upper short to the ts_dict
+            ts_dict["fcst_ts_min_short"] = ci_lower_short
+            ts_dict["fcst_ts_max_short"] = ci_upper_short
+
         # Calculate the correlation between the obs_ts and fcst_ts_mean
         corr, p = pearsonr(data_mean, obs_ts)
+
+        # Calculate the correlation between the obs_ts and fcst_ts_mean short
+        corr_short, p_short = pearsonr(data_mean_short, obs_ts_short)
 
         # Append the corr and p to the ts_dict
         ts_dict["corr"] = corr
         ts_dict["p"] = p
+
+        # Append the corr short and p short to the ts_dict
+        ts_dict["corr_short"] = corr_short
+        ts_dict["p_short"] = p_short
 
         # Calculate the standard deviation of the forecast time series
         sig_f = np.std(data_mean)
         sig_o = np.std(obs_ts)
 
         # Calculate th stdev of the members
+        sig_f_short = np.std(data_mean_short)
+        sig_o_short = np.std(obs_ts_short)
+
+        # Calculate th stdev of the members
         sig_f_members = np.std(data)
+        sig_f_members_short = np.std(data_short)
 
         # Calculate the rpc
         rpc = corr * (sig_f / sig_f_members)
 
+        # Calculate the rpc for the short period
+        rpc_short = corr_short * (sig_f_short / sig_f_members_short)
+
         # Calculate the rps
         rps = rpc * (sig_o / sig_f_members)
+
+        # Calculate the rps for the short period
+        rps_short = rpc_short * (sig_o_short / sig_f_members_short)
 
         # Append the rpc and rps to the ts_dict
         ts_dict["rpc"] = np.abs(rpc)
         ts_dict["rps"] = np.abs(rps)
+
+        # Append the rpc short and rps short to the ts_dict
+        ts_dict["rpc_short"] = np.abs(rpc_short)
+        ts_dict["rps_short"] = np.abs(rps_short)
 
         # Append the nens to the ts_dict
         ts_dict["nens"] = np.shape(data)[0]
