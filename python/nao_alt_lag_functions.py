@@ -777,6 +777,100 @@ def calc_nao_stats(
     return nao_stats
 
 
+# Write a function which creates a dataframe from the nao_stats
+# and saves this
+def create_nao_stats_df(
+    nao_stats: dict,
+    season: str,
+    forecast_range: str,
+    start_year: int,
+    end_year: int,
+    lag: int,
+    alt_lag: bool = False,
+    region: str = "global",
+    variable: str = "psl",
+    nao_type: str = "nao_default",
+    output_dir: str = "/gws/nopw/j04/canari/users/benhutch/nao_stats_df",
+):
+    """
+    Creates a dataframe from the NAO stats and saves this.
+
+    Parameters:
+
+    nao_stats: dict
+        The dictionary containing the NAO stats.
+
+    season: str
+        The season for which the NAO stats are being saved.
+
+    forecast_range: str
+        The forecast range for which the NAO stats are being saved.
+
+    start_year: int
+        The start year for which the NAO stats are being saved.
+
+    end_year: int
+        The end year for which the NAO stats are being saved.
+
+    lag: int
+        The lag for which the NAO stats are being saved.
+
+    alt_lag: bool
+        Whether the alternate lag data is being saved (default is False).
+        True = alt_lag data
+        False = raw data
+
+    region: str
+        The region for which the NAO stats are being saved (either "global", "atlantic" or "pacific").
+        Default is "global".
+
+    variable: str
+        The variable for which the NAO stats are being saved (default is "psl").
+
+    nao_type: str
+        The type of NAO index being saved (default is "nao_default").
+
+    output_dir: str
+        The directory in which the NAO stats dataframe is being saved (default is "/gws/nopw/j04/canari/users/benhutch/nao_stats_df").
+
+    Returns:
+
+    None
+    """
+
+    # If the output_dir does not exist
+    if not os.path.exists(output_dir):
+        # Make the output_dir
+        os.makedirs(output_dir)
+
+    # Set up the dataframe
+    nao_stats_df = pd.DataFrame(
+        {
+            "init_time": nao_stats["init_years"],
+            "valid_time": nao_stats["valid_years"],
+            "obs_nao": nao_stats["obs_nao"],
+            "model_nao_mean": nao_stats["model_nao_mean"],
+            "model_nao_members_min": nao_stats["model_nao_members_min"],
+            "model_nao_members_max": nao_stats["model_nao_members_max"],
+        }
+    )
+
+    # Set up the filename
+    filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}_{nao_type}.csv"
+
+    # Set up the file path
+    file_path = os.path.join(output_dir, filename)
+
+    # Save the dataframe
+    nao_stats_df.to_csv(file_path, index=False)
+
+    # Print that the dataframe has been saved
+    print(f"Dataframe saved to {file_path}")
+
+    # return the dataframe
+    return nao_stats_df
+
+
 def plot_nao(
     nao_stats: dict,
     season: str,

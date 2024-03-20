@@ -3432,6 +3432,9 @@ def plot_ts(
     """
 
     if constrain_years is not None:
+        # Print the init_years
+        print(f"ts_dict['init_years'] = {ts_dict['init_years']}")
+
         # Assert that years within constrain_years are in init_years
         assert all(
             year in ts_dict["init_years"] for year in constrain_years
@@ -3572,6 +3575,10 @@ def plot_ts(
         # Set the first year
         first_year = ts_dict["init_years"][0]
         last_year = ts_dict["init_years"][-1]
+    else:
+        # Set the first year
+        first_year = ts_dict["init_years_short"][0]
+        last_year = ts_dict["init_years_short"][-1] - 10 + 1
 
     # Include a box in the top left
     # with the location name
