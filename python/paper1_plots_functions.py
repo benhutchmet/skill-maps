@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from scipy.stats import pearsonr
 from datetime import datetime
+import pandas as pd
 
 # Import typing
 from typing import Tuple
@@ -3359,6 +3360,132 @@ def load_ts_data(
 
     # Return the ts_dict
     return ts_dict
+
+
+# Define a function which loads the processed ts data into a dataframe
+def df_from_ts_dict(
+    ts_dict: dict,
+    season: str,
+    forecast_range: str,
+    start_year: str,
+    end_year: str,
+    lag: int,
+    gridbox_name: str,
+    variable: str,
+    alt_lag: str = None,
+    region: str = "global",
+    output_dir: str = "/gws/nopw/j04/canari/users/benhutch/nao_stats_df",
+):
+    """
+    Load the processed time series data into a dataframe.
+
+    Inputs:
+    -------
+
+    ts_dict: dict
+        Dictionary containing the time series data to plot.
+        e.g. ts_dict = {"obs_ts": obs_ts,
+                        "fcst_ts_members": fcst_ts_members,
+                        "fcst_ts_min": fcst_ts_min,
+                        "fcst_ts_max": fcst_ts_max,
+                        "fcst_ts_mean": fcst_ts_mean,
+                        "init_years": init_years,
+                        "valid_years": valid_years,
+                        "nens": nens,
+                        "corr": corr,
+                        "p": p,
+                        "rpc": rpc,
+                        "rps": rps,
+                        "season": season,
+                        "forecast_range": forecast_range,
+                        "start_year": start_year,
+                        "end_year": end_year,
+                        "lag": lag,
+                        "variable": variable,
+                        "gridbox": gridbox,
+                        "gridbox_name": gridbox_name,
+                        "alt_lag": alt_lag,
+
+    season: str
+        Season for the time series.
+        e.g. "DJFM"
+
+    forecast_range: str
+        Forecast range for the time series.
+        e.g. "2-9"
+
+    start_year: str
+        Start year for the time series.
+        e.g. "1993"
+
+    end_year: str
+        End year for the time series.
+
+    lag: int
+        Lag for the time series.
+        e.g. 0
+
+    gridbox_name: str
+        Name of the gridbox for the time series.
+        e.g. "gridbox_1"
+
+    variable: str
+        Variable for the time series.
+        e.g. "pr"
+
+    alt_lag: str
+        Alternative lag for the time series.
+        e.g. None
+
+    region: str
+        Region for the time series.
+        e.g. "global"
+
+    output_dir: str
+        Directory to save the dataframe to.
+        e.g. "/gws/nopw/j04/canari/users/benhutch/nao_stats_df"
+
+    Outputs:
+    --------
+
+    df: pd.DataFrame
+        Dataframe containing the time series data.
+    """
+
+    # if the outpur_dir does not exist
+    if not os.path.exists(output_dir):
+        # Make the output_dir
+        os.makedirs(output_dir)
+
+    # Set up the dataframe
+    df = pd.DataFrame(
+        {
+            "init_years": ts_dict["init_years"],
+            "valid_years": ts_dict["valid_years"],
+            "obs_ts": ts_dict["obs_ts"],
+            "fcst_ts_mean": ts_dict["fcst_ts_mean"],
+            "fcst_ts_min": ts_dict["fcst_ts_min"],
+            "fcst_ts_max": ts_dict["fcst_ts_max"],
+        }
+    )
+
+    # Set up the filename
+    if alt_lag is not None:
+        filename = f"{variable}_{region}_{season}_{forecast_range}_{start_year}_{end_year}_{lag}_{gridbox_name}_{alt_lag}.csv"
+    else:
+        filename = f"{variable}_{region}_{season}_{forecast_range}_{start_year}_{end_year}_{lag}_{gridbox_name}.csv"
+
+    # Set up the output path
+    output_path = os.path.join(output_dir, filename)
+
+    # Save the dataframe to the output path
+    df.to_csv(output_path, index=False)
+
+    # print that the df has been saved
+    print(f"df saved to {output_path}")
+
+    # Return the dataframe
+    return df
 
 
 # TODO: Write a function for plotting the time series
