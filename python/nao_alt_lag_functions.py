@@ -843,6 +843,17 @@ def create_nao_stats_df(
         # Make the output_dir
         os.makedirs(output_dir)
 
+    print(
+        f"""
+    Length of init_years: {len(nao_stats['init_years'])}
+    Length of valid_years: {len(nao_stats['valid_years'])}
+    Length of obs_nao: {len(nao_stats['obs_nao'])}
+    Length of model_nao_mean: {len(nao_stats['model_nao_mean'])}
+    Length of model_nao_members_min: {len(nao_stats['model_nao_members_min'])}
+    Length of model_nao_members_max: {len(nao_stats['model_nao_members_max'])}
+    """
+    )
+
     # Set up the dataframe
     nao_stats_df = pd.DataFrame(
         {
