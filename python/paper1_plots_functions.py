@@ -1873,6 +1873,7 @@ def plot_diff_variables(
     summer_s_gridbox_corr: dict = dicts.snao_south_grid,
     short_period: bool = False,
     plot_corr_diff: bool = False,
+    plot_long_short_diff: bool = False,
     second_bs_skill_maps: dict = None,
     methods_diff: str = None,
 ):
@@ -1944,6 +1945,11 @@ def plot_diff_variables(
     plot_corr_diff: bool
         Boolean value indicating whether to plot the difference in correlations
         between two methods.
+        Default is False.
+
+    plot_long_short_diff: bool
+        Boolean value indicating whether to plot the difference in correlations
+        between the long and short periods.
         Default is False.
 
     second_bs_skill_maps: dict
@@ -2235,6 +2241,140 @@ def plot_diff_variables(
                         bbox=dict(facecolor="white", alpha=0.5),
                         fontsize=8,
                     )
+
+            # Add the cf object to the cf_list
+            cf_list.append(cf)
+
+            # Add the ax object to the axes list
+            axes.append(ax)
+    elif plot_long_short_diff is True:
+        print(
+            "Plotting the difference in correlations between the long and short periods..."
+        )
+
+        # Loop over the keys in the bs_skill_maps dictionary
+        for i, (key, skill_maps) in enumerate(bs_skill_maps.items()):
+            # Print the variable name
+            print(f"Plotting variable {key}...")
+            print(f"Plotting index {i}...")
+
+            # extract the long corr arrays
+            long_corr = skill_maps["corr1"]
+
+            # Extract the nens
+            nens1 = skill_maps["nens1"]
+
+            # Extract the start and end years
+            start_year = skill_maps["start_year"]
+            end_year = skill_maps["end_year"]
+
+            # If skill_maps contains the short period correlations
+            if skill_maps.get("corr1_short") is not None:
+                print("Using the short period correlations...")
+
+                # Set up the short corr
+                short_corr = skill_maps["corr1_short"]
+            else:
+                print("Short period correlations not available...")
+                print("setting short corr to long corr")
+
+                # Set the short corr to the long corr
+                short_corr = skill_maps["corr1"]
+
+            # Print the start and end years
+            print(f"start_year = {start_year}")
+            print(f"end_year = {end_year}")
+
+            # If grid_box_plot is not None
+            if gridbox_plot is not None:
+                # Print
+                print("Constraining data to gridbox_plot...")
+                print("As defined by gridbox_plot = ", gridbox_plot)
+
+                # Constrain the data to the gridbox_plot
+                long_corr = long_corr[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+                short_corr = short_corr[
+                    lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb
+                ]
+
+            # Set up the axes
+            ax = plt.subplot(nrows, 2, i + 1, projection=proj)
+
+            # Include coastlines
+            ax.coastlines()
+
+            # Set up the cf object
+            cf = ax.contourf(
+                lons,
+                lats,
+                long_corr - short_corr,
+                clevs,
+                transform=proj,
+                cmap="RdBu_r",
+                extend="both",
+            )
+
+            # Extract the variable name from the key
+            variable = key[0]
+            nboot_str = key[1]
+            method = key[2]
+
+            # Add a textbox with the axis label
+            ax.text(
+                0.95,
+                0.05,
+                f"{axis_labels[i]}",
+                transform=ax.transAxes,
+                va="bottom",
+                ha="right",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
+
+            # Set the var name depending on the variable
+            if variable == "tas":
+                var_name = "Temperature"
+            elif variable == "pr":
+                var_name = "Precipitation"
+            elif variable == "psl":
+                var_name = "Sea level pressure"
+            elif variable == "nao":
+                var_name = "NAO"
+            elif variable == "sfcWind":
+                # Set the variable
+                var_name = "10m wind speed"
+            elif variable == "rsds":
+                # Set the variable
+                var_name = "Solar irradiance"
+            else:
+                # Print the key
+                print(f"variable = {variable}")
+                AssertionError("Variable not recognised!")
+
+            # Set a textbox with the variable name in the top left
+            ax.text(
+                0.05,
+                0.95,
+                f"{var_name}",
+                transform=ax.transAxes,
+                va="top",
+                ha="left",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
+
+            # Include the method and "long - short"
+            # In the top right hand corner
+            ax.text(
+                0.95,
+                0.95,
+                f"{method} ({nens1})\nlong - short corr diff",
+                transform=ax.transAxes,
+                va="top",
+                ha="right",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
 
             # Add the cf object to the cf_list
             cf_list.append(cf)
@@ -4011,7 +4151,7 @@ def plot_ts(
         ax.set_ylabel("Monthly precip (mm)")
     else:
         raise ValueError("Variable not recognised!")
-    
+
     # if standardise
     if standardise:
         # Set the y-axis label
