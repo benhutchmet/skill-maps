@@ -1872,6 +1872,8 @@ def plot_diff_variables(
     summer_n_gridbox_corr: dict = dicts.snao_north_grid,
     summer_s_gridbox_corr: dict = dicts.snao_south_grid,
     short_period: bool = False,
+    plot_corr_diff: bool = False,
+    second_bs_skill_maps: dict = None,
 ):
     """
     Plot the skill maps for different variables as a 2x2 grid.
@@ -1937,6 +1939,15 @@ def plot_diff_variables(
         Boolean value indicating whether to constrain the data to the short
         period from Smith et al., 2020.
         Default is False.
+
+    plot_corr_diff: bool
+        Boolean value indicating whether to plot the difference in correlations
+        between two methods.
+        Default is False.
+
+    second_bs_skill_maps: dict
+        Dictionary containing the bootstrapped skill maps for the second method.
+        Default is None.
 
     Outputs:
     --------
@@ -2063,324 +2074,493 @@ def plot_diff_variables(
     # Set up the axes
     axes = []
 
-    # Loop over the keys in the bs_skill_maps dictionary
-    for i, (key, skill_maps) in enumerate(bs_skill_maps.items()):
-        # Logging
-        print(f"Plotting variable {key}...")
-        print(f"Plotting index {i}...")
+    if plot_corr_diff is True:
+        print("Plotting the difference in correlations...")
 
-        # Extract the correlation arrays from the skill_maps dictionary
-        corr = skill_maps["corr1"]
-        corr1_p = skill_maps["corr1_p"]
+        # if the second_bs_skill_maps is None
+        if second_bs_skill_maps is None:
+            AssertionError("second_bs_skill_maps is None!")
 
-        # Extract the time series
-        fcst1_ts = skill_maps["f1_ts"]
-        obs_ts = skill_maps["o_ts"]
+        # Loop over the keys in the bs_skill_maps dictionary
+        for i, (key, skill_maps) in enumerate(bs_skill_maps.items()):
+            # Print the variable name
+            print(f"Plotting variable {key}...")
+            print(f"Plotting index {i}...")
 
-        # Extract the values
-        nens1 = skill_maps["nens1"]
-        start_year = skill_maps["start_year"]
-        end_year = skill_maps["end_year"]
+            # Extract this index from the second_bs_skill_maps dictionary
+            skill_maps2 = second_bs_skill_maps[key]
 
-        # if we are using the short period
-        if short_period and skill_maps.get("corr1_short") is not None:
-            print("Using the short period correlations...")
-            # Set up the years
-            years = np.arange(
-                skill_maps["start_year"][0], skill_maps["end_year_short"] + 1
-            )
+            # Extract the correlation arrays from the skill_maps dictionary
+            corr = skill_maps["corr1"]
+            corr2 = skill_maps2["corr1"]
 
-            # Set up the time series
-            corr = skill_maps["corr1_short"]
-            corr1_p = skill_maps["corr1_p_short"]
+            # Extract the values
+            nens1 = skill_maps["nens1"]
+            nens2 = skill_maps2["nens1"]
 
-            # Set up the time series
-            fcst1_ts = skill_maps["f1_ts_short"]
+            # Extract the start and end years
+            start_year = skill_maps["start_year"]
+            end_year = skill_maps["end_year"]
 
-            # Set up the time series
-            obs_ts = skill_maps["o_ts_short"]
+            # if short_period is True and the short period correlations are available
+            if short_period and skill_maps.get("corr1_short") is not None:
+                print("Using the short period correlations...")
 
-        # Print the start and end years
-        print(f"start_year = {start_year}")
-        print(f"end_year = {end_year}")
-        print(f"nens1 = {nens1}")
-        print(f"for variable {key}")
-
-        # If grid_box_plot is not None
-        if gridbox_plot is not None:
-            # Print
-            print("Constraining data to gridbox_plot...")
-            print("As defined by gridbox_plot = ", gridbox_plot)
-
-            # Constrain the data to the gridbox_plot
-            corr = corr[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
-            corr1_p = corr1_p[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
-
-        # Set up the axes
-        ax = plt.subplot(nrows, 2, i + 1, projection=proj)
-
-        # Include coastlines
-        ax.coastlines()
-
-        # # Add borders (?)
-        # ax.add_feature(cfeature.BORDERS)
-
-        # Set up the cf object
-        cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
-
-        # Extract the variable name from the key
-        variable = key[0]
-        nboot_str = key[1]
-
-        # If gridbox_corr is not None
-        if gridbox_corr is not None and variable != "psl":
-            # Loggging
-            print("Calculating the correlations with a specific gridbox...")
-            print("As defined by gridbox_corr = ", gridbox_corr)
-            print("Variable is not psl")
-
-            # Constrain the ts to the gridbox_corr
-            fcst1_ts = fcst1_ts[
-                :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
-            ]
-            obs_ts = obs_ts[:, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
-
-            # Calculate the mean of both time series
-            fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
-            obs_ts_mean = np.mean(obs_ts, axis=(1, 2))
-
-            # Calculate the correlation between the two time series
-            r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
-
-            # Show these values on the plot
-            ax.text(
-                0.05,
-                0.05,
-                f"r = {r:.2f}, p = {p:.2f}",
-                transform=ax.transAxes,
-                va="bottom",
-                ha="left",
-                bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=8,
-            )
-
-            # Add the gridbox to the plot
-            ax.plot(
-                [lon1_corr, lon2_corr, lon2_corr, lon1_corr, lon1_corr],
-                [lat1_corr, lat1_corr, lat2_corr, lat2_corr, lat1_corr],
-                color="green",
-                linewidth=2,
-                transform=proj,
-            )
-        elif gridbox_corr is not None and variable == "psl":
-            print("Calculating the correlations for NAO gridboxes...")
-            print("For variable psl")
-
-            # # Print the shape of fcst1_ts
-            # print(f"fcst1_ts.shape = {fcst1_ts.shape}")
-
-            # # Print the shape of obs_ts
-            # print(f"obs_ts.shape = {obs_ts.shape}")
-
-            # # Print the lat1_idx_corr_n
-            # print(f"lat1_idx_corr_n = {lat1_idx_corr_n}")
-            # print(f"lat2_idx_corr_n = {lat2_idx_corr_n}")
-            # print(f"lon1_idx_corr_n = {lon1_idx_corr_n}")
-            # print(f"lon2_idx_corr_n = {lon2_idx_corr_n}")
-
-            # # Print the lat1_idx_corr_s
-            # print(f"lat1_idx_corr_s = {lat1_idx_corr_s}")
-            # print(f"lat2_idx_corr_s = {lat2_idx_corr_s}")
-            # print(f"lon1_idx_corr_s = {lon1_idx_corr_s}")
-            # print(f"lon2_idx_corr_s = {lon2_idx_corr_s}")
-
-            # Constrain the ts to the gridbox_corr
-            fcst1_ts_n = fcst1_ts[
-                :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
-            ]
-            obs_ts_n = obs_ts[
-                :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
-            ]
-
-            # Constrain the ts to the gridbox_corr
-            fcst1_ts_s = fcst1_ts[
-                :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
-            ]
-            obs_ts_s = obs_ts[
-                :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
-            ]
-
-            # Calculate the mean of both time series
-            fcst1_ts_mean_n = np.mean(fcst1_ts_n, axis=(1, 2))
-            obs_ts_mean_n = np.mean(obs_ts_n, axis=(1, 2))
-
-            # Calculate the mean of both time series
-            fcst1_ts_mean_s = np.mean(fcst1_ts_s, axis=(1, 2))
-            obs_ts_mean_s = np.mean(obs_ts_s, axis=(1, 2))
-
-            # Calculate the correlation between the two time series
-            r_n, p_n = pearsonr(fcst1_ts_mean_n, obs_ts_mean_n)
-            r_s, p_s = pearsonr(fcst1_ts_mean_s, obs_ts_mean_s)
-
-            # Print the values
-            print(f"r_n = {r_n}, p_n = {p_n}")
-            print(f"r_s = {r_s}, p_s = {p_s}")
-
-            # Show these values on the plot
-            ax.text(
-                0.05,
-                0.05,
-                "N: r = {r_n:.2f}, p = {p_n:.2f}\nS: r = {r_s:.2f}, p = {p_s:.2f}".format(
-                    r_n=r_n, p_n=p_n, r_s=r_s, p_s=p_s
-                ),
-                transform=ax.transAxes,
-                va="bottom",
-                ha="left",
-                bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=8,
-            )
-
-            # Add the gridbox to the plot
-            ax.plot(
-                [lon1_corr_n, lon2_corr_n, lon2_corr_n, lon1_corr_n, lon1_corr_n],
-                [lat1_corr_n, lat1_corr_n, lat2_corr_n, lat2_corr_n, lat1_corr_n],
-                color="green",
-                linewidth=2,
-                transform=proj,
-            )
-
-            # Add the gridbox to the plot
-            ax.plot(
-                [lon1_corr_s, lon2_corr_s, lon2_corr_s, lon1_corr_s, lon1_corr_s],
-                [lat1_corr_s, lat1_corr_s, lat2_corr_s, lat2_corr_s, lat1_corr_s],
-                color="green",
-                linewidth=2,
-                transform=proj,
-            )
-
-        # If any of the corr1 values are NaNs
-        # then set the p values to NaNs at the same locations
-        corr1_p[np.isnan(corr)] = np.nan
-
-        # If any of the corr1_p values are greater or less than the sig_threshold
-        # then set the corr1 values to NaNs at the same locations
-        corr1_p[(corr1_p > sig_threshold) & (corr1_p < 1 - sig_threshold)] = np.nan
-
-        if nboot_str != "nboot_1":
-            # plot the p-values
-            ax.contourf(
-                lons, lats, corr1_p, hatches=["...."], alpha=0.0, transform=proj
-            )
-        else:
-            print("Not plotting p-values for nboot_1")
-
-        # Add a text box with the axis label
-        ax.text(
-            0.95,
-            0.05,
-            f"{axis_labels[i]}",
-            transform=ax.transAxes,
-            va="bottom",
-            ha="right",
-            bbox=dict(facecolor="white", alpha=0.5),
-            fontsize=8,
-        )
-
-        # Extract the first part of the key
-        key = key[0]
-
-        # If this is tas
-        if key == "tas":
-            # Set the variable
-            var_name = "Temperature"
-        elif key == "pr":
-            # Set the variable
-            var_name = "Precipitation"
-        elif key == "psl":
-            # Set the variable
-            var_name = "Sea level pressure"
-        elif key == "sfcWind":
-            # Set the variable
-            var_name = "10m wind speed"
-        elif key == "rsds":
-            # Set the variable
-            var_name = "Solar irradiance"
-        else:
-            # Print the key
-            print(f"key = {key}")
-            AssertionError("Variable not recognised!")
-
-        # Add a textboc with the variable name in the top left
-        ax.text(
-            0.05,
-            0.95,
-            f"{var_name}",
-            transform=ax.transAxes,
-            va="top",
-            ha="left",
-            bbox=dict(facecolor="white", alpha=0.5),
-            fontsize=10,
-        )
-
-        if methods is not None:
-            # If the list contains alt_lag
-            if "alt_lag" in methods:
-                # Replace alt_lag with lagged, where alt_lag is found
-                methods = [method.replace("alt_lag", "Lagged") for method in methods]
-            elif "nao_matched" in methods:
-                # Replace nao_matched with NAO-matched, where nao_matched is found
-                methods = [
-                    method.replace("nao_matched", "NAO-matched") for method in methods
-                ]
-            elif "raw" in methods:
-                # Replace raw with Raw, where raw is found
-                methods = [method.replace("raw", "Raw") for method in methods]
-            else:
-                # AssertionError
-                AssertionError("Method not recognised!")
-
-            if short_period is False:
-                # Include the method in the top right of the figure
-                ax.text(
-                    0.95,
-                    0.95,
-                    f"{methods[i]} ({nens1})",
-                    transform=ax.transAxes,
-                    va="top",
-                    ha="right",
-                    bbox=dict(facecolor="white", alpha=0.5),
-                    fontsize=8,
+                # Set up the years
+                years = np.arange(
+                    skill_maps["start_year"][0], skill_maps["end_year_short"] + 1
                 )
-            else:
-                # Include the method in the top right of the figure
-                ax.text(
-                    0.95,
-                    0.95,
-                    f"{methods[i]} ({nens1})\nShort period corr",
-                    transform=ax.transAxes,
-                    va="top",
-                    ha="right",
-                    bbox=dict(facecolor="white", alpha=0.5),
-                    fontsize=8,
-                )
-        else:
-            # Include the number of ensemble members in the top right of the figure
+
+                # Set up the time series
+                corr = skill_maps["corr1_short"]
+                corr2 = skill_maps2["corr1_short"]
+
+            # Print the start and end years
+            print(f"start_year = {start_year}")
+            print(f"end_year = {end_year}")
+            print(f"nens1 = {nens1}")
+            print(f"nens2 = {nens2}")
+            print(f"for variable {key}")
+
+            # If grid_box_plot is not None
+            if gridbox_plot is not None:
+                # Print
+                print("Constraining data to gridbox_plot...")
+                print("As defined by gridbox_plot = ", gridbox_plot)
+
+                # Constrain the data to the gridbox_plot
+                corr = corr[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+                corr2 = corr2[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+
+            # Set up the axes
+            ax = plt.subplot(nrows, 2, i + 1, projection=proj)
+
+            # Include coastlines
+            ax.coastlines()
+
+            # Set up the cf object
+            cf = ax.contourf(
+                lons, lats, corr - corr2, clevs, transform=proj, cmap="RdBu_r"
+            )
+
+            # Extract the variable name from the key
+            variable = key[0]
+            nboot_str = key[1]
+
+            # Add a textbox with the axis label
             ax.text(
                 0.95,
-                0.95,
-                f"n = {nens1}",
+                0.05,
+                f"{axis_labels[i]}",
                 transform=ax.transAxes,
-                va="top",
+                va="bottom",
                 ha="right",
                 bbox=dict(facecolor="white", alpha=0.5),
                 fontsize=8,
             )
 
-        # Add the contourf object to the list
-        cf_list.append(cf)
+            # Set the var name depending on the variable
+            if variable == "tas":
+                var_name = "Temperature"
+            elif variable == "pr":
+                var_name = "Precipitation"
+            elif variable == "psl":
+                var_name = "Sea level pressure"
+            elif variable == "nao":
+                var_name = "NAO"
+            elif variable == "sfcWind":
+                # Set the variable
+                var_name = "10m wind speed"
+            elif variable == "rsds":
+                # Set the variable
+                var_name = "Solar irradiance"
+            else:
+                # Print the key
+                print(f"variable = {variable}")
+                AssertionError("Variable not recognised!")
 
-        # Add the axes to the list
-        axes.append(ax)
+            # Set a textbox with the variable name in the top left
+            ax.text(
+                0.05,
+                0.95,
+                f"{var_name}",
+                transform=ax.transAxes,
+                va="top",
+                ha="left",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
+
+            if methods is not None:
+                # If the list contains alt_lag
+                if "alt_lag" in methods:
+                    # Replace alt_lag with lagged, where alt_lag is found
+                    methods = [
+                        method.replace("alt_lag", "Lagged") for method in methods
+                    ]
+                elif "nao_matched" in methods:
+                    # Replace nao_matched with NAO-matched, where nao_matched is found
+                    methods = [
+                        method.replace("nao_matched", "NAO-matched")
+                        for method in methods
+                    ]
+                elif "raw" in methods:
+                    # Replace raw with Raw, where raw is found
+                    methods = [method.replace("raw", "Raw") for method in methods]
+                else:
+                    # AssertionError
+                    AssertionError("Method not recognised!")
+
+                if short_period is False:
+                    # Include the method in the top right of the figure
+                    ax.text(
+                        0.95,
+                        0.95,
+                        f"{methods[i]} ({nens1})",
+                        transform=ax.transAxes,
+                        va="top",
+                        ha="right",
+                        bbox=dict(facecolor="white", alpha=0.5),
+                        fontsize=8,
+                    )
+                else:
+                    # Include the method in the top right of the figure
+                    ax.text(
+                        0.95,
+                        0.95,
+                        f"{methods[i]} ({nens1})\nShort period corr",
+                        transform=ax.transAxes,
+                        va="top",
+                        ha="right",
+                        bbox=dict(facecolor="white", alpha=0.5),
+                        fontsize=8,
+                    )
+    else:
+        print("Plotting the correlations for a single method...")
+
+        # Loop over the keys in the bs_skill_maps dictionary
+        for i, (key, skill_maps) in enumerate(bs_skill_maps.items()):
+            # Logging
+            print(f"Plotting variable {key}...")
+            print(f"Plotting index {i}...")
+
+            # Extract the correlation arrays from the skill_maps dictionary
+            corr = skill_maps["corr1"]
+            corr1_p = skill_maps["corr1_p"]
+
+            # Extract the time series
+            fcst1_ts = skill_maps["f1_ts"]
+            obs_ts = skill_maps["o_ts"]
+
+            # Extract the values
+            nens1 = skill_maps["nens1"]
+            start_year = skill_maps["start_year"]
+            end_year = skill_maps["end_year"]
+
+            # if we are using the short period
+            if short_period and skill_maps.get("corr1_short") is not None:
+                print("Using the short period correlations...")
+                # Set up the years
+                years = np.arange(
+                    skill_maps["start_year"][0], skill_maps["end_year_short"] + 1
+                )
+
+                # Set up the time series
+                corr = skill_maps["corr1_short"]
+                corr1_p = skill_maps["corr1_p_short"]
+
+                # Set up the time series
+                fcst1_ts = skill_maps["f1_ts_short"]
+
+                # Set up the time series
+                obs_ts = skill_maps["o_ts_short"]
+
+            # Print the start and end years
+            print(f"start_year = {start_year}")
+            print(f"end_year = {end_year}")
+            print(f"nens1 = {nens1}")
+            print(f"for variable {key}")
+
+            # If grid_box_plot is not None
+            if gridbox_plot is not None:
+                # Print
+                print("Constraining data to gridbox_plot...")
+                print("As defined by gridbox_plot = ", gridbox_plot)
+
+                # Constrain the data to the gridbox_plot
+                corr = corr[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+                corr1_p = corr1_p[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
+
+            # Set up the axes
+            ax = plt.subplot(nrows, 2, i + 1, projection=proj)
+
+            # Include coastlines
+            ax.coastlines()
+
+            # # Add borders (?)
+            # ax.add_feature(cfeature.BORDERS)
+
+            # Set up the cf object
+            cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
+
+            # Extract the variable name from the key
+            variable = key[0]
+            nboot_str = key[1]
+
+            # If gridbox_corr is not None
+            if gridbox_corr is not None and variable != "psl":
+                # Loggging
+                print("Calculating the correlations with a specific gridbox...")
+                print("As defined by gridbox_corr = ", gridbox_corr)
+                print("Variable is not psl")
+
+                # Constrain the ts to the gridbox_corr
+                fcst1_ts = fcst1_ts[
+                    :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
+                ]
+                obs_ts = obs_ts[
+                    :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
+                ]
+
+                # Calculate the mean of both time series
+                fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
+                obs_ts_mean = np.mean(obs_ts, axis=(1, 2))
+
+                # Calculate the correlation between the two time series
+                r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+
+                # Show these values on the plot
+                ax.text(
+                    0.05,
+                    0.05,
+                    f"r = {r:.2f}, p = {p:.2f}",
+                    transform=ax.transAxes,
+                    va="bottom",
+                    ha="left",
+                    bbox=dict(facecolor="white", alpha=0.5),
+                    fontsize=8,
+                )
+
+                # Add the gridbox to the plot
+                ax.plot(
+                    [lon1_corr, lon2_corr, lon2_corr, lon1_corr, lon1_corr],
+                    [lat1_corr, lat1_corr, lat2_corr, lat2_corr, lat1_corr],
+                    color="green",
+                    linewidth=2,
+                    transform=proj,
+                )
+            elif gridbox_corr is not None and variable == "psl":
+                print("Calculating the correlations for NAO gridboxes...")
+                print("For variable psl")
+
+                # # Print the shape of fcst1_ts
+                # print(f"fcst1_ts.shape = {fcst1_ts.shape}")
+
+                # # Print the shape of obs_ts
+                # print(f"obs_ts.shape = {obs_ts.shape}")
+
+                # # Print the lat1_idx_corr_n
+                # print(f"lat1_idx_corr_n = {lat1_idx_corr_n}")
+                # print(f"lat2_idx_corr_n = {lat2_idx_corr_n}")
+                # print(f"lon1_idx_corr_n = {lon1_idx_corr_n}")
+                # print(f"lon2_idx_corr_n = {lon2_idx_corr_n}")
+
+                # # Print the lat1_idx_corr_s
+                # print(f"lat1_idx_corr_s = {lat1_idx_corr_s}")
+                # print(f"lat2_idx_corr_s = {lat2_idx_corr_s}")
+                # print(f"lon1_idx_corr_s = {lon1_idx_corr_s}")
+                # print(f"lon2_idx_corr_s = {lon2_idx_corr_s}")
+
+                # Constrain the ts to the gridbox_corr
+                fcst1_ts_n = fcst1_ts[
+                    :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+                ]
+                obs_ts_n = obs_ts[
+                    :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+                ]
+
+                # Constrain the ts to the gridbox_corr
+                fcst1_ts_s = fcst1_ts[
+                    :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+                ]
+                obs_ts_s = obs_ts[
+                    :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+                ]
+
+                # Calculate the mean of both time series
+                fcst1_ts_mean_n = np.mean(fcst1_ts_n, axis=(1, 2))
+                obs_ts_mean_n = np.mean(obs_ts_n, axis=(1, 2))
+
+                # Calculate the mean of both time series
+                fcst1_ts_mean_s = np.mean(fcst1_ts_s, axis=(1, 2))
+                obs_ts_mean_s = np.mean(obs_ts_s, axis=(1, 2))
+
+                # Calculate the correlation between the two time series
+                r_n, p_n = pearsonr(fcst1_ts_mean_n, obs_ts_mean_n)
+                r_s, p_s = pearsonr(fcst1_ts_mean_s, obs_ts_mean_s)
+
+                # Print the values
+                print(f"r_n = {r_n}, p_n = {p_n}")
+                print(f"r_s = {r_s}, p_s = {p_s}")
+
+                # Show these values on the plot
+                ax.text(
+                    0.05,
+                    0.05,
+                    "N: r = {r_n:.2f}, p = {p_n:.2f}\nS: r = {r_s:.2f}, p = {p_s:.2f}".format(
+                        r_n=r_n, p_n=p_n, r_s=r_s, p_s=p_s
+                    ),
+                    transform=ax.transAxes,
+                    va="bottom",
+                    ha="left",
+                    bbox=dict(facecolor="white", alpha=0.5),
+                    fontsize=8,
+                )
+
+                # Add the gridbox to the plot
+                ax.plot(
+                    [lon1_corr_n, lon2_corr_n, lon2_corr_n, lon1_corr_n, lon1_corr_n],
+                    [lat1_corr_n, lat1_corr_n, lat2_corr_n, lat2_corr_n, lat1_corr_n],
+                    color="green",
+                    linewidth=2,
+                    transform=proj,
+                )
+
+                # Add the gridbox to the plot
+                ax.plot(
+                    [lon1_corr_s, lon2_corr_s, lon2_corr_s, lon1_corr_s, lon1_corr_s],
+                    [lat1_corr_s, lat1_corr_s, lat2_corr_s, lat2_corr_s, lat1_corr_s],
+                    color="green",
+                    linewidth=2,
+                    transform=proj,
+                )
+
+            # If any of the corr1 values are NaNs
+            # then set the p values to NaNs at the same locations
+            corr1_p[np.isnan(corr)] = np.nan
+
+            # If any of the corr1_p values are greater or less than the sig_threshold
+            # then set the corr1 values to NaNs at the same locations
+            corr1_p[(corr1_p > sig_threshold) & (corr1_p < 1 - sig_threshold)] = np.nan
+
+            if nboot_str != "nboot_1":
+                # plot the p-values
+                ax.contourf(
+                    lons, lats, corr1_p, hatches=["...."], alpha=0.0, transform=proj
+                )
+            else:
+                print("Not plotting p-values for nboot_1")
+
+            # Add a text box with the axis label
+            ax.text(
+                0.95,
+                0.05,
+                f"{axis_labels[i]}",
+                transform=ax.transAxes,
+                va="bottom",
+                ha="right",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=8,
+            )
+
+            # Extract the first part of the key
+            key = key[0]
+
+            # If this is tas
+            if key == "tas":
+                # Set the variable
+                var_name = "Temperature"
+            elif key == "pr":
+                # Set the variable
+                var_name = "Precipitation"
+            elif key == "psl":
+                # Set the variable
+                var_name = "Sea level pressure"
+            elif key == "sfcWind":
+                # Set the variable
+                var_name = "10m wind speed"
+            elif key == "rsds":
+                # Set the variable
+                var_name = "Solar irradiance"
+            else:
+                # Print the key
+                print(f"key = {key}")
+                AssertionError("Variable not recognised!")
+
+            # Add a textboc with the variable name in the top left
+            ax.text(
+                0.05,
+                0.95,
+                f"{var_name}",
+                transform=ax.transAxes,
+                va="top",
+                ha="left",
+                bbox=dict(facecolor="white", alpha=0.5),
+                fontsize=10,
+            )
+
+            if methods is not None:
+                # If the list contains alt_lag
+                if "alt_lag" in methods:
+                    # Replace alt_lag with lagged, where alt_lag is found
+                    methods = [
+                        method.replace("alt_lag", "Lagged") for method in methods
+                    ]
+                elif "nao_matched" in methods:
+                    # Replace nao_matched with NAO-matched, where nao_matched is found
+                    methods = [
+                        method.replace("nao_matched", "NAO-matched")
+                        for method in methods
+                    ]
+                elif "raw" in methods:
+                    # Replace raw with Raw, where raw is found
+                    methods = [method.replace("raw", "Raw") for method in methods]
+                else:
+                    # AssertionError
+                    AssertionError("Method not recognised!")
+
+                if short_period is False:
+                    # Include the method in the top right of the figure
+                    ax.text(
+                        0.95,
+                        0.95,
+                        f"{methods[i]} ({nens1})",
+                        transform=ax.transAxes,
+                        va="top",
+                        ha="right",
+                        bbox=dict(facecolor="white", alpha=0.5),
+                        fontsize=8,
+                    )
+                else:
+                    # Include the method in the top right of the figure
+                    ax.text(
+                        0.95,
+                        0.95,
+                        f"{methods[i]} ({nens1})\nShort period corr",
+                        transform=ax.transAxes,
+                        va="top",
+                        ha="right",
+                        bbox=dict(facecolor="white", alpha=0.5),
+                        fontsize=8,
+                    )
+            else:
+                # Include the number of ensemble members in the top right of the figure
+                ax.text(
+                    0.95,
+                    0.95,
+                    f"n = {nens1}",
+                    transform=ax.transAxes,
+                    va="top",
+                    ha="right",
+                    bbox=dict(facecolor="white", alpha=0.5),
+                    fontsize=8,
+                )
+
+            # Add the contourf object to the list
+            cf_list.append(cf)
+
+            # Add the axes to the list
+            axes.append(ax)
 
     # # Remove content from the 4th axis
     # axs[1, 1].remove()

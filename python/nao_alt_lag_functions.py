@@ -248,6 +248,7 @@ def calc_nao_stats(
     end_year: int,
     lag: int,
     alt_lag: bool = False,
+    nao_matched: bool = False,
     region: str = "global",
     variable: str = "psl",
     winter_nao_n_grid: dict = dicts.iceland_grid_corrected,
@@ -691,8 +692,10 @@ def calc_nao_stats(
         # append the obs_nao to the dictionary
         nao_stats["obs_nao"] = obs_nao
 
-        # Swap the axes of the data
-        data = np.swapaxes(data, 0, 1)
+        # if nao_matched is false
+        if not nao_matched:
+            # Swap the axes of the data
+            data = np.swapaxes(data, 0, 1)
 
         # Print the shape of the data
         print("Shape of the model data:", np.shape(data))
