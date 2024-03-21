@@ -2921,6 +2921,9 @@ def load_ts_data(
         if forecast_range != "2-9":
             # Set up the valid years
             valid_years = np.arange(raw_first_year, raw_last_year + 1)
+        elif forecast_range == "2-9" and alt_lag is False:
+            # Set up the valid years
+            valid_years = np.arange(raw_first_year, raw_last_year + 1)
         else:
             # Set up the valid years
             valid_years = np.arange(raw_first_year, raw_last_year)
@@ -2943,6 +2946,17 @@ def load_ts_data(
             obs_anoms_short = obs_anoms_short.sel(
                 time=slice(f"{raw_first_year}-01-01", f"{raw_last_year - 10 + 1}-12-31")
             )
+        elif forecast_range == "2-9" and alt_lag is False:
+            # Constrain the obs_anoms to the valid years
+            obs_anoms = obs_anoms.sel(
+                time=slice(f"{raw_first_year}-01-01", f"{raw_last_year}-12-31")
+            )
+
+            # Constrain the obs_anoms short to the valid years
+            obs_anoms_short = obs_anoms_short.sel(
+                time=slice(f"{raw_first_year}-01-01", f"{raw_last_year - 10 + 1}-12-31")
+            )
+
         else:
             # Constrain the obs_anoms to the valid years
             obs_anoms = obs_anoms.sel(
@@ -3049,6 +3063,9 @@ def load_ts_data(
         if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
             # Remove the final time step
             data = data[:, :-1, :, :]
+
+        # Print the len of valid years
+        print(f"len(valid_years) = {len(valid_years)}")
 
         # Assert that the data shape is as expected
         assert data.shape[1] == len(valid_years), "Data shape not as expected!"
@@ -3683,6 +3700,7 @@ def plot_ts(
     trendline: bool = False,
     constrain_years: list = None,
     short_period: bool = False,
+    standardise: bool = False,
 ):
     """
     Plot the time series data.
@@ -3736,6 +3754,10 @@ def plot_ts(
 
     short_period: bool
         Whether to plot the short period time series.
+        e.g. default is False
+
+    standardise: bool
+        Whether to standardise the time series before plotting.
         e.g. default is False
 
     Outputs:
@@ -3802,49 +3824,64 @@ def plot_ts(
     # Set up the figure
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
 
-    # If short period is False
+    # Set up the init_years
     if not short_period:
-        # Plot the ensemble mean
-        ax.plot(
-            ts_dict["init_years"], ts_dict["fcst_ts_mean"], color="red", label="dcppA"
-        )
+        init_years = ts_dict["init_years"]
 
-        # Plot the observations
-        ax.plot(ts_dict["init_years"], ts_dict["obs_ts"], color="black", label="ERA5")
+        # Set up the fcst ts mean
+        fcst_ts_mean = ts_dict["fcst_ts_mean"]
 
-        # Fill between the min and max
-        ax.fill_between(
-            ts_dict["init_years"],
-            ts_dict["fcst_ts_min"],
-            ts_dict["fcst_ts_max"],
-            color="red",
-            alpha=0.3,
-        )
+        # Set up the obs_ts
+        obs_ts = ts_dict["obs_ts"]
+
+        # Set up the min interval
+        fcst_ts_min = ts_dict["fcst_ts_min"]
+
+        # Set up the max interval
+        fcst_ts_max = ts_dict["fcst_ts_max"]
     else:
-        # plot the ensemble mean for the short period
-        ax.plot(
-            ts_dict["init_years_short"],
-            ts_dict["fcst_ts_mean_short"],
-            color="red",
-            label="dcppA",
-        )
+        init_years = ts_dict["init_years_short"]
 
-        # plot the observations for the short period
-        ax.plot(
-            ts_dict["init_years_short"],
-            ts_dict["obs_ts_short"],
-            color="black",
-            label="ERA5",
-        )
+        # Set up the fcst ts mean
+        fcst_ts_mean = ts_dict["fcst_ts_mean_short"]
 
-        # Fill between the min and max for the short period
-        ax.fill_between(
-            ts_dict["init_years_short"],
-            ts_dict["fcst_ts_min_short"],
-            ts_dict["fcst_ts_max_short"],
-            color="red",
-            alpha=0.3,
-        )
+        # Set up the obs_ts
+        obs_ts = ts_dict["obs_ts_short"]
+
+        # Set up the min interval
+        fcst_ts_min = ts_dict["fcst_ts_min_short"]
+
+        # Set up the max interval
+        fcst_ts_max = ts_dict["fcst_ts_max_short"]
+
+    # Standardise the time series
+    if standardise:
+        # Standardise the forecast time series
+        fcst_ts_mean = (fcst_ts_mean - np.mean(fcst_ts_mean)) / np.std(fcst_ts_mean)
+
+        # Standardise the min interval
+        fcst_ts_min = (fcst_ts_min - np.mean(fcst_ts_min)) / np.std(fcst_ts_min)
+
+        # Standardise the max interval
+        fcst_ts_max = (fcst_ts_max - np.mean(fcst_ts_max)) / np.std(fcst_ts_max)
+
+        # Standardise the observations
+        obs_ts = (obs_ts - np.mean(obs_ts)) / np.std(obs_ts)
+
+    # Plot the ensemble mean
+    ax.plot(init_years, fcst_ts_mean, color="red", label="dcppA")
+
+    # Plot the observations
+    ax.plot(init_years, obs_ts, color="black", label="ERA5")
+
+    # Fill between the min and max
+    ax.fill_between(
+        init_years,
+        fcst_ts_min,
+        fcst_ts_max,
+        color="red",
+        alpha=0.3,
+    )
 
     # Set up a horizontal line at 0
     ax.axhline(0, color="black", linestyle="--")
@@ -3974,6 +4011,12 @@ def plot_ts(
         ax.set_ylabel("Monthly precip (mm)")
     else:
         raise ValueError("Variable not recognised!")
+    
+    # if standardise
+    if standardise:
+        # Set the y-axis label
+        # add standardised to the label
+        ax.set_ylabel(f"Standardised {ax.get_ylabel()}")
 
     # Set up the current time
     current_time = datetime.now().strftime("%Y%m%d")
