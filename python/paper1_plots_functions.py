@@ -1647,7 +1647,7 @@ def create_bs_dict(
         assert os.path.isdir(base_path), f"Directory {base_path} does not exist!"
 
         # Set up the dictionary key for this variable
-        key = (var, f"nboot_{nboot}")
+        key = (var, f"nboot_{nboot}", method)
 
         # Create an empty dictionary to store the skill maps for this variable
         skill_maps = {}
@@ -1874,6 +1874,7 @@ def plot_diff_variables(
     short_period: bool = False,
     plot_corr_diff: bool = False,
     second_bs_skill_maps: dict = None,
+    methods_diff: str = None,
 ):
     """
     Plot the skill maps for different variables as a 2x2 grid.
@@ -2065,8 +2066,12 @@ def plot_diff_variables(
         lats = lats[lat1_idx_gb:lat2_idx_gb]
         lons = lons[lon1_idx_gb:lon2_idx_gb]
 
-    # Set up the contour levels
-    clevs = np.arange(-1.0, 1.1, 0.1)
+    if plot_corr_diff is True:
+        # Set up the contour levels
+        clevs = np.arange(-0.8, 0.9, 0.1)
+    else:
+        # Set up the contour levels
+        clevs = np.arange(-1.0, 1.1, 0.1)
 
     # Set up a list to store the contourf objects
     cf_list = []
@@ -2087,8 +2092,16 @@ def plot_diff_variables(
             print(f"Plotting variable {key}...")
             print(f"Plotting index {i}...")
 
-            # Extract this index from the second_bs_skill_maps dictionary
-            skill_maps2 = second_bs_skill_maps[key]
+            # print the keys for the second_bs_skill_maps dictionary
+            print(
+                f"keys for second_bs_skill_maps = {list(second_bs_skill_maps.keys())}"
+            )
+
+            # Extract the key for this index from the bs_skill_maps dictionary
+            key2 = list(second_bs_skill_maps.keys())[i]
+
+            # Use this key to extract the skill_maps from the second_bs_skill_maps dictionary
+            skill_maps2 = second_bs_skill_maps[key2]
 
             # Extract the correlation arrays from the skill_maps dictionary
             corr = skill_maps["corr1"]
@@ -2140,7 +2153,13 @@ def plot_diff_variables(
 
             # Set up the cf object
             cf = ax.contourf(
-                lons, lats, corr - corr2, clevs, transform=proj, cmap="RdBu_r"
+                lons,
+                lats,
+                corr - corr2,
+                clevs,
+                transform=proj,
+                cmap="RdBu_r",
+                extend="both",
             )
 
             # Extract the variable name from the key
@@ -2191,32 +2210,13 @@ def plot_diff_variables(
                 fontsize=8,
             )
 
-            if methods is not None:
-                # If the list contains alt_lag
-                if "alt_lag" in methods:
-                    # Replace alt_lag with lagged, where alt_lag is found
-                    methods = [
-                        method.replace("alt_lag", "Lagged") for method in methods
-                    ]
-                elif "nao_matched" in methods:
-                    # Replace nao_matched with NAO-matched, where nao_matched is found
-                    methods = [
-                        method.replace("nao_matched", "NAO-matched")
-                        for method in methods
-                    ]
-                elif "raw" in methods:
-                    # Replace raw with Raw, where raw is found
-                    methods = [method.replace("raw", "Raw") for method in methods]
-                else:
-                    # AssertionError
-                    AssertionError("Method not recognised!")
-
+            if methods_diff is not None:
                 if short_period is False:
                     # Include the method in the top right of the figure
                     ax.text(
                         0.95,
                         0.95,
-                        f"{methods[i]} ({nens1})",
+                        f"{methods_diff} ({nens1}, {nens2})\ncorr diff",
                         transform=ax.transAxes,
                         va="top",
                         ha="right",
@@ -2228,13 +2228,19 @@ def plot_diff_variables(
                     ax.text(
                         0.95,
                         0.95,
-                        f"{methods[i]} ({nens1})\nShort period corr",
+                        f"{methods_diff} ({nens1}, {nens2})\nshort period corr diff",
                         transform=ax.transAxes,
                         va="top",
                         ha="right",
                         bbox=dict(facecolor="white", alpha=0.5),
                         fontsize=8,
                     )
+
+            # Add the cf object to the cf_list
+            cf_list.append(cf)
+
+            # Add the ax object to the axes list
+            axes.append(ax)
     else:
         print("Plotting the correlations for a single method...")
 
