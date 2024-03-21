@@ -2075,6 +2075,9 @@ def plot_diff_variables(
     if plot_corr_diff is True:
         # Set up the contour levels
         clevs = np.arange(-0.8, 0.9, 0.1)
+    elif plot_long_short_diff is True:
+        # Set up the contour levels
+        clevs = np.arange(-0.5, 0.6, 0.1)
     else:
         # Set up the contour levels
         clevs = np.arange(-1.0, 1.1, 0.1)
