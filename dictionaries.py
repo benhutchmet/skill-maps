@@ -19,7 +19,6 @@ test_model_hadgem = ["HadGEM3-GC31-MM"]
 test_model_cesm = ["CESM1-1-CAM5-CMIP5"]
 
 
-
 # List of the full models
 models = [
     "BCC-CSM2-MR",
@@ -334,6 +333,15 @@ uk_s_box = {"lon1": 153, "lon2": 201, "lat1": 38, "lat2": 51}
 
 # Define this but corrected
 uk_s_box_corrected = {"lon1": -27, "lon2": 21, "lat1": 38, "lat2": 51}
+
+# Define the scandi gridbox to be used for precip
+# From Landgren et al., 2014
+scandi_box = {
+    "lon1": 2,  # degrees east
+    "lon2": 23,
+    "lat1": 56,  # degrees north
+    "lat2": 71,
+}
 
 sfcWind_models_numbers = [1, 2, 3, 5, 8, 9, 10, 11]
 no_sfcWind_models = 8

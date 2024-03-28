@@ -1558,6 +1558,7 @@ def create_bs_dict(
     methods: list,
     region: str = "global",
     base_dir: str = "/gws/nopw/j04/canari/users/benhutch/bootstrapping",
+    model_season: str = "ONDJFM",
 ):
     """
     Function which creates a dictionary of bootstrapped skill maps for a list of variables.
@@ -1656,56 +1657,56 @@ def create_bs_dict(
         corr1_file = [
             file
             for file in os.listdir(base_path)
-            if f"corr1_{var}_{region}_{season}_{forecast_range}.npy" in file
+            if f"corr1_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # Corr1 file short
         corr1_short_file = [
             file
             for file in os.listdir(base_path)
-            if f"corr1_{var}_{region}_{season}_{forecast_range}_short" in file
+            if f"corr1_{var}_{region}_{model_season}_{forecast_range}_short" in file
         ]
 
         # Find the file containing "corr1_p_{variable}" in the base_path
         corr1_p_file = [
             file
             for file in os.listdir(base_path)
-            if f"corr1_p_{var}_{region}_{season}_{forecast_range}.npy" in file
+            if f"corr1_p_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # fiel containing corr1_p_short
         corr1_p_short_file = [
             file
             for file in os.listdir(base_path)
-            if f"corr1_p_{var}_{region}_{season}_{forecast_range}_short" in file
+            if f"corr1_p_{var}_{region}_{model_season}_{forecast_range}_short" in file
         ]
 
         # Find the file containing "fcst1_ts_{variable}" in the base_path
         fcst1_ts_file = [
             file
             for file in os.listdir(base_path)
-            if f"fcst1_ts_{var}_{region}_{season}_{forecast_range}.npy" in file
+            if f"fcst1_ts_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # Short fcst1_ts file
         fcst1_ts_file_short = [
             file
             for file in os.listdir(base_path)
-            if f"fcst1_ts_{var}_{region}_{season}_{forecast_range}_short" in file
+            if f"fcst1_ts_{var}_{region}_{model_season}_{forecast_range}_short" in file
         ]
 
         # Find the file containing "obs_ts_{variable} short
         obs_ts_file_short = [
             file
             for file in os.listdir(base_path)
-            if f"obs_ts_{var}_{region}_{season}_{forecast_range}_short" in file
+            if f"obs_ts_{var}_{region}_{model_season}_{forecast_range}_short" in file
         ]
 
         # Find the file containing "obs_ts_{variable}" in the base_path
         obs_ts_file = [
             file
             for file in os.listdir(base_path)
-            if f"obs_ts_{var}_{region}_{season}_{forecast_range}.npy" in file
+            if f"obs_ts_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # Find the file containing "nens1_{variable}" in the base_path
