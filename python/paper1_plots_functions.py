@@ -3157,6 +3157,9 @@ def load_ts_data(
         # Extract the obs_anoms short as its values
         obs_ts_short = obs_anoms_short.values
 
+        # print the variable
+        print(f"variable = {variable}")
+
         if variable == "psl":
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts / 100
@@ -3175,6 +3178,12 @@ def load_ts_data(
 
             # Append the obs_ts short to the ts_dict
             ts_dict["obs_ts_short"] = obs_ts_short
+        elif variable in ["rsds", "ssrd"]:
+            # Conver the obs from J/m^2 to W/m^2
+            ts_dict["obs_ts"] = obs_ts / 86400
+
+            # Conver the obs from J/m^2 to W/m^2
+            ts_dict["obs_ts_short"] = obs_ts_short / 86400
         else:
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts
@@ -3510,6 +3519,12 @@ def load_ts_data(
 
             # Append the obs_ts short to the ts_dict
             ts_dict["obs_ts_short"] = obs_ts_short
+        elif variable in ["rsds", "ssrd"]:
+            # Conver the obs from J/m^2 to W/m^2
+            ts_dict["obs_ts"] = obs_ts / 86400
+
+            # Conver the obs from J/m^2 to W/m^2
+            ts_dict["obs_ts_short"] = obs_ts_short / 86400
         else:
             # Append the obs_ts to the ts_dict
             ts_dict["obs_ts"] = obs_ts
