@@ -529,12 +529,14 @@ def main():
 
                 # Load the file
                 alt_lag_data = np.load(alt_lag_files[latest_datetime_index])
-            else:
+            elif len(alt_lag_files) == 1:
                 # Load the file
                 alt_lag_data = np.load(alt_lag_files[0])
 
-            # print the shape of the alt lag data
-            print("Shape of alt lag data:", alt_lag_data.shape)
+                # print the shape of the alt lag data
+                print("Shape of alt lag data:", alt_lag_data.shape)
+            else:
+                print("No files found for alternate lag data")
 
         # If there is more than one file
         if len(raw_files) > 1:
@@ -562,12 +564,14 @@ def main():
 
             # Load the file
             raw_data = np.load(raw_files[latest_datetime_index])
-        else:
+        elif len(raw_files) == 1:
             # Load the file
             raw_data = np.load(raw_files[0])
 
-        # Print the shape of the raw data
-        print("Shape of raw data:", raw_data.shape)
+            # Print the shape of the raw data
+            print("Shape of raw data:", raw_data.shape)
+        else:
+            print("No files found for raw data")
 
         # if the season is ULG, change it to JJA
         if season == "ULG":
@@ -588,18 +592,6 @@ def main():
             observations_path=obs_path_name,
             obs_var_name=variable,
         )
-
-        # print the first and last years of the observations
-        # print("First year obs pre-slice:", obs.time[0].dt.year.values)
-        # print("Last year obs pre-slice:", obs.time[-1].dt.year.values)
-
-        # # Print out the first and last values of the observations
-        # print("First value obs pre-slice:", obs[0, 0, 0].values)
-        # print("Last value obs pre-slice:", obs[-1, 0, 0].values)
-
-        # # Print the second and penultimate values of the observations
-        # print("Second value obs pre-slice:", obs[1, 0, 0].values)
-        # print("Penultimate value obs pre-slice:", obs[-2, 0, 0].values)
 
         # If the window size for rolling mean is even, e.g. 2
         # Then the latter place from the medium will be taken for the label
@@ -704,10 +696,6 @@ def main():
                     print("All values are nan")
                     print("Removing year:", year, "from obs")
                     obs = obs.sel(time=obs.time.dt.year != year)
-
-        # print the first and last years of the observations
-        # print("First year obs post-slice:", obs_lag.time[0].dt.year.values)
-        # print("Last year obs post-slice:", obs_lag.time[-1].dt.year.values)
 
         # Extract the values for the obs
         obs_lag_values = obs_lag.values

@@ -55,7 +55,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "sfcWind",
+                "ua",
                 "msl",
                 "global",
                 "ONDJFM",
@@ -66,7 +66,7 @@
                 "20",
                 "alternate_lag",
                 "1",
-                "100000",
+                "85000",
                 "False", // use the full period
                 "True" // NAO matching
             ]

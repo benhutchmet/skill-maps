@@ -1,17 +1,17 @@
 [cylc]
     UTC mode = True # Ignore DST
     [[parameters]]
-        match_var=pr,sfcWind,tas,rsds
+        match_var="ua"
         obs_var_name="msl"
         region="global"
-        season=ONDJFM
+        season=DJFM,ONDJFM
         forecast_range=2-9
         start_year="1961"
         end_year="2014"
         lag="4"
         no_subset_members="20"
         method=alternate_lag
-        nboot=100
+        nboot=1
         level="100000"
         full_period="False"
         nao_matched="True"
