@@ -1877,6 +1877,7 @@ def plot_diff_variables(
     plot_long_short_diff: bool = False,
     second_bs_skill_maps: dict = None,
     methods_diff: str = None,
+    plot_winter_nodes: bool = False,
 ):
     """
     Plot the skill maps for different variables as a 2x2 grid.
@@ -1956,6 +1957,9 @@ def plot_diff_variables(
     second_bs_skill_maps: dict
         Dictionary containing the bootstrapped skill maps for the second method.
         Default is None.
+
+    plot_winter_nodes: bool
+        Boolean value indicating whether to plot the winter nodes.
 
     Outputs:
     --------
@@ -2430,6 +2434,9 @@ def plot_diff_variables(
             print(f"end_year = {end_year}")
             print(f"nens1 = {nens1}")
             print(f"for variable {key}")
+            # print the len of the f1 and o1 time series
+            print(f"fcst1_ts.shape = {fcst1_ts.shape}")
+            print(f"obs_ts.shape = {obs_ts.shape}")
 
             # If grid_box_plot is not None
             if gridbox_plot is not None:
@@ -2632,6 +2639,9 @@ def plot_diff_variables(
             elif key == "rsds":
                 # Set the variable
                 var_name = "Solar irradiance"
+            elif key == "ua":
+                # Set the variable
+                var_name = "Zonal wind speed (850)"
             else:
                 # Print the key
                 print(f"key = {key}")
@@ -2711,6 +2721,38 @@ def plot_diff_variables(
 
             # Add the axes to the list
             axes.append(ax)
+
+    # if plot_winter_nodes is True
+    if plot_winter_nodes is True:
+        print("Plotting the winter nodes")
+
+        # Extract the lats
+        lat1_n, lat2_n = winter_n_gridbox_corr["lat1"], winter_n_gridbox_corr["lat2"]
+        lat1_s, lat2_s = winter_s_gridbox_corr["lat1"], winter_s_gridbox_corr["lat2"]
+
+        # Extract the lons
+        lon1_n, lon2_n = winter_n_gridbox_corr["lon1"], winter_n_gridbox_corr["lon2"]
+        lon1_s, lon2_s = winter_s_gridbox_corr["lon1"], winter_s_gridbox_corr["lon2"]
+
+        # Add the winter nodes to the plot
+        for ax in axes:
+            # Add the winter nodes to the plot
+            ax.plot(
+                [lon1_n, lon2_n, lon2_n, lon1_n, lon1_n],
+                [lat1_n, lat1_n, lat2_n, lat2_n, lat1_n],
+                color="blue",
+                linewidth=1,
+                transform=proj,
+            )
+
+            # Add the winter nodes to the plot
+            ax.plot(
+                [lon1_s, lon2_s, lon2_s, lon1_s, lon1_s],
+                [lat1_s, lat1_s, lat2_s, lat2_s, lat1_s],
+                color="blue",
+                linewidth=1,
+                transform=proj,
+            )
 
     # # Remove content from the 4th axis
     # axs[1, 1].remove()

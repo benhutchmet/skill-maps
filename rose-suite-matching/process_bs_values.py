@@ -485,18 +485,30 @@ def main():
         # Extract the last year of the array
         alt_lag_last_year = int(end_year)
 
-        # Form the other file name
-        raw_filename = f"{variable}_{season}_{region}_{start_year}_{alt_lag_last_year}_{forecast_range}_{lag}*.npy"
+        if level is not None:
+            # Set up the filename
+            # ua_DJFM_global_1961_1961_2-9_4_85000_1712048833.931586.npy
+            raw_filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}_{level}*.npy"
+        else:
+            # Set up the filename
+            # ua_DJFM_global_1961_1961_2-9_4_1712048833.931586.npy
+            raw_filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}*.npy"
 
         # Find files matching the raw filename
         raw_files = glob.glob(alt_lag_dir + "/" + raw_filename)
 
         if "-" in forecast_range:
-            # Form the file name
-            filename = f"{variable}_{season}_{region}_{alt_lag_first_year}_{alt_lag_last_year}_{forecast_range}_{lag}_*alternate_lag.npy"
+            if level is not None:
+                # Set up the filename
+                # ua_DJFM_global_1961_1961_2-9_4_85000_1712048833.931586.npy
+                alt_lag_filename = f"{variable}_{season}_{region}_{alt_lag_first_year}_{alt_lag_last_year}_{forecast_range}_{lag}_{level}*.npy"
+            else:
+                # Set up the filename
+                # ua_DJFM_global_1961_1961_2-9_4_1712048833.931586.npy
+                alt_lag_filename = f"{variable}_{season}_{region}_{alt_lag_first_year}_{alt_lag_last_year}_{forecast_range}_{lag}*.npy"
 
             # Find files matching the filename
-            alt_lag_files = glob.glob(alt_lag_dir + "/" + filename)
+            alt_lag_files = glob.glob(alt_lag_dir + "/" + alt_lag_filename)
 
             # If there is more than one file
             if len(alt_lag_files) > 1:
@@ -591,6 +603,7 @@ def main():
             season=season,
             observations_path=obs_path_name,
             obs_var_name=variable,
+            plev=level,
         )
 
         # If the window size for rolling mean is even, e.g. 2

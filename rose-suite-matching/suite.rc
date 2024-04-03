@@ -12,7 +12,7 @@
         no_subset_members="20"
         method=alternate_lag
         nboot=1
-        level="100000"
+        level="85000"
         full_period="False"
         nao_matched="True"
 
