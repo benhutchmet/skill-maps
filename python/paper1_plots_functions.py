@@ -2354,6 +2354,9 @@ def plot_diff_variables(
             elif variable == "rsds":
                 # Set the variable
                 var_name = "Solar irradiance"
+            elif variable == "ua":
+                # Set the variable
+                var_name = "Zonal wind speed (850hPa)"
             else:
                 # Print the key
                 print(f"variable = {variable}")
