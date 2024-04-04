@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from scipy.stats import pearsonr
+from scipy import signal
 from datetime import datetime
 import pandas as pd
 
@@ -3905,6 +3906,7 @@ def plot_ts(
     constrain_years: list = None,
     short_period: bool = False,
     standardise: bool = False,
+    do_detrend: bool = False,
 ):
     """
     Plot the time series data.
@@ -3964,11 +3966,30 @@ def plot_ts(
         Whether to standardise the time series before plotting.
         e.g. default is False
 
+    do_detrend: bool
+        Whether to detrend the time series before plotting.
+        e.g. default is False
+
     Outputs:
     --------
 
     None
     """
+
+    # if do_detrend is True
+    if do_detrend:
+        # Detrend the forecast time series
+        ts_dict["fcst_ts_mean"] = signal.detrend(ts_dict["fcst_ts_mean"])
+
+        # # Detrend the forecast time series min
+        # ts_dict["fcst_ts_min"] = signal.detrend(ts_dict["fcst_ts_min"])
+
+        # # Detrend the forecast time series max
+        # ts_dict["fcst_ts_max"] = signal.detrend(ts_dict["fcst_ts_max"])
+
+        # Detrend the obs time series
+        ts_dict["obs_ts"] = signal.detrend(ts_dict["obs_ts"])
+
 
     if constrain_years is not None:
         # Print the init_years
@@ -4078,14 +4099,15 @@ def plot_ts(
     # Plot the observations
     ax.plot(init_years, obs_ts, color="black", label="ERA5")
 
-    # Fill between the min and max
-    ax.fill_between(
-        init_years,
-        fcst_ts_min,
-        fcst_ts_max,
-        color="red",
-        alpha=0.3,
-    )
+    if do_detrend is False:
+        # Fill between the min and max
+        ax.fill_between(
+            init_years,
+            fcst_ts_min,
+            fcst_ts_max,
+            color="red",
+            alpha=0.3,
+        )
 
     # Set up a horizontal line at 0
     ax.axhline(0, color="black", linestyle="--")
@@ -4146,6 +4168,15 @@ def plot_ts(
         bbox=dict(facecolor="white", alpha=0.5),
         fontsize=8,
     )
+
+    # if do_detrend is True
+    if do_detrend:
+        # Calculate the correlation skill
+        corr, p = pearsonr(fcst_ts_mean, obs_ts)
+
+        # append the corr and p to the ts_dict
+        ts_dict["corr"] = corr
+        ts_dict["p"] = p
 
     # Set the title
     if ts_dict["alt_lag"] and not short_period:
