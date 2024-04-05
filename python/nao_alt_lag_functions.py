@@ -1153,7 +1153,6 @@ def plot_nao_subplots(
         fontsize=10,
         verticalalignment="bottom",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Inluce the correlation, p-value, RPC and N
@@ -1171,7 +1170,6 @@ def plot_nao_subplots(
         fontsize=10,
         verticalalignment="top",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Set up the second subplot
@@ -1218,7 +1216,6 @@ def plot_nao_subplots(
         fontsize=10,
         verticalalignment="bottom",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Inluce the correlation, p-value, RPC and N
@@ -1236,7 +1233,6 @@ def plot_nao_subplots(
         fontsize=10,
         verticalalignment="top",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     for subplot in ax:
@@ -1263,17 +1259,23 @@ def plot_nao_subplots(
         else:
             raise ValueError("Season not recognised")
         
-        # Set the xlims
+        # Your existing code
         subplot.set_xlim(1960, 2020)
 
-        # set the xticks parameters
-        #subplot.set_xticks(np.arange(1960, 2021, 5))
+        # Get the x-tick labels
+        labels = subplot.get_xticks().tolist()
 
-        # set the xtick labels
-        #subplot.set_xticklabels(np.arange(1960, 2021, 5))
+        # Replace the label for 2020 with an empty string
+        labels[-1] = ''
 
+        # Make sure these labels are int values
+        labels = [int(label) for label in labels if label != '']
+
+        # Set the new labels
+        subplot.set_xticklabels(labels)
+        
         # Set the x ticks padding
-        subplot.tick_params(axis="x", pad=10)
+        subplot.tick_params(axis="x", pad=8)
 
     # set up the y label
     ax[0].set_ylabel("NAO anomaly (hPa)")
