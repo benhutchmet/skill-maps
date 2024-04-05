@@ -1106,8 +1106,9 @@ def plot_nao_subplots(
     None
     """
 
+
     # Set up the figure
-    fig, ax = plt.subplots(figsize=(figsize_x, figsize_y), nrows=2, ncols=1, sharey=True)
+    fig, ax = plt.subplots(figsize=(figsize_x, figsize_y), nrows=1, ncols=2, sharey=True)
 
     # Plot the 5% lower interval
     ax[0].fill_between(
@@ -1146,20 +1147,20 @@ def plot_nao_subplots(
     # Include the method as a textbox in the lower left corner
     ax[0].text(
         0.05,
-        0.95,
+        0.05,
         f"{method_1}",
         transform=ax[0].transAxes,
         fontsize=10,
         verticalalignment="bottom",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Inluce the correlation, p-value, RPC and N
     # In the top lef hand corner
     ax[0].text(
-        0.95,
         0.05,
+        0.95,
         (
             f"ACC = {nao_stats_1['corr1']:.2f} "
             f"(P = {nao_stats_1['p1']:.2f}), "
@@ -1170,7 +1171,7 @@ def plot_nao_subplots(
         fontsize=10,
         verticalalignment="top",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Set up the second subplot
@@ -1179,7 +1180,7 @@ def plot_nao_subplots(
         nao_stats_2["init_years"],
         nao_stats_2["model_nao_members_min"] / 100,
         nao_stats_2["model_nao_members_max"] / 100,
-        color="blue",
+        color="red",
         alpha=0.2,
     )
 
@@ -1199,7 +1200,7 @@ def plot_nao_subplots(
         nao_stats_2["init_years"],
         nao_stats_2["model_nao_mean"] / 100,
         label="dcppA-hindcast",
-        color="blue",
+        color="red",
     )
 
     # Set the xlabel
@@ -1211,20 +1212,20 @@ def plot_nao_subplots(
     # Include the method as a textbox in the lower left corner
     ax[1].text(
         0.05,
-        0.95,
+        0.05,
         f"{method_2}",
         transform=ax[1].transAxes,
         fontsize=10,
         verticalalignment="bottom",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Inluce the correlation, p-value, RPC and N
     # In the top lef hand corner
     ax[1].text(
-        0.95,
         0.05,
+        0.95,
         (
             f"ACC = {nao_stats_2['corr1']:.2f} "
             f"(P = {nao_stats_2['p1']:.2f}), "
@@ -1235,26 +1236,50 @@ def plot_nao_subplots(
         fontsize=10,
         verticalalignment="top",
         horizontalalignment="left",
-        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
-    if "-" in forecast_range and season in ["DJFM", "DJF"]:
-        # Set the y lim
-        ax.set_ylim(-10, 10)
-    elif "-"in forecast_range and season in ["ONDJFM"]:
-        # Set the y lim
-        ax.set_ylim(-7.5, 7.5)
-    elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
-        # Set the y lim
-        ax.set_ylim(-15, 15)
-    elif season not in ["DJFM", "DJF", "ONDJFM"]:
-        # Set the y lim
-        ax.set_ylim(-10, 10)
-    else:
-        raise ValueError("Season not recognised")
-    
+    for subplot in ax:
+        if "-" in forecast_range and season in ["DJFM", "DJF"]:
+            # Set the y lim
+            subplot.set_ylim(-10, 10)
+            # Set the y ticks
+            subplot.set_yticks(np.linspace(-10, 10, num=7))
+        elif "-"in forecast_range and season in ["ONDJFM"]:
+            # Set the y lim
+            subplot.set_ylim(-7.5, 7.5)
+            # Set the y ticks
+            subplot.set_yticks(np.linspace(-7.5, 7.5, num=7))
+        elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
+            # Set the y lim
+            subplot.set_ylim(-15, 15)
+            # Set the y ticks
+            subplot.set_yticks(np.linspace(-15, 15, num=7))
+        elif season not in ["DJFM", "DJF", "ONDJFM"]:
+            # Set the y lim
+            subplot.set_ylim(-10, 10)
+            # Set the y ticks
+            subplot.set_yticks(np.linspace(-10, 10, num=7))
+        else:
+            raise ValueError("Season not recognised")
+        
+        # Set the xlims
+        subplot.set_xlim(1960, 2020)
+
+        # set the xticks parameters
+        #subplot.set_xticks(np.arange(1960, 2021, 5))
+
+        # set the xtick labels
+        #subplot.set_xticklabels(np.arange(1960, 2021, 5))
+
+        # Set the x ticks padding
+        subplot.tick_params(axis="x", pad=10)
+
     # set up the y label
     ax[0].set_ylabel("NAO anomaly (hPa)")
+
+    # specify a tight layout
+    plt.tight_layout()
 
     # Set up the current time
     current_time = pd.to_datetime("today").strftime("%Y-%m-%d-%H-%M")
