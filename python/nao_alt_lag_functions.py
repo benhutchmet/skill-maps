@@ -1042,3 +1042,233 @@ def plot_nao(
 
     # Show the plot
     plt.show()
+
+# Define a function to plot the NAO as subplots
+def plot_nao_subplots(
+    nao_stats_1: dict,
+    nao_stats_2: dict,
+    method_1: str,
+    method_2: str,
+    season: str,
+    forecast_range: str,
+    lag: int,
+    figsize_x: int = 12,
+    figsize_y: int = 8,
+    save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots",
+    format: str = "pdf",
+    dpi: int = 600,
+):
+    """
+    Plots the NAO index from nao_stats as subplots.
+
+    Parameters:
+    ===========
+
+    nao_stats_1: dict
+        The dictionary containing the NAO index for the first method.
+
+    nao_stats_2: dict
+        The dictionary containing the NAO index for the second method.
+
+    method_1: str
+        The method for the first NAO index.
+
+    method_2: str
+        The method for the second NAO index.
+
+    season: str
+        The season for which the NAO index is being plotted.
+
+    forecast_range: str
+        The forecast range for which the NAO index is being plotted.
+
+    lag: int
+        The lag for which the NAO index is being plotted.
+
+    figsize_x: int
+        The x-dimension of the figure (default is 12).
+
+    figsize_y: int
+        The y-dimension of the figure (default is 8).
+
+    save_dir: str
+        The directory in which the plots are being saved (default is "/gws/nopw/j04/canari/users/benhutch/plots").
+
+    format: str
+        The format in which the plots are being saved (default is "pdf").
+
+    dpi: int
+        The dpi of the plots being saved (default is 600).
+
+    Returns:
+    ========
+
+    None
+    """
+
+    # Set up the figure
+    fig, ax = plt.subplots(figsize=(figsize_x, figsize_y), nrows=2, ncols=1, sharey=True)
+
+    # Plot the 5% lower interval
+    ax[0].fill_between(
+        nao_stats_1["init_years"],
+        nao_stats_1["model_nao_members_min"] / 100,
+        nao_stats_1["model_nao_members_max"] / 100,
+        color="red",
+        alpha=0.2,
+    )
+
+    # Set up the horizontal line
+    ax[0].axhline(y=0, color="black", linestyle="-")
+
+    # Plot the observed NAO index
+    ax[0].plot(
+        nao_stats_1["init_years"],
+        nao_stats_1["obs_nao"] / 100,
+        label="ERA5",
+        color="black",
+    )
+
+    # Plot the ensemble mean NAO index
+    ax[0].plot(
+        nao_stats_1["init_years"],
+        nao_stats_1["model_nao_mean"] / 100,
+        label="dcppA-hindcast",
+        color="red",
+    )
+
+    # Set the xlabel
+    ax[0].set_xlabel("Start of 8-year period")
+
+    # Include the legend in the bottom right corner
+    ax[0].legend(loc="lower right")
+
+    # Include the method as a textbox in the lower left corner
+    ax[0].text(
+        0.05,
+        0.95,
+        f"{method_1}",
+        transform=ax[0].transAxes,
+        fontsize=10,
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+    )
+
+    # Inluce the correlation, p-value, RPC and N
+    # In the top lef hand corner
+    ax[0].text(
+        0.95,
+        0.05,
+        (
+            f"ACC = {nao_stats_1['corr1']:.2f} "
+            f"(P = {nao_stats_1['p1']:.2f}), "
+            f"RPC = {nao_stats_1['rpc1']:.2f}, "
+            f"N = {nao_stats_1['nens']}"
+        ),
+        transform=ax[0].transAxes,
+        fontsize=10,
+        verticalalignment="top",
+        horizontalalignment="left",
+        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+    )
+
+    # Set up the second subplot
+    # Plot the 5% lower interval
+    ax[1].fill_between(
+        nao_stats_2["init_years"],
+        nao_stats_2["model_nao_members_min"] / 100,
+        nao_stats_2["model_nao_members_max"] / 100,
+        color="blue",
+        alpha=0.2,
+    )
+
+    # Set up the horizontal line
+    ax[1].axhline(y=0, color="black", linestyle="-")
+
+    # Plot the observed NAO index
+    ax[1].plot(
+        nao_stats_2["init_years"],
+        nao_stats_2["obs_nao"] / 100,
+        label="ERA5",
+        color="black",
+    )
+
+    # Plot the ensemble mean NAO index
+    ax[1].plot(
+        nao_stats_2["init_years"],
+        nao_stats_2["model_nao_mean"] / 100,
+        label="dcppA-hindcast",
+        color="blue",
+    )
+
+    # Set the xlabel
+    ax[1].set_xlabel("Start of 8-year period")
+
+    # Include the legend in the bottom right corner
+    ax[1].legend(loc="lower right")
+
+    # Include the method as a textbox in the lower left corner
+    ax[1].text(
+        0.05,
+        0.95,
+        f"{method_2}",
+        transform=ax[1].transAxes,
+        fontsize=10,
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+    )
+
+    # Inluce the correlation, p-value, RPC and N
+    # In the top lef hand corner
+    ax[1].text(
+        0.95,
+        0.05,
+        (
+            f"ACC = {nao_stats_2['corr1']:.2f} "
+            f"(P = {nao_stats_2['p1']:.2f}), "
+            f"RPC = {nao_stats_2['rpc1']:.2f}, "
+            f"N = {nao_stats_2['nens']}"
+        ),
+        transform=ax[1].transAxes,
+        fontsize=10,
+        verticalalignment="top",
+        horizontalalignment="left",
+        bbox=dict(facecolor="white", edgecolor="black", pad=0.5),
+    )
+
+    if "-" in forecast_range and season in ["DJFM", "DJF"]:
+        # Set the y lim
+        ax.set_ylim(-10, 10)
+    elif "-"in forecast_range and season in ["ONDJFM"]:
+        # Set the y lim
+        ax.set_ylim(-7.5, 7.5)
+    elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
+        # Set the y lim
+        ax.set_ylim(-15, 15)
+    elif season not in ["DJFM", "DJF", "ONDJFM"]:
+        # Set the y lim
+        ax.set_ylim(-10, 10)
+    else:
+        raise ValueError("Season not recognised")
+    
+    # set up the y label
+    ax[0].set_ylabel("NAO anomaly (hPa)")
+
+    # Set up the current time
+    current_time = pd.to_datetime("today").strftime("%Y-%m-%d-%H-%M")
+
+    # Set up the plot_name
+    plot_name = (
+        f"{method_1}_{method_2}_{season}_{forecast_range}_{lag}_nao_index_{current_time}.{format}"
+    )
+
+    # Save the plot
+    plt.savefig(os.path.join(save_dir, plot_name), dpi=dpi)
+
+    # Show the plot
+    plt.show()
+
+    # Return none
+    return None
