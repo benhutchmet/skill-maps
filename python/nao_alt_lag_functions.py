@@ -1052,11 +1052,14 @@ def plot_nao_subplots(
     season: str,
     forecast_range: str,
     lag: int,
-    figsize_x: int = 12,
-    figsize_y: int = 8,
+    figsize_x_px: int = 1800,
+    figsize_y_px: int = 900,
     save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots",
     format: str = "pdf",
     dpi: int = 600,
+    fontsize: int = 10,
+    save_dpi: int = 600,
+    fig_labels: list = ["a", "b"],
 ):
     """
     Plots the NAO index from nao_stats as subplots.
@@ -1100,15 +1103,48 @@ def plot_nao_subplots(
     dpi: int
         The dpi of the plots being saved (default is 600).
 
+    fontsize: int
+        The fontsize of the text in the plot (default is 10).
+
+    save_dpi: int
+        The dpi of the plots being saved (default is 600).
+
+    fig_labels: list
+        The labels for the subplots (default is ["a", "b"]).
+
     Returns:
     ========
 
     None
     """
+    # print the dpi
+    print("dpi:", dpi)
 
+    # Set the rcParams figure dpi
+    # to be 100.0
+    plt.rcParams["figure.dpi"] = dpi
+
+    # Set the px
+    px = 1 / plt.rcParams["figure.dpi"]
+
+    # print the px
+    print("px:", px)
+
+    # Calculate the figure size in inches
+    figsize_x = figsize_x_px * px
+
+    # Calculate the figure size in inches
+    figsize_y = figsize_y_px * px
+
+    # print the figsize_x and figsize_y
+    print("figsize_x:", figsize_x)
+    print("figsize_y:", figsize_y)
+
+    # print the total size
+    print("Total size:", figsize_x * figsize_y)
 
     # Set up the figure
-    fig, ax = plt.subplots(figsize=(figsize_x, figsize_y), nrows=1, ncols=2, sharey=True)
+    fig, ax = plt.subplots(figsize=(figsize_x_px*px, figsize_y_px*px), nrows=1, ncols=2, sharey=True)
 
     # Plot the 5% lower interval
     ax[0].fill_between(
@@ -1142,7 +1178,19 @@ def plot_nao_subplots(
     ax[0].set_xlabel("Start of 8-year period")
 
     # Include the legend in the bottom right corner
-    ax[0].legend(loc="lower right")
+    ax[0].legend(loc="upper right")
+
+    # Include the first fig label in the bottom right corner
+    ax[0].text(
+        0.95,
+        0.05,
+        f"{fig_labels[0]}",
+        transform=ax[0].transAxes,
+        fontsize=fontsize,
+        verticalalignment="bottom",
+        horizontalalignment="right",
+        bbox=dict(facecolor="white", alpha=0.5),
+    )
 
     # Include the method as a textbox in the lower left corner
     ax[0].text(
@@ -1150,9 +1198,10 @@ def plot_nao_subplots(
         0.05,
         f"{method_1}",
         transform=ax[0].transAxes,
-        fontsize=10,
+        fontsize=fontsize,
         verticalalignment="bottom",
         horizontalalignment="left",
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Inluce the correlation, p-value, RPC and N
@@ -1167,9 +1216,10 @@ def plot_nao_subplots(
             f"N = {nao_stats_1['nens']}"
         ),
         transform=ax[0].transAxes,
-        fontsize=10,
+        fontsize=fontsize,
         verticalalignment="top",
         horizontalalignment="left",
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Set up the second subplot
@@ -1205,7 +1255,19 @@ def plot_nao_subplots(
     ax[1].set_xlabel("Start of 8-year period")
 
     # Include the legend in the bottom right corner
-    ax[1].legend(loc="lower right")
+    ax[1].legend(loc="upper right")
+
+    # Include the second fig label in the bottom right corner
+    ax[1].text(
+        0.95,
+        0.05,
+        f"{fig_labels[1]}",
+        transform=ax[1].transAxes,
+        fontsize=fontsize,
+        verticalalignment="bottom",
+        horizontalalignment="right",
+        bbox=dict(facecolor="white", alpha=0.5),
+    )
 
     # Include the method as a textbox in the lower left corner
     ax[1].text(
@@ -1213,9 +1275,10 @@ def plot_nao_subplots(
         0.05,
         f"{method_2}",
         transform=ax[1].transAxes,
-        fontsize=10,
+        fontsize=fontsize,
         verticalalignment="bottom",
         horizontalalignment="left",
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     # Inluce the correlation, p-value, RPC and N
@@ -1230,9 +1293,10 @@ def plot_nao_subplots(
             f"N = {nao_stats_2['nens']}"
         ),
         transform=ax[1].transAxes,
-        fontsize=10,
+        fontsize=fontsize,
         verticalalignment="top",
         horizontalalignment="left",
+        bbox=dict(facecolor="white", alpha=0.5),
     )
 
     for subplot in ax:
@@ -1280,7 +1344,7 @@ def plot_nao_subplots(
     # set up the y label
     ax[0].set_ylabel("NAO anomaly (hPa)")
 
-    # specify a tight layout
+    # # specify a tight layout
     plt.tight_layout()
 
     # Set up the current time
@@ -1292,7 +1356,7 @@ def plot_nao_subplots(
     )
 
     # Save the plot
-    plt.savefig(os.path.join(save_dir, plot_name), dpi=dpi)
+    plt.savefig(os.path.join(save_dir, plot_name), dpi=save_dpi)
 
     # Show the plot
     plt.show()
