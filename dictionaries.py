@@ -200,7 +200,7 @@ historical_models_map = {
 
 save_dir = "/gws/nopw/j04/canari/users/benhutch/NAO-matching"
 
-obs_ws_var_names = ["ua", "va", "var131", "var132", "pr", "var228"]
+obs_ws_var_names = ["ua", "va", "var131", "var132", "pr", "var228", "var246", "var247", "u100", "v100"]
 
 # Define a dictionary to map the variable names to their corresponding names in the obs dataset
 var_name_map = {
@@ -220,6 +220,10 @@ var_name_map = {
     "var132": "var132",
     "pr": "var228",
     "var228": "var228",
+    "u100": "var246",
+    "v100": "var247",
+    "var246": "var246",
+    "var247": "var247",
 }
 
 season_map = {"1": "DJFM", "2": "MAM", "3": "JJA", "4": "SON"}
