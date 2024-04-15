@@ -960,7 +960,7 @@ def plot_nao(
 
     if "-" in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
         # Set the y lim
-        ax.set_ylim(-10, 10)
+        ax.set_ylim(-5, 5)
     elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
         # Set the y lim
         ax.set_ylim(-15, 15)
