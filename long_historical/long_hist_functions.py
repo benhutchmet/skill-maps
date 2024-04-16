@@ -44,6 +44,8 @@ def find_hist_ssp_members(
     ssp_base_path: str = "/badc/cmip6/data/CMIP6/ScenarioMIP/",
     ssp: str = "ssp245",
     experiment: str = "Amon",
+    save_dir: str = "gws/nopw/j04/canari/users/benhutch/ssp245/",
+    fname: str = "hist_ssp_members.csv",
 ):
     """
     Finds where identical experiment set ups (r*i?p?f?) exist for both historical
@@ -54,6 +56,10 @@ def find_hist_ssp_members(
         models (list): list of models to search for
         hist_base_path (str): path to historical data
         ssp_base_path (str): path to ssp245 data
+        ssp (str): ssp scenario
+        experiment (str): experiment type
+        save_dir (str): path to save the csv
+        fname (str): filename of the csv
 
     Returns:
         df (pd.DataFrame): DataFrame of where identical experiment set ups exist
@@ -68,126 +74,141 @@ def find_hist_ssp_members(
     # scenariomip
     # /badc/cmip6/data/CMIP6/ScenarioMIP/BCC/BCC-CSM2-MR/ssp245/r1i1p1f1/Amon/sfcWind/gn/files/d20190314/
 
-    # unique model members list
-    unique_model_members_hist = []
+    # if the save_dir does not exist, create it
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
-    # unique model members ssp
-    unique_model_members_ssp = []
+    # Set up the filename
+    filepath = f"{save_dir}/{fname}"
 
-    # hist_paths
-    hist_paths = []
+    # Check if the file exists
+    if not os.path.exists(filepath):
+        # unique model members list
+        unique_model_members_hist = []
 
-    # ssp_paths
-    ssp_paths = []
+        # unique model members ssp
+        unique_model_members_ssp = []
 
-    # Create an emty dataframe
-    df = pd.DataFrame()
+        # hist_paths
+        hist_paths = []
 
-    # Loop over variables and models
-    for variable in tqdm(variables):
-        for model in (models):
+        # ssp_paths
+        ssp_paths = []
 
-            # reset unique members
-            unique_model_members_hist = []
+        # Create an emty dataframe
+        df = pd.DataFrame()
 
-            # reset unique members
-            unique_model_members_ssp = []
+        # Loop over variables and models
+        for variable in tqdm(variables):
+            for model in (models):
 
-            # Find historical files
-            hist_files = glob.glob(
-                f"{hist_base_path}{variable}/{model}/regrid/*regrid.nc"
-            )
+                # reset unique members
+                unique_model_members_hist = []
 
-            # Find ssp245 files
-            ssp_files = glob.glob(
-                f"{ssp_base_path}*/{model}/{ssp}/*/{experiment}/{variable}/g?/files/*/*.nc"
-            )
+                # reset unique members
+                unique_model_members_ssp = []
 
-            # Create an empty list of unique members
-            unique_members = []
-
-            # Loop over historical files
-            for hist_file in hist_files:
-
-                # sfcWind_Amon_BCC-CSM2-MR_historical_r1i1p1f1_gn_185001-201412.nc
-                # Extract the final part of the path
-                hist_file_nc = hist_file.split("/")[-1]
-
-                # Use re to find the pattern matching r*i?p?f?
-                hist_member_id = hist_file_nc.split("_")[4]
-
-                # assert that hist_member_id is not none
-                assert hist_member_id is not None
-
-                # if f"{model}_{hist_member_id}" not in unique_model_members_hist:
-                if hist_member_id not in unique_model_members_hist:
-                    unique_model_members_hist.append(hist_member_id)
-
-                # Append to hist_paths
-                hist_paths.append(hist_file)
-
-            # Loop over ssp245 files
-            for ssp_file in ssp_files:
-
-                # sfcWind_Amon_BCC-CSM2-MR_ssp245_r1i1p1f1_gn_201501-210012.nc
-                # Extract the final part of the path
-                ssp_file_nc = ssp_file.split("/")[-1]
-
-                # Use re to find the pattern matching r*i?p?f?
-                ssp_member_id = ssp_file_nc.split("_")[4]
-
-                # assert that ssp_member_id is not none
-                assert ssp_member_id is not None
-
-                # if f"{model}_{ssp_member_id}" not in unique_model_members_ssp:
-                if ssp_member_id not in unique_model_members_ssp:
-                    unique_model_members_ssp.append(ssp_member_id)
-
-                # Append to ssp_paths
-                ssp_paths.append(ssp_file)
-
-            # print the hist and ssp members
-            print(f"hist_members {unique_model_members_hist} for {model}")
-            print(f"ssp_members {unique_model_members_ssp} for {model}")
-
-            # Find where the same members exist in both historical and ssp245
-            common_members = list(set(unique_model_members_hist) & set(unique_model_members_ssp))
-
-            # Print the common members
-            print(f"common members {common_members} for {model} and {variable}")
-
-            # Loop over common members
-            for common_member in common_members:
-
-                # Find the index of the common member in hist_member_id
-                hist_member = glob.glob(
-                f"{hist_base_path}{variable}/{model}/regrid/*{common_member}*regrid.nc"
+                # Find historical files
+                hist_files = glob.glob(
+                    f"{hist_base_path}{variable}/{model}/regrid/*regrid.nc"
                 )
 
-                # Find the index of the common member in ssp_member_id
-                ssp_member = glob.glob(
-                    f"{ssp_base_path}*/{model}/{ssp}/{common_member}/{experiment}/{variable}/g?/files/*/*.nc"
-                )[0]
-
-                # assert that only a single member
-                assert len(hist_member) == 1, f"hist_member {hist_member} is not unique"
-
-                # Append to the dataframe
-                # usinf pd.concat
-                df = pd.concat(
-                    [
-                        df,
-                        pd.DataFrame(
-                            {
-                                "model": [model],
-                                "variable": [variable],
-                                "common_member": [common_member],
-                                "hist_member": [hist_member[0]],
-                                "ssp_member": [ssp_member],
-                            }
-                        ),
-                    ]
+                # Find ssp245 files
+                ssp_files = glob.glob(
+                    f"{ssp_base_path}*/{model}/{ssp}/*/{experiment}/{variable}/g?/files/*/*.nc"
                 )
+
+                # Create an empty list of unique members
+                unique_members = []
+
+                # Loop over historical files
+                for hist_file in hist_files:
+
+                    # sfcWind_Amon_BCC-CSM2-MR_historical_r1i1p1f1_gn_185001-201412.nc
+                    # Extract the final part of the path
+                    hist_file_nc = hist_file.split("/")[-1]
+
+                    # Use re to find the pattern matching r*i?p?f?
+                    hist_member_id = hist_file_nc.split("_")[4]
+
+                    # assert that hist_member_id is not none
+                    assert hist_member_id is not None
+
+                    # if f"{model}_{hist_member_id}" not in unique_model_members_hist:
+                    if hist_member_id not in unique_model_members_hist:
+                        unique_model_members_hist.append(hist_member_id)
+
+                    # Append to hist_paths
+                    hist_paths.append(hist_file)
+
+                # Loop over ssp245 files
+                for ssp_file in ssp_files:
+
+                    # sfcWind_Amon_BCC-CSM2-MR_ssp245_r1i1p1f1_gn_201501-210012.nc
+                    # Extract the final part of the path
+                    ssp_file_nc = ssp_file.split("/")[-1]
+
+                    # Use re to find the pattern matching r*i?p?f?
+                    ssp_member_id = ssp_file_nc.split("_")[4]
+
+                    # assert that ssp_member_id is not none
+                    assert ssp_member_id is not None
+
+                    # if f"{model}_{ssp_member_id}" not in unique_model_members_ssp:
+                    if ssp_member_id not in unique_model_members_ssp:
+                        unique_model_members_ssp.append(ssp_member_id)
+
+                    # Append to ssp_paths
+                    ssp_paths.append(ssp_file)
+
+                # print the hist and ssp members
+                print(f"hist_members {unique_model_members_hist} for {model}")
+                print(f"ssp_members {unique_model_members_ssp} for {model}")
+
+                # Find where the same members exist in both historical and ssp245
+                common_members = list(set(unique_model_members_hist) & set(unique_model_members_ssp))
+
+                # Print the common members
+                print(f"common members {common_members} for {model} and {variable}")
+
+                # Loop over common members
+                for common_member in common_members:
+
+                    # Find the index of the common member in hist_member_id
+                    hist_member = glob.glob(
+                    f"{hist_base_path}{variable}/{model}/regrid/*{common_member}*regrid.nc"
+                    )
+
+                    # Find the index of the common member in ssp_member_id
+                    ssp_member = glob.glob(
+                        f"{ssp_base_path}*/{model}/{ssp}/{common_member}/{experiment}/{variable}/g?/files/*/*.nc"
+                    )[0]
+
+                    # assert that only a single member
+                    assert len(hist_member) == 1, f"hist_member {hist_member} is not unique"
+
+                    # Append to the dataframe
+                    # usinf pd.concat
+                    df = pd.concat(
+                        [
+                            df,
+                            pd.DataFrame(
+                                {
+                                    "model": [model],
+                                    "variable": [variable],
+                                    "common_member": [common_member],
+                                    "hist_member": [hist_member[0]],
+                                    "ssp_member": [ssp_member],
+                                }
+                            ),
+                        ]
+                    )
+
+        # Save the dataframe
+        df.to_csv(f"{save_dir}/{fname}", index=False)
+    else:
+        # Read the dataframe
+        df = pd.read_csv(filepath)
 
     # Return the dataframe
     return df
@@ -235,38 +256,400 @@ def regrid_ssp(
         model_df = df[df["model"] == model]
 
         # Loop over the rows
-        for _, row in model_df.iterrows():
+        for _, row in tqdm(model_df.iterrows()):
             # Form the output path
-            output_dir = f"{output_dir}/{row['variable']}/{model}/{region}/{ssp}/"
+            output_dir_model = f"{output_dir}/{row['variable']}/{model}/{region}/{ssp}/"
 
             # /badc/cmip6/data/CMIP6/ScenarioMIP/CCCma/CanESM5/ssp245/r1i1p1f1/Amon/tas/gn/files/d20190429/tas_Amon_CanESM5_ssp245_r1i1p1f1_gn_201501-210012.nc
 
-            # form the output file name
-            output_file = row["ssp_member"].split("/")[-1].replace('.nc', '_regrid.nc')
+            # extrcat the filename
+            ssp_fname = row["ssp_member"].split("/")[-1]
 
-            # form the output path
-            output_path = os.path.join(output_dir, output_file)
+            # split by _ and extract the 6th
+            year_range_nc = ssp_fname.split("_")[6]
 
-            # if the output dir does not exist, create it
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
+            # split by . and extract the 0th
+            year_range = year_range_nc.split(".")[0]
 
-            # if the output file does not exist, regrid
-            if not os.path.exists(output_path):
-                try:
-                    # regrid the data
-                    cdo.remapbil(gridspec_file, input=row["ssp_member"], output=output_path)
-                except Exception as e:
-                    print(f"Error regridding {row['ssp_member']} {e}")
+            # Extract the first yyyymm
+            first_yyyymm = year_range.split("-")[0]
+            last_yyyymm = year_range.split("-")[1]
+
+            if last_yyyymm < "202303":
+                # replace the yyyymm.nc with *.nc
+                files = row["ssp_member"].replace(year_range_nc, "*.nc")
+
+                # extract the first two files using glob
+                files = glob.glob(files)[:10]
+
+                # print the first two
+                print(f"merging {files}")
+
+                # split the second file by /
+                second_file = files[-1].split("/")[-1]
+                second_file = second_file.split("_")[6]
+                second_file = second_file.split(".")[0]
+                second_file_last_yyyymm = second_file.split("-")[1]
+
+                # merge the two files
+                output_dir_temp = os.path.join("/work/scratch-nopw2/benhutch/", "temp", ssp, row["variable"])
+
+                # if the output dir does not exist, create it
+                if not os.path.exists(output_dir_temp):
+                    os.makedirs(output_dir_temp)
+
+                # Set up the output fname
+                output_fname = ssp_fname.replace(year_range_nc, f"{first_yyyymm}-{second_file_last_yyyymm}.nc")
+
+                # Set up the output path
+                output_path = os.path.join(output_dir_temp, output_fname)
+
+                # if the output file does not exist, merge
+                if not os.path.exists(output_path):
+                    try:
+                        # merge the two files
+                        cdo.mergetime(input=files, output=output_path)
+                    except Exception as e:
+                        print(f"Error merging {files} {e}")
+
+                # regrid the data
+                output_file = output_fname.replace('.nc', '_regrid.nc')
+
+                # output dir
+                output_dir_rg = f"/work/scratch-nopw2/benhutch/{row['variable']}/{model}/{region}/{ssp}/"
+
+                # if the output dir does not exist, create it
+                if not os.path.exists(output_dir_rg):
+                    os.makedirs(output_dir_rg)
+
+                # form the output path
+                output_path_rg = os.path.join(output_dir_rg, output_file)
+
+                # if the output file does not exist, regrid
+                if not os.path.exists(output_path_rg):
+                    try:
+                        # regrid the data
+                        cdo.remapbil(gridspec_file, input=output_path, output=output_path_rg)
+                    except Exception as e:
+                        print(f"Error regridding {output_path} {e}")
+
+                # Set the ssp_member_regrid column
+                df.loc[df["ssp_member"] == row["ssp_member"], "ssp_member_regrid"] = output_path_rg
             else:
-                print(f"{output_path} exists")
+                # form the output file name
+                output_file = row["ssp_member"].split("/")[-1].replace('.nc', '_regrid.nc')
 
-            # add a new column to the df
-            df.loc[df["ssp_member"] == row["ssp_member"], "ssp_member_regrid"] = output_path
+                # form the output path
+                output_path = os.path.join(output_dir_model, output_file)
+
+                # if the output dir does not exist, create it
+                if not os.path.exists(output_dir_model):
+                    os.makedirs(output_dir_model)
+
+                # if the output file does not exist, regrid
+                if not os.path.exists(output_path):
+                    try:
+                        # regrid the data
+                        cdo.remapbil(gridspec_file, input=row["ssp_member"], output=output_path)
+                    except Exception as e:
+                        print(f"Error regridding {row['ssp_member']} {e}")
+                else:
+                    print(f"{output_path} exists")
+
+                # add a new column to the df
+                df.loc[df["ssp_member"] == row["ssp_member"], "ssp_member_regrid"] = output_path
 
     # return the dataframe
     return df
             
+# Write a function to merge the historical and ssp data
+def merge_hist_ssp(
+    df: pd.DataFrame,
+    models: list,
+    hist_base_path: str = "/gws/nopw/j04/canari/users/benhutch/historical/",
+    output_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/",
+):
+    """
+    Merges the historical and ssp data.
+    
+    Args:
+        df (pd.DataFrame): DataFrame of where identical experiment set ups exist
+        models (list): list of models to search for
+        hist_base_path (str): path to historical data
+        output_dir (str): path to output directory
+        
+    Returns:
+        None
+    """
 
+    # if the output dir does not exist, create it
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-            
+    # Loop over models
+    for model in tqdm(models):
+        # Assert that the model is in the dataframe
+        assert model in df["model"].values, f"{model} not in df"
+
+        # extract the rows for the model
+        model_df = df[df["model"] == model]
+
+        # Loop over the rows
+        for _, row in tqdm(model_df.iterrows()):
+            # assert that the hist_member exists
+            assert os.path.exists(row["hist_member"]), f"{row['hist_member']} does not exist"
+
+            # assert that the ssp_member_regrid exists
+            assert os.path.exists(row["ssp_member_regrid"]), f"{row['ssp_member_regrid']} does not exist"
+
+            # set up the output dir
+            output_dir_model = f"{output_dir}/{row['variable']}/{model}/"
+
+            # if the output dir does not exist, create it
+            if not os.path.exists(output_dir_model):
+                os.makedirs(output_dir_model)
+
+            # split the hist_member by /
+            hist_fname = row["hist_member"].split("/")[-1]
+
+            # split the ssp_member_regrid by /
+            ssp_fname = row["ssp_member_regrid"].split("/")[-1]
+
+            # Split by _ and extract the 6th
+            year_range_nc_hist = hist_fname.split("_")[6]
+
+            # Split by _ and extract the 6th for ssp
+            year_range_nc_ssp = ssp_fname.split("_")[6]
+
+            # Split by . and extract the 0th
+            year_range_hist = year_range_nc_hist.split(".")[0]
+
+            # Split by - and extract the 0th
+            last_yyyymm_ssp = year_range_nc_ssp.split("-")[1]
+
+            # Extract the first yyyymm
+            first_yyyymm_hist = year_range_hist.split("-")[0]
+
+            # assert that the first yyyymm is digits
+            assert first_yyyymm_hist.isdigit(), f"{first_yyyymm_hist} is not digits"
+
+            # assert that the last yyyymm is digits
+            assert last_yyyymm_ssp.isdigit(), f"{last_yyyymm_ssp} is not digits"
+
+            # print the hist and ssp members
+            print(f"hist_member {hist_fname} for {model}")
+            print(f"ssp_member_regrid {ssp_fname} for {model}")
+
+            # print the first yyyymm and last yyyymm
+            print(f"first_yyyymm_hist {first_yyyymm_hist} for {model}")
+            print(f"last_yyyymm_ssp {last_yyyymm_ssp} for {model}")
+
+            # Set up the output fname
+            # tas_Amon_MPI-ESM1-2-HR_historical_r2i1p1f1_g?_1850-2014.nc_global_regrid.nc for MPI-ESM1-2-HR
+            hist_fname_parts = hist_fname.split("_")
+
+            # Get the first 5 elements
+            hist_fname_parts = hist_fname_parts[:5]
+
+            # join the first 5 elements
+            hist_fname_parts = "_".join(hist_fname_parts)
+
+            # Set up the output fname
+            output_fname = f"{hist_fname_parts}_{first_yyyymm_hist}-{last_yyyymm_ssp}.nc"
+
+            # print the output fname
+            print(f"output_fname {output_fname}")
+
+            # Set up the output path
+            output_path = os.path.join(output_dir_model, output_fname)
+
+            # if the output file does not exist, merge
+            if not os.path.exists(output_path):
+                try:
+                    # merge the two files
+                    cdo.mergetime(input=[row["hist_member"], row["ssp_member_regrid"]], output=output_path)
+                except Exception as e:
+                    print(f"Error merging {row['hist_member']} {row['ssp_member_regrid']} {e}")
+
+            # Set the hist_ssp_member column
+            df.loc[df["hist_member"] == row["hist_member"], "hist_ssp_member"] = output_path
+
+    # return the dataframe
+    return df
+
+# Write a function to process the merged data
+def process_hist_ssp(
+    variable: str,
+    months: list[int],
+    season: str,
+    forecast_range: str,
+    start_year: int,
+    end_year: int,
+    models: list,
+    data_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/",
+    level: int = 0,
+):
+    """
+    Processes the merged historical and ssp data.
+    
+    Args:
+        variable: str: variable to process
+        months: list[int]: months to process
+        season: str: season to process
+        forecast_range: str: forecast range to process
+        start_year: int: start year to process
+        end_year: int: end year to process
+        models: list: list of models to process
+        data_dir: str: path to data directory
+        level: int: level to process
+        
+    Returns:
+        None
+    """
+
+    # assert that months is a list of ints
+    assert all(isinstance(i, int) for i in months), f"{months} is not a list of ints"
+
+    # empty list of files
+    all_files = []
+
+    # loop over the models
+    for model in tqdm(models):
+        # form the path to the data
+        data_path = f"{data_dir}{variable}/{model}/"
+
+        # assert that this directory is not empty
+        assert os.path.exists(data_path), f"{data_path} does not exist"
+
+        # find the files
+        files = glob.glob(f"{data_path}*.nc")
+
+        # append to all_files
+        all_files.extend(files)
+
+    # initialize model data
+    dss = []
+
+    # Set up the start and end month
+    start_month = months[0]
+    end_month = months[-1]
+
+    # Loop over the files
+    for file in tqdm(all_files):
+        
+        # Open the files
+        ds = xr.open_mfdataset(
+            file,
+            preprocess=lambda ds: preprocess(ds, start_year, end_year, start_month, end_month, months, season, forecast_range),
+            combine="nested",
+            concat_dim="time",
+            join="override",
+            coords="minimal",
+            engine="netcdf4",
+            parallel=True,
+        )
+
+        # append to dss
+        dss.append(ds)
+
+    # Concatenate the dss
+    ds = xr.concat(dss, dim="ensemble_member")
+
+    return ds
+
+# define the preprocess function
+def preprocess(ds: xr.Dataset,
+               start_year: int,
+               end_year: int,
+               start_month: int,
+               end_month: int,
+               months: list[int],
+               season: str,
+               forecast_range: str,
+               centred: bool = True,
+               level: int = 0,
+):
+    """
+    Preprocesses the data to include an ensemble_member dimension.
+    And a model dimension.
+    
+    Args:
+        ds (xr.Dataset): Dataset to preprocess
+        start_year (int): start year to process
+        end_year (int): end year to process
+        start_month (int): start month to process
+        end_month (int): end month to process
+        months (list[int]): months to process
+        season (str): season to process
+        forecast_range (str): forecast range to process
+        centred (bool): centred or not for rolling mean
+        level (int): level to process
+
+    Returns:
+        ds (xr.Dataset): Preprocessed Dataset
+    """
+
+    # Expand dimensions to include ensemble member
+    ds = ds.expand_dims('ensemble_member')
+
+    # Expand dimensions to include model
+    ds = ds.expand_dims('model')
+
+    # Set the model
+    ds['model'] = [ds.attrs['source_id']]
+
+    # Set the ensemble_member
+    ds['ensemble_member'] = [ds.attrs['variant_label']]
+
+    # if level is not 0
+    if level != 0:
+        try:
+            # Select the level
+            ds = ds.sel(plev=level)
+        except Exception as e:
+            print(f"Error selecting level {e}")
+
+    # If the start or end month is a single digit
+    if start_month < 10:
+        start_month = f"0{start_month}"
+
+    if end_month < 10:
+        end_month = f"0{end_month}"
+
+    # Set the start and end date
+    start_date = f"{start_year}-{start_month}-01"
+    end_date = f"{end_year}-{end_month}-31"
+
+    # Select the time range
+    ds = ds.sel(time=slice(start_date, end_date))
+
+    # Select the months
+    ds = ds.sel(time=ds['time.month'].isin(months))
+
+    # Shift the dataset if necessary
+    if season in ["DJFM", "NDJFM", "ONDJFM"]:
+        ds = ds.shift(time=-3)
+    elif season in ["DJF", "NDJF", "ONDJF"]:
+        ds = ds.shift(time=-2)
+    elif season in ["NDJ", "ONDJ"]:
+        ds = ds.shift(time=-1)
+    else:
+        ds = ds
+
+    # Calculate the annual mean anomalies
+    ds = ds.resample(time="Y").mean("time")
+
+    # Calculate the window
+    ff_year = int(forecast_range.split("-")[0])
+    lf_year = int(forecast_range.split("-")[1])
+
+    # Calculate the window
+    window = (lf_year - ff_year) + 1 # e.g. (9 - 2) + 1 = 8
+
+    # Calculate the rolling mean
+    ds = ds.rolling(
+            time=window, center=centred
+        ).mean()
+    
+    # Return the dataset
+    return ds
