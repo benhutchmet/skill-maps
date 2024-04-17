@@ -2020,6 +2020,8 @@ def plot_diff_variables(
     second_bs_skill_maps: dict = None,
     methods_diff: str = None,
     plot_winter_nodes: bool = False,
+    corr_list: list = None,
+    ts_list: list = None,
 ):
     """
     Plot the skill maps for different variables as a 2x2 grid.
@@ -2102,6 +2104,14 @@ def plot_diff_variables(
 
     plot_winter_nodes: bool
         Boolean value indicating whether to plot the winter nodes.
+
+    corr_list: list
+        List of correlation values to plot.
+        Default is None.
+
+    ts_list: list
+        List of time series to plot.
+        Default is None.
 
     Outputs:
     --------
@@ -2543,18 +2553,42 @@ def plot_diff_variables(
             print(f"Plotting variable {key}...")
             print(f"Plotting index {i}...")
 
-            # Extract the correlation arrays from the skill_maps dictionary
-            corr = skill_maps["corr1"]
-            corr1_p = skill_maps["corr1_p"]
+            if corr_list is not None:
+                # Set up the correlations
+                corr = skill_maps[f"{corr_list[i]}"]
+                corr1_p = skill_maps[f"{corr_list[i]}_p"]
 
-            # Extract the time series
-            fcst1_ts = skill_maps["f1_ts"]
-            obs_ts = skill_maps["o_ts"]
+                # assert that ts_list is not none
+                assert (
+                    ts_list is not None
+                ), "ts_list is None, but corr_list is not None"
 
-            # Extract the values
-            nens1 = skill_maps["nens1"]
-            start_year = skill_maps["start_year"]
-            end_year = skill_maps["end_year"]
+                # Set up the time series
+                fcst1_ts = skill_maps[f"{ts_list[i]}"]
+
+                # Set up the time series
+                obs_ts = skill_maps["o_ts"]
+
+                # Set up the values
+                nens1 = skill_maps["nens1"]
+                nens2 = skill_maps["nens2"]
+
+                # Set up the start and end year
+                start_year = skill_maps["start_year"]
+                end_year = skill_maps["end_year"]
+            else:
+                # Extract the correlation arrays from the skill_maps dictionary
+                corr = skill_maps["corr1"]
+                corr1_p = skill_maps["corr1_p"]
+
+                # Extract the time series
+                fcst1_ts = skill_maps["f1_ts"]
+                obs_ts = skill_maps["o_ts"]
+
+                # Extract the values
+                nens1 = skill_maps["nens1"]
+                start_year = skill_maps["start_year"]
+                end_year = skill_maps["end_year"]
 
             # if we are using the short period
             if short_period and skill_maps.get("corr1_short") is not None:
