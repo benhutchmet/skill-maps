@@ -429,6 +429,20 @@ def main():
         f"corr10_max_{variable}_{region}_{season}_{forecast_range}" + ".npy"
     )
 
+    corr12_name = f"corr12_{variable}_{region}_{season}_{forecast_range}" + ".npy"
+
+    # Also save the corr12 min and max values
+    corr12_min_name = (
+        f"corr12_min_{variable}_{region}_{season}_{forecast_range}" + ".npy"
+    )
+
+    corr12_max_name = (
+        f"corr12_max_{variable}_{region}_{season}_{forecast_range}" + ".npy"
+    )
+
+    # Also save the corr12 p values
+    corr12_p_name = f"corr12_p_{variable}_{region}_{season}_{forecast_range}" + ".npy"
+
     # Set up the names for the forecast time series
     fcst1_ts_name = f"fcst1_ts_{variable}_{region}_{season}_{forecast_range}.npy"
 
@@ -716,6 +730,58 @@ def main():
         # Extract the values for the obs
         obs_values = obs_raw.values
 
+        # check whether historical data exists
+        # hardcoded path sorry
+        saved_hist_dir = (
+            "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/saved_files/arrays/"
+        )
+
+        # Check whether files exist for the variable
+        hist_files_dir = f"{saved_hist_dir}{variable}/{season}/{forecast_range}/"
+
+        # set hist_data_raw and hist_data_lag to None
+        hist_data_raw = None
+        hist_data_lag = None
+
+        # check whether the directory exists
+        if os.path.exists(hist_files_dir):
+            print(
+                "Historical files exist for variable:",
+                variable,
+                "season:",
+                season,
+                "forecast range:",
+                forecast_range,
+            )
+
+            # load in the historical data
+            hist_data_raw_path = f"{hist_files_dir}{variable}_{season}_{forecast_range}_*_historical_ssp245_raw.npy"
+
+            # set up the lag path
+            hist_data_lag_path = f"{hist_files_dir}{variable}_{season}_{forecast_range}_*_historical_ssp245_lag.npy"
+
+            # glob the files
+            hist_data_raw_files = glob.glob(hist_data_raw_path)
+
+            # glob the files
+            hist_data_lag_files = glob.glob(hist_data_lag_path)
+
+            # assert that only one file exists for each
+            assert (
+                len(hist_data_raw_files) == 1
+            ), "More than one file found for historical raw data"
+
+            # assert that only one file exists for each
+            assert (
+                len(hist_data_lag_files) == 1
+            ), "More than one file found for historical lag data"
+
+            # load in the historical data
+            hist_data_raw = np.load(hist_data_raw_files[0])
+
+            # load in the historical data
+            hist_data_lag = np.load(hist_data_lag_files[0])
+
         # If NAO matching is True
         if nao_matched:
             print("NAO matching is True")
@@ -773,13 +839,22 @@ def main():
             # Print the shape of the obs_lag_values
             print("Shape of obs_lag_values:", obs_lag_values.shape)
 
-            # Run the function to calculate the forecast stats
-            forecast_stats_nao_matched = fnc.forecast_stats(
-                obs=obs_lag_values,
-                forecast1=nao_matched_data,
-                forecast2=nao_matched_data,
-                no_boot=no_bootstraps,
-            )
+            if hist_data_lag is not None:
+                # Run the function to calculate the forecast stats
+                forecast_stats_nao_matched = fnc.forecast_stats(
+                    obs=obs_lag_values,
+                    forecast1=nao_matched_data,
+                    forecast2=hist_data_lag,
+                    no_boot=no_bootstraps,
+                )
+            else:
+                # Run the function to calculate the forecast stats
+                forecast_stats_nao_matched = fnc.forecast_stats(
+                    obs=obs_lag_values,
+                    forecast1=nao_matched_data,
+                    forecast2=nao_matched_data,
+                    no_boot=no_bootstraps,
+                )
 
             # Set up the save path
             save_path_nao_matched = (
@@ -815,6 +890,113 @@ def main():
                 forecast_stats_nao_matched["corr1_p"],
             )
 
+            # Save the corr1_min values
+            np.save(
+                save_path_nao_matched + corr1_min_name,
+                forecast_stats_nao_matched["corr1_min"],
+            )
+
+            # Save the corr1_max values
+            np.save(
+                save_path_nao_matched + corr1_max_name,
+                forecast_stats_nao_matched["corr1_max"],
+            )
+
+            # Save the corr2 values
+            np.save(
+                save_path_nao_matched + corr2_name, forecast_stats_nao_matched["corr2"]
+            )
+
+            # Save the corr2_p values
+            np.save(
+                save_path_nao_matched + corr2_p_name,
+                forecast_stats_nao_matched["corr2_p"],
+            )
+
+            # Save the corr2_min values
+            np.save(
+                save_path_nao_matched + corr2_min_name,
+                forecast_stats_nao_matched["corr2_min"],
+            )
+
+            # Save the corr2_max values
+            np.save(
+                save_path_nao_matched + corr2_max_name,
+                forecast_stats_nao_matched["corr2_max"],
+            )
+
+            # Save the corr10 values
+            np.save(
+                save_path_nao_matched + corr10_name,
+                forecast_stats_nao_matched["corr10"],
+            )
+
+            # Save the corr10_p values
+            np.save(
+                save_path_nao_matched + corr10_p_name,
+                forecast_stats_nao_matched["corr10_p"],
+            )
+
+            # Save the corr10_min values
+            np.save(
+                save_path_nao_matched + corr10_min_name,
+                forecast_stats_nao_matched["corr10_min"],
+            )
+
+            # Save the corr10_max values
+            np.save(
+                save_path_nao_matched + corr10_max_name,
+                forecast_stats_nao_matched["corr10_max"],
+            )
+
+            # Save the msss1 values
+            np.save(
+                save_path_nao_matched + msss1_name,
+                forecast_stats_nao_matched["msss1"],
+            )
+
+            # Save the msss1_p values
+            np.save(
+                save_path_nao_matched + msss1_p_name,
+                forecast_stats_nao_matched["msss1_p"],
+            )
+
+            # Save the msss1_min values
+            np.save(
+                save_path_nao_matched + msss1_min_name,
+                forecast_stats_nao_matched["msss1_min"],
+            )
+
+            # Save the msss1_max values
+            np.save(
+                save_path_nao_matched + msss1_max_name,
+                forecast_stats_nao_matched["msss1_max"],
+            )
+
+            # Save the corr12 values
+            np.save(
+                save_path_nao_matched + corr12_name,
+                forecast_stats_nao_matched["corr12"],
+            )
+
+            # Save the corr12_p values
+            np.save(
+                save_path_nao_matched + corr12_p_name,
+                forecast_stats_nao_matched["corr12_p"],
+            )
+
+            # Save the corr12_min values
+            np.save(
+                save_path_nao_matched + corr12_min_name,
+                forecast_stats_nao_matched["corr12_min"],
+            )
+
+            # Save the corr12_max values
+            np.save(
+                save_path_nao_matched + corr12_max_name,
+                forecast_stats_nao_matched["corr12_max"],
+            )
+
             # Save the rpc1
             np.save(
                 save_path_nao_matched + rpc1_name, forecast_stats_nao_matched["rpc1"]
@@ -824,6 +1006,128 @@ def main():
             np.save(
                 save_path_nao_matched + rpc1_p_name,
                 forecast_stats_nao_matched["rpc1_p"],
+            )
+
+            # And the rpc1_min
+            np.save(
+                save_path_nao_matched + rpc1_min_name,
+                forecast_stats_nao_matched["rpc1_min"],
+            )
+
+            # And the rpc1_max
+            np.save(
+                save_path_nao_matched + rpc1_max_name,
+                forecast_stats_nao_matched["rpc1_max"],
+            )
+
+            # Save the rpc2
+            np.save(
+                save_path_nao_matched + rpc2_name, forecast_stats_nao_matched["rpc2"]
+            )
+
+            # And the rpc2_p
+            np.save(
+                save_path_nao_matched + rpc2_p_name,
+                forecast_stats_nao_matched["rpc2_p"],
+            )
+
+            # And the rpc2_min
+            np.save(
+                save_path_nao_matched + rpc2_min_name,
+                forecast_stats_nao_matched["rpc2_min"],
+            )
+
+            # And the rpc2_max
+            np.save(
+                save_path_nao_matched + rpc2_max_name,
+                forecast_stats_nao_matched["rpc2_max"],
+            )
+
+            # Save the corr_diff
+            np.save(
+                save_path_nao_matched + corr_diff_name,
+                forecast_stats_nao_matched["corr_diff"],
+            )
+
+            # Save the corr_diff_min
+            np.save(
+                save_path_nao_matched + corr_diff_min_name,
+                forecast_stats_nao_matched["corr_diff_min"],
+            )
+
+            # Save the corr_diff_max
+            np.save(
+                save_path_nao_matched + corr_diff_max_name,
+                forecast_stats_nao_matched["corr_diff_max"],
+            )
+
+            # Save the corr_diff_p
+            np.save(
+                save_path_nao_matched + corr_diff_p_name,
+                forecast_stats_nao_matched["corr_diff_p"],
+            )
+
+            # Save the partial_r
+            np.save(
+                save_path_nao_matched + partial_r_name,
+                forecast_stats_nao_matched["partialr"],
+            )
+
+            # Save the partial_r_min
+            np.save(
+                save_path_nao_matched + partial_r_min_name,
+                forecast_stats_nao_matched["partialr_min"],
+            )
+
+            # Save the partial_r_max
+            np.save(
+                save_path_nao_matched + partial_r_max_name,
+                forecast_stats_nao_matched["partialr_max"],
+            )
+
+            # Save the partial_r_bias
+            np.save(
+                save_path_nao_matched + partial_r_bias_name,
+                forecast_stats_nao_matched["partialr_bias"],
+            )
+
+            # Save the sig_o
+            np.save(save_path_nao_matched + sigo, forecast_stats_nao_matched["sigo"])
+
+            # Save the sig_o_resid
+            np.save(
+                save_path_nao_matched + sigo_resid,
+                forecast_stats_nao_matched["sigo_resid"],
+            )
+
+            # Save the obs_resid
+            np.save(
+                save_path_nao_matched + obs_resid_name,
+                forecast_stats_nao_matched["obs_resid"],
+            )
+
+            # Save the forecast 1 em resid
+            np.save(
+                save_path_nao_matched + fcst1_em_resid_name,
+                forecast_stats_nao_matched["fcst1_em_resid"],
+            )
+
+            # Save the partial_r_p
+            np.save(
+                save_path_nao_matched + partial_r_p_name,
+                forecast_stats_nao_matched["partialr_p"],
+            )
+
+            # save the f2 ts
+            np.save(
+                save_path_nao_matched + fcst2_ts_name,
+                forecast_stats_nao_matched["f2_ts"],
+            )
+
+            # save the f10 ts
+            np.save(
+                save_path_nao_matched + fcst10_ts_name,
+                forecast_stats_nao_matched["f10_ts"],
             )
 
             # Save the common years
@@ -846,6 +1150,11 @@ def main():
             # Save the nens1
             np.savetxt(
                 save_path_nao_matched + nens1_name, np.array([nens1_nao_matched])
+            )
+
+            # Save the nens2
+            np.savetxt(
+                save_path_nao_matched + nens2_name, np.array([nens1_nao_matched])
             )
 
             # Save the start and end years

@@ -31,11 +31,13 @@ from tqdm import tqdm
 
 # Import cdo
 from cdo import Cdo
+
 cdo = Cdo()
 
 # Import dictionaries
 sys.path.append("/home/users/benhutch/skill-maps/")
 import dictionaries as dicts
+
 
 # define a function to find where the same files exists
 def find_hist_ssp_members(
@@ -101,7 +103,7 @@ def find_hist_ssp_members(
 
         # Loop over variables and models
         for variable in tqdm(variables):
-            for model in (models):
+            for model in models:
 
                 # reset unique members
                 unique_model_members_hist = []
@@ -167,7 +169,9 @@ def find_hist_ssp_members(
                 print(f"ssp_members {unique_model_members_ssp} for {model}")
 
                 # Find where the same members exist in both historical and ssp245
-                common_members = list(set(unique_model_members_hist) & set(unique_model_members_ssp))
+                common_members = list(
+                    set(unique_model_members_hist) & set(unique_model_members_ssp)
+                )
 
                 # Print the common members
                 print(f"common members {common_members} for {model} and {variable}")
@@ -177,7 +181,7 @@ def find_hist_ssp_members(
 
                     # Find the index of the common member in hist_member_id
                     hist_member = glob.glob(
-                    f"{hist_base_path}{variable}/{model}/regrid/*{common_member}*regrid.nc"
+                        f"{hist_base_path}{variable}/{model}/regrid/*{common_member}*regrid.nc"
                     )
 
                     # Find the index of the common member in ssp_member_id
@@ -186,7 +190,9 @@ def find_hist_ssp_members(
                     )[0]
 
                     # assert that only a single member
-                    assert len(hist_member) == 1, f"hist_member {hist_member} is not unique"
+                    assert (
+                        len(hist_member) == 1
+                    ), f"hist_member {hist_member} is not unique"
 
                     # Append to the dataframe
                     # usinf pd.concat
@@ -214,6 +220,7 @@ def find_hist_ssp_members(
     # Return the dataframe
     return df
 
+
 # Write a function which regrids the ssp data
 def regrid_ssp(
     df: pd.DataFrame,
@@ -226,7 +233,7 @@ def regrid_ssp(
     """
     Regrids SSP data to the same grid as the historical data.
     Using bilinear interpolation.
-    
+
     Args:
         df (pd.DataFrame): DataFrame of where identical experiment set ups exist
         models (list): list of models to search for
@@ -234,7 +241,7 @@ def regrid_ssp(
         region (str): region to regrid to
         gridspec_file (str): path to gridspec file
         output_dir (str): path to output directory
-        
+
     Returns:
         None
     """
@@ -293,14 +300,18 @@ def regrid_ssp(
                 second_file_last_yyyymm = second_file.split("-")[1]
 
                 # merge the two files
-                output_dir_temp = os.path.join("/work/scratch-nopw2/benhutch/", "temp", ssp, row["variable"])
+                output_dir_temp = os.path.join(
+                    "/work/scratch-nopw2/benhutch/", "temp", ssp, row["variable"]
+                )
 
                 # if the output dir does not exist, create it
                 if not os.path.exists(output_dir_temp):
                     os.makedirs(output_dir_temp)
 
                 # Set up the output fname
-                output_fname = ssp_fname.replace(year_range_nc, f"{first_yyyymm}-{second_file_last_yyyymm}.nc")
+                output_fname = ssp_fname.replace(
+                    year_range_nc, f"{first_yyyymm}-{second_file_last_yyyymm}.nc"
+                )
 
                 # Set up the output path
                 output_path = os.path.join(output_dir_temp, output_fname)
@@ -314,7 +325,7 @@ def regrid_ssp(
                         print(f"Error merging {files} {e}")
 
                 # regrid the data
-                output_file = output_fname.replace('.nc', '_regrid.nc')
+                output_file = output_fname.replace(".nc", "_regrid.nc")
 
                 # output dir
                 output_dir_rg = f"/work/scratch-nopw2/benhutch/{row['variable']}/{model}/{region}/{ssp}/"
@@ -330,15 +341,21 @@ def regrid_ssp(
                 if not os.path.exists(output_path_rg):
                     try:
                         # regrid the data
-                        cdo.remapbil(gridspec_file, input=output_path, output=output_path_rg)
+                        cdo.remapbil(
+                            gridspec_file, input=output_path, output=output_path_rg
+                        )
                     except Exception as e:
                         print(f"Error regridding {output_path} {e}")
 
                 # Set the ssp_member_regrid column
-                df.loc[df["ssp_member"] == row["ssp_member"], "ssp_member_regrid"] = output_path_rg
+                df.loc[df["ssp_member"] == row["ssp_member"], "ssp_member_regrid"] = (
+                    output_path_rg
+                )
             else:
                 # form the output file name
-                output_file = row["ssp_member"].split("/")[-1].replace('.nc', '_regrid.nc')
+                output_file = (
+                    row["ssp_member"].split("/")[-1].replace(".nc", "_regrid.nc")
+                )
 
                 # form the output path
                 output_path = os.path.join(output_dir_model, output_file)
@@ -351,18 +368,23 @@ def regrid_ssp(
                 if not os.path.exists(output_path):
                     try:
                         # regrid the data
-                        cdo.remapbil(gridspec_file, input=row["ssp_member"], output=output_path)
+                        cdo.remapbil(
+                            gridspec_file, input=row["ssp_member"], output=output_path
+                        )
                     except Exception as e:
                         print(f"Error regridding {row['ssp_member']} {e}")
                 else:
                     print(f"{output_path} exists")
 
                 # add a new column to the df
-                df.loc[df["ssp_member"] == row["ssp_member"], "ssp_member_regrid"] = output_path
+                df.loc[df["ssp_member"] == row["ssp_member"], "ssp_member_regrid"] = (
+                    output_path
+                )
 
     # return the dataframe
     return df
-            
+
+
 # Write a function to merge the historical and ssp data
 def merge_hist_ssp(
     df: pd.DataFrame,
@@ -372,13 +394,13 @@ def merge_hist_ssp(
 ):
     """
     Merges the historical and ssp data.
-    
+
     Args:
         df (pd.DataFrame): DataFrame of where identical experiment set ups exist
         models (list): list of models to search for
         hist_base_path (str): path to historical data
         output_dir (str): path to output directory
-        
+
     Returns:
         None
     """
@@ -398,10 +420,14 @@ def merge_hist_ssp(
         # Loop over the rows
         for _, row in tqdm(model_df.iterrows()):
             # assert that the hist_member exists
-            assert os.path.exists(row["hist_member"]), f"{row['hist_member']} does not exist"
+            assert os.path.exists(
+                row["hist_member"]
+            ), f"{row['hist_member']} does not exist"
 
             # assert that the ssp_member_regrid exists
-            assert os.path.exists(row["ssp_member_regrid"]), f"{row['ssp_member_regrid']} does not exist"
+            assert os.path.exists(
+                row["ssp_member_regrid"]
+            ), f"{row['ssp_member_regrid']} does not exist"
 
             # set up the output dir
             output_dir_model = f"{output_dir}/{row['variable']}/{model}/"
@@ -456,7 +482,9 @@ def merge_hist_ssp(
             hist_fname_parts = "_".join(hist_fname_parts)
 
             # Set up the output fname
-            output_fname = f"{hist_fname_parts}_{first_yyyymm_hist}-{last_yyyymm_ssp}.nc"
+            output_fname = (
+                f"{hist_fname_parts}_{first_yyyymm_hist}-{last_yyyymm_ssp}.nc"
+            )
 
             # print the output fname
             print(f"output_fname {output_fname}")
@@ -468,15 +496,23 @@ def merge_hist_ssp(
             if not os.path.exists(output_path):
                 try:
                     # merge the two files
-                    cdo.mergetime(input=[row["hist_member"], row["ssp_member_regrid"]], output=output_path)
+                    cdo.mergetime(
+                        input=[row["hist_member"], row["ssp_member_regrid"]],
+                        output=output_path,
+                    )
                 except Exception as e:
-                    print(f"Error merging {row['hist_member']} {row['ssp_member_regrid']} {e}")
+                    print(
+                        f"Error merging {row['hist_member']} {row['ssp_member_regrid']} {e}"
+                    )
 
             # Set the hist_ssp_member column
-            df.loc[df["hist_member"] == row["hist_member"], "hist_ssp_member"] = output_path
+            df.loc[df["hist_member"] == row["hist_member"], "hist_ssp_member"] = (
+                output_path
+            )
 
     # return the dataframe
     return df
+
 
 # Write a function to process the merged data
 def process_hist_ssp(
@@ -493,7 +529,7 @@ def process_hist_ssp(
 ):
     """
     Processes the merged historical and ssp data.
-    
+
     Args:
         variable: str: variable to process
         months: list[int]: months to process
@@ -505,7 +541,7 @@ def process_hist_ssp(
         data_dir: str: path to data directory
         level: int: level to process
         lag: int: lag to process
-        
+
     Returns:
         None
     """
@@ -543,13 +579,25 @@ def process_hist_ssp(
 
     # Loop over the files
     for file in tqdm(all_files, desc="Processing files"):
-        
+
         if lag != 0:
             for lag_idx in range(lag):
                 # Open the files
                 ds = xr.open_mfdataset(
                     file,
-                    preprocess=lambda ds: preprocess(ds, start_year, end_year, start_month, end_month, months, season, forecast_range, lag=True, level=level, lag_idx=lag_idx),
+                    preprocess=lambda ds: preprocess(
+                        ds,
+                        start_year,
+                        end_year,
+                        start_month,
+                        end_month,
+                        months,
+                        season,
+                        forecast_range,
+                        lag=True,
+                        level=level,
+                        lag_idx=lag_idx,
+                    ),
                     combine="nested",
                     concat_dim="time",
                     join="override",
@@ -565,7 +613,17 @@ def process_hist_ssp(
             # Open the files
             ds = xr.open_mfdataset(
                 file,
-                preprocess=lambda ds: preprocess(ds, start_year, end_year, start_month, end_month, months, season, forecast_range, level=level),
+                preprocess=lambda ds: preprocess(
+                    ds,
+                    start_year,
+                    end_year,
+                    start_month,
+                    end_month,
+                    months,
+                    season,
+                    forecast_range,
+                    level=level,
+                ),
                 combine="nested",
                 concat_dim="time",
                 join="override",
@@ -598,12 +656,16 @@ def process_hist_ssp(
     print(f"Models: {models}")
 
     # Loop over the model dimension within ds
-    for model in tqdm(models, desc="Calculating anomalies"):        
+    for model in tqdm(models, desc="Calculating anomalies"):
         print(f"Model: {model}")
-        
+
         # Select the ensemble members which contain
         # the model in the first part of the string
-        ds_model = ds.sel(ensemble_member=[m for m in ds["ensemble_member"].values if m.split("_")[0] == model])
+        ds_model = ds.sel(
+            ensemble_member=[
+                m for m in ds["ensemble_member"].values if m.split("_")[0] == model
+            ]
+        )
 
         # # print the ds_model
         # print(f"ds_model: {ds_model} for {model}")
@@ -618,7 +680,7 @@ def process_hist_ssp(
 
             # Calculate the anomalies
             ds_anom = ds_model.sel(ensemble_member=member) - ds_mean
-            
+
             # Append to the list
             dss_anoms.append(ds_anom)
 
@@ -627,25 +689,27 @@ def process_hist_ssp(
 
     return ds, ds_anoms
 
+
 # TODO: optional lag argument for historical data
 # define the preprocess function
-def preprocess(ds: xr.Dataset,
-               start_year: int,
-               end_year: int,
-               start_month: int,
-               end_month: int,
-               months: list[int],
-               season: str,
-               forecast_range: str,
-               centred: bool = True,
-               lag: bool = False,
-               level: int = 0,
-               lag_idx: int = 0,
+def preprocess(
+    ds: xr.Dataset,
+    start_year: int,
+    end_year: int,
+    start_month: int,
+    end_month: int,
+    months: list[int],
+    season: str,
+    forecast_range: str,
+    centred: bool = True,
+    lag: bool = False,
+    level: int = 0,
+    lag_idx: int = 0,
 ):
     """
     Preprocesses the data to include an ensemble_member dimension.
     And a model dimension.
-    
+
     Args:
         ds (xr.Dataset): Dataset to preprocess
         start_year (int): start year to process
@@ -665,14 +729,16 @@ def preprocess(ds: xr.Dataset,
     """
 
     # Expand dimensions to include ensemble member
-    ds = ds.expand_dims('ensemble_member')
+    ds = ds.expand_dims("ensemble_member")
 
     if lag is True:
         # Shift the dataset if necessary
-        ds["ensemble_member"] = [f"{ds.attrs['source_id']}_{ds.attrs['variant_label']}_{lag_idx}"]
+        ds["ensemble_member"] = [
+            f"{ds.attrs['source_id']}_{ds.attrs['variant_label']}_{lag_idx}"
+        ]
     else:
         # Set the ensemble_member
-        ds['ensemble_member'] = [f"{ds.attrs['source_id']}_{ds.attrs['variant_label']}"]
+        ds["ensemble_member"] = [f"{ds.attrs['source_id']}_{ds.attrs['variant_label']}"]
 
     # if level is not 0
     if level != 0:
@@ -697,7 +763,7 @@ def preprocess(ds: xr.Dataset,
     ds = ds.sel(time=slice(start_date, end_date))
 
     # Select the months
-    ds = ds.sel(time=ds['time.month'].isin(months))
+    ds = ds.sel(time=ds["time.month"].isin(months))
 
     # Shift the dataset if necessary
     if season in ["DJFM", "NDJFM", "ONDJFM"]:
@@ -717,18 +783,20 @@ def preprocess(ds: xr.Dataset,
     lf_year = int(forecast_range.split("-")[1])
 
     # Calculate the window
-    window = (lf_year - ff_year) + 1 # e.g. (9 - 2) + 1 = 8
+    window = (lf_year - ff_year) + 1  # e.g. (9 - 2) + 1 = 8
 
     # Calculate the rolling mean
-    ds = ds.rolling(
-            time=window, center=centred
-        ).mean()
-    
+    ds = ds.rolling(time=window, center=centred).mean()
+
     # if the time type is not cftime.DatetimeNoLeap
-    if not isinstance(ds['time'].values[0], cftime.DatetimeNoLeap):
+    if not isinstance(ds["time"].values[0], cftime.DatetimeNoLeap):
         # Convert the time index to cftime.DatetimeNoLeap
-        ds['time'] = ds['time'].to_series().map(lambda x: cftime.DatetimeNoLeap(x.year, x.month, x.day))
-    
+        ds["time"] = (
+            ds["time"]
+            .to_series()
+            .map(lambda x: cftime.DatetimeNoLeap(x.year, x.month, x.day))
+        )
+
     # if lag is true
     if lag is True:
         # Shift the dataset if necessary
@@ -736,3 +804,206 @@ def preprocess(ds: xr.Dataset,
 
     # Return the dataset
     return ds
+
+
+# define a function to save the data as a .nc file
+def save_data(
+    ds: xr.Dataset,
+    variable: str,
+    season: str,
+    forecast_range: str,
+    start_year: int,
+    end_year: int,
+    ssp: str = "ssp245",
+    data_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/saved_files/",
+):
+    """
+    Saves the data as a .nc file.
+
+    Args:
+        ds (xr.Dataset): Dataset to save
+        variable (str): variable to save
+        season (str): season to save
+        forecast_range (str): forecast range to save
+        start_year (int): start year to save
+        end_year (int): end year to save
+        data_dir (str): path to data directory
+
+    Returns:
+        None
+    """
+
+    # if the data_dir does not exist, create it
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    # Set up the output dir
+    output_dir = f"{data_dir}{variable}/{season}/{forecast_range}/"
+
+    # if the output dir does not exist, create it
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Set up the output file
+    output_file = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_historical_ssp245.nc"
+
+    # Set up the output path
+    output_path = os.path.join(output_dir, output_file)
+
+    # Save the dataset
+    ds.to_netcdf(output_path)
+
+    # Print the output path
+    print(f"Saved to {output_path}")
+
+    return None
+
+
+# define a function to process the data
+# to be the same length as the model data and observations
+# then convert to an array (+ save this array)
+def constrain_to_arr(
+    ds: xr.Dataset,
+    variable: str,
+    season: str,
+    forecast_range: str,
+    start_year: int,
+    end_year: int,
+    lag_first_year: int,
+    lag_last_year: int,
+    raw_first_year: int,
+    raw_last_year: int,
+    ssp: str = "ssp245",
+    save_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/saved_files/arrays/",
+    lag: int = 0,
+):
+    """
+    Constrains the data to the same length as the model data and observations.
+    Then converts to an array and saves this array.
+
+    Args:
+        ds (xr.Dataset): Dataset to constrain
+        variable (str): variable to constrain
+        season (str): season to constrain
+        forecast_range (str): forecast range to constrain
+        start_year (int): start year to constrain
+        end_year (int): end year to constrain
+        lag_first_year (int): lag first year to constrain
+        lag_last_year (int): lag last year to constrain
+        raw_first_year (int): raw first year to constrain
+        raw_last_year (int): raw last year to constrain
+        save_dir (str): path to save directory
+        lag (int): lag to constrain
+
+    Returns:
+        None
+    """
+
+    # if the save_dir does not exist, create it
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    # Set up the output dir
+    output_dir = f"{save_dir}{variable}/{season}/{forecast_range}/"
+
+    # if the output dir does not exist, create it
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    if lag != 0:
+        # Set up the output file
+        output_file_raw = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_lag_{lag}_historical_{ssp}_raw.npy"
+
+        # Set up the output file
+        output_file_lag = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_lag_{lag}_historical_{ssp}_lag.npy"
+    else:        
+        # Set up the output file
+        output_file_raw = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_historical_ssp245_raw.npy"
+
+        # Set up the output file
+        output_file_lag = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_historical_ssp245_lag.npy"
+
+    # Set up the output path
+    output_path_raw = os.path.join(output_dir, output_file_raw)
+
+    # Set up the output path
+    output_path_lag = os.path.join(output_dir, output_file_lag)
+
+    # process the ds_lag
+    ds_lag = ds.sel(time=slice(f"{lag_first_year}-01-01", f"{lag_last_year}-12-31"))
+
+    # process the ds_raw
+    ds_raw = ds.sel(time=slice(f"{raw_first_year}-01-01", f"{raw_last_year}-12-31"))
+
+    # # Check for NaNs
+    # check_nans(ds_lag)
+
+    # # Check for NaNs
+    # check_nans(ds_raw)
+
+    # print
+    print(f"ds_lag: {ds_lag}")
+    print(f"ds_raw: {ds_raw}")
+
+    # print the types
+    print(f"ds_lag type: {type(ds_lag)}")
+    print(f"ds_raw type: {type(ds_raw)}")
+
+    # Convert to an array
+    arr_lag = ds_lag[variable].values
+
+    # Convert to an array
+    arr_raw = ds_raw[variable].values
+
+    # print the shapes of the arrays
+    print(f"arr_lag shape: {arr_lag.shape}")
+
+    # print the shapes of the arrays
+    print(f"arr_raw shape: {arr_raw.shape}")
+
+    # Save the array
+    np.save(output_path_lag, arr_lag)
+
+    # Save the array
+    np.save(output_path_raw, arr_raw)
+
+    # Print the output path
+    print(f"Saved to {output_path_lag}")
+
+    # Print the output path
+    print(f"Saved to {output_path_raw}")
+
+    return None
+
+
+
+# define a function to check for Nan values
+def check_nans(
+    ds: xr.Dataset,
+):
+    """
+    Checks for NaN values in the dataset.
+    Removes years containing NaNs.
+
+    Args:
+        ds (xr.Dataset): Dataset to check
+
+    Returns:
+        None
+    """
+
+    # loop over the years
+    for year in ds.time.dt.year.values:
+        # select the year
+        ds_year = ds.sel(time=f"{year}")
+
+        # check for NaNs
+        # If there are any nans, raise an error
+        if np.isnan(ds_year).any():
+            print("Nans found in obs for year:", year)
+            if np.isnan(ds_year).all():
+                print("All values are nan")
+                raise ValueError("All values are nan")
+            
+    # return non
+    return None
