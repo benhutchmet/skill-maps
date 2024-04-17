@@ -26,6 +26,7 @@ import glob
 import numpy as np
 import pandas as pd
 import xarray as xr
+import cftime
 from tqdm import tqdm
 
 # Import cdo
@@ -488,6 +489,7 @@ def process_hist_ssp(
     models: list,
     data_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/",
     level: int = 0,
+    lag: int = 0,
 ):
     """
     Processes the merged historical and ssp data.
@@ -502,6 +504,7 @@ def process_hist_ssp(
         models: list: list of models to process
         data_dir: str: path to data directory
         level: int: level to process
+        lag: int: lag to process
         
     Returns:
         None
@@ -522,10 +525,14 @@ def process_hist_ssp(
         assert os.path.exists(data_path), f"{data_path} does not exist"
 
         # find the files
-        files = glob.glob(f"{data_path}*.nc")
+        model_files = glob.glob(f"{data_path}*.nc")
 
-        # append to all_files
-        all_files.extend(files)
+        # extend the all_files
+        all_files.extend(model_files)
+
+    # print the all_files
+    print(f"all_files {all_files}")
+    print(f"len(all_files) {len(all_files)}")
 
     # initialize model data
     dss = []
@@ -535,28 +542,92 @@ def process_hist_ssp(
     end_month = months[-1]
 
     # Loop over the files
-    for file in tqdm(all_files):
+    for file in tqdm(all_files, desc="Processing files"):
         
-        # Open the files
-        ds = xr.open_mfdataset(
-            file,
-            preprocess=lambda ds: preprocess(ds, start_year, end_year, start_month, end_month, months, season, forecast_range),
-            combine="nested",
-            concat_dim="time",
-            join="override",
-            coords="minimal",
-            engine="netcdf4",
-            parallel=True,
-        )
+        if lag != 0:
+            for lag_idx in range(lag):
+                # Open the files
+                ds = xr.open_mfdataset(
+                    file,
+                    preprocess=lambda ds: preprocess(ds, start_year, end_year, start_month, end_month, months, season, forecast_range, lag=True, level=level, lag_idx=lag_idx),
+                    combine="nested",
+                    concat_dim="time",
+                    join="override",
+                    coords="minimal",
+                    engine="netcdf4",
+                    parallel=True,
+                )
 
-        # append to dss
-        dss.append(ds)
+                # append to dss
+                dss.append(ds)
+
+        else:
+            # Open the files
+            ds = xr.open_mfdataset(
+                file,
+                preprocess=lambda ds: preprocess(ds, start_year, end_year, start_month, end_month, months, season, forecast_range, level=level),
+                combine="nested",
+                concat_dim="time",
+                join="override",
+                coords="minimal",
+                engine="netcdf4",
+                parallel=True,
+            )
+
+            # append to dss
+            dss.append(ds)
 
     # Concatenate the dss
     ds = xr.concat(dss, dim="ensemble_member")
 
-    return ds
+    # # Initialize the model data
+    dss_anoms = []
 
+    # print the coordinates of the dataset
+    print(f"Coordinates: {ds.coords}")
+
+    # Print the dimensions of the dataset
+    print(f"Dimensions: {ds.dims}")
+
+    # # extract the models
+    # by finding the unique values of the ensemble_member
+    # when ensemble member is split by _
+    models = np.unique([m.split("_")[0] for m in ds["ensemble_member"].values])
+
+    # print the models
+    print(f"Models: {models}")
+
+    # Loop over the model dimension within ds
+    for model in tqdm(models, desc="Calculating anomalies"):        
+        print(f"Model: {model}")
+        
+        # Select the ensemble members which contain
+        # the model in the first part of the string
+        ds_model = ds.sel(ensemble_member=[m for m in ds["ensemble_member"].values if m.split("_")[0] == model])
+
+        # # print the ds_model
+        # print(f"ds_model: {ds_model} for {model}")
+
+        # Calculate the mean over ensemble_member and time
+        ds_mean = ds_model.mean(dim=["ensemble_member", "time"])
+
+        # Loop over the ensemble_member dimension
+        for member in ds_model["ensemble_member"].values:
+            # print the member
+            print(f"Member: {member}")
+
+            # Calculate the anomalies
+            ds_anom = ds_model.sel(ensemble_member=member) - ds_mean
+            
+            # Append to the list
+            dss_anoms.append(ds_anom)
+
+    # Concatenate the dss_anoms
+    ds_anoms = xr.concat(dss_anoms, dim="ensemble_member")
+
+    return ds, ds_anoms
+
+# TODO: optional lag argument for historical data
 # define the preprocess function
 def preprocess(ds: xr.Dataset,
                start_year: int,
@@ -567,7 +638,9 @@ def preprocess(ds: xr.Dataset,
                season: str,
                forecast_range: str,
                centred: bool = True,
+               lag: bool = False,
                level: int = 0,
+               lag_idx: int = 0,
 ):
     """
     Preprocesses the data to include an ensemble_member dimension.
@@ -583,7 +656,9 @@ def preprocess(ds: xr.Dataset,
         season (str): season to process
         forecast_range (str): forecast range to process
         centred (bool): centred or not for rolling mean
+        lag (bool): lag to process (optional)
         level (int): level to process
+        lag_idx (int): lag to process (optional)
 
     Returns:
         ds (xr.Dataset): Preprocessed Dataset
@@ -592,14 +667,12 @@ def preprocess(ds: xr.Dataset,
     # Expand dimensions to include ensemble member
     ds = ds.expand_dims('ensemble_member')
 
-    # Expand dimensions to include model
-    ds = ds.expand_dims('model')
-
-    # Set the model
-    ds['model'] = [ds.attrs['source_id']]
-
-    # Set the ensemble_member
-    ds['ensemble_member'] = [ds.attrs['variant_label']]
+    if lag is True:
+        # Shift the dataset if necessary
+        ds["ensemble_member"] = [f"{ds.attrs['source_id']}_{ds.attrs['variant_label']}_{lag_idx}"]
+    else:
+        # Set the ensemble_member
+        ds['ensemble_member'] = [f"{ds.attrs['source_id']}_{ds.attrs['variant_label']}"]
 
     # if level is not 0
     if level != 0:
@@ -651,5 +724,15 @@ def preprocess(ds: xr.Dataset,
             time=window, center=centred
         ).mean()
     
+    # if the time type is not cftime.DatetimeNoLeap
+    if not isinstance(ds['time'].values[0], cftime.DatetimeNoLeap):
+        # Convert the time index to cftime.DatetimeNoLeap
+        ds['time'] = ds['time'].to_series().map(lambda x: cftime.DatetimeNoLeap(x.year, x.month, x.day))
+    
+    # if lag is true
+    if lag is True:
+        # Shift the dataset if necessary
+        ds = ds.shift(time=lag_idx)
+
     # Return the dataset
     return ds
