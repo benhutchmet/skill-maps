@@ -1215,13 +1215,22 @@ def main():
             # NOTE: Temporary fix on nens
             nens1_alt_lag = alt_lag_data.shape[0]
 
-            # Run the function to calculate the forecast stats
-            forecast_stats_alt_lag = fnc.forecast_stats(
-                obs=obs_lag_values,
-                forecast1=alt_lag_data,
-                forecast2=alt_lag_data,
-                no_boot=no_bootstraps,
-            )
+            if hist_data_lag is not None:
+                # Run the function to calculate the forecast stats
+                forecast_stats_alt_lag = fnc.forecast_stats(
+                    obs=obs_lag_values,
+                    forecast1=alt_lag_data,
+                    forecast2=hist_data_lag,
+                    no_boot=no_bootstraps,
+                )
+            else:
+                # Run the function to calculate the forecast stats
+                forecast_stats_alt_lag = fnc.forecast_stats(
+                    obs=obs_lag_values,
+                    forecast1=alt_lag_data,
+                    forecast2=alt_lag_data,
+                    no_boot=no_bootstraps,
+                )
 
         # Verify that the length of the observations is correct
         assert (
@@ -1259,13 +1268,22 @@ def main():
         # NOTE: Temporary fix on nens
         nens1_raw = raw_data_mean.shape[0]
 
-        # Run the function to calculate the forecast stats
-        forecast_stats_raw = fnc.forecast_stats(
-            obs=obs_values,
-            forecast1=raw_data_mean,
-            forecast2=raw_data_mean,
-            no_boot=no_bootstraps,
-        )
+        if hist_data_raw is not None:
+            # Run the function to calculate the forecast stats
+            forecast_stats_raw = fnc.forecast_stats(
+                obs=obs_values,
+                forecast1=raw_data_mean,
+                forecast2=hist_data_raw,
+                no_boot=no_bootstraps,
+            )
+        else:
+            # Run the function to calculate the forecast stats
+            forecast_stats_raw = fnc.forecast_stats(
+                obs=obs_values,
+                forecast1=raw_data_mean,
+                forecast2=raw_data_mean,
+                no_boot=no_bootstraps,
+            )
 
         # Set up the save path
         save_path_alt_lag = (
