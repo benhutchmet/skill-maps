@@ -1374,6 +1374,15 @@ def main():
 
             np.save(save_path + corr10_p_name, forecast_stat["corr10_p"])
 
+            np.save(save_path + corr12_name, forecast_stat["corr12"])
+
+            # Save the min and max values
+            np.save(save_path + corr12_min_name, forecast_stat["corr12_min"])
+
+            np.save(save_path + corr12_max_name, forecast_stat["corr12_max"])
+
+            np.save(save_path + corr12_p_name, forecast_stat["corr12_p"])
+
             # Save the MSSS1 and MSSS2 arrays
             np.save(save_path + msss1_name, forecast_stat["msss1"])
 
@@ -1438,9 +1447,9 @@ def main():
             np.save(save_path + sigo_resid, forecast_stat["sigo_resid"])
 
             # Save the values of the forecast stats
-            np.savetxt(save_path + nens1_name, np.array([nen]))
+            np.savetxt(save_path + nens1_name, forecast_stat["nens1"])
 
-            np.savetxt(save_path + nens2_name, np.array([nen]))
+            np.savetxt(save_path + nens2_name, forecast_stat["nens2"])
 
             np.savetxt(save_path + start_end_years, [common_year[0], common_year[-1]])
 
