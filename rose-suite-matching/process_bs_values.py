@@ -271,6 +271,10 @@ def main():
     else:
         nao_matched = False
 
+    if level == "100000":
+        # Set level to none
+        level = None
+
     # If the region is global, set the region to the global gridspec
     if region == "global":
         region_grid = dicts.gridspec_global
@@ -490,8 +494,7 @@ def main():
 
         # Set up the directory
         # TODO: hardcoded for now
-        # FIXME: Testing sfcWind
-        alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
+        alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data"
 
         # Extract the first year of the array
         alt_lag_first_year = int(start_year) + (lag - 1)
@@ -781,6 +784,41 @@ def main():
 
             # load in the historical data
             hist_data_lag = np.load(hist_data_lag_files[0])
+
+            # In the case of EC-Earth for tas, this starts in 1970, so is not
+            # suitable - remove these members
+            nmems = hist_data_raw.shape[0]
+
+            no_dropped_mems = 0
+
+            # Initialize a list to hold the indices of members to drop
+            drop_indices = []
+
+            for mem in range(nmems):
+                # If the values are all nans, add the member index to drop_indices
+                if np.isnan(hist_data_raw[mem, 0, :, :]).all():
+                    print("All values are nan for member:", mem)
+                    drop_indices.append(mem)
+
+                    # Increment the number of dropped members
+                    no_dropped_mems += 1
+
+            # Drop the members
+            hist_data_raw_updated = np.delete(hist_data_raw, drop_indices, axis=0)
+            hist_data_lag_updated = np.delete(hist_data_lag, drop_indices, axis=0)
+
+            # Print the number of dropped members
+            print("Number of dropped members:", len(drop_indices))
+
+            # Reset the names
+            hist_data_raw = hist_data_raw_updated
+            hist_data_lag = hist_data_lag_updated
+
+            # Print the shape of the historical data
+            print("Shape of historical raw data updated:", hist_data_raw.shape)
+
+            # Print the shape of the historical data
+            print("Shape of historical lag data updated:", hist_data_lag.shape)
 
         # If NAO matching is True
         if nao_matched:
@@ -1465,9 +1503,9 @@ def main():
             np.save(save_path + sigo_resid, forecast_stat["sigo_resid"])
 
             # Save the values of the forecast stats
-            np.savetxt(save_path + nens1_name, forecast_stat["nens1"])
+            np.savetxt(save_path + nens1_name, np.array([forecast_stat["nens1"]]))
 
-            np.savetxt(save_path + nens2_name, forecast_stat["nens2"])
+            np.savetxt(save_path + nens2_name, np.array([forecast_stat["nens2"]]))
 
             np.savetxt(save_path + start_end_years, [common_year[0], common_year[-1]])
 

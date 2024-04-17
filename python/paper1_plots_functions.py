@@ -1616,11 +1616,22 @@ def create_bs_dict(
         "corr1_short": [],
         "corr1_p": [],
         "corr1_p_short": [],
+        "corr2": [],
+        "corr2_p": [],
+        "corr12": [],
+        "corr12_p": [],
+        "corr_diff": [],
+        "corr_diff_p": [],
+        "partialr": [],
+        "partialr_p": [],
         "f1_ts": [],
         "f1_ts_short": [],
+        "f1_em_resid": [],
+        "obs_resid": [],
         "o_ts": [],
         "o_ts_short": [],
         "nens1": mdi,
+        "nens2": mdi,
         "start_year": mdi,
         "end_year": mdi,
         "end_year_short": mdi,
@@ -1682,6 +1693,76 @@ def create_bs_dict(
             if f"corr1_p_{var}_{region}_{model_season}_{forecast_range}_short" in file
         ]
 
+        # file containing corr2
+        corr2_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr2_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing corr2_p
+        corr2_p_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr2_p_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing corr12
+        corr12_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr12_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing corr12_p
+        corr12_p_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr12_p_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing corr_diff
+        corr_diff_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr_diff_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing corr_diff_p
+        corr_diff_p_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"corr_diff_p_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing partialr
+        partialr_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"partialr_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing partialr_p
+        partialr_p_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"partialr_p_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing f1_em_resid
+        f1_em_resid_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"f1_em_resid_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # file containing obs_resid
+        obs_resid_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"obs_resid_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
         # Find the file containing "fcst1_ts_{variable}" in the base_path
         fcst1_ts_file = [
             file
@@ -1712,6 +1793,9 @@ def create_bs_dict(
 
         # Find the file containing "nens1_{variable}" in the base_path
         nens1_file = [file for file in os.listdir(base_path) if f"nens1_{var}" in file]
+
+        # File containing nens2
+        nens2_file = [file for file in os.listdir(base_path) if f"nens2_{var}" in file]
 
         # Find the file containing "start_end_years_{variable}" in the base_path
         start_end_years_file = [
@@ -1757,6 +1841,36 @@ def create_bs_dict(
         # Load the files
         corr1_p = np.load(os.path.join(base_path, corr1_p_file[0]))
 
+        # load the corr2 file
+        corr2 = np.load(os.path.join(base_path, corr2_file[0]))
+
+        # load the corr2_p file
+        corr2_p = np.load(os.path.join(base_path, corr2_p_file[0]))
+
+        # load the corr12 file
+        corr12 = np.load(os.path.join(base_path, corr12_file[0]))
+
+        # load the corr12_p file
+        corr12_p = np.load(os.path.join(base_path, corr12_p_file[0]))
+
+        # load the corr_diff file
+        corr_diff = np.load(os.path.join(base_path, corr_diff_file[0]))
+
+        # load the corr_diff_p file
+        corr_diff_p = np.load(os.path.join(base_path, corr_diff_p_file[0]))
+
+        # load the partialr file
+        partialr = np.load(os.path.join(base_path, partialr_file[0]))
+
+        # load the partialr_p file
+        partialr_p = np.load(os.path.join(base_path, partialr_p_file[0]))
+
+        # load the f1_em_resid file
+        f1_em_resid = np.load(os.path.join(base_path, f1_em_resid_file[0]))
+
+        # load the obs_resid file
+        obs_resid = np.load(os.path.join(base_path, obs_resid_file[0]))
+
         # Load the files
         fcst1_ts = np.load(os.path.join(base_path, fcst1_ts_file[0]))
 
@@ -1765,6 +1879,9 @@ def create_bs_dict(
 
         # Load the files
         nens1 = np.loadtxt(os.path.join(base_path, nens1_file[0])).astype(int)
+
+        # Load the nens2 file
+        nens2 = np.loadtxt(os.path.join(base_path, nens2_file[0])).astype(int)
 
         # If all of the files exist
         if (
@@ -1848,6 +1965,30 @@ def create_bs_dict(
 
         # Add the values to the skill_maps dictionary
         skill_maps["end_year"] = end_year
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr2"] = corr2
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr2_p"] = corr2_p
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr12"] = corr12
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr12_p"] = corr12_p
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr_diff"] = corr_diff
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["corr_diff_p"] = corr_diff_p
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["partialr"] = partialr
+
+        # Add the values to the skill_maps dictionary
+        skill_maps["partialr_p"] = partialr_p
 
         # Add the skill_maps dictionary to the bs_skill_maps dictionary
         bs_skill_maps[key] = skill_maps

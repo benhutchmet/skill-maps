@@ -471,6 +471,13 @@ def merge_hist_ssp(
             print(f"first_yyyymm_hist {first_yyyymm_hist} for {model}")
             print(f"last_yyyymm_ssp {last_yyyymm_ssp} for {model}")
 
+            if int(first_yyyymm_hist[:4]) > 1960:
+                print(f"{model} {row['variable']} {first_yyyymm_hist} {last_yyyymm_ssp}")
+                print(f"value of first_yyyymm_hist {int(first_yyyymm_hist[:4])} is greater than 1960")
+
+                # raise a value error
+                raise ValueError(f"{model} {row['variable']} {first_yyyymm_hist} {last_yyyymm_ssp} greater than 1960")
+
             # Set up the output fname
             # tas_Amon_MPI-ESM1-2-HR_historical_r2i1p1f1_g?_1850-2014.nc_global_regrid.nc for MPI-ESM1-2-HR
             hist_fname_parts = hist_fname.split("_")
