@@ -2590,8 +2590,11 @@ def plot_diff_variables(
                 # Set up the time series
                 fcst1_ts = skill_maps[f"{ts_list[i]}"]
 
-                # Set up the time series
-                obs_ts = skill_maps["o_ts"]
+                if ts_list[i] == "f1_em_resid":
+                    obs_ts = skill_maps["obs_resid"]
+                else:
+                    # Set up the time series
+                    obs_ts = skill_maps["o_ts"]
 
                 # Set up the values
                 nens1 = skill_maps["nens1"]
