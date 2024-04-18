@@ -1610,6 +1610,7 @@ def create_bs_dict(
     # Set up the mdi
     mdi = -9999.0
 
+    # FIXME: fix tyhis - add f2
     # Create a dictionary containing the reauired stars for each variable
     stats_dict = {
         "corr1": [],
@@ -1625,6 +1626,7 @@ def create_bs_dict(
         "partialr": [],
         "partialr_p": [],
         "f1_ts": [],
+        "f2_ts": [],
         "f1_ts_short": [],
         "f1_em_resid": [],
         "obs_resid": [],
@@ -1739,21 +1741,21 @@ def create_bs_dict(
         partialr_file = [
             file
             for file in os.listdir(base_path)
-            if f"partialr_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+            if f"partial_r_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # file containing partialr_p
         partialr_p_file = [
             file
             for file in os.listdir(base_path)
-            if f"partialr_p_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+            if f"partial_r_p_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # file containing f1_em_resid
         f1_em_resid_file = [
             file
             for file in os.listdir(base_path)
-            if f"f1_em_resid_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+            if f"fcst1_em_resid_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # file containing obs_resid
@@ -1768,6 +1770,13 @@ def create_bs_dict(
             file
             for file in os.listdir(base_path)
             if f"fcst1_ts_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+        ]
+
+        # Find the file containing "fcst2_ts_{variable}" in the base_path
+        fcst2_ts_file = [
+            file
+            for file in os.listdir(base_path)
+            if f"fcst2_ts_{var}_{region}_{model_season}_{forecast_range}.npy" in file
         ]
 
         # Short fcst1_ts file
@@ -1875,6 +1884,9 @@ def create_bs_dict(
         fcst1_ts = np.load(os.path.join(base_path, fcst1_ts_file[0]))
 
         # Load the files
+        fcst2_ts = np.load(os.path.join(base_path, fcst2_ts_file[0]))
+
+        # Load the files
         obs_ts = np.load(os.path.join(base_path, obs_ts_file[0]))
 
         # Load the files
@@ -1954,11 +1966,23 @@ def create_bs_dict(
         # Add the values to the skill_maps dictionary
         skill_maps["f1_ts"] = fcst1_ts
 
+        # Add the values for f1_em_resid
+        skill_maps["f1_em_resid"] = f1_em_resid
+
+        # add the values to the skill_maps dictionary
+        skill_maps["f2_ts"] = fcst2_ts
+
         # Add the values to the skill_maps dictionary
         skill_maps["o_ts"] = obs_ts
 
+        # Add the obs residual values
+        skill_maps["obs_resid"] = obs_resid
+
         # Add the values to the skill_maps dictionary
         skill_maps["nens1"] = nens1
+
+        # add the values to the skill_maps dictionary
+        skill_maps["nens2"] = nens2
 
         # Add the values to the skill_maps dictionary
         skill_maps["start_year"] = start_year
@@ -2571,7 +2595,7 @@ def plot_diff_variables(
 
                 # Set up the values
                 nens1 = skill_maps["nens1"]
-                nens2 = skill_maps["nens2"]
+                # nens2 = skill_maps["nens2"]
 
                 # Set up the start and end year
                 start_year = skill_maps["start_year"]
