@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import glob
+import shutil
 
 # Import third party modules
 import numpy as np
@@ -37,6 +38,153 @@ cdo = Cdo()
 # Import dictionaries
 sys.path.append("/home/users/benhutch/skill-maps/")
 import dictionaries as dicts
+
+# Define a function to merge the files stored on badc
+def merge_regrid_hist_files(
+    variables: list,
+    models: list,
+    experiment: str = "Amon",
+    region: str = "global",
+    hist_base_path: str = "/badc/cmip6/data/CMIP6/CMIP/",
+    save_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical/",
+    temp_dir: str = "/work/scratch-nopw2/benhutch/",
+    gridspec_file: str = "/home/users/benhutch/gridspec/gridspec-global.txt",
+    fname: str = "hist_files.csv",
+):
+    """
+    Merges the historical files stored on badc.
+
+    Args:
+        variables (list): list of variables to search for
+        models (list): list of models to search for
+        experiment (str): experiment type
+        region (str): region to regrid to
+        hist_base_path (str): path to historical data
+        save_dir (str): path to save the csv
+        temp_dir (str): path to temporary directory
+        gridspec_file (str): path to gridspec file
+        fname (str): filename of the csv
+
+    Returns:
+        df (pd.DataFrame): DataFrame of where identical experiment set ups exist
+
+    """
+
+    # if the save_dir does not exist, create it
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    # badc
+    # /badc/cmip6/data/CMIP6/CMIP/BCC/BCC-CSM2-MR/historical/r1i1p1f1/Amon/sfcWind/gn/files/d20181126
+    # /badc/cmip6/data/CMIP6/CMIP/MOHC/HadGEM3-GC31-MM/historical/r1i1p1f3/Amon/pr/gn/files/d20191207/
+        
+    # Create an empty dataframe
+    df = pd.DataFrame()    
+
+    # loop over the variables and models
+    for variable in tqdm(variables):
+        for model in models:
+            # Find all of the valid directories
+            hist_dirs = glob.glob(
+                f"{hist_base_path}*/{model}/historical/r*i?p?f?/{experiment}/{variable}/g?/files/*/"
+            )
+
+            if len(hist_dirs) == 0:
+                print(f"No directories found for {model} and {variable}")
+                continue
+
+            # Loop over the dirs
+            for dir in hist_dirs:
+                # List the files in the directory
+                files = glob.glob(f"{dir}*.nc")
+
+                # assert that the len of files is 1 or greater
+                assert len(files) >= 1, f"{files} is not 1 or greater"
+
+                # /work/scratch-nopw2/benhutch/pr/BCC-CSM2-MR/global/
+                # Set up the output_dir
+                output_dir = f"{temp_dir}{variable}/{model}/{region}/historical_temp/"
+
+                # if the output_dir does not exist, create it
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+
+                if len(files) > 1:
+                    # Extract the filenames
+                    filenames = [file.split("/")[-1] for file in files]
+
+                    # Extract all sequences of 6 digits from the filenames
+                    sequences = [re.findall(r'\d{6}', filename) for filename in filenames]
+
+                    # Flatten the list of sequences
+                    sequences = [seq for sublist in sequences for seq in sublist]
+
+                    # Convert the sequences to integers
+                    sequences = [int(seq) for seq in sequences]
+
+                    # Find the smallest and largest sequences
+                    smallest_seq = min(sequences)
+                    largest_seq = max(sequences)
+
+                    # Extract the first fname
+                    first_fname = filenames[0]
+
+                    # Replace _185001-186912.nc or _??????-??????.nc
+                    # with _{smallest_seq}-{largest_seq}.nc
+                    output_fname = first_fname.replace(
+                        first_fname.split("_")[-1], f"{smallest_seq}-{largest_seq}.nc"
+                    )
+
+                    # form the output path
+                    output_path = os.path.join(output_dir, output_fname)
+
+                    # if the output file does not exist, merge
+                    if not os.path.exists(output_path):
+                        try:
+                            # merge the files
+                            cdo.mergetime(input=files, output=output_path)
+                        except Exception as e:
+                            print(f"Error merging {files} {e}")
+
+                    # add to the variable, model, merged_file columns
+                    df = pd.concat(
+                        [
+                            df,
+                            pd.DataFrame(
+                                {
+                                    "variable": [variable],
+                                    "model": [model],
+                                    "merged_file": [output_path],
+                                }
+                            ),
+                        ]
+                    )
+
+                else:
+                    # print that only one file exists
+                    print(f"Only one file exists for {model} and {variable}")
+                    print(f"copying {files[0]} to {output_dir}")
+
+                    # copy the file to the output_dir
+                    shutil.copy(files[0], output_dir)
+
+                    # add to the variable, model, merged_file columns
+                    df = pd.concat(
+                        [
+                            df,
+                            pd.DataFrame(
+                                {
+                                    "variable": [variable],
+                                    "model": [model],
+                                    "merged_file": [files[0]],
+                                }
+                            ),
+                        ]
+                    )
+
+    # Return the dataframe
+    return df
+
 
 
 # define a function to find where the same files exists
@@ -70,6 +218,7 @@ def find_hist_ssp_members(
     """
     # badc
     # /badc/cmip6/data/CMIP6/CMIP/BCC/BCC-CSM2-MR/historical/r1i1p1f1/Amon/sfcWind/gn/files/d20181126
+    # /badc/cmip6/data/CMIP6/CMIP/MOHC/HadGEM3-GC31-MM/historical/r1i1p1f3/Amon/pr/gn/files/d20191207/
 
     # canari
     # /gws/nopw/j04/canari/users/benhutch/historical/tas/BCC-CSM2-MR/regrid/tas_Amon_BCC-CSM2-MR_historical_r1i1p1f1_gn_185001-201412.nc_global_regrid.nc

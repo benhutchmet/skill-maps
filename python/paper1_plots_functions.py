@@ -1755,7 +1755,8 @@ def create_bs_dict(
         f1_em_resid_file = [
             file
             for file in os.listdir(base_path)
-            if f"fcst1_em_resid_{var}_{region}_{model_season}_{forecast_range}.npy" in file
+            if f"fcst1_em_resid_{var}_{region}_{model_season}_{forecast_range}.npy"
+            in file
         ]
 
         # file containing obs_resid
@@ -2583,9 +2584,7 @@ def plot_diff_variables(
                 corr1_p = skill_maps[f"{corr_list[i]}_p"]
 
                 # assert that ts_list is not none
-                assert (
-                    ts_list is not None
-                ), "ts_list is None, but corr_list is not None"
+                assert ts_list is not None, "ts_list is None, but corr_list is not None"
 
                 # Set up the time series
                 fcst1_ts = skill_maps[f"{ts_list[i]}"]
@@ -2596,9 +2595,13 @@ def plot_diff_variables(
                     # Set up the time series
                     obs_ts = skill_maps["o_ts"]
 
-                # Set up the values
-                nens1 = skill_maps["nens1"]
-                # nens2 = skill_maps["nens2"]
+                if ts_list[i] == "f2_ts":
+                    nens1 = skill_maps["nens2"]
+                elif ts_list[i] == "f1_em_resid":
+                    nens1 = int(skill_maps["nens1"]), int(skill_maps["nens2"])
+                else:
+                    # Set up the values
+                    nens1 = skill_maps["nens1"]
 
                 # Set up the start and end year
                 start_year = skill_maps["start_year"]
@@ -2663,8 +2666,20 @@ def plot_diff_variables(
             # # Add borders (?)
             # ax.add_feature(cfeature.BORDERS)
 
-            # Set up the cf object
-            cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
+            if ts_list is not None and "corr_diff" in corr_list:
+                # Set up the cf object
+                cf = ax.contourf(
+                    lons,
+                    lats,
+                    corr,
+                    clevs,
+                    transform=proj,
+                    cmap="RdBu_r",
+                    extend="both",
+                )
+            else:
+                # Set up the cf object
+                cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
 
             # Extract the variable name from the key
             variable = key[0]
@@ -2886,17 +2901,30 @@ def plot_diff_variables(
                     AssertionError("Method not recognised!")
 
                 if short_period is False:
-                    # Include the method in the top right of the figure
-                    ax.text(
-                        0.95,
-                        0.95,
-                        f"{methods[i]} ({nens1})",
-                        transform=ax.transAxes,
-                        va="top",
-                        ha="right",
-                        bbox=dict(facecolor="white", alpha=0.5),
-                        fontsize=8,
-                    )
+                    if type(nens1) != tuple:
+                        # Include the method in the top right of the figure
+                        ax.text(
+                            0.95,
+                            0.95,
+                            f"{methods[i]} ({nens1})",
+                            transform=ax.transAxes,
+                            va="top",
+                            ha="right",
+                            bbox=dict(facecolor="white", alpha=0.5),
+                            fontsize=8,
+                        )
+                    else:
+                        # Include the method in the top right of the figure
+                        ax.text(
+                            0.95,
+                            0.95,
+                            f"{methods[i]} {nens1}",
+                            transform=ax.transAxes,
+                            va="top",
+                            ha="right",
+                            bbox=dict(facecolor="white", alpha=0.5),
+                            fontsize=8,
+                        )
                 else:
                     # Include the method in the top right of the figure
                     ax.text(
@@ -4191,7 +4219,6 @@ def plot_ts(
 
         # Detrend the obs time series
         ts_dict["obs_ts"] = signal.detrend(ts_dict["obs_ts"])
-
 
     if constrain_years is not None:
         # Print the init_years
