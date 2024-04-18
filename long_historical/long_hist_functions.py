@@ -82,8 +82,8 @@ def merge_regrid_hist_files(
     df = pd.DataFrame()    
 
     # loop over the variables and models
-    for variable in tqdm(variables):
-        for model in models:
+    for variable in variables:
+        for model in tqdm(models, desc="Merging files"):
             # Find all of the valid directories
             hist_dirs = glob.glob(
                 f"{hist_base_path}*/{model}/historical/r*i?p?f?/{experiment}/{variable}/g?/files/*/"
@@ -165,8 +165,11 @@ def merge_regrid_hist_files(
                     print(f"Only one file exists for {model} and {variable}")
                     print(f"copying {files[0]} to {output_dir}")
 
-                    # copy the file to the output_dir
-                    shutil.copy(files[0], output_dir)
+                    # if the file does not already exist in the output dir
+                    if not os.path.exists(output_dir, files[0]):
+                        # copy the file to the output_dir
+                        shutil.copy(files[0], output_dir)
+
 
                     # add to the variable, model, merged_file columns
                     df = pd.concat(
@@ -181,6 +184,33 @@ def merge_regrid_hist_files(
                             ),
                         ]
                     )
+
+    # With the dataframe, loop over the paths in ['merged_file']
+    # and regrid these to the global grid
+    # Iterate over the rows in the dataframe
+    for _, row in tqdm(df.iterrows(), desc="Regridding files"):
+        # Set up the directory
+        regrid_dir = f"{save_dir}{row['variable']}/{row['model']}/regrid/"
+
+        # Set up the output fname
+        # Extract the fname from the 'merged_file'
+        regrid_fname = row["merged_file"].split("/")[-1].replace(".nc", "_regrid.nc")
+
+        # Set up the output path
+        regrid_path = os.path.join(regrid_dir, regrid_fname)
+
+        # if the regrid path already exists
+        if not os.path.exists(regrid_path):
+            # regrid the file
+            try:
+                cdo.remapbil(
+                    gridspec_file, input=row["merged_file"], output=regrid_path
+                )
+            except Exception as e:
+                print(f"Error regridding {row['merged_file']} {e}")
+
+        # Add a new column to the dataframe
+        df.loc[df["merged_file"] == row["merged_file"], "regrid_file"] = regrid_path
 
     # Return the dataframe
     return df
