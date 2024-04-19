@@ -239,6 +239,103 @@ def load_data(
         return data
 
 
+# Define a function to load the saved historical data
+# psl in this case
+def load_hist_data(
+    season: str,
+    start_year: int = 1961,
+    end_year: int = 2023,
+    forecast_range: str = "2-9",
+    lag_period: bool = False,
+    variable: str = "psl",
+    experiment: str = "historical_ssp245",
+    lagged_data: bool = False,
+    data_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/saved_files/arrays/",
+    lag: int = 0,
+):
+    """
+    Loads the historical data.
+
+    Parameters:
+
+    season: str
+        The season for which the historical data is being loaded.
+
+    start_year: int
+        The start year for which the historical data is being loaded.
+
+    end_year: int
+        The end year for which the historical data is being loaded.
+
+    forecast_range
+        The forecast range for the data.
+        Default is year 2-9.
+
+    lag_period: bool
+        Whether the data is for a lag period (default is False).
+
+    variable: str
+        The variable for which the historical data is being loaded (default is "psl").
+
+    experiment: str
+        The experiment for which the historical data is being loaded (default is "historical_ssp245").
+
+    lagged_data: bool
+        Whether the data is over the lagged (shorter) period.
+        Default is false.
+
+    data_dir: str
+        The directory in which the historical data is stored (default is "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/saved_files/arrays/").
+
+    Returns:
+
+    hist_data: np.ndarray
+        The historical data.
+    """
+
+    # assert that the data_dir exists
+    assert os.path.exists(data_dir), f"{data_dir} does not exist"
+
+    # Set up the dir path for the saved data
+    dir_path = f"{data_dir}/{variable}/{season}/{forecast_range}/"
+
+    # assert that this dir path is not empty
+    assert os.path.exists(dir_path), f"{dir_path} does not exist"
+
+    # Set up the filename
+    if lag_period:
+        if lagged_data:
+            # psl_ONDJFM_2-9_1961-2023_lag_4_historical_ssp245_lag.npy
+            filename = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_lag_{lag}_{experiment}_lag.npy"
+        else:
+            filename = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_{experiment}_lag.npy"
+    else:
+        if lagged_data:
+            # psl_ONDJFM_2-9_1961-2023_lag_4_historical_ssp245_raw.npy
+            filename = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_lag_{lag}_{experiment}_raw.npy"
+        else:
+            filename = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_{experiment}_raw.npy"
+
+    # Set up the file path
+    file_path = f"{dir_path}{filename}"
+
+    # if the file path does not exist
+    if not os.path.exists(file_path):
+        print(f"{file_path} does not exist")
+
+        # exit with an error
+        sys.exit(1)
+
+    # Load the data
+    hist_data = np.load(file_path)
+
+    # print the shape of the data
+    print("Shape of the historical data:", hist_data.shape)
+
+    # Return the historical data
+    return hist_data
+
+
 # Set up a function for calculating the NAO index
 def calc_nao_stats(
     data: np.ndarray,
@@ -253,6 +350,7 @@ def calc_nao_stats(
     variable: str = "psl",
     winter_nao_n_grid: dict = dicts.iceland_grid_corrected,
     winter_nao_s_grid: dict = dicts.azores_grid_corrected,
+    hist_data: np.ndarray = None,
 ):
     """
     Calculates the NAO index for the given data.
@@ -290,6 +388,9 @@ def calc_nao_stats(
 
     winter_nao_s_grid: dict
         The dictionary containing the gridboxes for the winter NAO south region.
+
+    hist_data: bool
+        Whether the data is historical data (default is False).
 
     Returns:
 
@@ -415,7 +516,7 @@ def calc_nao_stats(
 
     # TODO: Make sure this lines up with the model data
     # Set up the first and last years accordingly
-    if data.ndim == 5:
+    if data.ndim == 5 or len(hist_data[1]) == 54:
         print("Processing the raw data")
 
         # If forecast range is 2-9
@@ -506,28 +607,33 @@ def calc_nao_stats(
         # print the shape of the 2nd axis
         print("Shape of the 2nd axis:", data.shape[2])
 
-        # If the third axis has size > 1
-        if data.shape[2] > 6:
-            # Calculate the mean of the data
-            # Extract the second number in forecast_range
-            forecast_range_number = int(forecast_range.split("-")[1])
-
-            # Calculate the mean of the data
-            data = data[:, :, : forecast_range_number - 1, :, :].mean(axis=2)
-        elif data.shape[2] == 1:
-            # Squeeze the data
-            data = np.squeeze(data)
-        elif data.shape[2] in [2, 3, 4, 5, 6]:
-            # Take the year 2 index (year 2)
-            data = data[:, :, 0, :, :]
+        # if hist_data has 4 dimensions
+        if hist_data.ndim == 4:
+            # Set this as the data
+            data = hist_data
         else:
-            print("Data shape not recognised")
-            AssertionError("Data shape not recognised")
+            # If the third axis has size > 1
+            if data.shape[2] > 6:
+                # Calculate the mean of the data
+                # Extract the second number in forecast_range
+                forecast_range_number = int(forecast_range.split("-")[1])
 
-        # If years 2-9
-        if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
-            # Remove the final time step
-            data = data[:, :-1, :, :]
+                # Calculate the mean of the data
+                data = data[:, :, : forecast_range_number - 1, :, :].mean(axis=2)
+            elif data.shape[2] == 1:
+                # Squeeze the data
+                data = np.squeeze(data)
+            elif data.shape[2] in [2, 3, 4, 5, 6]:
+                # Take the year 2 index (year 2)
+                data = data[:, :, 0, :, :]
+            else:
+                print("Data shape not recognised")
+                AssertionError("Data shape not recognised")
+
+            # If years 2-9
+            if forecast_range == "2-9" and season not in ["DJFM", "DJF", "ONDJFM"]:
+                # Remove the final time step
+                data = data[:, :-1, :, :]
 
         print("Shape of the data:", np.shape(data))
 
@@ -603,7 +709,7 @@ def calc_nao_stats(
         # Append the nens to the dictionary
         nao_stats["nens"] = len(model_nao)
 
-    elif data.ndim == 4:
+    elif data.ndim == 4 or len(hist_data[1]) == 51:
         print("Processing the alt-lag data")
 
         # Set up the alt_lag_first_year
@@ -647,6 +753,9 @@ def calc_nao_stats(
 
         # Set up the common years accordingly
         common_years = np.arange(alt_lag_first_year, alt_lag_last_year + 1)
+
+        # set up the init_years
+        nao_stats["init_years"] = np.arange(start_year + lag - 1, end_year + 1)
 
         # Append the valid years
         nao_stats["valid_years"] = common_years
@@ -700,6 +809,10 @@ def calc_nao_stats(
         # Print the shape of the data
         print("Shape of the model data:", np.shape(data))
         print("Shape of the obs_nao:", np.shape(obs_nao))
+
+        if hist_data.ndim == 4:
+            # Set this as the data
+            data = hist_data
 
         # Assert that the shape of lats is the same as the shape of the data third axis
         assert data.shape[2] == len(lats), "Data lats shape not equal to lats shape"
@@ -960,7 +1073,7 @@ def plot_nao(
 
     if "-" in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
         # Set the y lim
-        ax.set_ylim(-5, 5)
+        ax.set_ylim(-7.5, 7.5)
     elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
         # Set the y lim
         ax.set_ylim(-15, 15)
@@ -1042,6 +1155,7 @@ def plot_nao(
 
     # Show the plot
     plt.show()
+
 
 # Define a function to plot the NAO as subplots
 def plot_nao_subplots(
@@ -1144,7 +1258,9 @@ def plot_nao_subplots(
     print("Total size:", figsize_x * figsize_y)
 
     # Set up the figure
-    fig, ax = plt.subplots(figsize=(figsize_x_px*px, figsize_y_px*px), nrows=1, ncols=2, sharey=True)
+    fig, ax = plt.subplots(
+        figsize=(figsize_x_px * px, figsize_y_px * px), nrows=1, ncols=2, sharey=True
+    )
 
     # Plot the 5% lower interval
     ax[0].fill_between(
@@ -1305,7 +1421,7 @@ def plot_nao_subplots(
             subplot.set_ylim(-10, 10)
             # Set the y ticks
             subplot.set_yticks(np.linspace(-10, 10, num=7))
-        elif "-"in forecast_range and season in ["ONDJFM"]:
+        elif "-" in forecast_range and season in ["ONDJFM"]:
             # Set the y lim
             subplot.set_ylim(-7.5, 7.5)
             # Set the y ticks
@@ -1322,7 +1438,7 @@ def plot_nao_subplots(
             subplot.set_yticks(np.linspace(-10, 10, num=7))
         else:
             raise ValueError("Season not recognised")
-        
+
         # Your existing code
         subplot.set_xlim(1960, 2020)
 
@@ -1330,14 +1446,14 @@ def plot_nao_subplots(
         labels = subplot.get_xticks().tolist()
 
         # Replace the label for 2020 with an empty string
-        labels[-1] = ''
+        labels[-1] = ""
 
         # Make sure these labels are int values
-        labels = [int(label) for label in labels if label != '']
+        labels = [int(label) for label in labels if label != ""]
 
         # Set the new labels
         subplot.set_xticklabels(labels)
-        
+
         # Set the x ticks padding
         subplot.tick_params(axis="x", pad=8)
 
@@ -1351,9 +1467,7 @@ def plot_nao_subplots(
     current_time = pd.to_datetime("today").strftime("%Y-%m-%d-%H-%M")
 
     # Set up the plot_name
-    plot_name = (
-        f"{method_1}_{method_2}_{season}_{forecast_range}_{lag}_nao_index_{current_time}.{format}"
-    )
+    plot_name = f"{method_1}_{method_2}_{season}_{forecast_range}_{lag}_nao_index_{current_time}.{format}"
 
     # Save the plot
     plt.savefig(os.path.join(save_dir, plot_name), dpi=save_dpi)

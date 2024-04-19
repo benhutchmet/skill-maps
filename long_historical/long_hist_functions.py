@@ -39,6 +39,7 @@ cdo = Cdo()
 sys.path.append("/home/users/benhutch/skill-maps/")
 import dictionaries as dicts
 
+
 # Define a function to merge the files stored on badc
 def merge_regrid_hist_files(
     variables: list,
@@ -77,9 +78,9 @@ def merge_regrid_hist_files(
     # badc
     # /badc/cmip6/data/CMIP6/CMIP/BCC/BCC-CSM2-MR/historical/r1i1p1f1/Amon/sfcWind/gn/files/d20181126
     # /badc/cmip6/data/CMIP6/CMIP/MOHC/HadGEM3-GC31-MM/historical/r1i1p1f3/Amon/pr/gn/files/d20191207/
-        
+
     # Create an empty dataframe
-    df = pd.DataFrame()    
+    df = pd.DataFrame()
 
     # loop over the variables and models
     for variable in variables:
@@ -114,7 +115,9 @@ def merge_regrid_hist_files(
                     filenames = [file.split("/")[-1] for file in files]
 
                     # Extract all sequences of 6 digits from the filenames
-                    sequences = [re.findall(r'\d{6}', filename) for filename in filenames]
+                    sequences = [
+                        re.findall(r"\d{6}", filename) for filename in filenames
+                    ]
 
                     # Flatten the list of sequences
                     sequences = [seq for sublist in sequences for seq in sublist]
@@ -166,10 +169,11 @@ def merge_regrid_hist_files(
                     print(f"copying {files[0]} to {output_dir}")
 
                     # if the file does not already exist in the output dir
-                    if not os.path.exists(output_dir, files[0]):
+                    if not os.path.exists(
+                        os.path.join(output_dir, os.path.basename(files[0]))
+                    ):
                         # copy the file to the output_dir
                         shutil.copy(files[0], output_dir)
-
 
                     # add to the variable, model, merged_file columns
                     df = pd.concat(
@@ -191,6 +195,10 @@ def merge_regrid_hist_files(
     for _, row in tqdm(df.iterrows(), desc="Regridding files"):
         # Set up the directory
         regrid_dir = f"{save_dir}{row['variable']}/{row['model']}/regrid/"
+
+        # if the regrid_dir does not exist, create it
+        if not os.path.exists(regrid_dir):
+            os.makedirs(regrid_dir)
 
         # Set up the output fname
         # Extract the fname from the 'merged_file'
@@ -214,7 +222,6 @@ def merge_regrid_hist_files(
 
     # Return the dataframe
     return df
-
 
 
 # define a function to find where the same files exists
@@ -261,7 +268,7 @@ def find_hist_ssp_members(
         os.makedirs(save_dir)
 
     # Set up the filename
-    filepath = f"{save_dir}/{fname}"
+    filepath = f"{save_dir}{fname}"
 
     # Check if the file exists
     if not os.path.exists(filepath):
@@ -290,10 +297,15 @@ def find_hist_ssp_members(
                 # reset unique members
                 unique_model_members_ssp = []
 
-                # Find historical files
-                hist_files = glob.glob(
-                    f"{hist_base_path}{variable}/{model}/regrid/*regrid.nc"
-                )
+                if variable == "ua":
+                    hist_files = glob.glob(
+                        f"{hist_base_path}{variable}/{model}/regrid/*global*regrid.nc"
+                    )
+                else:
+                    # Find historical files
+                    hist_files = glob.glob(
+                        f"{hist_base_path}{variable}/{model}/regrid/*regrid.nc"
+                    )
 
                 # Find ssp245 files
                 ssp_files = glob.glob(
@@ -357,11 +369,24 @@ def find_hist_ssp_members(
 
                 # Loop over common members
                 for common_member in common_members:
+                    
+                    if variable == "ua":
+                        print("Variable is ua")
 
-                    # Find the index of the common member in hist_member_id
-                    hist_member = glob.glob(
-                        f"{hist_base_path}{variable}/{model}/regrid/*{common_member}*regrid.nc"
-                    )
+                        # Find the index of the common member in hist_member_id
+                        hist_member = glob.glob(
+                            f"{hist_base_path}{variable}/{model}/regrid/*{common_member}*global*regrid.nc"
+                        )
+
+                    else:
+                        print("Variable is not ua")
+                        # Find the index of the common member in hist_member_id
+                        hist_member = glob.glob(
+                            f"{hist_base_path}{variable}/{model}/regrid/*{common_member}*regrid.nc"
+                        )
+
+                    # print the path
+                    print(f"hist_member {hist_member}")
 
                     # Find the index of the common member in ssp_member_id
                     ssp_member = glob.glob(
@@ -651,11 +676,21 @@ def merge_hist_ssp(
             print(f"last_yyyymm_ssp {last_yyyymm_ssp} for {model}")
 
             if int(first_yyyymm_hist[:4]) > 1960:
-                print(f"{model} {row['variable']} {first_yyyymm_hist} {last_yyyymm_ssp}")
-                print(f"value of first_yyyymm_hist {int(first_yyyymm_hist[:4])} is greater than 1960")
+                print(
+                    f"{model} {row['variable']} {first_yyyymm_hist} {last_yyyymm_ssp}"
+                )
+                print(
+                    f"value of first_yyyymm_hist {int(first_yyyymm_hist[:4])} is greater than 1960"
+                )
 
                 # raise a value error
-                raise ValueError(f"{model} {row['variable']} {first_yyyymm_hist} {last_yyyymm_ssp} greater than 1960")
+                print(
+                    f"{model} {row['variable']} {first_yyyymm_hist} {last_yyyymm_ssp} greater than 1960"
+                )
+
+                # print that we are continuing to the next
+                print(f"continuing to the next {model} {row['variable']}")
+                continue
 
             # Set up the output fname
             # tas_Amon_MPI-ESM1-2-HR_historical_r2i1p1f1_g?_1850-2014.nc_global_regrid.nc for MPI-ESM1-2-HR
@@ -943,7 +978,7 @@ def preprocess(
 
     # Set the start and end date
     start_date = f"{start_year}-{start_month}-01"
-    end_date = f"{end_year}-{end_month}-31"
+    end_date = f"{end_year}-{end_month}-30"
 
     # Select the time range
     ds = ds.sel(time=slice(start_date, end_date))
@@ -1002,6 +1037,7 @@ def save_data(
     end_year: int,
     ssp: str = "ssp245",
     data_dir: str = "/gws/nopw/j04/canari/users/benhutch/historical_ssp245/saved_files/",
+    lag: int = 0,
 ):
     """
     Saves the data as a .nc file.
@@ -1014,6 +1050,7 @@ def save_data(
         start_year (int): start year to save
         end_year (int): end year to save
         data_dir (str): path to data directory
+        lag (int): lag to save
 
     Returns:
         None
@@ -1030,8 +1067,12 @@ def save_data(
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    # Set up the output file
-    output_file = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_historical_ssp245.nc"
+    if lag != 0:
+        # Set up the output file
+        output_file = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_lag_{lag}_historical_{ssp}.nc"
+    else:
+        # Set up the output file
+        output_file = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_historical_ssp245.nc"
 
     # Set up the output path
     output_path = os.path.join(output_dir, output_file)
@@ -1102,7 +1143,7 @@ def constrain_to_arr(
 
         # Set up the output file
         output_file_lag = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_lag_{lag}_historical_{ssp}_lag.npy"
-    else:        
+    else:
         # Set up the output file
         output_file_raw = f"{variable}_{season}_{forecast_range}_{start_year}-{end_year}_historical_ssp245_raw.npy"
 
@@ -1162,7 +1203,6 @@ def constrain_to_arr(
     return None
 
 
-
 # define a function to check for Nan values
 def check_nans(
     ds: xr.Dataset,
@@ -1190,6 +1230,6 @@ def check_nans(
             if np.isnan(ds_year).all():
                 print("All values are nan")
                 raise ValueError("All values are nan")
-            
+
     # return non
     return None

@@ -12,3 +12,4 @@ logs/*.log
 logs/*.txt
 logs/*.err
 logs/*.out
+long_historical/gws/*

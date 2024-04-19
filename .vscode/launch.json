@@ -55,10 +55,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "ua",
-                "msl",
+                "tas",
+                "t2m",
                 "global",
-                "ONDJFM",
+                "AYULGS",
                 "2-9",
                 "1961",
                 "2014", // short period for testing
@@ -66,9 +66,9 @@
                 "20",
                 "alternate_lag",
                 "1",
-                "85000",
+                "100000",
                 "False", // use the full period
-                "True" // NAO matching
+                "False" // NAO matching
             ]
         }
     ]

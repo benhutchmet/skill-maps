@@ -494,7 +494,7 @@ def main():
 
         # Set up the directory
         # TODO: hardcoded for now
-        alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data"
+        alt_lag_dir = "/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/"
 
         # Extract the first year of the array
         alt_lag_first_year = int(start_year) + (lag - 1)
