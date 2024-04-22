@@ -757,11 +757,13 @@ def main():
                 forecast_range,
             )
 
-            # load in the historical data
-            hist_data_raw_path = f"{hist_files_dir}{variable}_{season}_{forecast_range}_*_historical_ssp245_raw.npy"
+            # psl_ONDJFM_2-9_1961-2023_historical_ssp245_lag.npy
 
-            # set up the lag path
-            hist_data_lag_path = f"{hist_files_dir}{variable}_{season}_{forecast_range}_*_historical_ssp245_lag.npy"
+            # load in the historical data (raw historical data)
+            hist_data_raw_path = f"{hist_files_dir}{variable}_{season}_{forecast_range}_????-????_historical_ssp245_raw.npy"
+
+            # set up the lag path (raw data constrained to lag period)
+            hist_data_lag_path = f"{hist_files_dir}{variable}_{season}_{forecast_range}_????-????_historical_ssp245_lag.npy"
 
             # glob the files
             hist_data_raw_files = glob.glob(hist_data_raw_path)
