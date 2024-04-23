@@ -1,20 +1,20 @@
 [cylc]
     UTC mode = True # Ignore DST
     [[parameters]]
-        match_var=sfcWind,rsds,pr,psl
+        match_var=tas,sfcWind,rsds,pr,psl
         obs_var_name="msl"
         region="global"
-        season=ONDJFM
+        season=AYULGS
         forecast_range=2-9
         start_year="1961"
         end_year="2014"
         lag="4"
         no_subset_members="20"
         method=alternate_lag
-        nboot=101
+        nboot=1000
         level="100000"
         full_period="False"
-        nao_matched="True"
+        nao_matched="False"
 
 [scheduling]
     [[dependencies]]
@@ -38,4 +38,4 @@
         python process_bs_values.py ${CYLC_TASK_PARAM_match_var} ${CYLC_TASK_PARAM_obs_var_name} ${CYLC_TASK_PARAM_region} ${CYLC_TASK_PARAM_season} ${CYLC_TASK_PARAM_forecast_range} ${CYLC_TASK_PARAM_start_year} ${CYLC_TASK_PARAM_end_year} ${CYLC_TASK_PARAM_lag} ${CYLC_TASK_PARAM_no_subset_members} ${CYLC_TASK_PARAM_method} ${CYLC_TASK_PARAM_nboot} ${CYLC_TASK_PARAM_level} ${CYLC_TASK_PARAM_full_period} ${CYLC_TASK_PARAM_nao_matched}
         """
         [[[job]]]
-            execution time limit = PT2400M
+            execution time limit = PT2800M
