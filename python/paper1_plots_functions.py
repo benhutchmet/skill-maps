@@ -1560,6 +1560,7 @@ def create_bs_dict(
     region: str = "global",
     base_dir: str = "/gws/nopw/j04/canari/users/benhutch/bootstrapping",
     model_season: str = "ONDJFM",
+    load_hist: bool = False,
 ):
     """
     Function which creates a dictionary of bootstrapped skill maps for a list of variables.
@@ -1594,6 +1595,12 @@ def create_bs_dict(
     base_dir: str
         Base directory to process.
         e.g. default is "/gws/nopw/j04/canari/users/benhutch/bootstrapping"
+
+    model_season: str
+        Model season to process.
+
+    load_hist: bool
+        Boolean value indicating whether to load the historical data.
 
     Outputs:
     --------
@@ -1851,50 +1858,51 @@ def create_bs_dict(
         # Load the files
         corr1_p = np.load(os.path.join(base_path, corr1_p_file[0]))
 
-        # load the corr2 file
-        corr2 = np.load(os.path.join(base_path, corr2_file[0]))
+        if load_hist:
+            # load the corr2 file
+            corr2 = np.load(os.path.join(base_path, corr2_file[0]))
 
-        # load the corr2_p file
-        corr2_p = np.load(os.path.join(base_path, corr2_p_file[0]))
+            # load the corr2_p file
+            corr2_p = np.load(os.path.join(base_path, corr2_p_file[0]))
 
-        # load the corr12 file
-        corr12 = np.load(os.path.join(base_path, corr12_file[0]))
+            # load the corr12 file
+            corr12 = np.load(os.path.join(base_path, corr12_file[0]))
 
-        # load the corr12_p file
-        corr12_p = np.load(os.path.join(base_path, corr12_p_file[0]))
+            # load the corr12_p file
+            corr12_p = np.load(os.path.join(base_path, corr12_p_file[0]))
 
-        # load the corr_diff file
-        corr_diff = np.load(os.path.join(base_path, corr_diff_file[0]))
+            # load the corr_diff file
+            corr_diff = np.load(os.path.join(base_path, corr_diff_file[0]))
 
-        # load the corr_diff_p file
-        corr_diff_p = np.load(os.path.join(base_path, corr_diff_p_file[0]))
+            # load the corr_diff_p file
+            corr_diff_p = np.load(os.path.join(base_path, corr_diff_p_file[0]))
 
-        # load the partialr file
-        partialr = np.load(os.path.join(base_path, partialr_file[0]))
+            # load the partialr file
+            partialr = np.load(os.path.join(base_path, partialr_file[0]))
 
-        # load the partialr_p file
-        partialr_p = np.load(os.path.join(base_path, partialr_p_file[0]))
+            # load the partialr_p file
+            partialr_p = np.load(os.path.join(base_path, partialr_p_file[0]))
 
-        # load the f1_em_resid file
-        f1_em_resid = np.load(os.path.join(base_path, f1_em_resid_file[0]))
+            # load the f1_em_resid file
+            f1_em_resid = np.load(os.path.join(base_path, f1_em_resid_file[0]))
 
-        # load the obs_resid file
-        obs_resid = np.load(os.path.join(base_path, obs_resid_file[0]))
+            # load the obs_resid file
+            obs_resid = np.load(os.path.join(base_path, obs_resid_file[0]))
+
+            # Load the files
+            fcst2_ts = np.load(os.path.join(base_path, fcst2_ts_file[0]))
+
+            # Load the nens2 file
+            nens2 = np.loadtxt(os.path.join(base_path, nens2_file[0])).astype(int)
 
         # Load the files
         fcst1_ts = np.load(os.path.join(base_path, fcst1_ts_file[0]))
-
-        # Load the files
-        fcst2_ts = np.load(os.path.join(base_path, fcst2_ts_file[0]))
 
         # Load the files
         obs_ts = np.load(os.path.join(base_path, obs_ts_file[0]))
 
         # Load the files
         nens1 = np.loadtxt(os.path.join(base_path, nens1_file[0])).astype(int)
-
-        # Load the nens2 file
-        nens2 = np.loadtxt(os.path.join(base_path, nens2_file[0])).astype(int)
 
         # If all of the files exist
         if (
@@ -1967,23 +1975,11 @@ def create_bs_dict(
         # Add the values to the skill_maps dictionary
         skill_maps["f1_ts"] = fcst1_ts
 
-        # Add the values for f1_em_resid
-        skill_maps["f1_em_resid"] = f1_em_resid
-
-        # add the values to the skill_maps dictionary
-        skill_maps["f2_ts"] = fcst2_ts
-
         # Add the values to the skill_maps dictionary
         skill_maps["o_ts"] = obs_ts
 
-        # Add the obs residual values
-        skill_maps["obs_resid"] = obs_resid
-
         # Add the values to the skill_maps dictionary
         skill_maps["nens1"] = nens1
-
-        # add the values to the skill_maps dictionary
-        skill_maps["nens2"] = nens2
 
         # Add the values to the skill_maps dictionary
         skill_maps["start_year"] = start_year
@@ -1991,29 +1987,42 @@ def create_bs_dict(
         # Add the values to the skill_maps dictionary
         skill_maps["end_year"] = end_year
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["corr2"] = corr2
+        if load_hist:
+            # Add the obs residual values
+            skill_maps["obs_resid"] = obs_resid
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["corr2_p"] = corr2_p
+            # add the values to the skill_maps dictionary
+            skill_maps["nens2"] = nens2
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["corr12"] = corr12
+            # Add the values for f1_em_resid
+            skill_maps["f1_em_resid"] = f1_em_resid
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["corr12_p"] = corr12_p
+            # add the values to the skill_maps dictionary
+            skill_maps["f2_ts"] = fcst2_ts
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["corr_diff"] = corr_diff
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr2"] = corr2
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["corr_diff_p"] = corr_diff_p
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr2_p"] = corr2_p
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["partialr"] = partialr
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr12"] = corr12
 
-        # Add the values to the skill_maps dictionary
-        skill_maps["partialr_p"] = partialr_p
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr12_p"] = corr12_p
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr_diff"] = corr_diff
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["corr_diff_p"] = corr_diff_p
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["partialr"] = partialr
+
+            # Add the values to the skill_maps dictionary
+            skill_maps["partialr_p"] = partialr_p
 
         # Add the skill_maps dictionary to the bs_skill_maps dictionary
         bs_skill_maps[key] = skill_maps
@@ -3009,16 +3018,16 @@ def plot_diff_variables(
     plots_dir = "/gws/nopw/j04/canari/users/benhutch/plots"
 
     # Set up the current date
-    current_date = datetime.now().strftime("%Y%m%d")
+    current_date = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     # Set up the figure name
-    fig_name = f"different_variables_corr_{start_year}_{end_year}_{season}_{forecast_range}_{current_date}"
+    fig_name = f"different_variables_corr_{start_year}_{end_year}_{season}_{forecast_range}_{current_date}.pdf"
 
     # Set up the figure path
     fig_path = os.path.join(plots_dir, fig_name)
 
     # Save the figure
-    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+    plt.savefig(fig_path, dpi=600, bbox_inches="tight")
 
     # # specify a tight layout
     # plt.tight_layout()
