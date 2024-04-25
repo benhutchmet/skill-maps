@@ -2183,6 +2183,18 @@ def plot_diff_variables(
 
     # If the gridbox_corr is not None
     if gridbox_corr is not None and "psl" in variables:
+        # # Assert that gridbox_corr is a list
+        # assert isinstance(gridbox_corr, list), "gridbox_corr is not a list!"
+
+        # # Initialized empty lists
+        # lon1_corrs = [] ; lon2_corrs = []
+
+        # # For lats
+        # lat1_corrs = [] ; lat2_corrs = []
+
+        # # loop over the gridbox_corr
+        # for gridbox in gridbox_corr:
+        
         # Extract the lats and lons from the gridbox_corr
         lon1_corr, lon2_corr = gridbox_corr["lon1"], gridbox_corr["lon2"]
         lat1_corr, lat2_corr = gridbox_corr["lat1"], gridbox_corr["lat2"]
@@ -2236,6 +2248,12 @@ def plot_diff_variables(
 
         # And for the lons
         lon1_idxs = [] ; lon2_idxs = []
+
+        # and for the corrs
+        lon1_corrs = [] ; lon2_corrs = []
+
+        # and for the lats
+        lat1_corrs = [] ; lat2_corrs = []
         
         # Assert that gridbox_corr is a list
         assert isinstance(gridbox_corr, list), "gridbox_corr is not a list!"
@@ -2265,6 +2283,18 @@ def plot_diff_variables(
 
             # Append the indices to the lists
             lon2_idxs.append(lon2_idx_corr)
+
+            # Append the lats and lons to the lists
+            lon1_corrs.append(lon1_corr)
+
+            # Append the lats and lons to the lists
+            lon2_corrs.append(lon2_corr)
+
+            # Append the lats and lons to the lists
+            lat1_corrs.append(lat1_corr)
+
+            # Append the lats and lons to the lists
+            lat2_corrs.append(lat2_corr)
     else:
         AssertionError("gridbox_corr is None and variable is not psl")
 
@@ -2724,6 +2754,14 @@ def plot_diff_variables(
             # Same for the lon values
             lon1_idx_corr = lon1_idxs[i]
             lon2_idx_corr = lon2_idxs[i]
+
+            # extract the lon and lat values
+            lon1_corr = lon1_corrs[i]
+            lon2_corr = lon2_corrs[i]
+
+            # Same for the lon values
+            lat1_corr = lat1_corrs[i]
+            lat2_corr = lat2_corrs[i]
 
             # If gridbox_corr is not None
             if gridbox_corr[i] is not None and variable != "psl":
