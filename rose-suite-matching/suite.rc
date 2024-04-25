@@ -4,7 +4,7 @@
         match_var=tas,sfcWind,rsds,pr,psl
         obs_var_name="msl"
         region="global"
-        season=AYULGS
+        season=ONDJFM
         forecast_range=2-9
         start_year="1961"
         end_year="2014"
