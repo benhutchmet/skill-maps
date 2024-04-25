@@ -1181,7 +1181,7 @@ def plot_forecast_stats_var(
         corr1_p[(corr1_p > sig_threshold) & (corr1_p < 1 - sig_threshold)] = np.nan
 
         # plot the p-values
-        ax.contourf(lons, lats, corr1_p, hatches=["...."], alpha=0.0, transform=proj)
+        ax.contourf(lons, lats, corr1_p, hatches=[".."], alpha=0.0, transform=proj)
 
         # Add a text box with the axis label
         ax.text(
@@ -2089,12 +2089,12 @@ def plot_diff_variables(
         Height of the figure in inches.
         e.g. default is 12
 
-    gridbox_corr: dict
-        Dictionary containing the gridbox for which to calculate the correlation.
+    gridbox_corr: list[dict]
+        A list of dictionaries containing the gridbox(es) for which to plot the skill maps.
         e.g. default is None
 
-    gridbox_plot: dict
-        Dictionary containing the gridbox for which to plot the skill maps.
+    gridbox_plot: 
+        Dictionary with the dimensions of the area to plot.
         e.g. default is None
 
     sig_threshold: float
@@ -2167,7 +2167,7 @@ def plot_diff_variables(
     fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(figsize_x, figsize_y))
 
     # Adjust the whitespace
-    fig.subplots_adjust(hspace=0.1, wspace=0.1)
+    fig.subplots_adjust(hspace=0.05, wspace=0.05)
 
     # Set up the lats and lons
     lons = np.arange(-180, 180, 2.5)
@@ -2231,17 +2231,40 @@ def plot_diff_variables(
         lon1_idx_corr_s = np.argmin(np.abs(lons - lon1_corr_s))
         lon2_idx_corr_s = np.argmin(np.abs(lons - lon2_corr_s))
     elif gridbox_corr is not None and "psl" not in variables:
-        # Extract the lats and lons from the gridbox_corr
-        lon1_corr, lon2_corr = gridbox_corr["lon1"], gridbox_corr["lon2"]
-        lat1_corr, lat2_corr = gridbox_corr["lat1"], gridbox_corr["lat2"]
+        # Initialize empty lists for the indexes
+        lat1_idxs = [] ; lat2_idxs = []
 
-        # find the indices of the lats which correspond to the gridbox
-        lat1_idx_corr = np.argmin(np.abs(lats - lat1_corr))
-        lat2_idx_corr = np.argmin(np.abs(lats - lat2_corr))
+        # And for the lons
+        lon1_idxs = [] ; lon2_idxs = []
+        
+        # Assert that gridbox_corr is a list
+        assert isinstance(gridbox_corr, list), "gridbox_corr is not a list!"
 
-        # find the indices of the lons which correspond to the gridbox
-        lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
-        lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+        # Loop over the items in gridbox_corr
+        for gridbox in gridbox_corr:
+            # Extract the lats and lons from the gridbox_corr
+            lon1_corr, lon2_corr = gridbox["lon1"], gridbox["lon2"]
+            lat1_corr, lat2_corr = gridbox["lat1"], gridbox["lat2"]
+
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_corr = np.argmin(np.abs(lats - lat1_corr))
+            lat2_idx_corr = np.argmin(np.abs(lats - lat2_corr))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
+            lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+
+            # Append the indices to the lists
+            lat1_idxs.append(lat1_idx_corr)
+
+            # Append the indices to the lists
+            lat2_idxs.append(lat2_idx_corr)
+
+            # Append the indices to the lists
+            lon1_idxs.append(lon1_idx_corr)
+
+            # Append the indices to the lists
+            lon2_idxs.append(lon2_idx_corr)
     else:
         AssertionError("gridbox_corr is None and variable is not psl")
 
@@ -2271,7 +2294,7 @@ def plot_diff_variables(
         clevs = np.arange(-0.5, 0.6, 0.1)
     else:
         # Set up the contour levels
-        clevs = np.arange(-1.0, 1.1, 0.1)
+        clevs = np.arange(-1.0, 1.1, 0.2)
 
     # Set up a list to store the contourf objects
     cf_list = []
@@ -2358,7 +2381,7 @@ def plot_diff_variables(
                 corr - corr2,
                 clevs,
                 transform=proj,
-                cmap="RdBu_r",
+                cmap="bwr",
                 extend="both",
             )
 
@@ -2504,7 +2527,7 @@ def plot_diff_variables(
                 long_corr - short_corr,
                 clevs,
                 transform=proj,
-                cmap="RdBu_r",
+                cmap="bwr",
                 extend="both",
             )
 
@@ -2683,22 +2706,30 @@ def plot_diff_variables(
                     corr,
                     clevs,
                     transform=proj,
-                    cmap="RdBu_r",
+                    cmap="bwr",
                     extend="both",
                 )
             else:
                 # Set up the cf object
-                cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="RdBu_r")
+                cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="bwr")
 
             # Extract the variable name from the key
             variable = key[0]
             nboot_str = key[1]
 
+            # extract the lon and lat values
+            lat1_idx_corr = lat1_idxs[i]
+            lat2_idx_corr = lat2_idxs[i]
+
+            # Same for the lon values
+            lon1_idx_corr = lon1_idxs[i]
+            lon2_idx_corr = lon2_idxs[i]
+
             # If gridbox_corr is not None
-            if gridbox_corr is not None and variable != "psl":
+            if gridbox_corr[i] is not None and variable != "psl":
                 # Loggging
                 print("Calculating the correlations with a specific gridbox...")
-                print("As defined by gridbox_corr = ", gridbox_corr)
+                print("As defined by gridbox_corr = ", gridbox_corr[i])
                 print("Variable is not psl")
 
                 # Constrain the ts to the gridbox_corr
@@ -2736,7 +2767,7 @@ def plot_diff_variables(
                     linewidth=2,
                     transform=proj,
                 )
-            elif gridbox_corr is not None and variable == "psl":
+            elif gridbox_corr[i] is not None and variable == "psl":
                 print("Calculating the correlations for NAO gridboxes...")
                 print("For variable psl")
 
@@ -2833,7 +2864,7 @@ def plot_diff_variables(
             if nboot_str != "nboot_1":
                 # plot the p-values
                 ax.contourf(
-                    lons, lats, corr1_p, hatches=["...."], alpha=0.0, transform=proj
+                    lons, lats, corr1_p, hatches=[".."], alpha=0.0, transform=proj
                 )
             else:
                 print("Not plotting p-values for nboot_1")
@@ -2886,7 +2917,7 @@ def plot_diff_variables(
                 va="top",
                 ha="left",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=8,
             )
 
             if methods is not None:
