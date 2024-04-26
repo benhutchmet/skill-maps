@@ -2324,7 +2324,7 @@ def plot_diff_variables(
         clevs = np.arange(-0.5, 0.6, 0.1)
     else:
         # Set up the contour levels
-        clevs = np.arange(-1.0, 1.1, 0.2)
+        clevs = np.arange(-0.9, 1.0, 0.2)
 
     # Set up a list to store the contourf objects
     cf_list = []
@@ -2741,7 +2741,7 @@ def plot_diff_variables(
                 )
             else:
                 # Set up the cf object
-                cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="bwr")
+                cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="bwr", extend="both")
 
             # Extract the variable name from the key
             variable = key[0]
@@ -3080,6 +3080,11 @@ def plot_diff_variables(
         cf_list[0], ax=axes, orientation="horizontal", pad=0.05, shrink=0.8
     )
 
+    # set the ticks
+    ticks = np.arange(-0.8, 0.9, 0.2)
+
+    # set the cbar labels
+    cbar.set_ticks(ticks)
     # Set the label for the colorbar
     cbar.set_label("correlation coefficient", fontsize=10)
 
