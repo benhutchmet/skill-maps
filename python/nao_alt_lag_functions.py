@@ -514,6 +514,11 @@ def calc_nao_stats(
     # Print the len of the data
     print("len data", len(data))
 
+    # if hist_data is none
+    if hist_data is None:
+        # Set up an array of nans with shape (100, 10)
+        hist_data = np.full((100, 10), np.nan)
+
     # TODO: Make sure this lines up with the model data
     # Set up the first and last years accordingly
     if data.ndim == 5 or len(hist_data[1]) == 54:
@@ -1006,6 +1011,12 @@ def plot_nao(
     alt_lag: bool = False,
     figsize_x: int = 12,
     figsize_y: int = 8,
+    ylim_min: int = -10,
+    ylim_max: int = 10,
+    title: str = None,
+    ylabel: str = None,
+    label: str = None,
+    fontsize: int = 12,
     save_dir: str = "/gws/nopw/j04/canari/users/benhutch/plots",
 ):
     """
@@ -1037,6 +1048,24 @@ def plot_nao(
     figsize_y: int
         The y-dimension of the figure (default is 8).
 
+    ylim_min: int
+        The minimum value for the y-axis (default is -10).
+
+    ylim_max: int
+        The maximum value for the y-axis (default is 10).
+
+    title: str
+        The title of the plot (default is None).
+
+    ylabel: str
+        The y-label of the plot (default is "NAO index").
+
+    label: str
+        The label for the plot (e.g. a, b, c etc.)
+
+    fontsize: int
+        The fontsize of the text in the plot (default is 12).
+
     save_dir: str
         The directory in which the plots are being saved (default is "/gws/nopw/j04/canari/users/benhutch/plots").
 
@@ -1049,19 +1078,6 @@ def plot_nao(
     # Set up the figure
     fig, ax = plt.subplots(figsize=(figsize_x, figsize_y))
 
-    # Plot the ensemble mean NAO index
-    ax.plot(
-        nao_stats["init_years"],
-        nao_stats["model_nao_mean"] / 100,
-        label="DCPP",
-        color="red",
-    )
-
-    # Plot the observed NAO index
-    ax.plot(
-        nao_stats["init_years"], nao_stats["obs_nao"] / 100, label="ERA5", color="black"
-    )
-
     # Plot the 5% lower interval
     ax.fill_between(
         nao_stats["init_years"],
@@ -1071,21 +1087,37 @@ def plot_nao(
         alpha=0.2,
     )
 
-    if "-" in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
-        # Set the y lim
-        ax.set_ylim(-7.5, 7.5)
-    elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
-        # Set the y lim
-        ax.set_ylim(-15, 15)
-    elif season not in ["DJFM", "DJF", "ONDJFM"]:
-        # Set the y lim
-        ax.set_ylim(-10, 10)
+    # Plot the observed NAO index
+    ax.plot(
+        nao_stats["init_years"], nao_stats["obs_nao"] / 100, label="ERA5", color="black"
+    )
+
+    # Plot the ensemble mean NAO index
+    ax.plot(
+        nao_stats["init_years"],
+        nao_stats["model_nao_mean"] / 100,
+        label="DCPP",
+        color="red",
+    )
+
+    # if "-" in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
+    #     # Set the y lim
+    #     ax.set_ylim(-7.5, 7.5)
+    # elif "-" not in forecast_range and season in ["DJFM", "DJF", "ONDJFM"]:
+    #     # Set the y lim
+    #     ax.set_ylim(-15, 15)
+    # elif season not in ["DJFM", "DJF", "ONDJFM"]:
+    #     # Set the y lim
+    #     ax.set_ylim(-10, 10)
+
+    # Set the ylmits
+    ax.set_ylim(ylim_min, ylim_max)
 
     # Set up the horizontal line
     ax.axhline(y=0, color="black", linestyle="--")
 
-    # Include the legend in the lower bottom right corner
-    ax.legend(loc="lower right")
+    # # Include the legend in the lower bottom right corner
+    # ax.legend(loc="lower right")
 
     # Set up the experiment
     if alt_lag:
@@ -1108,29 +1140,61 @@ def plot_nao(
     first_year = nao_stats["init_years"][0]
     last_year = nao_stats["init_years"][-1]
 
-    if alt_lag:
-        ax.set_title(
+    # if alt_lag:
+    #     ax.set_title(
+    #         f"ACC = {nao_stats['corr1']:.2f} "
+    #         f"(p = {nao_stats['p1']:.2f}), "
+    #         f"RPC = {nao_stats['rpc1']:.2f}, "
+    #         f"N = {nao_stats['nens']}, "
+    #         f"{experiment} "
+    #         f"({lag}), "
+    #         f"{season}, "
+    #         f"{forecast_range}, "
+    #         f"{first_year}-{last_year}"
+    #     )
+    # else:
+    #     # Set up the title
+    #     ax.set_title(
+    #         f"ACC = {nao_stats['corr1']:.2f} "
+    #         f"(p = {nao_stats['p1']:.2f}), "
+    #         f"RPC = {nao_stats['rpc1']:.2f}, "
+    #         f"N = {nao_stats['nens']}, "
+    #         f"{experiment}, "
+    #         f"{season}, "
+    #         f"{forecast_range}, "
+    #         f"s{first_year}-s{last_year}"
+    #     )
+
+    # Inluce the correlation, p-value, RPC and N
+    # In the top lef hand corner
+    ax.text(
+        0.05,
+        0.95,
+        (
             f"ACC = {nao_stats['corr1']:.2f} "
-            f"(p = {nao_stats['p1']:.2f}), "
+            f"(P = {nao_stats['p1']:.2f}), "
             f"RPC = {nao_stats['rpc1']:.2f}, "
-            f"N = {nao_stats['nens']}, "
-            f"{experiment} "
-            f"({lag}), "
-            f"{season}, "
-            f"{forecast_range}, "
-            f"{first_year}-{last_year}"
-        )
-    else:
-        # Set up the title
-        ax.set_title(
-            f"ACC = {nao_stats['corr1']:.2f} "
-            f"(p = {nao_stats['p1']:.2f}), "
-            f"RPC = {nao_stats['rpc1']:.2f}, "
-            f"N = {nao_stats['nens']}, "
-            f"{experiment}, "
-            f"{season}, "
-            f"{forecast_range}, "
-            f"s{first_year}-s{last_year}"
+            f"N = {nao_stats['nens']}"
+        ),
+        transform=ax.transAxes,
+        fontsize=fontsize,
+        verticalalignment="top",
+        horizontalalignment="left",
+        bbox=dict(facecolor="white", alpha=0.5),
+    )
+
+    # if label is not none
+    # insert a textbox in the bottom right hand corner
+    if label is not None:
+        ax.text(
+            0.95,
+            0.05,
+            label,
+            transform=ax.transAxes,
+            verticalalignment="bottom",
+            horizontalalignment="right",
+            fontsize=fontsize,
+            bbox=dict(facecolor="white", alpha=0.5),
         )
 
     # Set up another textbox in the top right with the season and forecast range
@@ -1142,16 +1206,26 @@ def plot_nao(
     # Set up the x label
     ax.set_xlabel("Initialisation year")
 
+    # if ylabel is not none
+    if ylabel is not None:
+        # Set the y label
+        ax.set_ylabel(ylabel)
+
+    # if title is not none
+    if title is not None:
+        # Set the title
+        ax.set_title(title, fontweight="bold")
+
     # Set up the current time
-    current_time = pd.to_datetime("today").strftime("%Y-%m-%d")
+    current_time = pd.to_datetime("today").strftime("%Y-%m-%d-%H-%M-%S")
 
     # Set up the plot_name
     plot_name = (
-        f"{experiment}_{season}_{forecast_range}_{lag}_nao_index_{current_time}.png"
+        f"{experiment}_{season}_{forecast_range}_{lag}_nao_index_{current_time}.pdf"
     )
 
     # Save the plot
-    plt.savefig(os.path.join(save_dir, plot_name), dpi=300)
+    plt.savefig(os.path.join(save_dir, plot_name), dpi=600)
 
     # Show the plot
     plt.show()
