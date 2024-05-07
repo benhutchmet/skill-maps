@@ -347,6 +347,24 @@ scandi_box = {
     "lat2": 71,
 }
 
+# Define the mediterranean box for ssrd
+# from (Calì Quaglia et al., 2022)
+med_box = {
+    "lon1": -11,  # degrees east
+    "lon2": 37,
+    "lat1": 31,  # degrees north
+    "lat2": 52,
+}
+
+# Focus this box on spain, france and italy
+# loosely based on (Calì Quaglia et al., 2022)
+med_box_focus = {
+    "lon1": -11,  # degrees east
+    "lon2": 2,
+    "lat1": 35,  # degrees north
+    "lat2": 45,
+}
+
 sfcWind_models_numbers = [1, 2, 3, 5, 8, 9, 10, 11]
 no_sfcWind_models = 8
 sfcWind_models = [
