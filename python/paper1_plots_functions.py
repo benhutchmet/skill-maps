@@ -2324,7 +2324,8 @@ def plot_diff_variables(
         clevs = np.arange(-0.5, 0.6, 0.1)
     else:
         # Set up the contour levels
-        clevs = np.arange(-0.9, 1.0, 0.2)
+        # clevs = np.arange(-1.0, 1.1, 0.4)
+        clevs = np.array([-1. , -0.8, -0.6, -0.4, -0.2, 0.2, 0.4, 0.6, 0.8, 1.0])
 
     # Set up a list to store the contourf objects
     cf_list = []
@@ -2660,6 +2661,24 @@ def plot_diff_variables(
                 if ts_list[i] == "f2_ts":
                     nens1 = skill_maps["nens2"]
                 elif ts_list[i] == "f1_em_resid":
+                    if int(skill_maps["nens2"]) == 20:
+                        print("Correcting nens2 for NAO-match")
+
+                        # Extract the first item in key
+                        variable = key[0]
+
+                        # if variable is tas
+                        if variable == "tas":
+                            skill_maps["nens2"] = 141
+                        elif variable == "sfcWind":
+                            skill_maps["nens2"] = 9
+                        elif variable == "rsds":
+                            skill_maps["nens2"] = 32
+                        elif variable == "pr":
+                            skill_maps["nens2"] = 163
+                        else:
+                            print("manual value not set up")
+
                     nens1 = int(skill_maps["nens1"]), int(skill_maps["nens2"])
                 else:
                     # Set up the values
@@ -2741,7 +2760,7 @@ def plot_diff_variables(
                 )
             else:
                 # Set up the cf object
-                cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="bwr", extend="both")
+                cf = ax.contourf(lons, lats, corr, clevs, transform=proj, cmap="bwr")
 
             # Extract the variable name from the key
             variable = key[0]
@@ -3081,7 +3100,8 @@ def plot_diff_variables(
     )
 
     # set the ticks
-    ticks = np.arange(-0.8, 0.9, 0.2)
+    # Set the ticks manually
+    ticks = np.array([-1.0, -0.8, -0.6, -0.4, -0.2, 0.2, 0.4, 0.6, 0.8, 1.0])
 
     # set the cbar labels
     cbar.set_ticks(ticks)
