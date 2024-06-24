@@ -18,7 +18,6 @@ test_model_norcpm = ["NorCPM1"]
 test_model_hadgem = ["HadGEM3-GC31-MM"]
 test_model_cesm = ["CESM1-1-CAM5-CMIP5"]
 
-
 # List of the full models
 models = [
     "BCC-CSM2-MR",
@@ -48,21 +47,21 @@ obs_psl_na = "/home/users/benhutch/ERA5_psl/long-ERA5-full-north-atlantic.nc"
 obs_psl_glob = "/home/users/benhutch/ERA5_psl/long-ERA5-full-global.nc"
 
 # the variable has to be extracted from these
-obs_tas = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"
-obs_sfcWind = "/home/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"
+obs_tas = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"
+obs_sfcWind = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1687448519.6842003-11056-8-3ea80a0a-4964-4995-bc42-7510a92e907b.nc"
 #
 
 paper_1_variables = ["tas", "sfcWind", "rsds", "psl"]
 
 obs_rsds = "not/yet/implemented"
 
-obs = "/home/users/benhutch/ERA5/adaptor.mars.internal-1691509121.3261805-29348-4-3a487c76-fc7b-421f-b5be-7436e2eb78d7.nc"
+obs = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1691509121.3261805-29348-4-3a487c76-fc7b-421f-b5be-7436e2eb78d7.nc"
 
 gridspec_global = "/home/users/benhutch/gridspec/gridspec-global.txt"
 
 gridspec_north_atlantic = "/home/users/benhutch/gridspec/gridspec-north-atlantic.txt"
 
-obs_regrid = "/home/users/benhutch/ERA5/ERA5_full_global.nc"
+obs_regrid = "/gws/nopw/j04/canari/users/benhutch/ERA5/ERA5_full_global.nc"
 
 # Define the labels for the plots - wind
 sfc_wind_label = "10-metre wind speed"
