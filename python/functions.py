@@ -520,9 +520,9 @@ def regrid_and_select_region_nao(variable, region, observations_path, level=None
 
     # Form the regrid sel region path accordingly
     if variable in wind_speed_variables:
-        regrid_obs_path = f"/home/users/benhutch/ERA5/{region}_regrid_sel_region_{variable}_{level}.nc"
+        regrid_obs_path = f"/gws/nopw/j04/canari/users/benhutch/ERA5/{region}_regrid_sel_region_{variable}_{level}.nc"
     else:
-        regrid_obs_path = f"/home/users/benhutch/ERA5/{region}_regrid_sel_region.nc"
+        regrid_obs_path = f"/gws/nopw/j04/canari/users/benhutch/ERA5/{region}_regrid_sel_region.nc"
 
     # Check whether the regrid sel region path exists
     if not os.path.exists(regrid_obs_path):

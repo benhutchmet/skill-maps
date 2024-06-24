@@ -4240,6 +4240,10 @@ def plot_ts(
     short_period: bool = False,
     standardise: bool = False,
     do_detrend: bool = False,
+    title: str = None,
+    label: str = "b",
+    fontsize: int = 10,
+    calc_rmse: bool = False,
 ):
     """
     Plot the time series data.
@@ -4302,6 +4306,18 @@ def plot_ts(
     do_detrend: bool
         Whether to detrend the time series before plotting.
         e.g. default is False
+
+    title: str
+        Title for the plot.
+
+    label: str
+        Label for the plot.
+
+    fontsize: int
+        Fontsize for the plot.
+
+    calc_rmse: bool
+        Whether to calculate the RMSE between the forecast and obs time series for use as the uncertainty measure.
 
     Outputs:
     --------
@@ -4383,7 +4399,7 @@ def plot_ts(
 
     # Set up the init_years
     if not short_period:
-        init_years = ts_dict["init_years"]
+        init_years = ts_dict["valid_years"]
 
         # Set up the fcst ts mean
         fcst_ts_mean = ts_dict["fcst_ts_mean"]
@@ -4425,11 +4441,12 @@ def plot_ts(
         # Standardise the observations
         obs_ts = (obs_ts - np.mean(obs_ts)) / np.std(obs_ts)
 
-    # Plot the ensemble mean
-    ax.plot(init_years, fcst_ts_mean, color="red", label="dcppA")
+    if calc_rmse:
+        rmse = np.sqrt(np.mean((fcst_ts_mean - obs_ts) ** 2))
 
-    # Plot the observations
-    ax.plot(init_years, obs_ts, color="black", label="ERA5")
+        # set up the fcst_ts_min and fcst_ts_max
+        fcst_ts_min = fcst_ts_mean - rmse
+        fcst_ts_max = fcst_ts_mean + rmse
 
     if do_detrend is False:
         # Fill between the min and max
@@ -4440,6 +4457,13 @@ def plot_ts(
             color="red",
             alpha=0.3,
         )
+
+    # Plot the observations
+    ax.plot(init_years, obs_ts, color="black", label="ERA5")
+
+    # Plot the ensemble mean
+    ax.plot(init_years, fcst_ts_mean, color="red", label="dcppA")
+
 
     # Set up a horizontal line at 0
     ax.axhline(0, color="black", linestyle="--")
@@ -4470,8 +4494,8 @@ def plot_ts(
     elif trendline and short_period:
         AssertionError("Trendline not implemented for short_period = True")
 
-    # Include a legend
-    ax.legend(loc="lower right")
+    # # Include a legend
+    # ax.legend(loc="lower right")
 
     # Set the experiment name
     if ts_dict["alt_lag"]:
@@ -4490,16 +4514,16 @@ def plot_ts(
 
     # Include a box in the top left
     # with the location name
-    ax.text(
-        0.05,
-        0.95,
-        f"{ts_dict['gridbox_name']}",
-        transform=ax.transAxes,
-        va="top",
-        ha="left",
-        bbox=dict(facecolor="white", alpha=0.5),
-        fontsize=8,
-    )
+    # ax.text(
+    #     0.05,
+    #     0.95,
+    #     f"{ts_dict['gridbox_name']}",
+    #     transform=ax.transAxes,
+    #     va="top",
+    #     ha="left",
+    #     bbox=dict(facecolor="white", alpha=0.5),
+    #     fontsize=8,
+    # )
 
     # if do_detrend is True
     if do_detrend:
@@ -4510,56 +4534,90 @@ def plot_ts(
         ts_dict["corr"] = corr
         ts_dict["p"] = p
 
-    # Set the title
-    if ts_dict["alt_lag"] and not short_period:
-        ax.set_title(
-            f"ACC = {ts_dict['corr']:.2f} "
-            f"(p = {ts_dict['p']:.2f}), "
-            f"RPC = {ts_dict['rpc']:.2f}, "
-            f"N = {ts_dict['nens']}, "
-            f"{exp_name} "
-            f"({ts_dict['lag']}), "
-            f"{ts_dict['season']}, "
-            f"{ts_dict['forecast_range']}, "
-            f"{first_year}-{last_year}"
-        )
-    elif ts_dict["alt_lag"] and short_period:
-        ax.set_title(
-            f"ACC = {ts_dict['corr_short']:.2f} "
-            f"(p = {ts_dict['p_short']:.2f}), "
-            f"RPC = {ts_dict['rpc_short']:.2f}, "
-            f"N = {ts_dict['nens']}, "
-            f"{exp_name} "
-            f"({ts_dict['lag']}), "
-            f"{ts_dict['season']}, "
-            f"{ts_dict['forecast_range']}, "
-            f"{first_year}-{last_year}"
-        )
-    elif not ts_dict["alt_lag"] and short_period:
-        ax.set_title(
-            f"ACC = {ts_dict['corr_short']:.2f} "
-            f"(p = {ts_dict['p_short']:.2f}), "
-            f"RPC = {ts_dict['rpc_short']:.2f}, "
-            f"N = {ts_dict['nens']}, "
-            f"{exp_name}, "
-            f"{ts_dict['season']}, "
-            f"{ts_dict['forecast_range']}, "
-            f"{first_year}-{last_year}"
-        )
+    if title is not None:
+        # Set the title
+        ax.set_title(title, fontweight="bold")
     else:
-        ax.set_title(
-            f"ACC = {ts_dict['corr']:.2f} "
-            f"(p = {ts_dict['p']:.2f}), "
-            f"RPC = {ts_dict['rpc']:.2f}, "
-            f"N = {ts_dict['nens']}, "
-            f"{exp_name}, "
-            f"{ts_dict['season']}, "
-            f"{ts_dict['forecast_range']}, "
-            f"{first_year}-{last_year}"
+        # Set the title
+        if ts_dict["alt_lag"] and not short_period:
+            ax.set_title(
+                f"ACC = {ts_dict['corr']:.2f} "
+                f"(p = {ts_dict['p']:.2f}), "
+                f"RPC = {ts_dict['rpc']:.2f}, "
+                f"N = {ts_dict['nens']}, "
+                f"{exp_name} "
+                f"({ts_dict['lag']}), "
+                f"{ts_dict['season']}, "
+                f"{ts_dict['forecast_range']}, "
+                f"{first_year}-{last_year}"
+            )
+        elif ts_dict["alt_lag"] and short_period:
+            ax.set_title(
+                f"ACC = {ts_dict['corr_short']:.2f} "
+                f"(p = {ts_dict['p_short']:.2f}), "
+                f"RPC = {ts_dict['rpc_short']:.2f}, "
+                f"N = {ts_dict['nens']}, "
+                f"{exp_name} "
+                f"({ts_dict['lag']}), "
+                f"{ts_dict['season']}, "
+                f"{ts_dict['forecast_range']}, "
+                f"{first_year}-{last_year}"
+            )
+        elif not ts_dict["alt_lag"] and short_period:
+            ax.set_title(
+                f"ACC = {ts_dict['corr_short']:.2f} "
+                f"(p = {ts_dict['p_short']:.2f}), "
+                f"RPC = {ts_dict['rpc_short']:.2f}, "
+                f"N = {ts_dict['nens']}, "
+                f"{exp_name}, "
+                f"{ts_dict['season']}, "
+                f"{ts_dict['forecast_range']}, "
+                f"{first_year}-{last_year}"
+            )
+        else:
+            ax.set_title(
+                f"ACC = {ts_dict['corr']:.2f} "
+                f"(p = {ts_dict['p']:.2f}), "
+                f"RPC = {ts_dict['rpc']:.2f}, "
+                f"N = {ts_dict['nens']}, "
+                f"{exp_name}, "
+                f"{ts_dict['season']}, "
+                f"{ts_dict['forecast_range']}, "
+                f"{first_year}-{last_year}"
+            )
+
+    # include the correlation, p-value, rpc and N
+    # in the top left hand corner
+    ax.text(
+    0.05,
+    0.95,
+    (
+        f"ACC = {ts_dict['corr']:.2f} "
+        f"(P = {ts_dict['p']:.2f}), "
+        f"RPC = {ts_dict['rpc']:.2f}, "
+        f"N = {ts_dict['nens']}"
+    ),
+    transform=ax.transAxes,
+    fontsize=fontsize,
+    verticalalignment="top",
+    horizontalalignment="left",
+    bbox=dict(facecolor="white", alpha=0.5),
+    )
+
+    if label is not None:
+        ax.text(
+            0.95,
+            0.05,
+            label,
+            transform=ax.transAxes,
+            verticalalignment="bottom",
+            horizontalalignment="right",
+            fontsize=fontsize,
+            bbox=dict(facecolor="white", alpha=0.5),
         )
 
-    # Set the x-axis label
-    ax.set_xlabel("Initialisation year")
+    # Set up the x label
+    ax.set_xlabel("Centre of 8-year window")
 
     if ts_dict["variable"] == "tas":
         # Set the y-axis label
@@ -4586,16 +4644,16 @@ def plot_ts(
         ax.set_ylabel(f"Standardised {ax.get_ylabel()}")
 
     # Set up the current time
-    current_time = datetime.now().strftime("%Y%m%d")
+    current_time = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     # Set up the figure name
-    fig_name = f"{ts_dict['variable']}_{ts_dict['gridbox_name']}_{ts_dict['season']}_{ts_dict['forecast_range']}_{current_time}"
+    fig_name = f"{ts_dict['variable']}_{ts_dict['gridbox_name']}_{ts_dict['season']}_{ts_dict['forecast_range']}_{current_time}.pdf"
 
     # Set up the figure path
     fig_path = os.path.join(save_dir, fig_name)
 
     # Save the figure
-    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+    plt.savefig(fig_path, dpi=600)
 
     # Show the figure
     plt.show()
