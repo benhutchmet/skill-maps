@@ -1368,10 +1368,10 @@ def plot_nao_subplots(
     )
 
     # Set the xlabel
-    ax[0].set_xlabel("Start of 8-year period")
+    ax[0].set_xlabel("Start of 8-year period", fontsize=fontsize)
 
     # Include the legend in the bottom right corner
-    ax[0].legend(loc="upper right")
+    ax[0].legend(loc="upper right", fontsize=fontsize)
 
     # Include the first fig label in the bottom right corner
     ax[0].text(
@@ -1445,10 +1445,10 @@ def plot_nao_subplots(
     )
 
     # Set the xlabel
-    ax[1].set_xlabel("Start of 8-year period")
+    ax[1].set_xlabel("Start of 8-year period", fontsize=fontsize)
 
     # Include the legend in the bottom right corner
-    ax[1].legend(loc="upper right")
+    ax[1].legend(loc="upper right", fontsize=fontsize)
 
     # Include the second fig label in the bottom right corner
     ax[1].text(
@@ -1535,7 +1535,7 @@ def plot_nao_subplots(
         subplot.tick_params(axis="x", pad=8)
 
     # set up the y label
-    ax[0].set_ylabel("NAO anomaly (hPa)")
+    ax[0].set_ylabel("NAO anomaly (hPa)", fontsize=fontsize)
 
     # # specify a tight layout
     plt.tight_layout()
