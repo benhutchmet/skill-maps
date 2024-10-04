@@ -1371,16 +1371,16 @@ def plot_nao_subplots(
     ax[0].set_xlabel("Start of 8-year period", fontsize=fontsize)
 
     # Include the legend in the bottom right corner
-    ax[0].legend(loc="upper right", fontsize=fontsize)
+    ax[0].legend(loc="lower right", fontsize=fontsize)
 
     # Include the first fig label in the bottom right corner
     ax[0].text(
         0.95,
-        0.05,
+        0.95,
         f"{fig_labels[0]}",
         transform=ax[0].transAxes,
         fontsize=fontsize,
-        verticalalignment="bottom",
+        verticalalignment="top",
         horizontalalignment="right",
         bbox=dict(facecolor="white", alpha=0.5),
     )
@@ -1448,16 +1448,16 @@ def plot_nao_subplots(
     ax[1].set_xlabel("Start of 8-year period", fontsize=fontsize)
 
     # Include the legend in the bottom right corner
-    ax[1].legend(loc="upper right", fontsize=fontsize)
+    ax[1].legend(loc="lower right", fontsize=fontsize)
 
     # Include the second fig label in the bottom right corner
     ax[1].text(
         0.95,
-        0.05,
+        0.95,
         f"{fig_labels[1]}",
         transform=ax[1].transAxes,
         fontsize=fontsize,
-        verticalalignment="bottom",
+        verticalalignment="top",
         horizontalalignment="right",
         bbox=dict(facecolor="white", alpha=0.5),
     )
@@ -1532,7 +1532,10 @@ def plot_nao_subplots(
         subplot.set_xticklabels(labels)
 
         # Set the x ticks padding
-        subplot.tick_params(axis="x", pad=8)
+        subplot.tick_params(axis="x", pad=8, labelsize=fontsize)
+
+        # Set the y ticks padding
+        subplot.tick_params(axis="y", pad=8, labelsize=fontsize)
 
     # set up the y label
     ax[0].set_ylabel("NAO anomaly (hPa)", fontsize=fontsize)
