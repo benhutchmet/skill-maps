@@ -39,17 +39,17 @@ import scipy
 import pdb
 import iris.quickplot as qplt
 
-# Import CDO
-from cdo import *
+# # Import CDO
+# from cdo import *
 
 # cdo = Cdo()
 
 # # Import specific functions
 # from nao_skill_functions import calculate_spna_index
 
-# Install imageio
-# ! pip install imageio
-import imageio.v3 as iio
+# # Install imageio
+# # ! pip install imageio
+# import imageio.v3 as iio
 
 # Set the path to imagemagick
 rcParams["animation.convert_path"] = r"/usr/bin/convert"
@@ -971,7 +971,7 @@ def load_obs(variable, regrid_obs_path):
     # If the obs variable is 'var228'
     if obs_variable == "var228":
         # Set the regrid obs path
-        regrid_obs_path = "/home/users/benhutch/ERA5/global_regrid_sel_region_var228.nc"
+        regrid_obs_path = "/gws/nopw/j04/canari/users/benhutch/ERA5/global_regrid_sel_region_var228.nc"
 
     if obs_variable in dic.obs_ws_var_names:
         print("The obs variable is a wind speed variable")

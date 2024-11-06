@@ -3094,6 +3094,15 @@ def plot_diff_variables(
         # Remove the 5th axis
         axs[2, 1].remove()
 
+    # print the fig
+    print("fig: ", fig)
+
+    # print axes
+    print("axes: ", axes)
+
+    # print the tyupe of axes
+    print("type(axes): ", type(axes))
+
     # Add a colorbar
     cbar = fig.colorbar(
         cf_list[0], ax=axes, orientation="horizontal", pad=0.05, shrink=0.8
@@ -4536,7 +4545,7 @@ def plot_ts(
 
     if title is not None:
         # Set the title
-        ax.set_title(title, fontweight="bold")
+        ax.set_title(title, fontweight="bold", fontsize=16)
     else:
         # Set the title
         if ts_dict["alt_lag"] and not short_period:
@@ -4617,23 +4626,23 @@ def plot_ts(
         )
 
     # Set up the x label
-    ax.set_xlabel("Centre of 8-year window")
+    ax.set_xlabel("Centre of 8-year window", fontsize=fontsize)
 
     if ts_dict["variable"] == "tas":
         # Set the y-axis label
-        ax.set_ylabel("Temperature anomaly (K)")
+        ax.set_ylabel("Temperature anomaly (K)", fontsize=fontsize)
     elif ts_dict["variable"] == "psl":
         # Set the y-axis label
-        ax.set_ylabel("Pressure anomaly (hPa)")
+        ax.set_ylabel("Pressure anomaly (hPa)", fontsize=fontsize)
     elif ts_dict["variable"] == "rsds":
         # Set the y-axis label
-        ax.set_ylabel("Radiation anomaly (W/m^2)")
+        ax.set_ylabel("Radiation anomaly (W/m^2)", fontsize=fontsize)
     elif ts_dict["variable"] == "sfcWind":
         # Set the y-axis label
-        ax.set_ylabel("Wind anomaly (m/s)")
+        ax.set_ylabel("Wind anomaly (m/s)", fontsize=fontsize)
     elif ts_dict["variable"] == "pr":
         # Set the y-axis label
-        ax.set_ylabel("Monthly precip (mm)")
+        ax.set_ylabel("Monthly precip. anomaly (mm/day)", fontsize=fontsize)
     else:
         raise ValueError("Variable not recognised!")
 
@@ -4641,7 +4650,10 @@ def plot_ts(
     if standardise:
         # Set the y-axis label
         # add standardised to the label
-        ax.set_ylabel(f"Standardised {ax.get_ylabel()}")
+        ax.set_ylabel(f"Standardised {ax.get_ylabel()}", fontsize=fontsize)
+
+    # set up the size of the ticks
+    ax.tick_params(axis="both", pad=10, labelsize=fontsize)
 
     # Set up the current time
     current_time = datetime.now().strftime("%Y%m%d-%H%M%S")

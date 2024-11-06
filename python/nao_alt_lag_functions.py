@@ -1205,19 +1205,22 @@ def plot_nao(
     #     transform=ax.transAxes, fontsize=10,
     #     verticalalignment='top',
     #     horizontalalignment='right')
+        
+    # set up the tick params
+    ax.tick_params(axis="both", pad=10, labelsize=fontsize)
 
     # Set up the x label
-    ax.set_xlabel("Centre of 8-year window")
+    ax.set_xlabel("Centre of 8-year window", fontsize=fontsize)
 
     # if ylabel is not none
     if ylabel is not None:
         # Set the y label
-        ax.set_ylabel(ylabel)
+        ax.set_ylabel(ylabel, fontsize=fontsize)
 
     # if title is not none
     if title is not None:
         # Set the title
-        ax.set_title(title, fontweight="bold")
+        ax.set_title(title, fontweight="bold", fontsize=16)
 
     # Set up the current time
     current_time = pd.to_datetime("today").strftime("%Y-%m-%d-%H-%M-%S")
