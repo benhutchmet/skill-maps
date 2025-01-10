@@ -692,8 +692,100 @@ def calc_nao_stats(
         # Calculate the mean of the model nao
         nao_stats["model_nao_mean"] = model_nao.mean(axis=0)
 
-        # Calculate the corr1
-        corr1, p1 = pearsonr(obs_nao, model_nao.mean(axis=0))
+        n_times = model_nao.shape[1]
+
+        # assert that n_times has same length as first dimension of model nao
+        assert n_times == len(obs_nao), "n_times not equal to obs_nao length"
+
+        # Set up the nens
+        n_ens = model_nao.shape[0]
+
+        # set up the nboot
+        nboot = 1000
+
+        # Set up the block length
+        block_length = 5
+
+        # set up the arr for the corr
+        r1_arr = np.empty([nboot])
+
+        # set up the number of blocks to be used
+        n_blocks = int(n_times / block_length)
+
+        # if the nblocks * block_length is less than n_times
+        # add one to the number of blocks
+        if n_blocks * block_length < n_times:
+            n_blocks = n_blocks + 1
+
+        # set up the indexes
+        # for the time - time needs to be the same for all forecasts and obs
+        index_time = range(n_times - block_length + 1)
+
+        # set up the index for the ensemble
+        index_ens = range(n_ens)
+
+        # print
+        print("Bootstrapping for significance")
+        # loop over the bootstraps
+        for iboot in tqdm(np.arange(nboot)):
+            if iboot == 0:
+                index_time_this = range(0, n_times, block_length)
+                index_ens_this = index_ens
+            else:
+                index_time_this = np.array(
+                        [random.choice(index_time) for i in range(n_blocks)]
+                    )
+                
+                index_ens_this = np.array([random.choice(index_ens) for _ in index_ens])
+            
+            obs_boot = np.zeros([n_times])
+            fcst1_boot = np.zeros([n_ens, n_times])
+
+            # Set the itime to 0
+            itime = 0
+
+            # loop over the time indexes
+            for i_this in index_time_this:
+                # Individual block index
+                index_block = np.arange(i_this, i_this + block_length)
+
+                # If the block index is greater than the number of times, then reduce the block index
+                index_block[(index_block > n_times - 1)] = (
+                    index_block[(index_block > n_times - 1)] - n_times
+                )
+
+                # Select a subset of indices for the block
+                index_block = index_block[: min(block_length, n_times - itime)]
+
+                # loop over the block indices
+                for iblock in index_block:
+                    # Assign the values to the arrays
+                    obs_boot[itime] = obs_nao[iblock]
+                    fcst1_boot[:, itime] = model_nao[index_ens_this, iblock]
+
+                    # Increment itime
+                    itime = itime + 1
+
+            # assert that there are non nans in either of the arrays
+            assert not np.isnan(obs_boot).any(), "values in nao_boot are nan."
+            assert not np.isnan(fcst1_boot).any(), "values in corr_var_ts_boot are nan."
+
+            # Calculate the correlation
+            r1_arr[iboot] = pearsonr(obs_boot, fcst1_boot.mean(axis=0))[0]
+
+        # Set up the corr
+        corr1 = r1_arr[0]
+
+        # COUNT VALUES AND STUFF
+        count_vals_r1 = np.sum(
+            i < 0.0 for i in r1_arr
+        )
+
+        # Calculate the p value
+        p1 = count_vals_r1 / nboot
+
+        # # Calculate the corr1
+        # corr1, p1 = pearsonr(obs_nao, model_nao.mean(axis=0))
 
         # Append the corr1 and p1 to the dictionary
         nao_stats["corr1"] = corr1
@@ -851,8 +943,101 @@ def calc_nao_stats(
         # Calculate the ensemble mean of the model nao
         model_nao_mean = model_nao.mean(axis=0)
 
-        # Calculate the corr1
-        corr1, p1 = pearsonr(obs_nao, model_nao_mean)
+        n_times = model_nao_mean.shape[0]
+
+        # assert that n_times has same length as first dimension of model nao
+        assert n_times == len(obs_nao), "n_times not equal to obs_nao length"
+
+        # Set up the nens
+        n_ens = model_nao.shape[0]
+
+        # set up the nboot
+        nboot = 1000
+
+        # Set up the block length
+        block_length = 5
+
+        # set up the arr for the corr
+        r1_arr = np.empty([nboot])
+
+        # set up the number of blocks to be used
+        n_blocks = int(n_times / block_length)
+
+        # if the nblocks * block_length is less than n_times
+        # add one to the number of blocks
+        if n_blocks * block_length < n_times:
+            n_blocks = n_blocks + 1
+
+        # set up the indexes
+        # for the time - time needs to be the same for all forecasts and obs
+        index_time = range(n_times - block_length + 1)
+
+        # set up the index for the ensemble
+        index_ens = range(n_ens)
+
+        # print
+        print("Bootstrapping for significance")
+        # loop over the bootstraps
+        for iboot in tqdm(np.arange(nboot)):
+            if iboot == 0:
+                index_time_this = range(0, n_times, block_length)
+                index_ens_this = index_ens
+            else:
+                index_time_this = np.array(
+                        [random.choice(index_time) for i in range(n_blocks)]
+                    )
+                
+                index_ens_this = np.array([random.choice(index_ens) for _ in index_ens])
+            
+            obs_boot = np.zeros([n_times])
+            fcst1_boot = np.zeros([n_ens, n_times])
+
+            # Set the itime to 0
+            itime = 0
+
+            # loop over the time indexes
+            for i_this in index_time_this:
+                # Individual block index
+                index_block = np.arange(i_this, i_this + block_length)
+
+                # If the block index is greater than the number of times, then reduce the block index
+                index_block[(index_block > n_times - 1)] = (
+                    index_block[(index_block > n_times - 1)] - n_times
+                )
+
+                # Select a subset of indices for the block
+                index_block = index_block[: min(block_length, n_times - itime)]
+
+                # loop over the block indices
+                for iblock in index_block:
+                    # Assign the values to the arrays
+                    obs_boot[itime] = obs_nao[iblock]
+                    fcst1_boot[:, itime] = model_nao[index_ens_this, iblock]
+
+                    # Increment itime
+                    itime = itime + 1
+
+            # assert that there are non nans in either of the arrays
+            assert not np.isnan(obs_boot).any(), "values in nao_boot are nan."
+            assert not np.isnan(fcst1_boot).any(), "values in corr_var_ts_boot are nan."
+
+            # Calculate the correlation
+            r1_arr[iboot] = pearsonr(obs_boot, fcst1_boot.mean(axis=0))[0]
+
+        # Set up the corr
+        corr1 = r1_arr[0]
+
+        # COUNT VALUES AND STUFF
+        count_vals_r1 = np.sum(
+            i < 0.0 for i in r1_arr
+        )
+
+        # Calculate the p value
+        p1 = count_vals_r1 / nboot
+
+        # # TODO: fix this with significance testing
+        # # Calculate the corr1
+        # corr1, p1 = pearsonr(obs_nao, model_nao_mean)
 
         # Calculate the standard deviation of the forecast
         sig_f1 = np.std(model_nao_mean)
