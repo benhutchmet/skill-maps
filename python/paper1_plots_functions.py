@@ -1851,7 +1851,6 @@ def create_bs_dict(
                 fcst1_ts_file,
                 obs_ts_file,
                 nens1_file,
-                common_years_file,
             ]:
                 assert (
                     len(file) == 1
@@ -1967,12 +1966,13 @@ def create_bs_dict(
             skill_maps["end_year_short"] = end_year_short
 
         if not start_end_years_file:
+            print("start end years file does not exist")
             # load the common years file
-            common_years = np.load(os.path.join(base_path, common_years_file[0]))
+            # common_years = np.load(os.path.join(base_path, common_years_file[0]))
 
-            # Extract the start and end years
-            start_year = common_years[0].astype(int)
-            end_year = common_years[1].astype(int)
+            # # Extract the start and end years
+            # start_year = common_years[0].astype(int)
+            # end_year = common_years[1].astype(int)
         else:
             # Load the files
             start_year = np.loadtxt(
@@ -2074,6 +2074,7 @@ def plot_diff_variables(
     plot_winter_nodes: bool = False,
     corr_list: list = None,
     ts_list: list = None,
+    fontsize: int = 14,
 ):
     """
     Plot the skill maps for different variables as a 2x2 grid.
@@ -2205,29 +2206,58 @@ def plot_diff_variables(
 
     # If the gridbox_corr is not None
     if gridbox_corr is not None and "psl" in variables:
-        # # Assert that gridbox_corr is a list
-        # assert isinstance(gridbox_corr, list), "gridbox_corr is not a list!"
+        # Initialize empty lists for the indexes
+        lat1_idxs = [] ; lat2_idxs = []
 
-        # # Initialized empty lists
-        # lon1_corrs = [] ; lon2_corrs = []
+        # And for the lons
+        lon1_idxs = [] ; lon2_idxs = []
 
-        # # For lats
-        # lat1_corrs = [] ; lat2_corrs = []
+        # and for the corrs
+        lon1_corrs = [] ; lon2_corrs = []
 
-        # # loop over the gridbox_corr
-        # for gridbox in gridbox_corr:
+        # and for the lats
+        lat1_corrs = [] ; lat2_corrs = []
         
-        # Extract the lats and lons from the gridbox_corr
-        lon1_corr, lon2_corr = gridbox_corr["lon1"], gridbox_corr["lon2"]
-        lat1_corr, lat2_corr = gridbox_corr["lat1"], gridbox_corr["lat2"]
+        # Assert that gridbox_corr is a list
+        assert isinstance(gridbox_corr, list), "gridbox_corr is not a list!"
 
-        # find the indices of the lats which correspond to the gridbox
-        lat1_idx_corr = np.argmin(np.abs(lats - lat1_corr))
-        lat2_idx_corr = np.argmin(np.abs(lats - lat2_corr))
+        # Loop over the items in gridbox_corr
+        for gridbox in gridbox_corr:
+            # Extract the lats and lons from the gridbox_corr
+            lon1_corr, lon2_corr = gridbox["lon1"], gridbox["lon2"]
+            lat1_corr, lat2_corr = gridbox["lat1"], gridbox["lat2"]
 
-        # find the indices of the lons which correspond to the gridbox
-        lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
-        lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+            # find the indices of the lats which correspond to the gridbox
+            lat1_idx_corr = np.argmin(np.abs(lats - lat1_corr))
+            lat2_idx_corr = np.argmin(np.abs(lats - lat2_corr))
+
+            # find the indices of the lons which correspond to the gridbox
+            lon1_idx_corr = np.argmin(np.abs(lons - lon1_corr))
+            lon2_idx_corr = np.argmin(np.abs(lons - lon2_corr))
+
+            # Append the indices to the lists
+            lat1_idxs.append(lat1_idx_corr)
+
+            # Append the indices to the lists
+            lat2_idxs.append(lat2_idx_corr)
+
+            # Append the indices to the lists
+            lon1_idxs.append(lon1_idx_corr)
+
+            # Append the indices to the lists
+            lon2_idxs.append(lon2_idx_corr)
+
+            # Append the lats and lons to the lists
+            lon1_corrs.append(lon1_corr)
+
+            # Append the lats and lons to the lists
+            lon2_corrs.append(lon2_corr)
+
+            # Append the lats and lons to the lists
+            lat1_corrs.append(lat1_corr)
+
+            # Append the lats and lons to the lists
+            lat2_corrs.append(lat2_corr)
 
         # Depending on the season
         if season in ["ONDJFM", "DJFM", "DJF"]:
@@ -2452,7 +2482,7 @@ def plot_diff_variables(
                 va="bottom",
                 ha="right",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=fontsize,
             )
 
             # Set the var name depending on the variable
@@ -2484,7 +2514,7 @@ def plot_diff_variables(
                 va="top",
                 ha="left",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=fontsize,
             )
 
             if methods_diff is not None:
@@ -2498,7 +2528,7 @@ def plot_diff_variables(
                         va="top",
                         ha="right",
                         bbox=dict(facecolor="white", alpha=0.5),
-                        fontsize=10,
+                        fontsize=fontsize,
                     )
                 else:
                     # Include the method in the top right of the figure
@@ -2510,7 +2540,7 @@ def plot_diff_variables(
                         va="top",
                         ha="right",
                         bbox=dict(facecolor="white", alpha=0.5),
-                        fontsize=10,
+                        fontsize=fontsize,
                     )
 
             # Add the cf object to the cf_list
@@ -2600,7 +2630,7 @@ def plot_diff_variables(
                 va="bottom",
                 ha="right",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=fontsize,
             )
 
             # Set the var name depending on the variable
@@ -2620,7 +2650,7 @@ def plot_diff_variables(
                 var_name = "Solar irradiance"
             elif variable == "ua":
                 # Set the variable
-                var_name = "Zonal wind speed (850hPa)"
+                var_name = "850U"
             else:
                 # Print the key
                 print(f"variable = {variable}")
@@ -2635,7 +2665,7 @@ def plot_diff_variables(
                 va="top",
                 ha="left",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=fontsize,
             )
 
             # Include the method and "long - short"
@@ -2648,7 +2678,7 @@ def plot_diff_variables(
                 va="top",
                 ha="right",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=fontsize,
             )
 
             # Add the cf object to the cf_list
@@ -2808,214 +2838,519 @@ def plot_diff_variables(
             lat2_corr = lat2_corrs[i]
 
             # If gridbox_corr is not None
-            if gridbox_corr[i] is not None and variable != "psl":
+            if gridbox_corr[i] is not None:
                 # Loggging
                 print("Calculating the correlations with a specific gridbox...")
                 print("As defined by gridbox_corr = ", gridbox_corr[i])
                 print("Variable is not psl")
 
-                # Constrain the ts to the gridbox_corr
-                fcst1_ts = fcst1_ts[
-                    :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
-                ]
-                obs_ts = obs_ts[
-                    :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
-                ]
+                # print that we are only used nao matched members
+                # for bootstrapping ts here
+                print("Only using alt lag for bootstrapping ts here")
+                print("------------------------------------------")
 
-                # Load the model data
-                # FIXME: NEEDS TO BE MODIFIED EACH TIME
-                fcst_ts_members = nal_fnc.load_data(
-                    season="AYULGS",
-                    forecast_range=forecast_range,
-                    start_year=1961,
-                    end_year=2014,
-                    lag=4,
-                    method="alt_lag",
-                    region="global",
-                    variable=variable,
-                    data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/"
-                )
+                if variable == "ua":
+                    # Load the model data
+                    # FIXME: NEEDS TO BE MODIFIED EACH TIME
+                    fcst_ts_members = nal_fnc.load_data(
+                        season=season,
+                        forecast_range=forecast_range,
+                        start_year=1961,
+                        end_year=2014,
+                        lag=4,
+                        method="nao_matched",
+                        region="global",
+                        variable=variable,
+                        data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
+                    )
 
-                # constrain the corr
-                corr_gridbox = skill_maps["corr1"][lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
+                    # # print the shape of the fcst_ts_members
 
-                # Same with the p values
-                p_gridbox = skill_maps["corr1_p"][lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
-
-                # constrain the members to the gridbox_corr
-                fcst_ts_members = fcst_ts_members[
-                    :, :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
-                ]
-
-                # Calculate the mean of both time series
-                fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
-                obs_ts_mean = np.mean(obs_ts, axis=(1, 2))
-
-                # calculate the mean for the area averages
-                corr_gridbox_mean = np.mean(corr_gridbox, axis=(0, 1))
-                p_gridbox_mean = np.mean(p_gridbox, axis=(0, 1))
-
-                # same for the fcst_ts_members
-                fcst1_ts_members_mean = np.mean(fcst_ts_members, axis=(2, 3))
-
-                # temporal resampling here
-                # compare p to pvalue averaged over domain
-                # compare r to rvalue averaged over domain
-                # set up the ntimes
-                n_times = len(fcst1_ts_mean)
-
-
-
-                # print the shape of the fcst1_ts_mean
-                print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
-                print(f"n_times = {n_times}")
-
-                # # assert that n_times is the same as the length of the obs_ts_mean
-                # assert np.shape(fcst1_ts_members_mean)[0] == n_times, "fcst_ts_members and obs_ts_mean have different lengths"
-
-                if np.shape(fcst1_ts_members_mean)[0] != n_times:
-                    nens = np.shape(fcst1_ts_members_mean)[0]
-                    
-                    # flip the axes of the fcst_ts_members
-                    fcst1_ts_members_mean = np.swapaxes(fcst1_ts_members_mean, 0, 1)
+                    # # limit to the first 47 members
+                    # fcst_ts_members = fcst_ts_members[3:, :47, :, :]
+                elif variable == "psl":
+                    # Load the model data
+                    fcst_ts_members = nal_fnc.load_data(
+                        season=season,
+                        forecast_range=forecast_range,
+                        start_year=1961,
+                        end_year=2014,
+                        lag=4,
+                        method="nao_matched",
+                        region="global",
+                        variable=variable,
+                        data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
+                    )
                 else:
-                    nens = np.shape(fcst1_ts_members_mean)[1]
+                    fcst_ts_members = nal_fnc.load_data(
+                        season=season,
+                        forecast_range=forecast_range,
+                        start_year=1961,
+                        end_year=2014,
+                        lag=4,
+                        method="nao_matched",
+                        region="global",
+                        variable=variable,
+                        data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/"
+                    )
 
-                # assert that this has the same length as the obs_ts_mean
-                assert len(obs_ts_mean) == n_times, "obs_ts_mean and fcst1_ts_mean have different lengths"
+                print("------------------------------------------")
 
-                # Set up the block length
-                block_length = 5
+                # if the variable is not psl
+                if variable != "psl":
+                    print("Bootstrapping where variable is not psl")
 
-                # Set up the nboot
-                nboot = 1000
 
-                # set up the arry
-                r_arr = np.empty([nboot])
-                r_arr_members = np.empty([nboot])
+                    # Constrain the ts to the gridbox_corr
+                    fcst1_ts = fcst1_ts[
+                        :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
+                    ]
+                    obs_ts = obs_ts[
+                        :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
+                    ]
 
-                # Set up the number of blocks to be used
-                n_blocks = int(n_times / block_length)
 
-                # if the nblocks * block_length is less than n_times
-                # add one to the number of blocks
-                if n_blocks * block_length < n_times:
-                    n_blocks = n_blocks + 1
+                    # constrain the corr
+                    corr_gridbox = skill_maps["corr1"][lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
 
-                # set up the indexes
-                # for the time - time needs to be the same for all forecasts and obs
-                index_time = range(n_times - block_length + 1)
+                    # Same with the p values
+                    p_gridbox = skill_maps["corr1_p"][lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
 
-                # set up the index for the ensemble
-                index_ens = range(nens)
+                    # constrain the members to the gridbox_corr
+                    fcst_ts_members = fcst_ts_members[
+                        :, :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
+                    ]
 
-                # print the shape of the fcst1_ts_members_mean
-                print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
+                    # Calculate the mean of both time series
+                    fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
+                    obs_ts_mean = np.mean(obs_ts, axis=(1, 2))
 
-                # print the nens shape
-                print(f"nens = {nens}")
+                    # calculate the mean for the area averages
+                    corr_gridbox_mean = np.mean(corr_gridbox, axis=(0, 1))
+                    p_gridbox_mean = np.mean(p_gridbox, axis=(0, 1))
 
-                # loop over the bootstraps
-                for iboot in tqdm(np.arange(nboot)):
-                    if iboot == 0:
-                        index_time_this = range(0, n_times, block_length)
-                        index_ens_this = index_ens
+                    # same for the fcst_ts_members
+                    fcst1_ts_members_mean = np.mean(fcst_ts_members, axis=(2, 3))
+
+                    # temporal resampling here
+                    # compare p to pvalue averaged over domain
+                    # compare r to rvalue averaged over domain
+                    # set up the ntimes
+                    n_times = len(fcst1_ts_mean)
+
+
+
+                    # print the shape of the fcst1_ts_mean
+                    print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
+                    print(f"n_times = {n_times}")
+
+                    # # assert that n_times is the same as the length of the obs_ts_mean
+                    # assert np.shape(fcst1_ts_members_mean)[0] == n_times, "fcst_ts_members and obs_ts_mean have different lengths"
+
+                    if np.shape(fcst1_ts_members_mean)[0] != n_times:
+                        nens = np.shape(fcst1_ts_members_mean)[0]
+                        
+                        # flip the axes of the fcst_ts_members
+                        fcst1_ts_members_mean = np.swapaxes(fcst1_ts_members_mean, 0, 1)
                     else:
-                        index_time_this = np.array(
-                            [random.choice(index_time) for i in range(n_blocks)]
-                        )
+                        nens = np.shape(fcst1_ts_members_mean)[1]
 
-                        # ensemble index for tis
-                        index_ens_this = np.array([
-                            random.choice(index_ens) for i in index_ens
-                            ]
-                        )
+                    # assert that this has the same length as the obs_ts_mean
+                    assert len(obs_ts_mean) == n_times, "obs_ts_mean and fcst1_ts_mean have different lengths"
 
-                    # Create empty arrays to store the nao obs
-                    fcst1_ts_boot = np.empty([n_times])
-                    obs_ts_boot = np.empty([n_times])
+                    # Set up the block length
+                    block_length = 5
 
-                    # For the members version
-                    fcst1_ts_members_boot = np.empty([nens, n_times])
+                    # Set up the nboot
+                    nboot = 1000
 
-                    # Set itime to 0
-                    itime = 0
+                    # set up the arry
+                    r_arr = np.empty([nboot])
+                    r_arr_members = np.empty([nboot])
 
-                    # loop over the time indexes
-                    for i_this in index_time_this:
-                        # Individual block index
-                        index_block = np.arange(i_this, i_this + block_length)
+                    # Set up the number of blocks to be used
+                    n_blocks = int(n_times / block_length)
 
-                        # If the block index is greater than the number of times, then reduce the block index
-                        index_block[(index_block > n_times - 1)] = (
-                            index_block[(index_block > n_times - 1)] - n_times
-                        )
+                    # if the nblocks * block_length is less than n_times
+                    # add one to the number of blocks
+                    if n_blocks * block_length < n_times:
+                        n_blocks = n_blocks + 1
 
-                        # Select a subset of indices for the block
-                        index_block = index_block[: min(block_length, n_times - itime)]
+                    # set up the indexes
+                    # for the time - time needs to be the same for all forecasts and obs
+                    index_time = range(n_times - block_length + 1)
 
-                        # loop over the block indices
-                        for iblock in index_block:
-                            # Assign the values to the arrays
-                            fcst1_ts_boot[itime] = fcst1_ts_mean[iblock]
-                            obs_ts_boot[itime] = obs_ts_mean[iblock]
-                            fcst1_ts_members_boot[:, itime] = fcst1_ts_members_mean[iblock, index_ens_this]
+                    # set up the index for the ensemble
+                    index_ens = range(nens)
 
-                            # Increment itime
-                            itime = itime + 1
+                    # print the shape of the fcst1_ts_members_mean
+                    print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
 
-                    # assert that there are non nans in either of the arrays
-                    assert not np.isnan(fcst1_ts_boot).any(), "values in nao_boot are nan."
-                    assert not np.isnan(obs_ts_boot).any(), "values in corr_var_ts_boot are nan."
+                    # print the nens shape
+                    print(f"nens = {nens}")
 
-                    # Calculate the correlation
-                    r_arr[iboot] = pearsonr(fcst1_ts_boot, obs_ts_boot)[0]
-                    r_arr_members[iboot] = pearsonr(np.mean(fcst1_ts_members_boot, axis=0), obs_ts_boot)[0]
+                    # loop over the bootstraps
+                    for iboot in tqdm(np.arange(nboot)):
+                        if iboot == 0:
+                            index_time_this = range(0, n_times, block_length)
+                            index_ens_this = index_ens
+                        else:
+                            index_time_this = np.array(
+                                [random.choice(index_time) for i in range(n_blocks)]
+                            )
 
-                # Set up the corr
-                r = r_arr[0]
-                r_members = r_arr_members[0]
+                            # ensemble index for tis
+                            index_ens_this = np.array([
+                                random.choice(index_ens) for i in index_ens
+                                ]
+                            )
 
-                count_vals_r1 = np.sum(
-                    i < 0.0 for i in r_arr
-                )  # Count the number of values less than 0
+                        # Create empty arrays to store the nao obs
+                        fcst1_ts_boot = np.empty([n_times])
+                        obs_ts_boot = np.empty([n_times])
 
-                count_vals_r1_members = np.sum(
-                    i < 0.0 for i in r_arr_members
-                )
+                        # For the members version
+                        fcst1_ts_members_boot = np.empty([nens, n_times])
 
-                # Calculate the p-value
-                p = count_vals_r1 / nboot
-                p_members = count_vals_r1_members / nboot
+                        # Set itime to 0
+                        itime = 0
 
-                # print the computed r and p values
-                print(f"computed resampled (time only) r = {r}, p = {p}")
-                print(f"computed resampled (time + members) r = {r_members}, p = {p_members}")
-                print(f"gridbox avg r = {corr_gridbox_mean}, p = {p_gridbox_mean}")
+                        # loop over the time indexes
+                        for i_this in index_time_this:
+                            # Individual block index
+                            index_block = np.arange(i_this, i_this + block_length)
 
-                # # Calculate the correlation between the two time series
-                # r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+                            # If the block index is greater than the number of times, then reduce the block index
+                            index_block[(index_block > n_times - 1)] = (
+                                index_block[(index_block > n_times - 1)] - n_times
+                            )
 
-                # Show these values on the plot
-                ax.text(
-                    0.05,
-                    0.05,
-                    f"r = {r_members:.2f}, p = {p_members:.2f}",
-                    transform=ax.transAxes,
-                    va="bottom",
-                    ha="left",
-                    bbox=dict(facecolor="white", alpha=0.5),
-                    fontsize=10,
-                )
+                            # Select a subset of indices for the block
+                            index_block = index_block[: min(block_length, n_times - itime)]
 
-                # Add the gridbox to the plot
-                ax.plot(
-                    [lon1_corr, lon2_corr, lon2_corr, lon1_corr, lon1_corr],
-                    [lat1_corr, lat1_corr, lat2_corr, lat2_corr, lat1_corr],
-                    color="green",
-                    linewidth=2,
-                    transform=proj,
-                )
+                            # loop over the block indices
+                            for iblock in index_block:
+                                # Assign the values to the arrays
+                                fcst1_ts_boot[itime] = fcst1_ts_mean[iblock]
+                                obs_ts_boot[itime] = obs_ts_mean[iblock]
+                                fcst1_ts_members_boot[:, itime] = fcst1_ts_members_mean[iblock, index_ens_this]
+
+                                # Increment itime
+                                itime = itime + 1
+
+                        # assert that there are non nans in either of the arrays
+                        assert not np.isnan(fcst1_ts_boot).any(), "values in nao_boot are nan."
+                        assert not np.isnan(obs_ts_boot).any(), "values in corr_var_ts_boot are nan."
+
+                        # Calculate the correlation
+                        r_arr[iboot] = pearsonr(fcst1_ts_boot, obs_ts_boot)[0]
+                        r_arr_members[iboot] = pearsonr(np.mean(fcst1_ts_members_boot, axis=0), obs_ts_boot)[0]
+
+                    # Set up the corr
+                    r = r_arr[0]
+                    r_members = r_arr_members[0]
+
+                    count_vals_r1 = np.sum(
+                        i < 0.0 for i in r_arr
+                    )  # Count the number of values less than 0
+
+                    count_vals_r1_members = np.sum(
+                        i < 0.0 for i in r_arr_members
+                    )
+
+                    # Calculate the p-value
+                    p = count_vals_r1 / nboot
+                    p_members = count_vals_r1_members / nboot
+
+                    # print the computed r and p values
+                    print(f"computed resampled (time only) r = {r}, p = {p}")
+                    print(f"computed resampled (time + members) r = {r_members}, p = {p_members}")
+                    print(f"gridbox avg r = {corr_gridbox_mean}, p = {p_gridbox_mean}")
+
+                    # # Calculate the correlation between the two time series
+                    # r, p = pearsonr(fcst1_ts_mean, obs_ts_mean)
+
+                    # Show these values on the plot
+                    ax.text(
+                        0.05,
+                        0.05,
+                        f"r = {r_members:.2f}, p = {p_members:.2f}",
+                        transform=ax.transAxes,
+                        va="bottom",
+                        ha="left",
+                        bbox=dict(facecolor="white", alpha=0.5),
+                        fontsize=fontsize,
+                    )
+
+                    # Add the gridbox to the plot
+                    ax.plot(
+                        [lon1_corr, lon2_corr, lon2_corr, lon1_corr, lon1_corr],
+                        [lat1_corr, lat1_corr, lat2_corr, lat2_corr, lat1_corr],
+                        color="green",
+                        linewidth=2,
+                        transform=proj,
+                    )
+                else:
+                    print("Bootstrapping where variable is psl")
+
+                    # Constrain fcst ts members to gridbox corr N
+                    fcst_ts_members_n = fcst_ts_members[
+                        :, :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+                    ]
+                    fcst_ts_members_s = fcst_ts_members[
+                        :, :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+                    ]
+
+                    # Same for the observations
+                    obs_ts_n = obs_ts[
+                        :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+                    ]
+                    obs_ts_s = obs_ts[
+                        :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+                    ]
+
+                    # Set up the bfcts1 ts n
+                    fcst1_ts_n = fcst1_ts[
+                        :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+                    ]
+                    fcst1_ts_s = fcst1_ts[
+                        :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+                    ]
+
+                    # Calculate the mean of both time series
+                    fcst1_ts_mean_n = np.mean(fcst1_ts_n, axis=(1, 2))
+                    fcst1_ts_mean_s = np.mean(fcst1_ts_s, axis=(1, 2))
+                    
+                    # Calculate the mean of both time series for the obs
+                    obs_ts_mean_n = np.mean(obs_ts_n, axis=(1, 2))
+                    obs_ts_mean_s = np.mean(obs_ts_s, axis=(1, 2))
+
+                    # Calculate the correlation between the time series members
+                    fcst_ts_members_mean_n = np.mean(fcst_ts_members_n, axis=(2, 3))
+                    fcst_ts_members_mean_s = np.mean(fcst_ts_members_s, axis=(2, 3))
+
+                    # Set up the ntimes
+                    n_times = len(fcst1_ts_mean_n)
+
+                    # set up the nens
+                    nens = np.shape(fcst_ts_members_mean_n)[0]
+
+                    # prinbt the shape of the fcst_ts_members_mean
+                    print(f"fcst_ts_members_mean_n.shape = {fcst_ts_members_mean_n.shape}")
+                    print(f"fcst_ts_members_mean_s.shape = {fcst_ts_members_mean_s.shape}")
+
+                    # print the n_times
+                    print(f"n_times = {n_times}")
+
+                    # print the nens
+                    print(f"nens = {nens}")
+
+                    # assert the len of the obs ts is obs_ts_mean
+                    assert len(obs_ts_mean_n) == n_times, "obs_ts_mean and fcst1_ts_mean have different lengths"
+
+                    # Set up the block length
+                    block_length = 5
+
+                    # Set up the nboot
+                    nboot = 1000
+
+                    # set up the arry
+                    r_arr_n = np.empty([nboot])
+                    r_arr_s = np.empty([nboot])
+
+                    # Set up the r arr members
+                    r_arr_members_n = np.empty([nboot])
+                    r_arr_members_s = np.empty([nboot])
+
+                    # if shape of fcst_ts_members_mean is not the same as n_times
+                    if np.shape(fcst_ts_members_mean_n)[0] != n_times:
+                        nens = np.shape(fcst_ts_members_mean_n)[0]
+
+                        # flip the axes of the fcst_ts_members
+                        fcst_ts_members_mean_n = np.swapaxes(fcst_ts_members_mean_n, 0, 1)
+                        fcst_ts_members_mean_s = np.swapaxes(fcst_ts_members_mean_s, 0, 1)
+                    else:
+                        nens = np.shape(fcst_ts_members_mean_n)[1]
+
+                    # Set up the number of blocks to be used
+                    n_blocks = int(n_times / block_length)
+
+                    # if the nblocks * block_length is less than n_times
+                    # add one to the number of blocks
+                    if n_blocks * block_length < n_times:
+                        n_blocks = n_blocks + 1
+
+                    # set up the indexes
+                    # for the time - time needs to be the same for all forecasts and obs
+                    index_time = range(n_times - block_length + 1)
+
+                    # set up the index for the ensemble
+                    index_ens = range(nens)
+
+                    # print the shape of the fcst1_ts_members_mean
+                    print(f"fcst_ts_members_mean_n.shape = {fcst_ts_members_mean_n.shape}")
+                    print(f"fcst_ts_members_mean_s.shape = {fcst_ts_members_mean_s.shape}")
+
+                    # print the values
+                    print(f"fcst1_ts_mean_n values = {fcst1_ts_mean_n}")
+                    print(f"fcst1_ts_mean_s values = {fcst1_ts_mean_s}")
+                    
+                    # printr the shape of fcst1_ts_mean
+                    print(f"fcst1_ts_mean_n.shape = {fcst1_ts_mean_n.shape}")
+                    print(f"fcst1_ts_mean_s.shape = {fcst1_ts_mean_s.shape}")
+
+                    # print tyhe values of fcst_ts_members_mean
+                    print(f"fcst_ts_members_mean_n values = {fcst_ts_members_mean_n}")
+                    print(f"fcst_ts_members_mean_s values = {fcst_ts_members_mean_s}")
+
+                    # print the values of the obs_ts_mean
+                    print(f"obs_ts_mean_n values = {obs_ts_mean_n}")
+                    print(f"obs_ts_mean_s values = {obs_ts_mean_s}")
+
+
+
+                    # print the nens shape
+                    print(f"nens = {nens}")
+
+                    # loop over the bootstraps
+                    for iboot in tqdm(np.arange(nboot)):
+                        if iboot == 0:
+                            index_time_this = range(0, n_times, block_length)
+                            index_ens_this = index_ens
+                        else:
+                            index_time_this = np.array(
+                                [random.choice(index_time) for i in range(n_blocks)]
+                            )
+
+                            # ensemble index for tis
+                            index_ens_this = np.array([
+                                random.choice(index_ens) for i in index_ens
+                                ]
+                            )
+
+                        # Create empty arrays to store the nao obs
+                        fcst1_ts_n_boot = np.empty([n_times])
+                        fcst1_ts_s_boot = np.empty([n_times])
+                        
+                        obs_ts_n_boot = np.empty([n_times])
+                        obs_ts_s_boot = np.empty([n_times])
+
+                        # For the members version
+                        fcst1_ts_members_n_boot = np.empty([nens, n_times])
+                        fcst1_ts_members_s_boot = np.empty([nens, n_times])
+
+                        # Set itime to 0
+                        itime = 0
+
+                        # loop over the time indexes
+                        for i_this in index_time_this:
+                            # Individual block index
+                            index_block = np.arange(i_this, i_this + block_length)
+
+                            # If the block index is greater than the number of times, then reduce the block index
+                            index_block[(index_block > n_times - 1)] = (
+                                index_block[(index_block > n_times - 1)] - n_times
+                            )
+
+                            # Select a subset of indices for the block
+                            index_block = index_block[: min(block_length, n_times - itime)]
+
+                            # loop over the block indices
+                            for iblock in index_block:
+                                # Assign the values to the arrays
+                                fcst1_ts_n_boot[itime] = fcst1_ts_mean_n[iblock]
+                                fcst1_ts_s_boot[itime] = fcst1_ts_mean_s[iblock]
+
+                                # For the obs
+                                obs_ts_n_boot[itime] = obs_ts_mean_n[iblock]
+                                obs_ts_s_boot[itime] = obs_ts_mean_s[iblock]
+
+                                # For the members
+                                fcst1_ts_members_n_boot[:, itime] = fcst_ts_members_mean_n[iblock, index_ens_this]
+                                fcst1_ts_members_s_boot[:, itime] = fcst_ts_members_mean_s[iblock, index_ens_this]
+
+                                # Increment itime
+                                itime = itime + 1
+
+                        
+                        # assert that there are non nans in either of the arrays
+                        # assert not np.isnan(fcst1_ts_n_boot).any(), "values in nao_boot are nan."
+                        # assert not np.isnan(obs_ts_n_boot).any(), "values in corr_var_ts_boot are nan."
+
+                        # Calculate the correlation
+                        r_arr_n[iboot] = pearsonr(fcst1_ts_n_boot, obs_ts_n_boot)[0]
+                        r_arr_s[iboot] = pearsonr(fcst1_ts_s_boot, obs_ts_s_boot)[0]
+
+                        # For the members
+                        r_arr_members_n[iboot] = pearsonr(np.mean(fcst1_ts_members_n_boot, axis=0), obs_ts_n_boot)[0]
+                        r_arr_members_s[iboot] = pearsonr(np.mean(fcst1_ts_members_s_boot, axis=0), obs_ts_s_boot)[0]
+
+                    # Set up the corr
+                    r_n = r_arr_n[0]
+                    r_s = r_arr_s[0]
+
+                    # Set up the r values for the members
+                    r_members_n = r_arr_members_n[0]
+                    r_members_s = r_arr_members_s[0]
+
+                    count_vals_r1_n = np.sum(
+                        i < 0.0 for i in r_arr_n
+                    )
+                    count_vals_r1_s = np.sum(
+                        i < 0.0 for i in r_arr_s
+                    )
+
+                    count_vals_r1_members_n = np.sum(
+                        i < 0.0 for i in r_arr_members_n
+                    )
+                    count_vals_r1_members_s = np.sum(
+                        i < 0.0 for i in r_arr_members_s
+                    )
+
+                    p_n = count_vals_r1_n / nboot
+                    p_s = count_vals_r1_s / nboot
+
+                    p_members_n = count_vals_r1_members_n / nboot
+                    p_members_s = count_vals_r1_members_s / nboot
+
+                    # Print trhe computed r and p values
+                    print(f"computed resampled (time only) north box r = {r_n}, p = {p_n}")
+                    print(f"computed resampled (time only) south box r = {r_s}, p = {p_s}")
+
+                    print(f"computed resampled (time + members) north box r = {r_members_n}, p = {p_members_n}")
+                    print(f"computed resampled (time + members) south box r = {r_members_s}, p = {p_members_s}")
+
+                    # Show these values on the plot
+                    ax.text(
+                        0.05,
+                        0.05,
+                        "N: r = {r_n:.2f}, p = {p_n:.2f}\nS: r = {r_s:.2f}, p = {p_s:.2f}".format(
+                            r_n=r_members_n, p_n=p_members_n, r_s=r_members_s, p_s=p_members_s
+                        ),
+                        transform=ax.transAxes,
+                        va="bottom",
+                        ha="left",
+                        bbox=dict(facecolor="white", alpha=0.5),
+                        fontsize=fontsize,
+                    )
+
+                    # Add the gridbox to the plot
+                    ax.plot(
+                        [lon1_corr_n, lon2_corr_n, lon2_corr_n, lon1_corr_n, lon1_corr_n],
+                        [lat1_corr_n, lat1_corr_n, lat2_corr_n, lat2_corr_n, lat1_corr_n],
+                        color="green",
+                        linewidth=2,
+                        transform=proj,
+                    )
+
+                    # Add the gridbox to the plot
+                    ax.plot(
+                        [lon1_corr_s, lon2_corr_s, lon2_corr_s, lon1_corr_s, lon1_corr_s],
+                        [lat1_corr_s, lat1_corr_s, lat2_corr_s, lat2_corr_s, lat1_corr_s],
+                        color="green",
+                        linewidth=2,
+                        transform=proj,
+                    )
             elif gridbox_corr[i] is not None and variable == "psl":
                 print("Calculating the correlations for NAO gridboxes...")
                 print("For variable psl")
@@ -3081,7 +3416,7 @@ def plot_diff_variables(
                     va="bottom",
                     ha="left",
                     bbox=dict(facecolor="white", alpha=0.5),
-                    fontsize=10,
+                    fontsize=fontsize,
                 )
 
                 # Add the gridbox to the plot
@@ -3127,7 +3462,7 @@ def plot_diff_variables(
                 va="bottom",
                 ha="right",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=fontsize,
             )
 
             # Extract the first part of the key
@@ -3151,7 +3486,7 @@ def plot_diff_variables(
                 var_name = "Solar irradiance"
             elif key == "ua":
                 # Set the variable
-                var_name = "Zonal wind speed (850)"
+                var_name = "850U"
             else:
                 # Print the key
                 print(f"key = {key}")
@@ -3166,7 +3501,7 @@ def plot_diff_variables(
                 va="top",
                 ha="left",
                 bbox=dict(facecolor="white", alpha=0.5),
-                fontsize=10,
+                fontsize=fontsize,
             )
 
             if methods is not None:
@@ -3200,7 +3535,7 @@ def plot_diff_variables(
                             va="top",
                             ha="right",
                             bbox=dict(facecolor="white", alpha=0.5),
-                            fontsize=10,
+                            fontsize=fontsize,
                         )
                     else:
                         # Include the method in the top right of the figure
@@ -3212,7 +3547,7 @@ def plot_diff_variables(
                             va="top",
                             ha="right",
                             bbox=dict(facecolor="white", alpha=0.5),
-                            fontsize=10,
+                            fontsize=fontsize,
                         )
                 else:
                     # Include the method in the top right of the figure
@@ -3224,7 +3559,7 @@ def plot_diff_variables(
                         va="top",
                         ha="right",
                         bbox=dict(facecolor="white", alpha=0.5),
-                        fontsize=10,
+                        fontsize=fontsize,
                     )
             else:
                 # Include the number of ensemble members in the top right of the figure
@@ -3236,7 +3571,7 @@ def plot_diff_variables(
                     va="top",
                     ha="right",
                     bbox=dict(facecolor="white", alpha=0.5),
-                    fontsize=10,
+                    fontsize=fontsize,
                 )
 
             # Add the contourf object to the list
@@ -4172,14 +4507,51 @@ def load_ts_data(
         # Constrain the data to the gridbox
         data = data[:, :, lat1_idx:lat2_idx, lon1_idx:lon2_idx].mean(axis=(2, 3))
 
+        # print the mean of the data
+        print(f"mean of the data = {np.mean(data)}")
+        # print the spread of the data
+        print(f"spread of the data = {np.std(data)}")
+
+        # print the min of the data
+        print(f"min of the data = {np.min(data)}")
+
+        # print the max of the data
+        print(f"max of the data = {np.max(data)}")
+
         # Constrasin the short data to the gridbox
         data_short = data[:, : -10 + 1]  # final year should be 2005
 
         # Print the shape of the data
         print(f"model data members.shape = {data.shape}")
 
+        # # loop over the members
+        # for member in range(data.shape[0]):
+        #     # print the member index
+        #     print(f"member = {member}")
+
+        #     # print the member spread
+        #     print(f"spread of the member = {np.std(data[member])}")
+
+        #     # print the min and max
+        #     print(f"min of the member = {np.min(data[member])}")
+
+        #     # print the max of the member
+        #     print(f"max of the member = {np.max(data[member])}")
+
         # Calculate the mean of the data
         data_mean = np.mean(data, axis=0)
+
+        # print the mean of the data
+        print(f"mean of the data_mean = {np.mean(data_mean)}")
+
+        # print the spread of the data
+        print(f"spread of the data_mean = {np.std(data_mean)}")
+
+        # print the min of the data
+        print(f"min of the data_mean = {np.min(data_mean)}")
+
+        # print the max of the data
+        print(f"max of the data_mean = {np.max(data_mean)}")
 
         # Calculate the mean of the short data
         data_mean_short = np.mean(data_short, axis=0)

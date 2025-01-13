@@ -346,6 +346,14 @@ scandi_box = {
     "lat2": 71,
 }
 
+# Define a n europe wind box
+n_eur_wind_box = {
+    "lon1": -10,  # degrees east
+    "lon2": 20,
+    "lat1": 50,  # degrees north
+    "lat2": 65,
+}
+
 # Define the mediterranean box for ssrd
 # from (Calì Quaglia et al., 2022)
 med_box = {

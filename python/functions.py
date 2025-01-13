@@ -39,6 +39,8 @@ import scipy
 import pdb
 import iris.quickplot as qplt
 
+from tqdm import tqdm
+
 # # Import CDO
 # from cdo import *
 
@@ -138,15 +140,13 @@ def load_data(
                 + "/"
                 + region
                 + "/"
-                + f"years_{forecast_range}"
+                + f"{forecast_range}"
                 + "/"
                 + season
                 + "/"
                 + "outputs"
                 + "/"
-                + "mergetime"
-                + "/"
-                + "*.nc"
+                + "*anoms*.nc"
             )
 
         # #print the path to the files
@@ -154,6 +154,13 @@ def load_data(
 
         # Create a list of the files for this model.
         files = glob.glob(files_path)
+
+        # print the files path
+        # print(f"files path {files_path}")
+        # print(f"files {files}")
+
+        # print the len of files for the model
+        print(f"Number of files for {model}: {len(files)}")
 
         # if the list of files is empty, #print a warning and
         # exit the program
@@ -165,7 +172,7 @@ def load_data(
         # print("Files for " + model + ":", files)
 
         # Loop over the files.
-        for file in files:
+        for file in tqdm(files):
 
             # #print the file to the screen.
             # print(file)
@@ -7070,7 +7077,7 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
         o_short = obs_boot_short
 
         print("shape of obs_boot", np.shape(o))
-        print("value of obs_boot", o)
+        # print("value of obs_boot", o)
 
         # Get the ensemble mean forecast
         # Should these be calculated for each lat lon, or does numpy do that for me?
@@ -7160,13 +7167,13 @@ def forecast_stats(obs, forecast1, forecast2, no_boot=1000):
                     or np.isnan(f10_cell).any()
                 ):
                     # Print a warning
-                    print("Warning: f1_cell contains NaNs at lat", lat, "lon", lon)
-                    print(
-                        "Setting all values of the correlations to NaN at lat",
-                        lat,
-                        "lon",
-                        lon,
-                    )
+                    # print("Warning: f1_cell contains NaNs at lat", lat, "lon", lon)
+                    # print(
+                    #     "Setting all values of the correlations to NaN at lat",
+                    #     lat,
+                    #     "lon",
+                    #     lon,
+                    # )
                     # Set all the values of the correlations to NaN
                     r1o_boot[iboot, lat, lon] = np.nan
                     r2o_boot[iboot, lat, lon] = np.nan

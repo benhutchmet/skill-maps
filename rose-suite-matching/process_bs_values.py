@@ -205,13 +205,13 @@ def main():
     """
 
     # Set up any hardcoded variables
-    base_dir = "/home/users/benhutch/skill-maps-processed-data"
+    base_dir = "/gws/nopw/j04/canari/users/benhutch/skill-maps-processed-data"
 
     base_dir_historical = base_dir + "/historical"
 
-    plots_dir = "/home/users/benhutch/skill-maps-processed-data/plots"
+    plots_dir = "/gws/nopw/j04/canari/users/benhutch/skill-maps-processed-data/plots"
 
-    output_dir = "/home/users/benhutch/skill-maps-processed-data/output"
+    output_dir = "/gws/nopw/j04/canari/users/benhutch/skill-maps-processed-data/output"
 
     save_dir = "/gws/nopw/j04/canari/users/benhutch/bootstrapping"
 
@@ -1613,23 +1613,26 @@ def main():
             else:
                 model_season = season
 
-            # Load and process the historical data
-            hist_data = p1_fnc.load_and_process_hist_data(
-                base_dir_historical,
-                hist_models,
-                variable,
-                region,
-                forecast_range,
-                season,
-            )
+            # # Load and process the historical data
+            # hist_data = p1_fnc.load_and_process_hist_data(
+            #     base_dir_historical,
+            #     hist_models,
+            #     variable,
+            #     region,
+            #     forecast_range,
+            #     season,
+            # )
 
-            # Set up the constrained historical data (contain only the common years)
-            constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
+            # # Set up the constrained historical data (contain only the common years)
+            # constrained_hist_data = fnc.constrain_years(hist_data, hist_models)
 
             # Load and process the model data
             dcpp_data = p1_fnc.load_and_process_dcpp_data(
                 base_dir, dcpp_models, variable, region, forecast_range, model_season
             )
+
+            # set hist data to None
+            hist_data = None
 
             # Now we process the data to align the time periods and convert to array
             fcst1, fcst2, obs_array, common_years = p1_fnc.align_and_convert_to_array(
