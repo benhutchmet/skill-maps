@@ -329,7 +329,7 @@ pacific_grid_plot_test = {"lon1": 180, "lon2": 360, "lat1": 10, "lat2": 90}
 yangtze_river_grid = {"lon1": 91, "lon2": 122, "lat1": 25, "lat2": 35}
 
 # Gridbox centred over south west china
-south_west_china_grid = {"lon1": 100, "lon2": 110, "lat1": 20, "lat2": 30}
+south_west_china_grid = {"lon1": 110, "lon2": 122, "lat1": 22, "lat2": 30}
 
 # Set up a grid centred over the Rocky Mountains
 rocky_mountain_grid = {"lon1": -120, "lon2": -90, "lat1": 30, "lat2": 50}
