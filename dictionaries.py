@@ -296,6 +296,23 @@ north_sea_kay = {
     "lat2": 59,
 }
 
+# test europe box
+test_europe_box = {
+    "lon1": -11,  # degrees east
+    "lon2": 30,
+    "lat1": 35,  # degrees north
+    "lat2": 70,
+}
+
+
+# set up the a new north atlantic gir
+europe_na_grid_box = {
+    "lon1": -50,  # degrees east
+    "lon2": 30,
+    "lat1": 30,  # degrees north
+    "lat2": 80,
+}
+
 # define the Norway grid
 norway_grid = {"lon1": 4, "lon2": 16, "lat1": 58, "lat2": 71}
 
@@ -308,6 +325,12 @@ pacific_grid_plot = {"lon1": -180, "lon2": 40, "lat1": 10, "lat2": 90}
 # Test pacific grid for the plot
 pacific_grid_plot_test = {"lon1": 180, "lon2": 360, "lat1": 10, "lat2": 90}
 
+# Set up a grid box centred around the yangtze river basin
+yangtze_river_grid = {"lon1": 91, "lon2": 122, "lat1": 25, "lat2": 35}
+
+# Gridbox centred over south west china
+south_west_china_grid = {"lon1": 100, "lon2": 110, "lat1": 20, "lat2": 30}
+
 # Set up a grid centred over the Rocky Mountains
 rocky_mountain_grid = {"lon1": -120, "lon2": -90, "lat1": 30, "lat2": 50}
 
@@ -317,12 +340,14 @@ china_grid_plot = {"lon1": 75, "lon2": 130, "lat1": 15, "lat2": 55}
 # Define a smaller gridbox within the bounds of china_grid_plot
 eastern_china_gridbox = {"lon1": 108, "lon2": 122, "lat1": 22, "lat2": 36}
 
+# Set up a grixbox for the south china sea
+south_china_sea_gridbox = {"lon1": 105, "lon2": 120, "lat1": 5, "lat2": 25}
+
 # Define the dimensions for another central europe grid for RSDS correlations
 central_europe_grid_rsds = {"lon1": 165, "lon2": 220, "lat1": 30, "lat2": 70}
 
 # Define a gribox for the SPNA region as in Smith et al. 2019
 spna_grid_smith = {"lon1": -60, "lon2": -10, "lat1": 50, "lat2": 65}
-
 
 # Define the dimensions for the gridbox for the N-S UK index
 # From thornton et al. 2019

@@ -9,7 +9,9 @@ import sys
 # Third-Party Imports
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from scipy.stats import pearsonr
 from scipy import signal
 from datetime import datetime
@@ -2187,6 +2189,15 @@ def plot_diff_variables(
     # Set up the figure
     fig = plt.figure(figsize=(figsize_x, figsize_y))
 
+    # if the len of bs_skill_maps.keys is 3
+    if len(bs_skill_maps.keys()) == 3:
+        print("Setting up the gridspec")
+        # Set up the gridspec
+        spec = gridspec.GridSpec(ncols=4, nrows=2, figure=fig)
+    elif len(bs_skill_maps.keys()) == 5:
+        # Set up the gridspec
+        spec = gridspec.GridSpec(ncols=4, nrows=3, figure=fig)
+
     # # Adjust the whitespace
     # fig.subplots_adjust(hspace=0.05, wspace=0.05)
 
@@ -2458,6 +2469,9 @@ def plot_diff_variables(
             # Include coastlines
             ax.coastlines()
 
+            # incldue borders here
+            ax.add_feature(cfeature.BORDERS, linestyle=':')
+
             # Set up the cf object
             cf = ax.contourf(
                 lons,
@@ -2604,6 +2618,9 @@ def plot_diff_variables(
 
             # Include coastlines
             ax.coastlines()
+
+            # plot borders here
+            ax.add_feature(cfeature.BORDERS, linestyle=':')
 
             # Set up the cf object
             cf = ax.contourf(
@@ -2793,14 +2810,47 @@ def plot_diff_variables(
                 corr1_p = corr1_p[lat1_idx_gb:lat2_idx_gb, lon1_idx_gb:lon2_idx_gb]
 
             print("Setting up axis 3rd/4th time this?")
-            # Set up the axes
-            ax = plt.subplot(nrows, 2, i + 1, projection=proj)
+            
+            if len(bs_skill_maps.keys()) not in [3, 5]:
+                # Set up the axes
+                ax = plt.subplot(nrows, 2, i + 1, projection=proj)
+            elif len(bs_skill_maps.keys()) == 3:
+                if i == 0:
+                    # Set up the axes
+                    ax = plt.subplot(spec[0, 1:3], projection=proj)
+                elif i == 1:
+                    # Set up the axes
+                    ax = plt.subplot(spec[1, 0:2], projection=proj)
+                elif i == 2:
+                    # Set up the axes
+                    ax = plt.subplot(spec[1, 2:4], projection=proj
+                    )
+                else:
+                    AssertionError("Too many keys in bs_skill_maps")
+            elif len(bs_skill_maps.keys()) == 5:
+                if i == 0:
+                    # Set up the axes
+                    ax = plt.subplot(spec[0, 1:3], projection=proj)
+                elif i == 1:
+                    # Set up the axes
+                    ax = plt.subplot(spec[1, 0:2], projection=proj)
+                elif i == 2:
+                    # Set up the axes
+                    ax = plt.subplot(spec[1, 2:4], projection=proj)
+                elif i == 3:
+                    # Set up the axes
+                    ax = plt.subplot(spec[2, 0:2], projection=proj)
+                elif i == 4:
+                    # Set up the axes
+                    ax = plt.subplot(spec[2, 2:4], projection=proj)
+                else:
+                    AssertionError("Too many keys in bs_skill_maps")
 
             # Include coastlines
             ax.coastlines()
 
             # # Add borders (?)
-            # ax.add_feature(cfeature.BORDERS)
+            ax.add_feature(cfeature.BORDERS)
 
             if ts_list is not None and "corr_diff" in corr_list:
                 # Set up the cf object
@@ -2858,7 +2908,7 @@ def plot_diff_variables(
                         start_year=1961,
                         end_year=2014,
                         lag=4,
-                        method="nao_matched",
+                        method="new_raw",
                         region="global",
                         variable=variable,
                         data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
@@ -2876,7 +2926,7 @@ def plot_diff_variables(
                         start_year=1961,
                         end_year=2014,
                         lag=4,
-                        method="nao_matched",
+                        method="new_raw",
                         region="global",
                         variable=variable,
                         data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
@@ -2888,7 +2938,7 @@ def plot_diff_variables(
                         start_year=1961,
                         end_year=2014,
                         lag=4,
-                        method="nao_matched",
+                        method="new_raw",
                         region="global",
                         variable=variable,
                         data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/"
@@ -2916,10 +2966,19 @@ def plot_diff_variables(
                     # Same with the p values
                     p_gridbox = skill_maps["corr1_p"][lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr]
 
-                    # constrain the members to the gridbox_corr
-                    fcst_ts_members = fcst_ts_members[
-                        :, :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
-                    ]
+                    # print the shape of cfst ts members
+                    print(f"fcst_ts_members.shape = {fcst_ts_members.shape}")
+
+                    if len(fcst_ts_members.shape) == 4:
+                        # Constrain the members to the gridbox_corr
+                        fcst_ts_members = fcst_ts_members[
+                            :, :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
+                        ]
+                    elif len(fcst_ts_members.shape) == 5:
+                        # Constrain the members to the gridbox_corr
+                        fcst_ts_members = fcst_ts_members[
+                            :, :, :, lat1_idx_corr:lat2_idx_corr, lon1_idx_corr:lon2_idx_corr
+                        ]
 
                     # Calculate the mean of both time series
                     fcst1_ts_mean = np.mean(fcst1_ts, axis=(1, 2))
@@ -2929,8 +2988,17 @@ def plot_diff_variables(
                     corr_gridbox_mean = np.mean(corr_gridbox, axis=(0, 1))
                     p_gridbox_mean = np.mean(p_gridbox, axis=(0, 1))
 
-                    # same for the fcst_ts_members
-                    fcst1_ts_members_mean = np.mean(fcst_ts_members, axis=(2, 3))
+                    # if the fcts_ts_members has 4 dimensions
+                    if len(fcst_ts_members.shape) == 4:
+                        # same for the fcst_ts_members
+                        fcst1_ts_members_mean = np.mean(fcst_ts_members, axis=(2, 3))
+                    elif len(fcst_ts_members.shape) == 5:
+                        # same for the fcst_ts_members
+                        fcst1_ts_members_mean = np.mean(fcst_ts_members, axis=(2, 3, 4))
+                    else:
+                        AssertionError(
+                            "fcst_ts_members does not have 4 or 5 dimensions, cannot calculate mean"
+                        )
 
                     # temporal resampling here
                     # compare p to pvalue averaged over domain
@@ -2938,7 +3006,8 @@ def plot_diff_variables(
                     # set up the ntimes
                     n_times = len(fcst1_ts_mean)
 
-
+                    # print the values of fcst1
+                    print(f"fcst1_ts_mean = {fcst1_ts_members_mean}")
 
                     # print the shape of the fcst1_ts_mean
                     print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
@@ -2986,8 +3055,19 @@ def plot_diff_variables(
                     # print the shape of the fcst1_ts_members_mean
                     print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
 
+                    print(f"values of fcst1_ts_members_mean = {fcst1_ts_members_mean}")
+
                     # print the nens shape
                     print(f"nens = {nens}")
+
+                    # # if the first dimension is less than the second dimension
+                    # # then flip the axes
+                    # if fcst1_ts_members_mean.shape[0] < fcst1_ts_members_mean.shape[1]:
+                    #     # print the shape of the fcst1_ts_members_mean
+                    #     print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
+                    #     print("Flipping the axes of fcst1_ts_members_mean")
+                    #     # flip the axes of the fcst_ts_members
+                    #     fcst1_ts_members_mean = np.swapaxes(fcst1_ts_members_mean, 0, 1)
 
                     # loop over the bootstraps
                     for iboot in tqdm(np.arange(nboot)):
@@ -3030,6 +3110,19 @@ def plot_diff_variables(
 
                             # loop over the block indices
                             for iblock in index_block:
+
+                                # # print the value of fcst1_ts_members_mean
+                                # print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
+                                # # print the value of iblock
+                                # print(f"iblock = {iblock}")
+                                # # print the value of index_ens_this
+                                # print(f"index_ens_this = {index_ens_this}")
+
+                                # print(f"values of fcst1_ts_members_mean = {fcst1_ts_members_mean}")
+
+                                # # print the vlues when subset to the iblock and index ens this
+                                # print(f"values of fcst1_ts_members_mean[iblock, index_ens_this] = {fcst1_ts_members_mean[iblock, index_ens_this]}")
+                                
                                 # Assign the values to the arrays
                                 fcst1_ts_boot[itime] = fcst1_ts_mean[iblock]
                                 obs_ts_boot[itime] = obs_ts_mean[iblock]
@@ -3044,11 +3137,41 @@ def plot_diff_variables(
 
                         # Calculate the correlation
                         r_arr[iboot] = pearsonr(fcst1_ts_boot, obs_ts_boot)[0]
-                        r_arr_members[iboot] = pearsonr(np.mean(fcst1_ts_members_boot, axis=0), obs_ts_boot)[0]
 
+                        # # print the shape of the fcst1_ts_members_boot
+                        # print(f"fcst1_ts_members_boot.shape = {fcst1_ts_members_boot.shape}")
+
+                        # # print the shape of the obs_ts_boot
+                        # print(f"obs_ts_boot.shape = {obs_ts_boot.shape}")
+
+                        # # print the values of the fcst1_ts_members_boot
+                        # print(f"fcst1_ts_members_boot = {fcst1_ts_members_boot}")
+
+                        # # print the values of the obs_ts_boot
+                        # print(f"obs_ts_boot = {obs_ts_boot}")
+
+                        # sys.exit()
+
+                        # Compare the dimensions directly to determine which axis to average over
+                        # To ensure that we average over members
+                        if fcst1_ts_members_boot.shape[0] > fcst1_ts_members_boot.shape[1]:
+                            # print("Averaging over members axis 0")
+                            # print(f"fcst1_ts_members_boot.shape = {fcst1_ts_members_boot.shape}")
+                            # print(f"obs_ts_boot.shape = {obs_ts_boot.shape}")
+                            r_arr_members[iboot] = pearsonr(np.nanmean(fcst1_ts_members_boot, axis=0), obs_ts_boot)[0]
+                        else:
+                            # print("Averaging over members axis 1")
+                            # # print the shape of the fcst1_ts_members_boot
+                            # print(f"fcst1_ts_members_boot.shape = {fcst1_ts_members_boot.shape}")
+                            # print(f"obs_ts_boot.shape = {obs_ts_boot.shape}")
+                            r_arr_members[iboot] = pearsonr(np.nanmean(fcst1_ts_members_boot, axis=1), obs_ts_boot)[0]
+                    
                     # Set up the corr
                     r = r_arr[0]
                     r_members = r_arr_members[0]
+
+                    # print the r and r_members
+                    print(f"r = {r}, r_arr_members = {r_arr_members}")
 
                     count_vals_r1 = np.sum(
                         i < 0.0 for i in r_arr
@@ -3486,7 +3609,7 @@ def plot_diff_variables(
                 var_name = "Solar irradiance"
             elif key == "ua":
                 # Set the variable
-                var_name = "850U"
+                var_name = "U850"
             else:
                 # Print the key
                 print(f"key = {key}")
@@ -3617,10 +3740,10 @@ def plot_diff_variables(
 
     # If nrows is 3 and len(bs_skill_maps.keys()) is 5
     # then remove the 5th axis
-    if nrows == 3 and len(bs_skill_maps.keys()) == 5:
-        print("Removing the 5th axis...")
-        # Remove the 5th axis
-        axs[2, 1].remove()
+    # if nrows == 3 and len(bs_skill_maps.keys()) == 5:
+    #     print("Removing the 5th axis...")
+    #     # Remove the 5th axis
+    #     axs[2, 1].remove()
 
     # print the fig
     print("fig: ", fig)
@@ -3649,7 +3772,7 @@ def plot_diff_variables(
     # set the cbar labels
     cbar.set_ticks(ticks)
     # Set the label for the colorbar
-    cbar.set_label("correlation coefficient", fontsize=10)
+    cbar.set_label("correlation coefficient", fontsize=12)
 
     # Set up the path for saving the figure
     plots_dir = "/home/users/benhutch/skill-maps/plots"
@@ -3754,7 +3877,7 @@ def show_gridbox(
         va="bottom",
         ha="left",
         bbox=dict(facecolor="white", alpha=0.5),
-        fontsize=8,
+        fontsize=14,
     )
 
     # Show the figure
