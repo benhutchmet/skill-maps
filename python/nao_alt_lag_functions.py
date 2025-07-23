@@ -197,10 +197,13 @@ def load_data(
 
     else:
         # Set up the file path
-        filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}*.npy"
+        filename = f"{variable}_{season}_{region}_{start_year}_{end_year}_{forecast_range}_{lag}_*.npy"
 
         # find files matching the filename
         files = glob.glob(data_dir + "/" + filename)
+
+        # print the files foud for raw data
+        print("Files found for raw data:", files)
 
         # Assert that files is not empty
         assert files, f"No files found for {filename}"

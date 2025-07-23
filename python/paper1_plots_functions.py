@@ -2920,6 +2920,8 @@ def plot_diff_variables(
                     # # limit to the first 47 members
                     # fcst_ts_members = fcst_ts_members[3:, :47, :, :]
                 elif variable == "psl":
+                    print("Using psl, so using the original method_load")
+                    print(f"method load: {method_load}")
                     # Load the model data
                     fcst_ts_members = nal_fnc.load_data(
                         season=season,
@@ -2930,7 +2932,7 @@ def plot_diff_variables(
                         method=method_load,
                         region="global",
                         variable=variable,
-                        data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
+                        data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data"
                     )
                 else:
                     fcst_ts_members = nal_fnc.load_data(
@@ -3235,13 +3237,22 @@ def plot_diff_variables(
                 else:
                     print("Bootstrapping where variable is psl")
 
-                    # Constrain fcst ts members to gridbox corr N
-                    fcst_ts_members_n = fcst_ts_members[
-                        :, :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
-                    ]
-                    fcst_ts_members_s = fcst_ts_members[
-                        :, :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
-                    ]
+                    if len(fcst_ts_members.shape) == 4:
+                        # Constrain fcst ts members to gridbox corr N
+                        fcst_ts_members_n = fcst_ts_members[
+                            :, :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+                        ]
+                        fcst_ts_members_s = fcst_ts_members[
+                            :, :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+                        ]
+                    elif len(fcst_ts_members.shape) == 5:
+                        # Constrain fcst ts members to gridbox corr N
+                        fcst_ts_members_n = fcst_ts_members[
+                            :, :, :, lat1_idx_corr_n:lat2_idx_corr_n, lon1_idx_corr_n:lon2_idx_corr_n
+                        ]
+                        fcst_ts_members_s = fcst_ts_members[
+                            :, :, :, lat1_idx_corr_s:lat2_idx_corr_s, lon1_idx_corr_s:lon2_idx_corr_s
+                        ]
 
                     # Same for the observations
                     obs_ts_n = obs_ts[
@@ -3267,9 +3278,14 @@ def plot_diff_variables(
                     obs_ts_mean_n = np.mean(obs_ts_n, axis=(1, 2))
                     obs_ts_mean_s = np.mean(obs_ts_s, axis=(1, 2))
 
-                    # Calculate the correlation between the time series members
-                    fcst_ts_members_mean_n = np.mean(fcst_ts_members_n, axis=(2, 3))
-                    fcst_ts_members_mean_s = np.mean(fcst_ts_members_s, axis=(2, 3))
+                    if len(fcst_ts_members_n.shape) == 4:
+                        # Calculate the mean for the area averages
+                        fcst_ts_members_mean_n = np.mean(fcst_ts_members_n, axis=(2, 3))
+                        fcst_ts_members_mean_s = np.mean(fcst_ts_members_s, axis=(2, 3))
+                    elif len(fcst_ts_members_n.shape) == 5:
+                        # Calculate the mean for the area averages
+                        fcst_ts_members_mean_n = np.mean(fcst_ts_members_n, axis=(2, 3, 4))
+                        fcst_ts_members_mean_s = np.mean(fcst_ts_members_s, axis=(2, 3, 4))
 
                     # Set up the ntimes
                     n_times = len(fcst1_ts_mean_n)
@@ -3349,8 +3365,6 @@ def plot_diff_variables(
                     print(f"obs_ts_mean_n values = {obs_ts_mean_n}")
                     print(f"obs_ts_mean_s values = {obs_ts_mean_s}")
 
-
-
                     # print the nens shape
                     print(f"nens = {nens}")
 
@@ -3414,7 +3428,6 @@ def plot_diff_variables(
                                 # Increment itime
                                 itime = itime + 1
 
-                        
                         # assert that there are non nans in either of the arrays
                         # assert not np.isnan(fcst1_ts_n_boot).any(), "values in nao_boot are nan."
                         # assert not np.isnan(obs_ts_n_boot).any(), "values in corr_var_ts_boot are nan."

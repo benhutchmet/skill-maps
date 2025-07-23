@@ -289,6 +289,9 @@ central_europe_grid = {"lon1": -10, "lon2": 25, "lat1": 36, "lat2": 65}
 # define the uk grid from Clarke et al. 2017
 uk_grid = {"lon1": -10, "lon2": 3, "lat1": 50, "lat2": 60}
 
+# define a plotting grid which covers asia from the UK to the pacific 
+asia_grid_plot = {"lon1": -10, "lon2": 180, "lat1": 10, "lat2": 70}
+
 north_sea_kay = {
     "lon1": 1,  # degrees east
     "lon2": 7,
@@ -327,6 +330,11 @@ pacific_grid_plot_test = {"lon1": 180, "lon2": 360, "lat1": 10, "lat2": 90}
 
 # Set up a grid box centred around the yangtze river basin
 yangtze_river_grid = {"lon1": 91, "lon2": 122, "lat1": 25, "lat2": 35}
+
+# Gridbox for the Yangtze River Basin
+lockwood_mslp_dipole_n = {"lon1": 108, "lon2": 130, "lat1": 30, "lat2": 50}
+# Gridbox for the Yellow River Basin
+lockwood_mslp_dipole_s = {"lon1": 78, "lon2": 100, "lat1": 28, "lat2": 38}
 
 # Gridbox centred over south west china
 south_west_china_grid = {"lon1": 110, "lon2": 122, "lat1": 22, "lat2": 30}
