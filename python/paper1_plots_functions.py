@@ -2058,6 +2058,7 @@ def plot_diff_variables(
     bs_skill_maps: dict,
     season: str,
     forecast_range: str,
+    method_load: str,
     methods: list = None,
     figsize_x: int = 10,
     figsize_y: int = 12,
@@ -2908,7 +2909,7 @@ def plot_diff_variables(
                         start_year=1961,
                         end_year=2014,
                         lag=4,
-                        method="new_raw",
+                        method=method_load,
                         region="global",
                         variable=variable,
                         data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
@@ -2926,7 +2927,7 @@ def plot_diff_variables(
                         start_year=1961,
                         end_year=2014,
                         lag=4,
-                        method="new_raw",
+                        method=method_load,
                         region="global",
                         variable=variable,
                         data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/test-sfcWind"
@@ -2938,7 +2939,7 @@ def plot_diff_variables(
                         start_year=1961,
                         end_year=2014,
                         lag=4,
-                        method="new_raw",
+                        method=method_load,
                         region="global",
                         variable=variable,
                         data_dir="/gws/nopw/j04/canari/users/benhutch/alternate-lag-processed-data/"
@@ -3112,7 +3113,7 @@ def plot_diff_variables(
                             for iblock in index_block:
 
                                 # # print the value of fcst1_ts_members_mean
-                                # print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
+                                print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
                                 # # print the value of iblock
                                 # print(f"iblock = {iblock}")
                                 # # print the value of index_ens_this
@@ -3154,24 +3155,42 @@ def plot_diff_variables(
 
                         # Compare the dimensions directly to determine which axis to average over
                         # To ensure that we average over members
-                        if fcst1_ts_members_boot.shape[0] > fcst1_ts_members_boot.shape[1]:
+                        if method_load == "nao_matched":
+                            # # print("Averaging over members axis 0")
+                            # print(f"fcst1_ts_members_boot.shape = {fcst1_ts_members_boot.shape}")
+                            # print(f"obs_ts_boot.shape = {obs_ts_boot.shape}")
+                            
+                            # find the axes which has len 20
+                            if fcst1_ts_members_boot.shape[0] == 20:
+                                r_arr_members[iboot] = pearsonr(
+                                    np.nanmean(fcst1_ts_members_boot, axis=0), obs_ts_boot
+                                )[0]
+                            elif fcst1_ts_members_boot.shape[1] == 20:
+                                r_arr_members[iboot] = pearsonr(
+                                    np.nanmean(fcst1_ts_members_boot, axis=1), obs_ts_boot
+                                )[0]
+                            else:
+                                AssertionError(
+                                    "fcst1_ts_members_boot does not have 20 members, cannot calculate mean"
+                                )
+                        elif fcst1_ts_members_boot.shape[0] > fcst1_ts_members_boot.shape[1]:
                             # print("Averaging over members axis 0")
                             # print(f"fcst1_ts_members_boot.shape = {fcst1_ts_members_boot.shape}")
                             # print(f"obs_ts_boot.shape = {obs_ts_boot.shape}")
                             r_arr_members[iboot] = pearsonr(np.nanmean(fcst1_ts_members_boot, axis=0), obs_ts_boot)[0]
-                        else:
+                        elif fcst1_ts_members_boot.shape[0] < fcst1_ts_members_boot.shape[1]:
                             # print("Averaging over members axis 1")
                             # # print the shape of the fcst1_ts_members_boot
                             # print(f"fcst1_ts_members_boot.shape = {fcst1_ts_members_boot.shape}")
                             # print(f"obs_ts_boot.shape = {obs_ts_boot.shape}")
                             r_arr_members[iboot] = pearsonr(np.nanmean(fcst1_ts_members_boot, axis=1), obs_ts_boot)[0]
-                    
+                        else:
+                            AssertionError(
+                                "fcst1_ts_members_boot does not have 2 dimensions, cannot calculate mean"
+                            )
                     # Set up the corr
                     r = r_arr[0]
                     r_members = r_arr_members[0]
-
-                    # print the r and r_members
-                    print(f"r = {r}, r_arr_members = {r_arr_members}")
 
                     count_vals_r1 = np.sum(
                         i < 0.0 for i in r_arr
