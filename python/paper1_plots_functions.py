@@ -3113,7 +3113,7 @@ def plot_diff_variables(
                             for iblock in index_block:
 
                                 # # print the value of fcst1_ts_members_mean
-                                print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
+                                # print(f"fcst1_ts_members_mean.shape = {fcst1_ts_members_mean.shape}")
                                 # # print the value of iblock
                                 # print(f"iblock = {iblock}")
                                 # # print the value of index_ens_this
